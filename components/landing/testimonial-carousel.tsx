@@ -79,6 +79,8 @@ export function TestimonialCarousel() {
                   <Image
                     src={testimonials[current].image || "/placeholder.svg"}
                     alt={testimonials[current].author}
+                    width={80}
+                    height={80}
                     className="h-full w-full object-cover"
                   />
                 </div>

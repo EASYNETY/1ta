@@ -88,7 +88,8 @@ export function IntegrationLogos() {
             transition: { duration: MotionTokens.duration.fast },
           }}
         >
-          <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" />
+          <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} 
+          width={120} height={60} className="max-h-full max-w-full" />
         </motion.div>
       ))}
     </motion.div>
