@@ -7,9 +7,6 @@ import {
     MotionProps,
     useReducedMotion,
     TargetAndTransition,
-    // It's often better to be explicit than rely solely on MotionProps intersection
-    // when separating props for spreading. Let's import common motion props types.
-    HTMLMotionProps,
 } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { MotionTokens } from '@/lib/motion.tokens';

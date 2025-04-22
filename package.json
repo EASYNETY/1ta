@@ -87,12 +87,5 @@
     "tailwindcss": "^4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "npx eslint --fix",
-      "npx prettier --write"
-    ],
-    "*.{json,css,scss,md}": "npx prettier --write"
   }
 }

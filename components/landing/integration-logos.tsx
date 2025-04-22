@@ -4,6 +4,7 @@ import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import { useMobile } from "@/hooks/use-mobile"
 import { MotionTokens } from "@/lib/motion.tokens"
+import Image from "next/image"
 
 const logos = [
   { name: "Google Classroom", logo: "/placeholder.svg?height=60&width=120" },
@@ -61,7 +62,7 @@ export function IntegrationLogos() {
               key={index}
               className="flex-shrink-0 h-16 w-32 bg-background rounded-lg flex items-center justify-center p-4"
             >
-              <img src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" />
+              <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" />
             </div>
           ))}
         </motion.div>
@@ -87,7 +88,7 @@ export function IntegrationLogos() {
             transition: { duration: MotionTokens.duration.fast },
           }}
         >
-          <img src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" />
+          <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" />
         </motion.div>
       ))}
     </motion.div>

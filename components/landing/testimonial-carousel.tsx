@@ -7,6 +7,7 @@ import { CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { MotionTokens } from "@/lib/motion.tokens"
+import Image from "next/image"
 
 const testimonials = [
   {
@@ -72,10 +73,10 @@ export function TestimonialCarousel() {
           <DyraneCard className="overflow-hidden">
             <CardContent className="p-8 md:p-12">
               <Quote className="h-12 w-12 text-primary/20 mb-6" />
-              <blockquote className="text-xl md:text-2xl mb-6 italic">"{testimonials[current].quote}"</blockquote>
+              <blockquote className="text-xl md:text-2xl mb-6 italic">&quot;{testimonials[current].quote}&quot;</blockquote>
               <div className="flex items-center">
                 <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
-                  <img
+                  <Image
                     src={testimonials[current].image || "/placeholder.svg"}
                     alt={testimonials[current].author}
                     className="h-full w-full object-cover"

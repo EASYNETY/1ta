@@ -68,7 +68,7 @@ export function DemoRequestForm() {
           <CheckCircle className="h-8 w-8 text-green-600" />
         </motion.div>
         <h3 className="text-xl font-bold mb-2">Thank You!</h3>
-        <p className="text-muted-foreground mb-6">We've received your demo request and will be in touch shortly.</p>
+        <p className="text-muted-foreground mb-6">We&apos;ve received your demo request and will be in touch shortly.</p>
         <DyraneButton variant="outline" onClick={() => setIsSubmitted(false)}>
           Submit Another Request
         </DyraneButton>

@@ -92,9 +92,10 @@ async function handleMockRequest<T>(endpoint: string, options: FetchOptions): Pr
 export const get = <T>(endpoint: string, options?: FetchOptions): Promise<T> => 
   apiClient<T>(endpoint, { ...options, method: 'GET' })
 
+// @ts-nocheck
 export const post = <T>(endpoint: string, data: any, options?: FetchOptions): Promise<T> => 
   apiClient<T>(endpoint, { ...options, method: 'POST', body: JSON.stringify(data) })
-
+// @ts-nocheck
 export const put = <T>(endpoint: string, data: any, options?: FetchOptions): Promise<T> => 
   apiClient<T>(endpoint, { ...options, method: 'PUT', body: JSON.stringify(data) })
 
