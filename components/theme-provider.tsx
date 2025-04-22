@@ -6,7 +6,8 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import type { ThemeProviderProps } from "next-themes";
 import { Moon, Sun } from "lucide-react"; // Example icons
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button"; // Assuming Shadcn Button
+import { DyraneButton } from "./dyrane-ui/dyrane-button";
+
 
 /**
  * ThemeProvider Component
@@ -34,23 +35,23 @@ import { Button } from "@/components/ui/button"; // Assuming Shadcn Button
  * @returns {JSX.Element} - The rendered ThemeProvider component.
  */
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  // Render the actual provider from the library, passing down children and all other props
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+    // Render the actual provider from the library, passing down children and all other props
+    return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 }
 
 export function ThemeToggle() {
-  const { setTheme, theme } = useTheme();
+    const { setTheme, theme } = useTheme();
 
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      aria-label="Toggle theme"
-    >
-      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  );
+    return (
+        <DyraneButton
+            variant="ghost"
+            size="icon"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            aria-label="Toggle theme"
+        >
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Toggle theme</span>
+        </DyraneButton>
+    );
 }

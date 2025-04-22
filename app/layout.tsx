@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/store/providers";
@@ -15,6 +15,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// --- VIEWPORT EXPORT (Add this if it's missing) ---
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F9FAFB' }, // Example light background
+    { media: '(prefers-color-scheme: dark)', color: '#1F2937' },  // Example dark background (adjust colors)
+  ],
+  width: 'device-width',
+  initialScale: 1,
+};
+
 // Define metadata - Next.js handles injecting the correct tags
 export const metadata: Metadata = {
   // --- Basic Metadata ---
@@ -26,11 +36,6 @@ export const metadata: Metadata = {
 
   // --- PWA / Theme Metadata ---
   manifest: "/manifest.json",
-  themeColor: [
-    // Provide light/dark theme colors
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" }, // Or your light theme bar color
-    { media: "(prefers-color-scheme: dark)", color: "#111827" }, // Example dark theme bar color - ADJUST
-  ],
 
   // --- Icons ---
   icons: {
