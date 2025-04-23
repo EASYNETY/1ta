@@ -7,54 +7,112 @@ import {
     MotionProps,
     useReducedMotion,
     TargetAndTransition,
+    HTMLMotionProps, // Import HTMLMotionProps for type safety on motion.div
 } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { MotionTokens } from '@/lib/motion.tokens';
 
-// Re-exporting parts of Shadcn Card
-import {
-    CardHeader as ShadcnCardHeader,
-    CardFooter as ShadcnCardFooter,
-    CardTitle as ShadcnCardTitle,
-    CardDescription as ShadcnCardDescription,
-    CardContent as ShadcnCardContent,
-} from '@/components/ui/card';
+// --- Define your BASE Card components first ---
+// (Copied from your provided code)
+function BaseCard({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card"
+            className={cn(
+                "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm", // Keep your specific base styles
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function BaseCardHeader({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-header"
+            className={cn(
+                "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function BaseCardTitle({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-title"
+            className={cn("leading-none font-semibold", className)}
+            {...props}
+        />
+    );
+}
+
+function BaseCardDescription({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-description"
+            className={cn("text-muted-foreground text-sm", className)}
+            {...props}
+        />
+    );
+}
+
+function BaseCardAction({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-action"
+            className={cn(
+                "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
+function BaseCardContent({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-content"
+            className={cn("px-6", className)}
+            {...props}
+        />
+    );
+}
+
+function BaseCardFooter({ className, ...props }: React.ComponentProps<"div">) {
+    return (
+        <div
+            data-slot="card-footer"
+            className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+            {...props}
+        />
+    );
+}
+// --- End of Base Card components ---
+
 
 // --- DyraneCard Props ---
-// Combine HTML div attributes with SPECIFIC motion props we want to expose/handle
-// Avoid spreading the entire MotionProps directly if it causes issues.
-type DyraneCardProps = Omit<React.HTMLAttributes<HTMLDivElement>, keyof MotionProps> & // Start with HTML Atts, remove potential overlaps
-    // Explicitly add motion props we might want to allow overriding or use internally
-    Pick<MotionProps,
-        | 'initial'
-        | 'animate'
-        | 'exit'
-        | 'whileHover'
-        | 'whileTap'
-        | 'whileFocus'
-        | 'variants'
-        | 'transition'
-        | 'layout'
-    // Add any other specific motion props you anticipate needing
-    > &
+// Combine HTML attributes for the WRAPPER div with SPECIFIC motion props
+type DyraneCardProps = Omit<HTMLMotionProps<'div'>, 'children'> & // Use HTMLMotionProps for the wrapper, omit children as we handle it
 { // Add our custom props
     overlayClassName?: string;
     overlayHeight?: string;
-    children?: React.ReactNode;
+    children?: React.ReactNode; // Children to be passed INSIDE the BaseCard
+    cardClassName?: string; // Allow passing class specifically to the INNER BaseCard
 };
 
 
 // --- DyraneCard Implementation ---
+// This component now acts as a motion-enabled WRAPPER around your BaseCard
 const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
     (
         {
-            // HTML Attributes (will be in `htmlProps` via rest)
-            className,
-            children,
-            // Custom Props
-            overlayClassName = 'bg-primary/10 dark:bg-primary/20 backdrop-blur-sm',
-            overlayHeight = '65%',
-            // Explicitly Destructure Known Motion Props
+            // Props for the OUTER motion.div wrapper
+            className, // Class for the outer wrapper
             initial,
             animate,
             exit,
@@ -64,10 +122,16 @@ const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
             variants: variantsProp,
             transition: transitionProp,
             layout,
-            // Capture the *rest* of the props, which should now primarily be valid HTML attributes
-            ...htmlProps
+            // Custom Props
+            overlayClassName = 'bg-primary/10 dark:bg-primary/20 backdrop-blur-sm',
+            overlayHeight = '65%',
+            // Props specifically for the INNER BaseCard
+            cardClassName,
+            children, // Content to go inside BaseCard
+            // Capture the rest of the props intended for the outer motion.div
+            ...wrapperProps
         },
-        ref
+        ref // This ref applies to the OUTER motion.div wrapper
     ) => {
         const shouldReduceMotion = useReducedMotion();
 
@@ -105,61 +169,71 @@ const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
         };
 
         return (
-            // Outer motion.div
+            // Outer motion.div wrapper - Applies motion and contains overlay
             <motion.div
-                className={cn(
-                    'relative rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden group',
-                    className
-                )}
-                ref={ref}
-                // Pass specific motion props explicitly
-                initial={initial ?? "initial"} // Default to "initial" variant state
+                // Apply specific motion props to the wrapper
+                initial={initial ?? "initial"}
                 animate={animate}
                 exit={exit}
                 whileHover={cardHoverEffect}
                 whileTap={whileTap}
                 whileFocus={whileFocus}
-                variants={variantsProp} // Pass variants if provided
-                transition={cardTransition} // Use combined card transition
+                variants={variantsProp}
+                transition={cardTransition}
                 layout={layout}
-                // Spread ONLY the remaining props, assumed to be valid HTML attributes
-                {...htmlProps}
+                // Base styles for the wrapper: relative, overflow needed for overlay
+                className={cn(
+                    'relative overflow-hidden group rounded-xl', // Match rounding of BaseCard, essential for clipping overlay
+                    className // Allow custom classes for the wrapper
+                )}
+                ref={ref} // Ref applies to this outer wrapper
+                {...wrapperProps} // Pass remaining valid motion/HTML attributes to the wrapper
             >
-                {/* The Gliding Overlay */}
+                {/* The Gliding Overlay - Sits inside wrapper, behind BaseCard */}
                 <motion.div
                     className={cn(
-                        'absolute bottom-0 left-0 w-full -z-0 pointer-events-none',
+                        'absolute bottom-0 left-0 w-full -z-10 pointer-events-none', // Use z-index -10 to be behind BaseCard
                         overlayClassName
                     )}
                     style={{ height: overlayHeight }}
-                    variants={overlayVariants} // Animate based on parent state via variants
+                    variants={overlayVariants}
                     transition={overlayTransition}
-                // Inherit initial/animate state from parent via variants "initial"
-                // No need for separate whileHover here; it reacts to parent
+                // Inherits animation trigger from parent's hover state
                 />
 
-                {/* Card content */}
-                <div className="relative z-10">
-                    {children}
-                </div>
+                {/* RENDER YOUR BASE CARD HERE */}
+                {/* It sits visually on top of the overlay */}
+                <BaseCard
+                    className={cn(
+                        "relative z-0", // Ensure BaseCard is above the overlay's z-index
+                        cardClassName // Allow passing specific classes to BaseCard
+                    )}
+                // Don't pass motion props here, they belong on the wrapper
+                >
+                    {children} {/* Render the children passed to DyraneCard */}
+                </BaseCard>
             </motion.div>
         );
     }
 );
 DyraneCard.displayName = 'DyraneCard';
 
-// --- Re-exporting Shadcn Card Parts ---
-const DyraneCardHeader = ShadcnCardHeader;
-const DyraneCardFooter = ShadcnCardFooter;
-const DyraneCardTitle = ShadcnCardTitle;
-const DyraneCardDescription = ShadcnCardDescription;
-const DyraneCardContent = ShadcnCardContent;
+// --- Re-export your BASE Card Parts as DyraneCard Parts ---
+// This provides the familiar API (DyraneCard.Header, etc.)
+const DyraneCardHeader = BaseCardHeader;
+const DyraneCardFooter = BaseCardFooter;
+const DyraneCardTitle = BaseCardTitle;
+const DyraneCardAction = BaseCardAction;
+const DyraneCardDescription = BaseCardDescription;
+const DyraneCardContent = BaseCardContent;
 
+// Export DyraneCard and its parts
 export {
     DyraneCard,
     DyraneCardHeader,
     DyraneCardFooter,
     DyraneCardTitle,
+    DyraneCardAction,
     DyraneCardDescription,
     DyraneCardContent,
 };

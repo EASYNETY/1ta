@@ -10,8 +10,6 @@ import {
     NavigationMenuList,
     NavigationMenuItem,
 } from "@/components/ui/navigation-menu"; // Assuming Shadcn component
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; // Assuming Shadcn component
-import { Button } from "@/components/ui/button"; // Assuming Shadcn component
 import {
     Sheet,
     SheetContent,
@@ -20,7 +18,7 @@ import {
     SheetHeader, // Import SheetHeader
     SheetTitle,  // Import SheetTitle
 } from "@/components/ui/sheet"; // Import Sheet components
-import { Sun, Moon, Menu } from "lucide-react"; // Import Menu icon
+import { AlignRight, Menu } from "lucide-react"; // Import Menu icon
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils"; // Import cn utility
 import { useScrollPosition } from "@/hooks/use-scroll-position"; // Import the custom hook
@@ -131,8 +129,9 @@ export default function NavBar() {
                     {/* Mobile Menu Trigger */}
                     <Sheet>
                         <SheetTrigger asChild>
-                            <DyraneButton variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation menu">
-                                <Menu className="h-5 w-5" />
+                            <DyraneButton variant="ghost" size="icon" className="lg:hidden group" aria-label="Open navigation menu">
+                                <AlignRight className="h-5 w-5 flex group-hover:hidden" />
+                                <Menu className="h-5 w-5 hidden group-hover:flex" />
                             </DyraneButton>
                         </SheetTrigger>
                         <SheetContent
