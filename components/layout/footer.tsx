@@ -69,7 +69,7 @@ export function Footer() {
                             {mounted && (
                                 <Image
                                     src={currentTheme === 'dark' ? '/logo_dark.png' : '/logo.png'}
-                                    alt="SmartEdu Logo"
+                                    alt="1techacademy Logo"
                                     className="h-6 w-auto" // Same as NavBar
                                     priority={false} // Priority usually for above-the-fold images
                                     width={80}
@@ -123,7 +123,7 @@ export function Footer() {
                 {/* Bottom section: Copyright, Language */}
                 <div className="border-t border-border/40 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className={cn('text-xs', mutedTextColor)}> {/* Slightly smaller text */}
-                        © {new Date().getFullYear()} SmartEdu by EASYNET TELSURVE CO. All rights reserved.
+                        © {new Date().getFullYear()} 1techacademy by EASYNET TELSURVE CO. All rights reserved.
                     </p>
                     {/* Optional: Language switcher or other links */}
                     <div className="mt-4 md:mt-0">

@@ -1,6 +1,6 @@
 {
-  "name": "SmartEdu Platform",
-  "short_name": "SmartEdu",
+  "name": "1techacademy Platform",
+  "short_name": "1techacademy",
   "description": "A modern platform for online learning and course management.",
   "start_url": "/",
   "display": "standalone",

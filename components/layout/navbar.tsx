@@ -67,7 +67,7 @@ export default function NavBar() {
                     {mounted && (
                         <Image
                             src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
-                            alt="SmartEdu Logo"
+                            alt="1techacademy Logo"
                             className="h-6 w-auto"
                             priority
                             width={80}
@@ -149,7 +149,7 @@ export default function NavBar() {
                                         {mounted && (
                                             <Image
                                                 src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
-                                                alt="SmartEdu Logo"
+                                                alt="1techacademy Logo"
                                                 className="h-6 w-auto"
                                                 priority
                                                 width={80}

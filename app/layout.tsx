@@ -29,8 +29,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   // --- Basic Metadata ---
   title: {
-    default: "SmartEdu Platform", // Default title for layout
-    template: "%s | SmartEdu", // Template for nested pages (e.g., "Dashboard | SmartEdu")
+    default: "1techacademy Platform", // Default title for layout
+    template: "%s | 1techacademy", // Template for nested pages (e.g., "Dashboard | 1techacademy")
   },
   description: "A modern platform for online learning and course management.",
 
@@ -51,13 +51,13 @@ export const metadata: Metadata = {
 
   // --- Optional: Open Graph / Twitter for Social Sharing ---
   // openGraph: {
-  //   title: 'SmartEdu Platform',
+  //   title: '1techacademy Platform',
   //   description: 'A modern platform for online learning...',
-  //   url: 'https://your-smartedu-url.com', // Your production URL
-  //   siteName: 'SmartEdu',
+  //   url: 'https://your-1techacademy-url.com', // Your production URL
+  //   siteName: '1techacademy',
   //   images: [
   //     {
-  //       url: 'https://your-smartedu-url.com/og-image.png', // Path to your OG image
+  //       url: 'https://your-1techacademy-url.com/og-image.png', // Path to your OG image
   //       width: 1200,
   //       height: 630,
   //     },
@@ -67,9 +67,9 @@ export const metadata: Metadata = {
   // },
   // twitter: {
   //   card: 'summary_large_image',
-  //   title: 'SmartEdu Platform',
+  //   title: '1techacademy Platform',
   //   description: 'A modern platform for online learning...',
-  //   images: ['https://your-smartedu-url.com/twitter-image.png'], // Path to your Twitter image
+  //   images: ['https://your-1techacademy-url.com/twitter-image.png'], // Path to your Twitter image
   // },
 };
 

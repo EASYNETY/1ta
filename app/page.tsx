@@ -20,7 +20,7 @@ export default function LandingPage() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              SmartEdu
+              1techacademy
             </span>
           </Link>
 
@@ -137,7 +137,7 @@ export default function LandingPage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Us</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                See how SmartEdu compares to traditional learning management systems.
+                See how 1techacademy compares to traditional learning management systems.
               </p>
             </div>
 
@@ -151,7 +151,7 @@ export default function LandingPage() {
             <div className="max-w-md mx-auto">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Institution?</h2>
-                <p className="text-muted-foreground">Request a demo or sign up to get started with SmartEdu today.</p>
+                <p className="text-muted-foreground">Request a demo or sign up to get started with 1techacademy today.</p>
               </div>
 
               <DyraneCard>
@@ -211,7 +211,7 @@ export default function LandingPage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Integrations & Partners</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                SmartEdu seamlessly integrates with your favorite tools and services.
+                1techacademy seamlessly integrates with your favorite tools and services.
               </p>
             </div>
 
@@ -225,7 +225,7 @@ export default function LandingPage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Clients Say</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Hear from institutions that have transformed their educational experience with SmartEdu.
+                Hear from institutions that have transformed their educational experience with 1techacademy.
               </p>
             </div>
 

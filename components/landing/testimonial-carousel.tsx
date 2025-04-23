@@ -12,7 +12,7 @@ import Image from "next/image"
 const testimonials = [
   {
     quote:
-      "SmartEdu has completely transformed how we track attendance and engage with students. The real-time analytics have been invaluable for improving student outcomes.",
+      "1techacademy has completely transformed how we track attendance and engage with students. The real-time analytics have been invaluable for improving student outcomes.",
     author: "Dr. Sarah Johnson",
     role: "Principal, Westlake High School",
     image: "/placeholder.svg?height=80&width=80",

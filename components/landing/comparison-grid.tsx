@@ -11,7 +11,7 @@ import { MotionTokens } from "@/lib/motion.tokens"
 
 interface ComparisonItem {
   feature: string
-  smartEdu: boolean
+  Onetechacademy: boolean
   legacy: boolean
   description: string
 }
@@ -19,37 +19,37 @@ interface ComparisonItem {
 const comparisonData: ComparisonItem[] = [
   {
     feature: "Biometric Attendance",
-    smartEdu: true,
+    Onetechacademy: true,
     legacy: false,
     description: "Automated attendance tracking with fingerprint or facial recognition",
   },
   {
     feature: "AI Learning Paths",
-    smartEdu: true,
+    Onetechacademy: true,
     legacy: false,
     description: "Personalized learning recommendations based on student performance",
   },
   {
     feature: "Real-time Analytics",
-    smartEdu: true,
+    Onetechacademy: true,
     legacy: false,
     description: "Instant insights into student engagement and performance",
   },
   {
     feature: "Parent Communication",
-    smartEdu: true,
+    Onetechacademy: true,
     legacy: true,
     description: "Direct messaging and updates for parents and guardians",
   },
   {
     feature: "Course Management",
-    smartEdu: true,
+    Onetechacademy: true,
     legacy: true,
     description: "Tools for creating and managing course content",
   },
   {
     feature: "Mobile Accessibility",
-    smartEdu: true,
+    Onetechacademy: true,
     legacy: false,
     description: "Full-featured mobile experience for on-the-go access",
   },
@@ -83,7 +83,7 @@ export function ComparisonGrid() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[300px]">Feature</TableHead>
-              <TableHead className="text-center">SmartEdu</TableHead>
+              <TableHead className="text-center">1techacademy</TableHead>
               <TableHead className="text-center">Legacy LMS</TableHead>
             </TableRow>
           </TableHeader>
@@ -96,7 +96,7 @@ export function ComparisonGrid() {
               >
                 <TableCell className="font-medium">{item.feature}</TableCell>
                 <TableCell className="text-center">
-                  {item.smartEdu ? (
+                  {item.Onetechacademy ? (
                     <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />
                   ) : (
                     <XCircle className="h-5 w-5 text-red-500 mx-auto" />

@@ -1,6 +1,6 @@
 # 📘 1TechAcademy Platform - Frontend Developer Guide
 
-**Project:** Smart Education SaaS Platform Frontend
+**Project:** 1TechAcademy SaaS Platform Frontend
 **Client:** 1Tech Academy
 **Prepared by:** EASYNET TELSURVE CO
 **Status:** MVP Development
