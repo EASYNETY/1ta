@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+---
 
-## Getting Started
+## 🏛️ Key Architectural Concepts
 
-First, run the development server:
+*   **Next.js App Router:** Understand Server Components (default, data fetching) vs. Client Components (`'use client'`, interactivity, hooks). Use appropriately for performance and capability.
+*   **DyraneUI Layer:**
+    *   Builds upon Shadcn UI primitives.
+    *   Provides motion and specific styling via custom wrapper components (e.g., `<DyraneButton>`, `<DyraneCard>`) located in `src/components/dyrane-ui/`.
+    *   **Rule:** Always import and use `Dyrane*` components instead of base Shadcn components (`src/components/ui/`) to ensure consistency.
+    *   Motion parameters are centralized in `src/lib/motion.tokens.ts`.
+*   **State Management (RTK):**
+    *   Global state (auth status, user profile, shared UI states) managed via RTK slices in `src/store/` or feature folders.
+    *   Use `useSelector` to read state, `useDispatch` to dispatch actions.
+    *   Utilize local component state (`useState`, `useReducer`) for non-shared state.
+*   **API Client (`src/lib/apiClient.ts` or similar):**
+    *   Centralized service/hook for all backend communication.
+    *   Handles base URL, attaching auth tokens, consistent error handling, and potential retries.
+    *   Includes logic to toggle between live API calls and mock data based on the `NEXT_PUBLIC_API_IS_LIVE` environment variable.
+*   **Authentication Flow:**
+    *   Managed via integration with Firebase/Auth0 SDKs.
+    *   `src/features/auth/components/auth-provider.tsx` (or similar) likely listens for auth state changes and updates Redux.
+    *   Protected routes are handled via layout checks or dedicated wrapper components verifying Redux auth state.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌟 Features Overview (MVP Scope)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The initial MVP focuses on core functionality. Refer to the detailed MVP Scope Document for specifics.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Marketing Landing Page (`/`)**: Static page showcasing the platform. Uses DyraneUI hover effects. Built with Server Components where possible.
+2.  **Authentication (`/login`, `/signup`, etc.)**: Email/Password & Google OAuth flows. Uses React Hook Form/Zod for forms. Manages state via Redux.
+3.  **Core Application Shell (Authenticated Routes)**: Main layout (`AppLayout`) with header/sidebar navigation (using DyraneUI animated components). Includes basic Profile page and placeholder Dashboard.
+4.  **Course Management (Basic)**: Views for available/enrolled courses (using `DyraneCard`/`DyraneTable`). Simple course creation form for Admin/Teacher roles. Basic API interactions.
 
-## Learn More
+**Explicitly Deferred from MVP:** Content authoring, real-time chat/classes, attendance tracking, reporting/analytics, payments, advanced admin dashboards, i18n.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ✍️ Development Standards
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **TypeScript:** Use strict mode. Define clear types/interfaces (`src/types/`). Avoid `any` where possible.
+- **Linting/Formatting:** ESLint & Prettier are enforced via Husky/lint-staged on pre-commit. Run `pnpm lint` / `pnpm format` manually if needed.
+- **Naming Conventions:** `PascalCase` for components/types, `camelCase` for variables/functions.
+- **Component Design:** Functional components with hooks. Aim for small, reusable, and well-defined components.
+- **Styling:** Prioritize Tailwind utility classes. Create custom CSS/components sparingly.
+- **Accessibility:** Build with accessibility in mind from the start (semantic HTML, ARIA, keyboard navigation, color contrast). Test regularly.
+- **Testing:** Write meaningful unit/integration tests (Jest/RTL) for components/hooks/utils and E2E tests (Cypress) for critical user flows.
+- **Git Workflow:** Use Feature Branch workflow (branch from `main`/`develop`, descriptive commits, Pull Requests with reviews).
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔗 Useful Links (Placeholders)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Design Files:** [Link to Figma/Zeplin]
+- **API Documentation:** [Link to Swagger/OpenAPI Docs]
+- **Backend Repository:** [Link to Backend Git Repo]
+- **Project Management:** [Link to Jira/Trello/Linear Board]
+- **DyraneUI Detailed Docs:** [Link to Separate Design System Docs if applicable]
+
+---
