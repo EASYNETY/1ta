@@ -131,9 +131,9 @@ export default function NavBar() {
                     {/* Mobile Menu Trigger */}
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation menu">
+                            <DyraneButton variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation menu">
                                 <Menu className="h-5 w-5" />
-                            </Button>
+                            </DyraneButton>
                         </SheetTrigger>
                         <SheetContent
                             side="left"
