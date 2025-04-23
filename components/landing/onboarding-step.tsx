@@ -32,7 +32,7 @@ export function OnboardingStep({ number, title, description }: OnboardingStepPro
         </div>
 
         <motion.div
-          className="absolute inset-0 bg-primary/5 pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           initial={{ opacity: 0, height: 0 }}
           animate={{
             opacity: isHovered ? 1 : 0,

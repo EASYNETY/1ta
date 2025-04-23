@@ -94,7 +94,7 @@ const cardCVA = cva(
     // Base styles: Relative positioning, overflow clipping, stacking context, group for hover trigger
     "relative overflow-hidden isolate group transition-shadow duration-200 ease-out hover:shadow-lg " + // Added hover shadow lift
     // Before pseudo-element setup: Covers area, starts hidden, transitions width, sits behind content
-    "before:content-[''] before:absolute before:inset-0 before:w-0 before:origin-left before:transition-all before:duration-500 before:ease-in-out before:-z-10 hover:before:w-full before:pointer-events-none before:rounded-xl" // Match BaseCard rounding
+    "before:content-[''] before:absolute before:inset-0 before:w-1 before:origin-left before:transition-all before:duration-500 before:ease-in-out before:-z-10 hover:before:w-full before:pointer-events-none before:rounded-xl" // Match BaseCard rounding
 );
 
 // --- DyraneCard Props ---
@@ -112,7 +112,7 @@ const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
     (
         {
             // Custom Props
-            overlayClassName = 'before:bg-primary/10 dark:before:bg-primary/20 before:backdrop-blur-sm', // Default overlay style (applied via ::before)
+            overlayClassName = 'before:bg-primary/10 before:backdrop-blur-sm', // Default overlay style (applied via ::before)
             cardClassName,
             children,
             // Motion Props (for the outer wrapper)

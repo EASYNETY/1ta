@@ -18,7 +18,7 @@ const buttonVariants = cva(
     "relative overflow-hidden isolate inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors duration-150 ease-in-out disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer " +
     // Before pseudo-element setup: Absolute positioning, starts hidden (w-0), transitions width, sits behind content (-z-10)
     // Added: before:content-[''], before:absolute, before:inset-0, before:w-0, before:origin-left, before:transition-all, before:duration-300, before:ease-in-out, before:-z-10, hover:before:w-full
-    "before:content-[''] before:absolute before:inset-0 before:w-0 before:origin-left before:transition-all before:duration-500 before:ease-in-out before:-z-10 hover:before:w-full",
+    "before:content-[''] before:absolute before:inset-0 before:w-1 before:opacity-10 before:origin-left before:transition-all before:duration-500 before:ease-in-out before:-z-10 hover:before:w-full hover:before:opacity-100",
     {
         variants: {
             variant: {
