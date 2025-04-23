@@ -59,7 +59,7 @@ export function Footer() {
 
     return (
         <footer className="border-t border-border/40 bg-muted/30 py-12 md:py-16"> {/* Subtle bg, adjusted padding */}
-            <div className="container px-4 md:px-6">
+            <div className=" px-4 md:px-6">
                 {/* Top section: Logo, Description, Links Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
                     {/* Column 1: Logo, Description, Socials */}

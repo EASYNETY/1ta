@@ -16,43 +16,6 @@ export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen w-full">
       {/* Header */}
-      {/* <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-              1techacademy
-            </span>
-          </Link>
-
-          <div className="hidden md:flex items-center space-x-6">
-            <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
-              Features
-            </Link>
-            <Link href="#why-us" className="text-sm font-medium hover:text-primary transition-colors">
-              Why Choose Us
-            </Link>
-            <Link href="#testimonials" className="text-sm font-medium hover:text-primary transition-colors">
-              Testimonials
-            </Link>
-            <Link href="#integrations" className="text-sm font-medium hover:text-primary transition-colors">
-              Integrations
-            </Link>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/login"
-              className="text-sm font-medium hover:text-primary transition-colors hidden sm:inline-block"
-            >
-              Log in
-            </Link>
-            <DyraneButton asChild size="sm">
-              <Link href="/signup">Get Started</Link>
-            </DyraneButton>
-          </div>
-        </div>
-      </header> */}
-
       <NavBar/>
 
       <main className="flex-1">
