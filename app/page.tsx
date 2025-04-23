@@ -28,6 +28,7 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-24 md:py-32 relative overflow-hidden flex items-center justify-center min-h-[90vh]">
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
           <div className="container px-4 md:px-6 relative">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
@@ -60,7 +61,7 @@ export default function LandingPage() {
 
         {/* Core Features Overview */}
         <section id="features" className="py-24 relative overflow-hidden">
-          <AbstractBackground className="opacity-50" />
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
 
           <div className="px-4 md:px-6 relative">
             <SectionHeader
@@ -121,7 +122,7 @@ export default function LandingPage() {
 
         {/* Demo Request / Sign Up CTA */}
         <section id="demo-request" className="py-24 relative overflow-hidden">
-          <AbstractBackground className="opacity-30" />
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
 
           <div className="px-4 md:px-6 relative">
             <div className="max-w-md mx-auto">
@@ -185,7 +186,7 @@ export default function LandingPage() {
 
         {/* Integrations & Partners */}
         <section id="integrations" className="py-24 relative overflow-hidden">
-          <AbstractBackground className="opacity-30" />
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
 
           <div className="container px-4 md:px-6 relative">
             <SectionHeader
