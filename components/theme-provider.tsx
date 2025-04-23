@@ -35,15 +35,15 @@ export function ThemeToggle() {
     const thumbOffset = "0px";     // Fine-tune thumb start/end position (slightly more than padding)
 
     // Track background colors
-    const lightTrackBg = "bg-slate-200 dark:bg-slate-700";
-    const darkTrackBg = "bg-slate-800 dark:bg-blue-900/50"; // Example dark mode active color
+    const lightTrackBg = "bg-primary/25";
+    const darkTrackBg = "bg-primary/25"; // Example dark mode active color
 
     // Thumb background color
     const thumbBg = "bg-white dark:bg-slate-950";
 
     // Icon colors
-    const sunColor = "text-slate-950";
-    const moonColor = "text-slate-400";
+    const sunColor = "text-primary";
+    const moonColor = "text-primary";
 
     // Spring animation for the thumb
     const spring = {
