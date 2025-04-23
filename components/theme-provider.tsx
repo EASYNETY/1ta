@@ -73,13 +73,18 @@ export function ThemeToggle() {
             role="switch"
             aria-checked={isDark}
             className={cn(
-                "relative flex cursor-pointer items-center rounded-full border border-transparent transition-colors duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background", // Added focus styles
+                "relative flex cursor-pointer items-center rounded-full border border-transparent transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 switchWidth,
                 switchHeight,
                 trackPadding,
-                // Apply track background based on theme
-                isDark ? darkTrackBg : lightTrackBg
+                isDark ? darkTrackBg : lightTrackBg,
+
+                // ✨ Add glowing ring on hover
+                isDark
+                    ? "hover:ring-1 hover:ring-[#FFD400] hover:ring-offset-1"
+                    : "hover:ring-2 hover:ring-[#C99700] hover:ring-offset-1"
             )}
+
         >
             <span className="sr-only">
                 {`Current theme: ${resolvedTheme}`}
