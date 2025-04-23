@@ -38,7 +38,7 @@ export default function LandingPage() {
                 <p className="text-xl md:text-2xl text-muted-foreground">
                   Attendance. Learning. Engagement. Analytics. — All in One Platform.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <div className="flex flex-row gap-4 pt-4">
                   <DyraneButton size="lg" asChild>
                     <Link href="#demo-request">
                       Get Started
@@ -108,6 +108,7 @@ export default function LandingPage() {
 
         {/* Why Choose Us */}
         <section id="why-choose-us" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
               title="Why Choose Us"
@@ -142,6 +143,7 @@ export default function LandingPage() {
 
         {/* Onboarding Teaser Section */}
         <section className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
               title="Getting Started is Easy"
@@ -202,6 +204,7 @@ export default function LandingPage() {
 
         {/* Testimonials & Case Studies */}
         <section id="testimonials" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-30" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
               title="What Our Clients Say"
