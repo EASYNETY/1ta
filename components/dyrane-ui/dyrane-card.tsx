@@ -4,213 +4,181 @@
 import * as React from 'react';
 import {
     motion,
-    MotionProps,
+    MotionProps, // Keep MotionProps for the wrapper
     useReducedMotion,
     TargetAndTransition,
-    HTMLMotionProps, // Import HTMLMotionProps for type safety on motion.div
+    HTMLMotionProps,
 } from 'framer-motion';
+import { cva } from "class-variance-authority"; // Import CVA
 import { cn } from '@/lib/utils';
 import { MotionTokens } from '@/lib/motion.tokens';
 
-// --- Define your BASE Card components first ---
-// (Copied from your provided code)
+// --- Base Card components (Keep these exactly as you provided) ---
 function BaseCard({ className, ...props }: React.ComponentProps<"div">) {
     return (
         <div
             data-slot="card"
             className={cn(
-                "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm", // Keep your specific base styles
-                className,
+                "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm", // BaseCard styles
+                className
             )}
             {...props}
         />
     );
 }
+const BaseCardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+    <div
+        ref={ref}
+        data-slot="card-header"
+        className={cn("@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6", className)}
+        {...props}
+    />
+));
+BaseCardHeader.displayName = "BaseCardHeader";
+// ... Define BaseCardTitle, BaseCardDescription, BaseCardAction, BaseCardContent, BaseCardFooter similarly...
+// (Using React.forwardRef for consistency if needed, though often not necessary for simple divs)
 
-function BaseCardHeader({ className, ...props }: React.ComponentProps<"div">) {
-    return (
-        <div
-            data-slot="card-header"
-            className={cn(
-                "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
-                className,
-            )}
-            {...props}
-        />
-    );
-}
+const BaseCardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
+    <h3
+        ref={ref as any} // Adjust ref type if needed, h3 might be more semantic
+        data-slot="card-title"
+        className={cn("leading-none font-semibold", className)}
+        {...props}
+    />
+));
+BaseCardTitle.displayName = "BaseCardTitle";
 
-function BaseCardTitle({ className, ...props }: React.ComponentProps<"div">) {
-    return (
-        <div
-            data-slot="card-title"
-            className={cn("leading-none font-semibold", className)}
-            {...props}
-        />
-    );
-}
+const BaseCardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({ className, ...props }, ref) => (
+    <p
+        ref={ref}
+        data-slot="card-description"
+        className={cn("text-muted-foreground text-sm", className)}
+        {...props}
+    />
+));
+BaseCardDescription.displayName = "BaseCardDescription";
 
-function BaseCardDescription({ className, ...props }: React.ComponentProps<"div">) {
-    return (
-        <div
-            data-slot="card-description"
-            className={cn("text-muted-foreground text-sm", className)}
-            {...props}
-        />
-    );
-}
+const BaseCardAction = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+    <div
+        ref={ref}
+        data-slot="card-action"
+        className={cn("col-start-2 row-span-2 row-start-1 self-start justify-self-end", className)}
+        {...props}
+    />
+));
+BaseCardAction.displayName = "BaseCardAction";
 
-function BaseCardAction({ className, ...props }: React.ComponentProps<"div">) {
-    return (
-        <div
-            data-slot="card-action"
-            className={cn(
-                "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-                className,
-            )}
-            {...props}
-        />
-    );
-}
+const BaseCardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+    <div
+        ref={ref}
+        data-slot="card-content"
+        className={cn("px-6", className)}
+        {...props}
+    />
+));
+BaseCardContent.displayName = "BaseCardContent";
 
-function BaseCardContent({ className, ...props }: React.ComponentProps<"div">) {
-    return (
-        <div
-            data-slot="card-content"
-            className={cn("px-6", className)}
-            {...props}
-        />
-    );
-}
+const BaseCardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+    <div
+        ref={ref}
+        data-slot="card-footer"
+        className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
+        {...props}
+    />
+));
+BaseCardFooter.displayName = "BaseCardFooter";
 
-function BaseCardFooter({ className, ...props }: React.ComponentProps<"div">) {
-    return (
-        <div
-            data-slot="card-footer"
-            className={cn("flex items-center px-6 [.border-t]:pt-6", className)}
-            {...props}
-        />
-    );
-}
-// --- End of Base Card components ---
-
+// --- CVA for Card Structure and Pseudo-Element ---
+// Defines the base styles needed on the card element itself for the overlay effect
+const cardCVA = cva(
+    // Base styles: Relative positioning, overflow clipping, stacking context, group for hover trigger
+    "relative overflow-hidden isolate group transition-shadow duration-200 ease-out hover:shadow-lg " + // Added hover shadow lift
+    // Before pseudo-element setup: Covers area, starts hidden, transitions width, sits behind content
+    "before:content-[''] before:absolute before:inset-0 before:w-0 before:origin-left before:transition-all before:duration-500 before:ease-in-out before:-z-10 hover:before:w-full before:pointer-events-none before:rounded-xl" // Match BaseCard rounding
+);
 
 // --- DyraneCard Props ---
-// Combine HTML attributes for the WRAPPER div with SPECIFIC motion props
-type DyraneCardProps = Omit<HTMLMotionProps<'div'>, 'children'> & // Use HTMLMotionProps for the wrapper, omit children as we handle it
-{ // Add our custom props
-    overlayClassName?: string;
-    overlayHeight?: string;
-    children?: React.ReactNode; // Children to be passed INSIDE the BaseCard
-    cardClassName?: string; // Allow passing class specifically to the INNER BaseCard
+// Combine MotionProps (for the wrapper) with custom props
+type DyraneCardProps = MotionProps & // Allow all motion props for the wrapper
+    React.HTMLAttributes<HTMLDivElement> & // Allow standard div attributes for the wrapper
+{
+    overlayClassName?: string; // Class defining the ::before background color (e.g., "before:bg-primary/10")
+    cardClassName?: string; // Optional class for the inner BaseCard element
+    children?: React.ReactNode;
 };
 
-
 // --- DyraneCard Implementation ---
-// This component now acts as a motion-enabled WRAPPER around your BaseCard
 const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
     (
         {
-            // Props for the OUTER motion.div wrapper
-            className, // Class for the outer wrapper
+            // Custom Props
+            overlayClassName = 'before:bg-primary/10 dark:before:bg-primary/20 before:backdrop-blur-sm', // Default overlay style (applied via ::before)
+            cardClassName,
+            children,
+            // Motion Props (for the outer wrapper)
+            whileHover: whileHoverProp,
+            whileTap: whileTapProp,
+            transition: transitionProp,
             initial,
             animate,
             exit,
-            whileHover: whileHoverProp,
-            whileTap,
-            whileFocus,
-            variants: variantsProp,
-            transition: transitionProp,
+            variants,
             layout,
-            // Custom Props
-            overlayClassName = 'bg-primary/10 dark:bg-primary/20 backdrop-blur-sm',
-            overlayHeight = '65%',
-            // Props specifically for the INNER BaseCard
-            cardClassName,
-            children, // Content to go inside BaseCard
-            // Capture the rest of the props intended for the outer motion.div
-            ...wrapperProps
+            // Standard div attributes for the outer wrapper (e.g., className)
+            className, // Capture className for the wrapper
+            ...wrapperProps // Rest of the props for the motion.div wrapper
         },
-        ref // This ref applies to the OUTER motion.div wrapper
+        ref // Ref applies to the OUTER motion.div wrapper
     ) => {
         const shouldReduceMotion = useReducedMotion();
 
-        // --- Define Default DyraneUI Motion ---
-        const defaultCardHoverEffect: TargetAndTransition = { scale: 1.02, y: -2 };
-        const defaultOverlayTransition = {
-            duration: shouldReduceMotion ? 0 : MotionTokens.duration.medium,
-            ease: MotionTokens.ease.subtle_easeInOut,
-        };
-        const defaultCardTransition = {
-            type: 'spring',
-            stiffness: 300,
-            damping: 20,
-            ...(shouldReduceMotion && { duration: 0.01 })
-        };
+        // --- Define Default Motion for WRAPPER (Subtle Lift/Scale) ---
+        const defaultWrapperHoverEffect: TargetAndTransition | string | undefined = shouldReduceMotion ? undefined : { scale: 1.02, y: -3 }; // Subtle lift
+        const defaultWrapperTapEffect: TargetAndTransition | string | undefined = shouldReduceMotion ? undefined : { scale: 0.99 }; // Subtle press
+        const defaultWrapperTransitionConfig = MotionTokens.spring.gentle; // Gentle spring
 
-        // --- Combine Defaults with Passed Props (Conditional Spread Logic) ---
-        const cardHoverEffect = shouldReduceMotion
-            ? {}
-            : typeof whileHoverProp === 'object' && whileHoverProp !== null
-                ? { ...defaultCardHoverEffect, ...whileHoverProp }
-                : whileHoverProp ?? defaultCardHoverEffect;
+        // --- Combine Motion Props for WRAPPER ---
+        const wrapperHoverEffect = typeof whileHoverProp === 'object' && whileHoverProp !== null
+            ? { ...defaultWrapperHoverEffect, ...whileHoverProp }
+            : whileHoverProp ?? defaultWrapperHoverEffect;
+        const wrapperTapEffect = typeof whileTapProp === 'object' && whileTapProp !== null
+            ? { ...defaultWrapperTapEffect, ...whileTapProp }
+            : whileTapProp ?? defaultWrapperTapEffect;
+        const wrapperTransitionConfig = typeof transitionProp === 'object' && transitionProp !== null
+            ? { ...defaultWrapperTransitionConfig, ...transitionProp }
+            : transitionProp ?? defaultWrapperTransitionConfig;
 
-        const overlayTransition = { ...defaultOverlayTransition, ...(typeof transitionProp === 'object' && transitionProp !== null && transitionProp) };
-        const cardTransition = { ...defaultCardTransition, ...(typeof transitionProp === 'object' && transitionProp !== null && transitionProp) };
-
-        // Variants for the overlay animation
-        const overlayVariants = {
-            initial: { scaleY: 0, opacity: 0, transformOrigin: 'bottom' },
-            hover: {
-                scaleY: 1,
-                opacity: shouldReduceMotion ? 0 : 1,
-                transformOrigin: 'bottom'
-            }
-        };
+        // Apply reduced motion class for the CSS ::before transition
+        const reducedMotionClass = shouldReduceMotion ? 'before:!duration-0' : '';
 
         return (
-            // Outer motion.div wrapper - Applies motion and contains overlay
+            // Outer motion.div wrapper: Handles scale/lift animation and provides 'group'
             <motion.div
-                // Apply specific motion props to the wrapper
-                initial={initial ?? "initial"}
+                className={cn("block", className)} // Use block, pass wrapper className
+                ref={ref}
+                // Apply wrapper motion props
+                initial={initial}
                 animate={animate}
                 exit={exit}
-                whileHover={cardHoverEffect}
-                whileTap={whileTap}
-                whileFocus={whileFocus}
-                variants={variantsProp}
-                transition={cardTransition}
+                whileHover={wrapperHoverEffect}
+                whileTap={wrapperTapEffect}
+                transition={wrapperTransitionConfig}
+                variants={variants}
                 layout={layout}
-                // Base styles for the wrapper: relative, overflow needed for overlay
-                className={cn(
-                    'relative overflow-hidden group rounded-xl', // Match rounding of BaseCard, essential for clipping overlay
-                    className // Allow custom classes for the wrapper
-                )}
-                ref={ref} // Ref applies to this outer wrapper
-                {...wrapperProps} // Pass remaining valid motion/HTML attributes to the wrapper
+                {...wrapperProps} // Pass remaining wrapper attributes
             >
-                {/* The Gliding Overlay - Sits inside wrapper, behind BaseCard */}
-                <motion.div
-                    className={cn(
-                        'absolute bottom-0 left-0 w-full -z-10 pointer-events-none', // Use z-index -10 to be behind BaseCard
-                        overlayClassName
-                    )}
-                    style={{ height: overlayHeight }}
-                    variants={overlayVariants}
-                    transition={overlayTransition}
-                // Inherits animation trigger from parent's hover state
-                />
-
-                {/* RENDER YOUR BASE CARD HERE */}
-                {/* It sits visually on top of the overlay */}
+                {/* Inner BaseCard: Gets the CVA styles (including ::before) and overlay color class */}
                 <BaseCard
                     className={cn(
-                        "relative z-0", // Ensure BaseCard is above the overlay's z-index
-                        cardClassName // Allow passing specific classes to BaseCard
+                        cardCVA(), // Apply base CVA styles (relative, overflow, isolate, group, ::before setup)
+                        overlayClassName, // Apply the overlay background class (e.g., "before:bg-primary/10")
+                        reducedMotionClass, // Apply reduced motion override if needed
+                        cardClassName // Apply any specific classes passed for the card itself
                     )}
-                // Don't pass motion props here, they belong on the wrapper
+                // BaseCard receives standard div props if needed, but usually just children/className
                 >
-                    {children} {/* Render the children passed to DyraneCard */}
+                    {/* Children are rendered inside BaseCard, naturally above the ::before overlay */}
+                    {children}
                 </BaseCard>
             </motion.div>
         );
@@ -218,8 +186,7 @@ const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
 );
 DyraneCard.displayName = 'DyraneCard';
 
-// --- Re-export your BASE Card Parts as DyraneCard Parts ---
-// This provides the familiar API (DyraneCard.Header, etc.)
+// --- Re-export Base Card Parts as DyraneCard Parts ---
 const DyraneCardHeader = BaseCardHeader;
 const DyraneCardFooter = BaseCardFooter;
 const DyraneCardTitle = BaseCardTitle;
@@ -227,7 +194,6 @@ const DyraneCardAction = BaseCardAction;
 const DyraneCardDescription = BaseCardDescription;
 const DyraneCardContent = BaseCardContent;
 
-// Export DyraneCard and its parts
 export {
     DyraneCard,
     DyraneCardHeader,
@@ -236,4 +202,5 @@ export {
     DyraneCardAction,
     DyraneCardDescription,
     DyraneCardContent,
+    cardCVA as cardVariants, // Optionally export CVA function
 };
