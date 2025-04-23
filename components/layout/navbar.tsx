@@ -1,0 +1,213 @@
+// src/components/landing/NavBar.tsx (or wherever your component lives)
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { useTheme } from "next-themes";
+import { DyraneButton } from "../dyrane-ui/dyrane-button"; // Assuming DyraneButton is set up
+import {
+    NavigationMenu,
+    NavigationMenuList,
+    NavigationMenuItem,
+} from "@/components/ui/navigation-menu"; // Assuming Shadcn component
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"; // Assuming Shadcn component
+import { Button } from "@/components/ui/button"; // Assuming Shadcn component
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+    SheetClose,
+    SheetHeader, // Import SheetHeader
+    SheetTitle,  // Import SheetTitle
+} from "@/components/ui/sheet"; // Import Sheet components
+import { Sun, Moon, Menu } from "lucide-react"; // Import Menu icon
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils"; // Import cn utility
+import { useScrollPosition } from "@/hooks/use-scroll-position"; // Import the custom hook
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { ThemeToggle } from "../theme-provider";
+
+// --- Constants for Navigation Links ---
+const navLinks = [
+    { href: "#features", label: "Features" },
+    { href: "#why-us", label: "Why Us" },
+    { href: "#testimonials", label: "Testimonials" },
+    { href: "#integrations", label: "Integrations" },
+];
+
+// --- Main NavBar Component ---
+export default function NavBar() {
+    const { theme, setTheme, systemTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    const isScrolled = useScrollPosition(10); // Detect scroll past 10px threshold
+
+    useEffect(() => setMounted(true), []);
+
+    // Determine the current theme, defaulting to light if not mounted or system theme is unclear
+    const currentTheme = !mounted ? 'light' : (theme === "system" ? systemTheme : theme);
+
+    // DyraneUI Style Variables (Adjust these to match your tokens/theme)
+    const scrolledHeaderBg = "bg-background/50"; // Example: Less opaque background
+    const scrolledHeaderBlur = "backdrop-blur-md"; // Standard blur
+    const scrolledHeaderBorder = "border-b border-border/30"; // Subtle border
+    const linkHoverColor = "hover:text-primary"; // Primary hover color
+    const mutedTextColor = "text-muted-foreground"; // Muted text color
+
+    return (
+        <header
+            className={cn(
+                "sticky top-0 z-50 w-full transition-colors duration-300 ease-in-out", // Use transition-colors, adjusted z-index
+                isScrolled
+                    ? cn("shadow-sm", scrolledHeaderBorder, scrolledHeaderBg, scrolledHeaderBlur) // Combined scrolled styles
+                    : "border-b border-transparent" // Transparent border when at top
+            )}
+        >
+            <div className="flex h-16 items-center justify-between gap-x-4 px-4 sm:px-6 lg:px-8 w-full"> {/* Added gap, adjusted padding */}
+
+                {/* Logo */}
+                <Link href="/" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
+                    {mounted && (
+                        <Image
+                            src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                            alt="SmartEdu Logo"
+                            className="h-6 w-auto"
+                            priority
+                            width={80}
+                            height={24}
+                        />
+                    )}
+                    {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+                </Link>
+
+                {/* Desktop Navigation Menu - Centered */}
+                <div className="hidden lg:flex flex-1 items-center justify-center"> {/* Centering container */}
+                    <NavigationMenu>
+                        <NavigationMenuList className="space-x-6">
+                            {navLinks.map((link) => (
+                                <NavigationMenuItem key={link.href}>
+                                    {/* Using Next Link directly within NavigationMenuLink requires care */}
+                                    {/* Often simpler to style the Link directly if NavigationMenuLink styling conflicts */}
+                                    <Link
+                                        href={link.href}
+                                        className={cn(
+                                            "text-sm font-medium transition-colors",
+                                            mutedTextColor,
+                                            linkHoverColor
+                                        )}
+                                        passHref // Important if wrapping Next Link
+                                    >
+                                        {link.label}
+                                    </Link>
+                                </NavigationMenuItem>
+                            ))}
+                        </NavigationMenuList>
+                    </NavigationMenu>
+                </div>
+
+                {/* Right Side Actions */}
+                <div className="flex items-center space-x-2 sm:space-x-3"> {/* Reduced spacing slightly */}
+                    {/* Theme Toggle */}
+                    {mounted && (
+                        <ThemeToggle />
+                    )}
+
+                    {/* Desktop Auth links */}
+                    <div className="hidden lg:flex items-center space-x-3"> {/* Reduced spacing */}
+                        <Link
+                            href="/login"
+                            className={cn(
+                                "text-sm font-medium transition-colors",
+                                mutedTextColor,
+                                linkHoverColor
+                            )}
+                        >
+                            Log in
+                        </Link>
+                        <DyraneButton asChild size="sm">
+                            <Link href="/signup">Get Started</Link>
+                        </DyraneButton>
+                    </div>
+
+                    {/* Mobile Menu Trigger */}
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation menu">
+                                <Menu className="h-5 w-5" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent
+                            side="right"
+                            className="w-[300px] sm:w-[350px] px-0 flex flex-col rounded-l-3xl border-0 bg-background/50 backdrop-blur-md" // Remove default padding, add top padding, make flex col
+                            aria-describedby={undefined} // Remove default description link if no SheetDescription used
+                        >
+                            {/* Accessible Title (Visually Hidden) */}
+                            <SheetHeader className="px-6"> {/* Add padding to header */}
+                                <SheetTitle>
+                                    {/* Wrap title in VisuallyHidden for screen readers only */}
+                                    <VisuallyHidden>Navigation Menu</VisuallyHidden>
+                                    {/* Logo */}
+                                    <Link href="/" className=""> {/* flex-shrink-0 prevents shrinking */}
+                                        {mounted && (
+                                            <Image
+                                                src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                                alt="SmartEdu Logo"
+                                                className="h-6 w-auto"
+                                                priority
+                                                width={80}
+                                                height={24}
+                                            />
+                                        )}
+                                        {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+                                    </Link>
+                                </SheetTitle>
+                                {/* Optionally add SheetDescription here if needed */}
+
+                            </SheetHeader>
+
+
+
+                            {/* Mobile Navigation */}
+                            <nav className="flex-1 flex flex-col space-y-4 px-6 py-4 overflow-y-auto"> {/* Use flex-1 to fill space, add padding */}
+                                {navLinks.map((link) => (
+                                    <SheetClose asChild key={link.href}>
+                                        <Link
+                                            href={link.href}
+                                            className={cn(
+                                                "text-base font-medium transition-colors text-foreground", // Use standard text color
+                                                linkHoverColor
+                                            )}
+                                        >
+                                            {link.label}
+                                        </Link>
+                                    </SheetClose>
+                                ))}
+                            </nav>
+
+                            {/* Separator and Auth actions at the bottom */}
+                            <div className="mt-auto px-6 py-4 border-t border-border/30"> {/* Bottom padding and border */}
+                                <div className="flex flex-col space-y-4">
+                                    <SheetClose asChild>
+                                        <Link
+                                            href="/login"
+                                            className={cn(
+                                                "text-base font-medium transition-colors text-foreground",
+                                                linkHoverColor
+                                            )}
+                                        >
+                                            Log in
+                                        </Link>
+                                    </SheetClose>
+                                    <SheetClose asChild>
+                                        <DyraneButton asChild size="sm" className="w-full">
+                                            <Link href="/signup">Get Started</Link>
+                                        </DyraneButton>
+                                    </SheetClose>
+                                </div>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                </div>
+            </div>
+        </header>
+    );
+}

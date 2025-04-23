@@ -9,12 +9,13 @@ import { OnboardingStep } from "@/components/landing/onboarding-step"
 import { HeroAnimation } from "@/components/landing/hero-animation"
 import { IntegrationLogos } from "@/components/landing/integration-logos"
 import { DemoRequestForm } from "@/components/landing/demo-request-form"
+import NavBar from "@/components/layout/navbar"
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen w-full">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
@@ -49,12 +50,13 @@ export default function LandingPage() {
             </DyraneButton>
           </div>
         </div>
-      </header>
+      </header> */}
+
+      <NavBar/>
 
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-20 md:py-32 relative overflow-hidden flex items-center justify-center" >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-blue-500/5 -z-10" />
           <div className="container px-4 md:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">

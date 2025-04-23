@@ -62,7 +62,9 @@ export function IntegrationLogos() {
               key={index}
               className="flex-shrink-0 h-16 w-32 bg-background rounded-lg flex items-center justify-center p-4"
             >
-              <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" />
+              <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" width={
+                isMobile ? 120 : 240} height={isMobile ? 60 : 120} priority={index < 4} sizes="(max-width: 768px) 120px, 240px" loading={index < 4 ? "eager" : "lazy"
+              }/>
             </div>
           ))}
         </motion.div>
@@ -88,8 +90,8 @@ export function IntegrationLogos() {
             transition: { duration: MotionTokens.duration.fast },
           }}
         >
-          <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} 
-          width={120} height={60} className="max-h-full max-w-full" />
+          <Image src={logo.logo || "/placeholder.svg"} alt={logo.name}
+            width={120} height={60} className="max-h-full max-w-full" />
         </motion.div>
       ))}
     </motion.div>

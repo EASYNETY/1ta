@@ -1,4 +1,4 @@
-// src/components/theme-provider.tsx
+// components/theme-provider.tsx
 "use client"; // **Essential:** Theme providers need client-side logic (localStorage, hooks)
 
 import * as React from "react";
