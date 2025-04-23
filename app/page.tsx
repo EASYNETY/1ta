@@ -11,20 +11,29 @@ import { IntegrationLogos } from "@/components/landing/integration-logos"
 import { DemoRequestForm } from "@/components/landing/demo-request-form"
 import NavBar from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
+import { AbstractBackground } from "@/components/layout/abstract-background"
+import { ScrollIndicator } from "@/components/layout/scroll-indicator"
+import { SectionDivider } from "@/components/layout/section-divider"
+import { SectionHeader } from "@/components/layout/section-header"
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col min-h-screen w-full">
+    <div className="flex flex-col min-h-screen w-full relative">
+      {/* Scroll Indicator */}
+      <ScrollIndicator />
+
       {/* Header */}
-      <NavBar/>
+      <NavBar />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-20 md:py-32 relative overflow-hidden flex items-center justify-center" >
-          <div className="container px-4 md:px-6">
+        <section className="py-24 md:py-32 relative overflow-hidden flex items-center justify-center min-h-[90vh]">
+          <AbstractBackground />
+
+          <div className="container px-4 md:px-6 relative">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter">
+              <div className="space-y-8">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight">
                   Empowering Institutions with Smart, Real-Time, Engaging Education.
                 </h1>
                 <p className="text-xl md:text-2xl text-muted-foreground">
@@ -49,17 +58,19 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Core Features Overview */}
-        <section id="features" className="py-20 bg-muted/50 flex items-center justify-center">
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Core Features</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our platform offers a comprehensive suite of tools designed to transform education.
-              </p>
-            </div>
+        <SectionDivider />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Core Features Overview */}
+        <section id="features" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-50" />
+
+          <div className="px-4 md:px-6 relative">
+            <SectionHeader
+              title="Core Features"
+              description="Our platform offers a comprehensive suite of tools designed to transform education."
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FeatureCard
                 icon={<Fingerprint className="h-8 w-8" />}
                 title="Fingerprint Attendance"
@@ -94,28 +105,32 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <SectionDivider />
+
         {/* Why Choose Us */}
-        <section id="why-us" className="py-20 flex items-center justify-center">
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose Us</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                See how 1techacademy compares to traditional learning management systems.
-              </p>
-            </div>
+        <section id="why-choose-us" className="py-24 relative overflow-hidden">
+          <div className="px-4 md:px-6 relative">
+            <SectionHeader
+              title="Why Choose Us"
+              description="See how 1TechAcademy compares to traditional learning management systems."
+            />
 
             <ComparisonGrid />
           </div>
         </section>
 
+        <SectionDivider />
+
         {/* Demo Request / Sign Up CTA */}
-        <section id="demo-request" className="py-20 bg-muted/50 flex items-center justify-center">
-          <div className="container px-4 md:px-6">
+        <section id="demo-request" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-30" />
+
+          <div className="px-4 md:px-6 relative">
             <div className="max-w-md mx-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Institution?</h2>
-                <p className="text-muted-foreground">Request a demo or sign up to get started with 1techacademy today.</p>
-              </div>
+              <SectionHeader
+                title="Ready to Transform Your Institution?"
+                description="Request a demo or sign up to get started with 1TechAcademy today."
+              />
 
               <DyraneCard>
                 <DemoRequestForm />
@@ -124,15 +139,15 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <SectionDivider />
+
         {/* Onboarding Teaser Section */}
-        <section className="py-20 flex items-center justify-center">
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Getting Started is Easy</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Our streamlined onboarding process gets you up and running quickly.
-              </p>
-            </div>
+        <section className="py-24 relative overflow-hidden">
+          <div className="px-4 md:px-6 relative">
+            <SectionHeader
+              title="Getting Started is Easy"
+              description="Our streamlined onboarding process gets you up and running quickly."
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <OnboardingStep
@@ -157,7 +172,7 @@ export default function LandingPage() {
               />
             </div>
 
-            <div className="text-center mt-12">
+            <div className="text-center mt-16">
               <DyraneButton size="lg" asChild>
                 <Link href="/signup">
                   Start Your Smart Campus Now
@@ -168,29 +183,31 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <SectionDivider />
+
         {/* Integrations & Partners */}
-        <section id="integrations" className="py-20 bg-muted/50 flex items-center justify-center">
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Integrations & Partners</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                1techacademy seamlessly integrates with your favorite tools and services.
-              </p>
-            </div>
+        <section id="integrations" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-30" />
+
+          <div className="container px-4 md:px-6 relative">
+            <SectionHeader
+              title="Integrations & Partners"
+              description="1TechAcademy seamlessly integrates with your favorite tools and services."
+            />
 
             <IntegrationLogos />
           </div>
         </section>
 
+        <SectionDivider />
+
         {/* Testimonials & Case Studies */}
-        <section id="testimonials" className="py-20 flex items-center justify-center">
-          <div className="container px-4 md:px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">What Our Clients Say</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Hear from institutions that have transformed their educational experience with 1techacademy.
-              </p>
-            </div>
+        <section id="testimonials" className="py-24 relative overflow-hidden">
+          <div className="px-4 md:px-6 relative">
+            <SectionHeader
+              title="What Our Clients Say"
+              description="Hear from institutions that have transformed their educational experience with 1TechAcademy."
+            />
 
             <TestimonialCarousel />
           </div>

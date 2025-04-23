@@ -43,6 +43,28 @@ export function DemoRequestForm() {
     setIsSubmitting(false)
   }
 
+  const formVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: MotionTokens.ease.easeOut,
+      },
+    },
+  }
+
   if (isSubmitted) {
     return (
       <motion.div
@@ -68,7 +90,9 @@ export function DemoRequestForm() {
           <CheckCircle className="h-8 w-8 text-green-600" />
         </motion.div>
         <h3 className="text-xl font-bold mb-2">Thank You!</h3>
-        <p className="text-muted-foreground mb-6">We&apos;ve received your demo request and will be in touch shortly.</p>
+        <p className="text-muted-foreground mb-6">
+          We&apos;ve received your demo request and will be in touch shortly.
+        </p>
         <DyraneButton variant="outline" onClick={() => setIsSubmitted(false)}>
           Submit Another Request
         </DyraneButton>
@@ -77,10 +101,10 @@ export function DemoRequestForm() {
   }
 
   return (
-    <>
+    <motion.div initial="hidden" animate="visible" variants={formVariants}>
       <CardContent className="space-y-4">
         <form id="demo-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
-          <div className="space-y-2">
+          <motion.div className="space-y-2" variants={itemVariants}>
             <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
@@ -89,9 +113,9 @@ export function DemoRequestForm() {
               aria-invalid={errors.name ? "true" : "false"}
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
-          </div>
+          </motion.div>
 
-          <div className="space-y-2">
+          <motion.div className="space-y-2" variants={itemVariants}>
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -101,9 +125,9 @@ export function DemoRequestForm() {
               aria-invalid={errors.email ? "true" : "false"}
             />
             {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-          </div>
+          </motion.div>
 
-          <div className="space-y-2">
+          <motion.div className="space-y-2" variants={itemVariants}>
             <Label htmlFor="institution">Institution Name</Label>
             <Input
               id="institution"
@@ -112,33 +136,35 @@ export function DemoRequestForm() {
               aria-invalid={errors.institution ? "true" : "false"}
             />
             {errors.institution && <p className="text-sm text-red-500">{errors.institution.message}</p>}
-          </div>
+          </motion.div>
         </form>
       </CardContent>
       <CardFooter>
-        <DyraneButton type="submit" form="demo-form" className="w-full mb-4" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <svg
-                className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-              Processing...
-            </>
-          ) : (
-            "Request Demo"
-          )}
-        </DyraneButton>
+        <motion.div className="w-full" variants={itemVariants}>
+          <DyraneButton type="submit" form="demo-form" className="w-full mb-4" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Processing...
+              </>
+            ) : (
+              "Request Demo"
+            )}
+          </DyraneButton>
+        </motion.div>
       </CardFooter>
-    </>
+    </motion.div>
   )
 }
