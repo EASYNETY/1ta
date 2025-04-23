@@ -47,7 +47,7 @@ export default function NavBar() {
     const currentTheme = !mounted ? 'light' : (theme === "system" ? systemTheme : theme);
 
     // DyraneUI Style Variables (Adjust these to match your tokens/theme)
-    const scrolledHeaderBg = "bg-background/50"; // Example: Less opaque background
+    const scrolledHeaderBg = "bg-background/65"; // Example: Less opaque background
     const scrolledHeaderBlur = "backdrop-blur-md"; // Standard blur
     const scrolledHeaderBorder = "border-b border-border/30"; // Subtle border
     const linkHoverColor = "hover:text-primary"; // Primary hover color
@@ -136,8 +136,8 @@ export default function NavBar() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent
-                            side="right"
-                            className="w-[300px] sm:w-[350px] px-0 flex flex-col rounded-l-3xl border-0 bg-background/50 backdrop-blur-md" // Remove default padding, add top padding, make flex col
+                            side="left"
+                            className="w-[300px] sm:w-[350px] px-0 flex flex-col rounded-r-3xl border-0 bg-background/65 backdrop-blur-md" // Remove default padding, add top padding, make flex col
                             aria-describedby={undefined} // Remove default description link if no SheetDescription used
                         >
                             {/* Accessible Title (Visually Hidden) */}
@@ -187,15 +187,18 @@ export default function NavBar() {
                             <div className="mt-auto px-6 py-4 border-t border-border/30"> {/* Bottom padding and border */}
                                 <div className="flex flex-col space-y-4">
                                     <SheetClose asChild>
-                                        <Link
-                                            href="/login"
-                                            className={cn(
-                                                "text-base font-medium transition-colors text-foreground",
-                                                linkHoverColor
-                                            )}
-                                        >
-                                            Log in
-                                        </Link>
+                                        <DyraneButton variant='ghost' asChild size="sm" className="w-full">
+                                            <Link
+                                                href="/login"
+                                                className={cn(
+                                                    "text-base font-medium transition-colors text-foreground",
+                                                    linkHoverColor
+                                                )}
+                                            >
+                                                Log in
+                                            </Link>
+                                        </DyraneButton>
+
                                     </SheetClose>
                                     <SheetClose asChild>
                                         <DyraneButton asChild size="sm" className="w-full">
