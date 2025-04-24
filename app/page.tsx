@@ -71,7 +71,7 @@ export default function LandingPage() {
               description="Our platform offers a comprehensive suite of tools designed to transform education."
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 grid-rows-1">
               <FeatureCard
                 icon={<Fingerprint className="h-8 w-8" />}
                 title="Fingerprint Attendance"
@@ -173,43 +173,44 @@ export default function LandingPage() {
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Getting Started is Easy"
-              description="Our streamlined onboarding process gets you up and running quickly."
+              title="Get Started with onTech"
+              description="Join in minutes and start unlocking your academic potential."
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 grid-rows-1">
               <OnboardingStep
                 number={1}
-                title="Register Your Institution"
-                description="Create your account and set up your institution profile."
+                title="Create Your Account"
+                description="Sign up with your student ID or email in just a few taps."
               />
               <OnboardingStep
                 number={2}
-                title="Select Learning Modules"
-                description="Choose the features and tools that fit your needs."
+                title="Customize Your Dashboard"
+                description="Tailor your learning experience to fit your courses and schedule."
               />
               <OnboardingStep
                 number={3}
-                title="Set up Attendance Devices"
-                description="Configure biometric devices or mobile check-ins."
+                title="Connect with Your Class"
+                description="Instant access to classmates, group chats, and course materials."
               />
               <OnboardingStep
                 number={4}
-                title="Invite Students"
-                description="Add students and faculty to your platform."
+                title="Track Your Progress"
+                description="See your attendance, feedback, and learning milestones in real-time."
               />
             </div>
 
             <div className="text-center mt-16">
               <DyraneButton size="lg" asChild>
                 <Link href="/signup">
-                  Start Your Smart Campus Now
+                  Join oneTech Today
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </DyraneButton>
             </div>
           </div>
         </section>
+
 
         <SectionDivider />
 

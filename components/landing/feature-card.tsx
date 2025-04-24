@@ -30,10 +30,16 @@ export function FeatureCard({ icon, title, description }: FeatureCardProps) {
   }
 
   return (
-    <motion.div ref={ref} initial="hidden" animate={isInView ? "visible" : "hidden"} variants={variants}>
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={isInView ? "visible" : "hidden"}
+      variants={variants}
+      className="h-full"
+    >
       <DyraneCard className="overflow-hidden h-full">
-        <CardContent className="p-6 relative">
-          <div className="flex flex-col space-y-4">
+        <CardContent className="p-6 relative h-full">
+          <div className="flex flex-col space-y-4 h-full">
             <div className="p-3 w-fit rounded-lg bg-primary/10 text-primary">{icon}</div>
             <h3 className="text-xl font-bold">{title}</h3>
             <p className="text-muted-foreground">{description}</p>

@@ -36,10 +36,11 @@ export function OnboardingStep({ number, title, description }: OnboardingStepPro
       animate={isInView ? "visible" : "hidden"}
       custom={number - 1}
       variants={variants}
+      className="h-full"
     >
       <DyraneCard className="overflow-hidden h-full">
-        <CardContent className="p-6 relative">
-          <div className="flex flex-col space-y-4">
+        <CardContent className="p-6 relative h-full">
+          <div className="flex flex-col space-y-4 h-full">
             <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
               {number}
             </div>
