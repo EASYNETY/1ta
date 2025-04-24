@@ -35,10 +35,10 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight">
-                  Empowering Institutions with Smart, Real-Time, Engaging Education.
+                  The Future of Tech Education Starts Here. {/* Bold statement */}
                 </h1>
-                <p className="text-xl md:text-2xl text-muted-foreground">
-                  Attendance. Learning. Engagement. Analytics. — All in One Platform.
+                <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl">
+                  Master cutting-edge skills with practical, project-based courses at 1Tech Academy. {/* Focuses on skills and methodology */}
                 </p>
                 <div className="flex flex-row gap-4 pt-4">
                   <DyraneButton size="lg" asChild>
