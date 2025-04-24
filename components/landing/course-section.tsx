@@ -98,7 +98,11 @@ export function CoursesSection() {
                     <ScrollArea className="w-full whitespace-nowrap pb-4">
                         <TabsList className="inline-flex h-auto w-full justify-start">
                             {courseCategories.map((category) => (
-                                <TabsTrigger key={category} value={category} className="px-4 py-2">
+                                <TabsTrigger
+                                    key={category}
+                                    value={category}
+                                    className="px-4 py-2 transition-colors duration-200 ease-out hover:bg-muted/40 hover:text-foreground/90 rounded-md"
+                                >
                                     {category}
                                 </TabsTrigger>
                             ))}
