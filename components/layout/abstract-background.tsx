@@ -252,8 +252,6 @@ export function AbstractBackground({
                     width={gridSize - 1}
                     height={gridSize - 1}
                     fill={squareColor} // Using base square color
-                    rx={2} // Slightly rounded corners
-                    ry={2}
                     strokeWidth={0}
                 />
             )}
