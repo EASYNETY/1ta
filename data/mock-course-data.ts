@@ -1,8 +1,8 @@
-// src/data/mock-course-data.ts (New File)
+// src/data/mock-course-data.ts
 
 export interface Course {
-	id: string; // Use string IDs usually
-	slug: string; // For URL routing
+	id: string;
+	slug: string;
 	title: string;
 	subtitle?: string;
 	description: string;
@@ -17,26 +17,26 @@ export interface Course {
 	instructor: {
 		name: string;
 		title?: string;
-		avatar?: string; // Optional avatar URL
+		avatar?: string;
 	};
-	duration: string; // e.g., "8 weeks", "120 hours"
+	duration: string;
 	level: "Beginner" | "Intermediate" | "Advanced";
-	tags?: string[]; // e.g., ["React", "Node.js", "JavaScript"]
+	tags?: string[];
 	priceUSD: number;
-	discountPriceUSD?: number; // Optional discount price
-	currencyCode?: "USD"; // Base currency
-	isFeatured?: boolean; // Flag for featured courses
+	discountPriceUSD?: number;
+	currencyCode?: "USD";
+	isFeatured?: boolean;
 	studentsEnrolled: number;
-	rating?: number; // Average rating (e.g., 4.5)
-	reviewsCount?: number; // Number of reviews
+	rating?: number;
+	reviewsCount?: number;
 	learningOutcomes?: string[];
 	prerequisites?: string[];
-	modules?: { title: string; duration: string }[]; // Simplified modules
-	lastUpdated?: string; // e.g., "2025-04-10"
+	modules?: { title: string; duration: string }[];
+	lastUpdated?: string;
 }
 
 export const mockCourseData: Course[] = [
-	// --- Web Development ---
+	// Web Development
 	{
 		id: "webdev-001",
 		slug: "intro-web-development",
@@ -45,7 +45,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Become a job-ready web developer. Master front-end fundamentals, backend with Node.js & Express, databases, and React.",
 		category: "Web Development",
-		image: "/images/courses/webdev-bootcamp.jpg",
+		image:
+			"https://images.unsplash.com/photo-1593720213428-28a5b9e94613?q=80&w=2070&auto=format&fit=crop",
 		instructor: {
 			name: "Dr. Evelyn Reed",
 			title: "Senior Full-Stack Engineer",
@@ -75,7 +76,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Dive deep into React.js and build powerful, interactive web applications from scratch.",
 		category: "Web Development",
-		image: "/images/courses/react-guide.jpg",
+		image:
+			"https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?q=80&w=2070&auto=format&fit=crop",
 		instructor: { name: "Sarah Chen" },
 		duration: "10 weeks",
 		level: "Intermediate",
@@ -92,32 +94,8 @@ export const mockCourseData: Course[] = [
 		prerequisites: ["Solid JavaScript knowledge", "HTML/CSS basics"],
 		lastUpdated: "2025-04-01",
 	},
-	{
-		id: "webdev-003",
-		slug: "nodejs-backend-masterclass",
-		title: "Node.js Backend Masterclass",
-		description:
-			"Build scalable and performant backend APIs using Node.js, Express, and MongoDB.",
-		category: "Web Development",
-		image: "/images/courses/node-masterclass.jpg",
-		instructor: { name: "Dr. Evelyn Reed" },
-		duration: "8 weeks",
-		level: "Intermediate",
-		tags: ["Node.js", "Express", "API", "MongoDB", "Backend"],
-		priceUSD: 119.99,
-		studentsEnrolled: 140,
-		rating: 4.6,
-		reviewsCount: 88,
-		learningOutcomes: [
-			"Build RESTful APIs",
-			"Handle authentication & authorization",
-			"Interact with databases effectively",
-		],
-		prerequisites: ["JavaScript basics"],
-		lastUpdated: "2025-02-20",
-	},
 
-	// --- Data Science ---
+	// Data Science
 	{
 		id: "ds-001",
 		slug: "data-science-foundations",
@@ -125,7 +103,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Start your data science journey by mastering Python programming, data manipulation with Pandas, and SQL.",
 		category: "Data Science",
-		image: "/images/courses/ds-foundations.jpg",
+		image:
+			"https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
 		instructor: { name: "Prof. Kenji Tanaka", title: "Lead Data Scientist" },
 		duration: "10 weeks",
 		level: "Beginner",
@@ -143,57 +122,8 @@ export const mockCourseData: Course[] = [
 		prerequisites: ["Basic programming concepts helpful but not required"],
 		lastUpdated: "2025-03-01",
 	},
-	{
-		id: "ds-002",
-		slug: "machine-learning-az",
-		title: "Machine Learning A-Z™: Hands-On Python & R In Data Science",
-		description:
-			"Learn to create Machine Learning algorithms in Python and R from two Data Science experts. Code templates included.",
-		category: "Data Science",
-		image: "/images/courses/ml-az.jpg",
-		instructor: { name: "Dr. Anya Sharma" },
-		duration: "14 weeks",
-		level: "Intermediate",
-		tags: ["Machine Learning", "Python", "R", "Statistics"],
-		priceUSD: 199.99,
-		discountPriceUSD: 179.99,
-		studentsEnrolled: 305,
-		rating: 4.7,
-		reviewsCount: 210,
-		learningOutcomes: [
-			"Implement various ML models",
-			"Understand core ML concepts",
-			"Perform feature engineering",
-		],
-		prerequisites: ["Python or R basics", "High school mathematics"],
-		lastUpdated: "2025-04-05",
-	},
 
-	// --- Mobile Development ---
-	{
-		id: "mob-001",
-		slug: "react-native-complete",
-		title: "React Native - The Practical Guide [2025]",
-		description:
-			"Use React Native to build native iOS and Android Apps - incl. Hooks, Redux, Context API, Auth, Push Notifications.",
-		category: "Mobile Development",
-		image: "/images/courses/rn-guide.jpg",
-		instructor: { name: "David Lee" },
-		duration: "12 weeks",
-		level: "Intermediate",
-		tags: ["React Native", "Mobile", "iOS", "Android", "JavaScript"],
-		priceUSD: 149.99,
-		studentsEnrolled: 190,
-		rating: 4.6,
-		reviewsCount: 115,
-		learningOutcomes: [
-			"Build cross-platform apps",
-			"Manage state in mobile apps",
-			"Utilize native device features",
-		],
-		prerequisites: ["React basics", "JavaScript knowledge"],
-		lastUpdated: "2025-02-10",
-	},
+	// Mobile Development
 	{
 		id: "mob-002",
 		slug: "flutter-dart-complete",
@@ -201,7 +131,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Build native iOS and Android apps with Flutter and Dart. Includes null safety, state management, Firebase, and more.",
 		category: "Mobile Development",
-		image: "/images/courses/flutter-guide.jpg",
+		image:
+			"https://images.unsplash.com/photo-1563206767-5b18f218e8de?q=80&w=2069&auto=format&fit=crop",
 		instructor: { name: "Maria Garcia" },
 		duration: "15 weeks",
 		level: "Beginner",
@@ -220,7 +151,7 @@ export const mockCourseData: Course[] = [
 		lastUpdated: "2025-03-25",
 	},
 
-	// --- Cybersecurity ---
+	// Cybersecurity
 	{
 		id: "cs-001",
 		slug: "cybersecurity-essentials",
@@ -228,7 +159,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Understand core cybersecurity threats, vulnerabilities, and mitigation techniques in theory and practice.",
 		category: "Cybersecurity",
-		image: "/images/courses/cyber-essentials.jpg",
+		image:
+			"https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=2070&auto=format&fit=crop",
 		instructor: { name: "Alex Thompson", title: "CISSP, Security Architect" },
 		duration: "6 weeks",
 		level: "Beginner",
@@ -246,7 +178,7 @@ export const mockCourseData: Course[] = [
 		lastUpdated: "2025-01-30",
 	},
 
-	// --- Cloud Computing ---
+	// Cloud Computing
 	{
 		id: "cloud-001",
 		slug: "aws-certified-solutions-architect-associate",
@@ -254,7 +186,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Pass the AWS Certified Solutions Architect Associate Exam with this comprehensive and hands-on course.",
 		category: "Cloud Computing",
-		image: "/images/courses/aws-saa.jpg",
+		image:
+			"https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop",
 		instructor: { name: "Stephane Maarek" },
 		duration: "27 hours (Video)",
 		level: "Intermediate",
@@ -272,7 +205,7 @@ export const mockCourseData: Course[] = [
 		lastUpdated: "2025-04-08",
 	},
 
-	// --- AI & ML ---
+	// AI & ML
 	{
 		id: "ai-001",
 		slug: "ai-for-everyone",
@@ -280,7 +213,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Master AI fundamentals without the jargon. Learn what AI can do, how it works, and how to leverage it.",
 		category: "AI & ML",
-		image: "/images/courses/ai-everyone.jpg",
+		image:
+			"https://images.unsplash.com/photo-1677442135136-760c813029fb?q=80&w=2070&auto=format&fit=crop",
 		instructor: { name: "Andrew Ng" },
 		duration: "4 weeks",
 		level: "Beginner",
