@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef } from "react"
 import { motion, useInView } from "framer-motion"
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
+import { Card } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CheckCircle, XCircle } from "lucide-react"
 import { MotionTokens } from "@/lib/motion.tokens"
@@ -104,7 +104,7 @@ export function ComparisonGrid() {
 
   return (
     <motion.div ref={ref} initial="hidden" animate={isInView ? "visible" : "hidden"} variants={tableVariants}>
-      <DyraneCard className="overflow-hidden">
+      <Card className="overflow-hidden">
         <div className="overflow-x-auto relative" ref={tableRef}>
           <Table>
             <TableHeader>
@@ -173,7 +173,7 @@ export function ComparisonGrid() {
             </motion.div>
           )}
         </div>
-      </DyraneCard>
+      </Card>
     </motion.div>
   )
 }
