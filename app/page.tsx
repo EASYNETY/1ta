@@ -213,59 +213,19 @@ export default function LandingPage() {
 
         <SectionDivider />
 
-        {/* --- 1Tech Academy Onboarding Steps --- */}
-        <section className="py-24 relative overflow-hidden">
-          {/* Assuming AbstractBackground or GridBackground component is used */}
-          <AbstractBackground className="opacity-50 dark:opacity-40" /> {/* Example: Reduced opacity */}
+        {/* Integrations & Partners */}
+        <section id="integrations" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-80" />
 
-          <div className="px-4 md:px-6 relative"> {/* Use container for consistent padding */}
+          <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Begin Your Tech Journey in Minutes" // More engaging title
-              description="Our simple sign-up process gets you learning faster." // Focused description
-              className="mb-12 md:mb-16" // Consistent spacing
+              title="Integrations & Partners"
+              description="1TechAcademy seamlessly integrates with your favorite tools and services."
             />
 
-            {/* Responsive Grid for Onboarding Steps */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-              {/* Step 1: Account Creation */}
-              <OnboardingStep
-                number={1}
-                title="Create Your Account" // Changed from "Register Institution"
-                description="Quickly sign up using your email or preferred social login." // Adjusted description
-              />
-              {/* Step 2: Course Selection/Browse */}
-              <OnboardingStep
-                number={2}
-                title="Explore Courses" // Changed from "Select Modules"
-                description="Browse our catalog and find the tech path that excites you." // Adjusted description
-              />
-              {/* Step 3: Profile Setup */}
-              <OnboardingStep
-                number={3}
-                title="Complete Your Profile" // More relevant than device setup
-                description="Add your details so we can personalize your learning experience." // Adjusted description
-              />
-              {/* Step 4: Start Learning */}
-              <OnboardingStep
-                number={4}
-                title="Start Learning!" // Changed from "Invite Students"
-                description="Dive into your first course and connect with instructors and peers." // Adjusted description
-              />
-            </div>
-
-            {/* Call to Action Button */}
-            <div className="text-center mt-16">
-              <DyraneButton size="lg" asChild>
-                <Link href="/signup">
-                  {/* Updated CTA Text */}
-                  Enroll at 1Tech Academy Today
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </DyraneButton>
-            </div>
+            <IntegrationLogos />
           </div>
         </section>
-        {/* --- End 1Tech Academy Onboarding Steps --- */}
 
         <SectionDivider />
 
