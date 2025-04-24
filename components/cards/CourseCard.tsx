@@ -1,23 +1,32 @@
-"use client"
+// components/cards/CourseCard.tsx
+'use client';
 
-import * as React from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { Clock, Users, Star, CheckCircle } from "lucide-react"
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import type { Course } from "@/data/mock-course-data"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import * as React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+// Removed motion import if not used directly for internal elements
+import { Clock, Users, Star, UsersRound, CheckCircle, BookOpenText } from 'lucide-react'; // Adjusted icons
+import {
+    DyraneCard, // Use the main DyraneCard component
+    DyraneCardHeader,
+    DyraneCardTitle,
+    DyraneCardDescription,
+    DyraneCardContent,
+    DyraneCardFooter
+} from '@/components/dyrane-ui/dyrane-card'; // Import DyraneCard and its parts
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { useCurrencyConversion } from '@/hooks/use-currency-conversion';
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from '@/lib/utils';
+import type { Course } from '@/data/mock-course-data';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // Keep Tabs for Modal view
 
 interface CourseCardProps {
-    course: Course
-    className?: string
-    onClick?: () => void
-    isModal?: boolean
+    course: Course;
+    className?: string;
+    onClick?: () => void; // For triggering modal
+    isModal?: boolean;    // To differentiate view
 }
 
 export function CourseCard({ course, className, onClick, isModal = false }: CourseCardProps) {
@@ -26,251 +35,191 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
         convert,
         formatTargetCurrency,
         formatBaseCurrency,
-    } = useCurrencyConversion("USD", "NGN")
-    const [showDetails, setShowDetails] = React.useState(false)
+    } = useCurrencyConversion("USD", "NGN");
 
-    const nairaAmount = convert(course.priceUSD)
-    const discountedNairaAmount = course.discountPriceUSD ? convert(course.discountPriceUSD) : null
+    const nairaAmount = convert(course.priceUSD);
+    const discountedNairaAmount = course.discountPriceUSD ? convert(course.discountPriceUSD) : null;
 
     const renderNairaPrice = (amount: number | null) => {
-        if (isRateLoading) return <Skeleton className="h-4 w-16 inline-block" />
-        if (amount === null) return null
-        return formatTargetCurrency(amount)
-    }
+        if (isRateLoading) return <Skeleton className="h-4 w-16 mt-0.5 inline-block" />;
+        if (amount === null) return <span className="h-4 inline-block"></span>;
+        return formatTargetCurrency(amount);
+    };
 
-    const levelBadgeColor = (level?: string) => {
+    const levelBadgeColor = (level?: string) => { /* ... same as before ... */
         switch (level) {
-            case "Beginner":
-                return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-300/50 dark:border-green-700/50"
-            case "Intermediate":
-                return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-300/50 dark:border-yellow-700/50"
-            case "Advanced":
-                return "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-300/50 dark:border-red-700/50"
-            default:
-                return "bg-muted text-muted-foreground border-border"
+            case 'Beginner': return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-300/50 dark:border-green-700/50';
+            case 'Intermediate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-300/50 dark:border-yellow-700/50';
+            case 'Advanced': return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-300/50 dark:border-red-700/50';
+            default: return 'bg-muted text-muted-foreground border-border';
         }
-    }
+    };
 
-    // Determine price to display (discount or regular)
-    const displayPriceUSD = course.discountPriceUSD ?? course.priceUSD
-    const displayNairaAmount = discountedNairaAmount ?? nairaAmount
+    const displayPriceUSD = course.discountPriceUSD ?? course.priceUSD;
+    const displayNairaAmount = discountedNairaAmount ?? nairaAmount;
 
-    // If this is a modal view, show the detailed version
+    // --- MODAL VIEW ---
     if (isModal) {
+        // Keep the detailed modal view structure exactly as before
         return (
             <div className="max-h-[80vh] overflow-y-auto">
                 <div className="relative aspect-video w-full">
-                    <Image
-                        src={course.image || "/placeholder.svg"}
-                        alt={course.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                    {course.level && (
-                        <Badge
-                            variant="outline"
-                            className={cn("absolute top-4 right-4 backdrop-blur-sm bg-background/70", levelBadgeColor(course.level))}
-                        >
-                            {course.level}
-                        </Badge>
-                    )}
-                    {course.discountPriceUSD && (
-                        <Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground">
-                            -{Math.round(((course.priceUSD - course.discountPriceUSD) / course.priceUSD) * 100)}%
-                        </Badge>
-                    )}
+                    {/* ... Image and Badges for Modal ... */}
+                    <Image src={course.image || '/placeholder.svg'} alt={course.title} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                    {course.level && (<Badge variant="outline" className={cn("absolute top-4 right-4 backdrop-blur-sm bg-background/70", levelBadgeColor(course.level))}>{course.level}</Badge>)}
+                    {course.discountPriceUSD && (<Badge className="absolute top-4 left-4 bg-destructive text-destructive-foreground">-{Math.round(((course.priceUSD - course.discountPriceUSD) / course.priceUSD) * 100)}%</Badge>)}
                 </div>
 
                 <div className="p-6">
+                    {/* ... Title, Subtitle, Stats ... */}
                     <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
                     {course.subtitle && <p className="text-muted-foreground mb-4">{course.subtitle}</p>}
-
-                    <div className="flex flex-wrap gap-4 mb-6">
-                        <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>{course.duration}</span>
-                        </div>
-                        <div className="flex items-center">
-                            <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span>{course.studentsEnrolled.toLocaleString()} students</span>
-                        </div>
-                        {course.rating && (
-                            <div className="flex items-center text-amber-500">
-                                <Star className="h-4 w-4 mr-1 fill-current" />
-                                <span>{course.rating.toFixed(1)}</span>
-                                {course.reviewsCount && <span className="text-muted-foreground ml-1">({course.reviewsCount})</span>}
-                            </div>
-                        )}
+                    <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm">
+                        <span className="inline-flex items-center"><Clock className="size-4 mr-2 text-muted-foreground" />{course.duration}</span>
+                        <span className="inline-flex items-center"><Users className="size-4 mr-2 text-muted-foreground" />{course.studentsEnrolled.toLocaleString()} students</span>
+                        {course.rating && (<span className="inline-flex items-center text-amber-500"><Star className="size-4 mr-1 fill-current" />{course.rating.toFixed(1)}{course.reviewsCount && <span className="ml-1.5 text-xs text-muted-foreground">({course.reviewsCount})</span>}</span>)}
                     </div>
 
+
                     <Tabs defaultValue="overview" className="w-full">
-                        <TabsList className="mb-4">
+                        {/* ... TabsList ... */}
+                        <TabsList className="mb-4 grid w-full grid-cols-3">
                             <TabsTrigger value="overview">Overview</TabsTrigger>
                             <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
                             <TabsTrigger value="instructor">Instructor</TabsTrigger>
                         </TabsList>
-
-                        <TabsContent value="overview" className="space-y-4">
+                        <TabsContent value="overview" className="space-y-6 text-sm">
+                            {/* ... Overview Content ... */}
                             <div>
-                                <h3 className="font-semibold mb-2">Description</h3>
-                                <p className="text-muted-foreground">{course.description}</p>
+                                <h3 className="font-semibold mb-2 text-base">Description</h3>
+                                <p className="text-muted-foreground leading-relaxed">{course.description}</p>
                             </div>
-
-                            {course.learningOutcomes && (
-                                <div>
-                                    <h3 className="font-semibold mb-2">What You'll Learn</h3>
-                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                        {course.learningOutcomes.map((outcome, index) => (
-                                            <li key={index} className="flex items-start">
-                                                <CheckCircle className="h-4 w-4 mr-2 text-green-500 mt-1 flex-shrink-0" />
-                                                <span>{outcome}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-
-                            {course.prerequisites && (
-                                <div>
-                                    <h3 className="font-semibold mb-2">Prerequisites</h3>
-                                    <ul className="list-disc pl-5 space-y-1">
-                                        {course.prerequisites.map((prereq, index) => (
-                                            <li key={index}>{prereq}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
+                            {course.learningOutcomes && (<div><h3 className="font-semibold mb-2 text-base">What You'll Learn</h3><ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">{course.learningOutcomes.map((outcome, index) => (<li key={index} className="flex items-start"><CheckCircle className="size-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" /><span>{outcome}</span></li>))}</ul></div>)}
+                            {course.prerequisites && (<div><h3 className="font-semibold mb-2 text-base">Prerequisites</h3><ul className="list-disc pl-5 space-y-1 text-muted-foreground">{course.prerequisites.map((prereq, index) => (<li key={index}>{prereq}</li>))}</ul></div>)}
                         </TabsContent>
-
                         <TabsContent value="curriculum">
-                            {course.modules ? (
-                                <div className="space-y-3">
-                                    {course.modules.map((module, index) => (
-                                        <div key={index} className="p-3 border rounded-md">
-                                            <div className="flex justify-between">
-                                                <h4 className="font-medium">{module.title}</h4>
-                                                <span className="text-sm text-muted-foreground">{module.duration}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-muted-foreground">Curriculum details will be available soon.</p>
-                            )}
+                            {course.modules ? (<div className="space-y-3">{course.modules.map((module, index) => (<div key={index} className="p-3 border rounded-md flex justify-between items-center"><h4 className="font-medium text-sm">{module.title}</h4><span className="text-xs text-muted-foreground">{module.duration}</span></div>))}</div>) : (<p className="text-muted-foreground text-sm">Curriculum details will be available soon.</p>)}
                         </TabsContent>
-
                         <TabsContent value="instructor">
-                            <div className="flex items-center space-x-4 mb-4">
-                                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                                    {course.instructor.avatar ? (
-                                        <Image
-                                            src={course.instructor.avatar || "/placeholder.svg"}
-                                            alt={course.instructor.name}
-                                            width={64}
-                                            height={64}
-                                            className="rounded-full"
-                                        />
-                                    ) : (
-                                        <Users className="h-8 w-8 text-muted-foreground" />
-                                    )}
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold">{course.instructor.name}</h3>
-                                    {course.instructor.title && (
-                                        <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
-                                    )}
-                                </div>
-                            </div>
+                            <div className="flex items-center space-x-4"><div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">{course.instructor.avatar ? (<Image src={course.instructor.avatar} alt={course.instructor.name} width={64} height={64} className="object-cover" />) : (<Users className="h-8 w-8 text-muted-foreground" />)}</div><div><h3 className="font-semibold">{course.instructor.name}</h3>{course.instructor.title && (<p className="text-sm text-muted-foreground">{course.instructor.title}</p>)}</div></div>
                         </TabsContent>
                     </Tabs>
                 </div>
 
-                <div className="p-6 border-t flex justify-between items-center">
+                <div className="p-6 border-t flex justify-between items-center mt-auto">
+                    {/* ... Modal Footer Price ... */}
                     <div>
-                        {course.discountPriceUSD && (
-                            <span className="text-sm text-muted-foreground line-through mr-2">
-                                {formatBaseCurrency(course.priceUSD)}
-                            </span>
-                        )}
+                        {course.discountPriceUSD && (<span className="text-sm text-muted-foreground line-through mr-2">{formatBaseCurrency(course.priceUSD)}</span>)}
                         <span className="text-xl font-bold text-primary">{formatBaseCurrency(displayPriceUSD)}</span>
-                        <div className="text-sm text-muted-foreground">{renderNairaPrice(displayNairaAmount)}</div>
+                        <div className="text-sm text-muted-foreground h-5">{renderNairaPrice(displayNairaAmount)}</div> {/* Increased height slightly */}
                     </div>
-
-                    <DyraneButton asChild>
+                    {/* ... Modal Enroll Button ... */}
+                    <DyraneButton asChild size="lg">
                         <Link href={`/courses/${course.slug}/enroll`}>Enroll Now</Link>
                     </DyraneButton>
                 </div>
             </div>
-        )
+        );
     }
 
-    // Regular card view (compact)
+    // --- REGULAR CARD VIEW (Compact) ---
     return (
-        <motion.div
-            className={cn(
-                "flex flex-col h-full rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden",
-                className,
-            )}
-            whileHover={{ scale: 1.02 }}
-            onClick={onClick}
-            style={{ cursor: onClick ? "pointer" : "default" }}
+        // Use DyraneCard as the root element
+        // It provides the 'group' class and hover animations internally
+        <DyraneCard
+            className={cn("flex flex-col h-full", className)} // Base styles for flex layout
+            cardClassName="flex flex-col h-full" // Ensure inner BaseCard is also flex col full height
+            layout // Animate layout changes if size differs
+            onClick={onClick} // Pass onClick for modal trigger
+            style={{ cursor: onClick ? "pointer" : "default" }} // Indicate clickability
+        // Optional: Pass down specific motion props for staggering if needed
+        // initial={{ opacity: 0, y: 20 }}
+        // animate={{ opacity: 1, y: 0 }}
+        // exit={{ opacity: 0 }}
+        // transition={{ /* ... */ }}
         >
-            <div className="relative h-48">
+            {/* Image Container */}
+            <div className="aspect-[16/10] relative overflow-hidden"> {/* Consistent aspect ratio */}
                 <Image
-                    src={course.image || "/placeholder.svg"}
+                    src={course.image || '/placeholder-image.svg'}
                     alt={course.title}
                     fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+                    className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105" // Zoom on hover using group
                 />
-                {course.level && (
-                    <Badge
-                        variant="outline"
-                        className={cn("absolute top-2 right-2 backdrop-blur-sm bg-background/70", levelBadgeColor(course.level))}
-                    >
-                        {course.level}
-                    </Badge>
-                )}
-                {course.discountPriceUSD && (
-                    <Badge className="absolute top-2 left-2 bg-destructive text-destructive-foreground">
-                        -{Math.round(((course.priceUSD - course.discountPriceUSD) / course.priceUSD) * 100)}%
-                    </Badge>
-                )}
+                {/* Badges */}
+                {course.level && (<Badge variant="outline" className={cn("absolute top-2 right-2 backdrop-blur-sm bg-background/70 text-xs px-1.5 py-0.5", levelBadgeColor(course.level))}>{course.level}</Badge>)}
+                {course.discountPriceUSD && (<Badge className="absolute top-2 left-2 text-xs px-1.5 py-0.5" variant="destructive">-{Math.round(((course.priceUSD - course.discountPriceUSD) / course.priceUSD) * 100)}%</Badge>)}
             </div>
 
-            <div className="flex flex-col flex-1 p-4">
-                <h3 className="font-semibold text-lg mb-2 line-clamp-2">{course.title}</h3>
+            {/* Use Dyrane Card structure for content */}
+            {/* No Header needed for compact view usually */}
 
-                <div className="flex items-center text-sm text-muted-foreground mb-2">
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span className="mr-3">{course.duration}</span>
-                    <Users className="h-4 w-4 mr-1" />
-                    <span>{course.studentsEnrolled.toLocaleString()}</span>
+            {/* Use flex-1 to push footer down */}
+            <DyraneCardContent className="flex-1 p-4 space-y-2"> {/* Reduced padding */}
+                {/* Title - Link within */}
+                <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1">
+                    <Link href={`/courses/${course.slug}`} onClick={(e) => e.stopPropagation()} className="hover:text-primary transition-colors">
+                        {course.title}
+                    </Link>
+                </h3>
+
+                {/* Info Icons Row */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center">
+                        <Clock className="size-3.5 mr-1" />
+                        {course.duration}
+                    </span>
+                    <span className="inline-flex items-center">
+                        <UsersRound className="size-3.5 mr-1" />
+                        {course.studentsEnrolled.toLocaleString()}
+                    </span>
                     {course.rating && (
-                        <div className="ml-auto flex items-center text-amber-500">
-                            <Star className="h-4 w-4 mr-1 fill-current" />
-                            <span>{course.rating.toFixed(1)}</span>
-                        </div>
+                        <span className="inline-flex items-center text-amber-500">
+                            <Star className="size-3.5 mr-0.5 fill-current" />
+                            {course.rating.toFixed(1)}
+                            {/* Optional: Hide review count on small card */}
+                            {/* {course.reviewsCount && <span className="ml-1">({course.reviewsCount})</span>} */}
+                        </span>
                     )}
                 </div>
+            </DyraneCardContent>
 
-                <div className="mt-auto pt-4 border-t flex justify-between items-center">
-                    <div>
+            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30"> {/* Reduced padding */}
+                <div className="flex justify-between items-end w-full gap-2">
+                    {/* Price */}
+                    <div className="flex flex-col text-left">
                         {course.discountPriceUSD && (
-                            <div className="text-xs text-muted-foreground line-through">{formatBaseCurrency(course.priceUSD)}</div>
+                            <span className="text-xs text-muted-foreground line-through h-4">
+                                {formatBaseCurrency(course.priceUSD)}
+                            </span>
                         )}
-                        <div className="font-bold text-primary">{formatBaseCurrency(displayPriceUSD)}</div>
-                        <div className="text-xs text-muted-foreground">{renderNairaPrice(displayNairaAmount)}</div>
+                        <span className="text-sm font-bold text-primary"> {/* Slightly smaller price */}
+                            {formatBaseCurrency(displayPriceUSD)}
+                        </span>
+                        <span className="text-xs text-muted-foreground h-4">
+                            {renderNairaPrice(displayNairaAmount)}
+                        </span>
                     </div>
 
-                    {!onClick && (
-                        <DyraneButton size="sm" variant="outline" asChild onClick={(e) => e.stopPropagation()}>
-                            <Link href={`/courses/${course.slug}`}>View</Link>
-                        </DyraneButton>
-                    )}
+                    {/* Button changes appearance on hover */}
+                    <DyraneButton
+                        size="sm"
+                        variant="secondary" // Example: default to secondary
+                        className="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-in-out" // Fade/scale in on hover
+                        asChild={!onClick} // Use Link only if no onClick provided
+                        onClick={(e) => { if (!onClick) { e.stopPropagation(); } else { onClick(); } }} // Prevent card click if linking
+                    >
+                        {onClick ? (
+                            // If onClick is provided (for modal), button text is "View Details"
+                            <span>View Details</span>
+                        ) : (
+                            // Otherwise, it's a link to the course page
+                            <Link href={`/courses/${course.slug}`}>View Details</Link>
+                        )}
+                    </DyraneButton>
                 </div>
-            </div>
-        </motion.div>
-    )
+            </DyraneCardFooter>
+        </DyraneCard>
+    );
 }
