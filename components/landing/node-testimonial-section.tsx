@@ -7,14 +7,14 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MotionTokens } from "@/lib/motion.tokens";
 
-// --- Data Structures (Keep as is) ---
+// --- Data Structures  ---
 interface Testimonial { /* ... */ id: string; name: string; center?: boolean; role: string; company: string; quote: string; image: string; }
 interface NodePosition { /* ... */ top: string; left: string; center?: boolean; }
 interface Connection { /* ... */ id: string; x1: number; y1: number; x2: number; y2: number; connects: string; }
 interface Globe { /* ... */ id: string; cx: number; cy: number; tx: number; ty: number; connects: string; delay: number; }
 type ScreenSize = "desktop" | "tablet" | "mobile";
 
-// --- Sample Data & Positions (Keep as is) ---
+// --- Sample Data & Positions  ---
 // Sample testimonials data
 const testimonials: Testimonial[] = [
     {
@@ -95,13 +95,13 @@ const nodePositions: Record<ScreenSize, NodePosition[]> = { /* ... your position
     mobile: [{ top: "5%", left: "20%" }, { top: "10%", left: "80%" }, { top: "35%", left: "70%" }, { top: "65%", left: "15%" }, { top: "80%", left: "75%" }, { top: "90%", left: "30%" }, { top: "50%", left: "50%", center: true },],
 };
 
-// --- Helper Function for Debouncing (Keep as is) ---
+// --- Helper Function for Debouncing  ---
 function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) { /* ... */
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     return (...args: Parameters<F>): Promise<ReturnType<F>> => new Promise(resolve => { if (timeoutId) clearTimeout(timeoutId); timeoutId = setTimeout(() => resolve(func(...args)), waitFor); });
 }
 
-// --- Brand Color Constants (Keep as is) ---
+// --- Brand Color Constants  ---
 const BRAND_PRIMARY_OKLCH = "oklch(var(--primary-lightness, 0.646) var(--primary-chroma, 0.14) var(--primary-hue, 77.5))";
 const INACTIVE_LINE_OPACITY = "0.15"; // Make inactive lines even more subtle
 const ACTIVE_LINE_OPACITY = "0.7";   // Active lines slightly less opaque
@@ -121,7 +121,7 @@ export function NodeTestimonialSection() {
     const svgRef = useRef<SVGSVGElement>(null);
     const filterId = useId();
 
-    // --- Calculate Node Rects (Keep as is) ---
+    // --- Calculate Node Rects  ---
     const calculateNodeRects = useCallback(() => { /* ... */
         if (!nodesAreaRef.current) return;
         const areaRect = nodesAreaRef.current.getBoundingClientRect();
@@ -189,7 +189,7 @@ export function NodeTestimonialSection() {
                     delay: Math.random() * 1.5 + 0.3, // Slightly longer random delay base
                 });
                 // Optionally add a globe going the other direction
-                // newGlobes.push({ id: `globe-${node2Id}-${node1Id}`, cx: node2Pos.x, cy: node2Pos.y, tx: midX - node2Pos.x, ty: midY - node2Pos.y, connects: connects, delay: Math.random() * 1.5 + 0.8 });
+                newGlobes.push({ id: `globe-${node2Id}-${node1Id}`, cx: node2Pos.x, cy: node2Pos.y, tx: midX - node2Pos.x, ty: midY - node2Pos.y, connects: connects, delay: Math.random() * 1.5 + 0.8 });
             }
         }
 
@@ -197,7 +197,7 @@ export function NodeTestimonialSection() {
         setGlobes(newGlobes);
     }, [nodeRects]); // Depends only on nodeRects
 
-    // --- Handle Screen Resize (Keep as is) ---
+    // --- Handle Screen Resize  ---
     useEffect(() => { /* ... */
         const updateScreenSize = () => { const width = window.innerWidth; if (width < 768) setScreenSize("mobile"); else if (width < 1024) setScreenSize("tablet"); else setScreenSize("desktop"); };
         const debouncedRecalculate = debounce(() => { calculateNodeRects(); }, 250);
@@ -205,10 +205,10 @@ export function NodeTestimonialSection() {
         updateScreenSize(); calculateNodeRects(); window.addEventListener("resize", handleResize); return () => window.removeEventListener("resize", handleResize);
     }, [calculateNodeRects]);
 
-    // --- Effect to Recalculate Connections (Keep as is) ---
+    // --- Effect to Recalculate Connections  ---
     useEffect(() => { requestAnimationFrame(calculateConnections); }, [nodeRects, calculateConnections]);
 
-    // --- Animations (Keep globe animation logic as is) ---
+    // --- Animations  ---
     const globeAnimation = (globe: Globe) => ({ /* ... */
         opacity: [0, 0.9, 0.9, 0], x: [0, globe.tx, globe.tx, globe.tx], y: [0, globe.ty, globe.ty, globe.ty],
     });
@@ -220,7 +220,7 @@ export function NodeTestimonialSection() {
         <div className="w-full overflow-hidden bg-transparent backdrop-blur-xs relative z-10">
             <div className="container relative min-h-[70vh] md:min-h-[65vh] py-16 md:py-20 px-4 md:px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
-                {/* Text Content Area (Keep as is) */}
+                {/* Text Content Area */}
                 <div className="relative z-10 w-full lg:w-1/2 xl:w-[45%] text-center lg:text-left">
                     {/* ... motion.span, motion.h2, motion.p ... */}
                     <motion.span className="block uppercase tracking-widest text-xs font-semibold text-primary mb-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.1 }}> Success Stories </motion.span>
@@ -228,7 +228,7 @@ export function NodeTestimonialSection() {
                     <motion.p className="text-base md:text-lg leading-relaxed text-muted-foreground max-w-lg mx-auto lg:mx-0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }}> Discover how students and professionals leverage 1Tech Academy. Hover over the nodes to explore their journeys. </motion.p>
                 </div>
 
-                {/* Network Nodes Area (Keep structure as is) */}
+                {/* Network Nodes Area */}
                 <div ref={nodesAreaRef} className="relative z-0 w-full lg:w-1/2 xl:w-[55%] h-[400px] sm:h-[450px] md:h-[500px]">
                     {/* SVG Layer for Connections and Globes */}
                     <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" aria-hidden="true">
@@ -320,7 +320,7 @@ export function NodeTestimonialSection() {
                                 onMouseEnter={() => setActiveNodeId(testimonial.id)}
                                 onMouseLeave={() => setActiveNodeId(null)}
                             >
-                                {/* Avatar Wrapper (Keep as is) */}
+                                {/* Avatar Wrapper  */}
                                 <div className="w-full h-full rounded-full relative shadow-md overflow-hidden border-2 border-background dark:border-slate-800/50">
                                     {/* ... Image and inner glow ... */}
                                     <Image src={testimonial.image || "/images/avatars/default.png"} alt={`${testimonial.name} - ${testimonial.role}`} fill sizes="(max-width: 768px) 75px, 90px" className={cn("object-cover transition-transform duration-300 ease-out", activeNodeId === testimonial.id ? "scale-105" : "")} />
@@ -348,7 +348,7 @@ export function NodeTestimonialSection() {
                 </div>
             </div>
 
-            {/* Embedded CSS animations (Keep as is) */}
+            {/* Embedded CSS animations  */}
             <style jsx global>{`/* ... @keyframes pulse-border ... */
                 @keyframes pulse-border { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
                 .animate-pulse-border { animation: pulse-border 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
