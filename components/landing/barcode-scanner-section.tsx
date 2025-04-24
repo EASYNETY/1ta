@@ -45,7 +45,7 @@ export function BarcodeScannerSection() {
             <motion.div variants={itemVariants} className="order-2 lg:order-1">
                 <div className="relative h-[400px] w-full">
                     <Image
-                        src="/placeholder.svg?height=400&width=500"
+                        src="https://images.unsplash.com/photo-1583394838336-acd977736f90?q=80&w=1548&auto=format&fit=crop"
                         alt="Barcode scanning demonstration"
                         fill
                         className="object-contain"
