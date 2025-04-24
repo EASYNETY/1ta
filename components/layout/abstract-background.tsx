@@ -2,6 +2,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useMousePosition } from "@/providers/MouseTrackerProvider";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import React, { useEffect, useId, useRef, useState, useCallback } from "react";
@@ -47,6 +48,21 @@ export function AbstractBackground({
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     // Explicitly type the state with the Square interface
     const [squares, setSquares] = useState<Square[]>([]);
+    const { x: mouseX, y: mouseY } = useMousePosition();
+    const [mouseGridPos, setMouseGridPos] = useState<[number, number] | null>(null);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = Math.floor((mouseX - rect.left) / gridSize);
+        const y = Math.floor((mouseY - rect.top) / gridSize);
+        if (x >= 0 && y >= 0 && x * gridSize < dimensions.width && y * gridSize < dimensions.height) {
+            setMouseGridPos([x, y]);
+        } else {
+            setMouseGridPos(null);
+        }
+    }, [mouseX, mouseY, gridSize, dimensions]);
+
 
     // --- Helper Function to get Random Grid Position ---
     // useCallback ensures the function identity is stable unless dependencies change
@@ -132,7 +148,7 @@ export function AbstractBackground({
             ref={containerRef}
             aria-hidden="true"
             className={cn(
-                "pointer-events-none absolute inset-0 h-full w-full -z-10", // Position behind, disable interaction
+                "absolute inset-0 h-full w-full -z-10", // Position behind, disable interaction
                 className
             )}
         >
@@ -205,7 +221,6 @@ export function AbstractBackground({
                         // Call updateSquarePosition when fade-out part of animation completes
                         // This might require adjusting timing or using onUpdate if onAnimationComplete isn't reliable for repeats
                         // For simplicity, let's rely on the continuous animation for now.
-                        onAnimationComplete={() => updateSquarePosition(id)} // Re-enable if needed and tested
                         width={gridSize - 1} // Slightly smaller than cell
                         height={gridSize - 1}
                         x={x * gridSize + 0.5} // Offset slightly for stroke width
@@ -216,6 +231,23 @@ export function AbstractBackground({
                     />
                 ))}
             </g>
+
+            {mouseGridPos && (
+                <motion.rect
+                    key="mouse-square"
+                    x={mouseGridPos[0] * gridSize + 0.5}
+                    y={mouseGridPos[1] * gridSize + 0.5}
+                    width={gridSize - 1}
+                    height={gridSize - 1}
+                    fill={squareColor}
+                    fillOpacity={1}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.4 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                />
+            )}
+
         </svg>
     );
 }
