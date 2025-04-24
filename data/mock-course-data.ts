@@ -68,11 +68,13 @@ export const mockCourseData: Course[] = [
 		description:
 			"Become a full-stack web developer with this comprehensive course. You'll learn front-end and back-end technologies, databases, deployment, and best practices for building modern, responsive web applications. This bootcamp covers everything you need to start a career in web development.",
 		category: "Web Development",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80",
 		instructor: {
 			name: "Dr. Angela Yu",
 			title: "Senior Full-Stack Engineer & Educator",
-			avatar: "/placeholder.svg?height=100&width=100",
+			avatar:
+				"https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2076&q=80",
 			bio: "Dr. Angela Yu is a developer and lead instructor with over 10 years of experience in web development and teaching. She has helped over 1 million students learn to code and change their lives.",
 		},
 		duration: "65 hours (Self-paced)",
@@ -159,11 +161,13 @@ export const mockCourseData: Course[] = [
 		description:
 			"Dive deep into React.js and build powerful, interactive web applications from scratch. This course covers all the fundamentals and advanced concepts of React, including the latest features and best practices. You'll learn through hands-on projects and real-world examples.",
 		category: "Web Development",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Maximilian Schwarzmüller",
 			title: "Professional Web Developer & Instructor",
-			avatar: "/placeholder.svg?height=100&width=100",
+			avatar:
+				"https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 			bio: "Maximilian is a professional web developer and instructor with over 10 years of experience in the field. He has taught over 2 million students worldwide.",
 		},
 		duration: "48 hours (Self-paced)",
@@ -236,7 +240,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Master JavaScript with this comprehensive course covering everything from the basics to advanced topics. You'll learn modern JavaScript features, asynchronous programming, DOM manipulation, and how to build real-world applications. Perfect for beginners and those looking to level up their JavaScript skills.",
 		category: "Web Development",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Brad Traversy",
 			title: "Full Stack Developer & Educator",
@@ -280,11 +285,13 @@ export const mockCourseData: Course[] = [
 		description:
 			"Become a data scientist with this comprehensive bootcamp. You'll learn Python programming, data manipulation, visualization, statistical analysis, machine learning, and more. This course covers all the skills you need to start a career in data science and analytics.",
 		category: "Data Science",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Dr. Jose Portilla",
 			title: "Head of Data Science at Pierian Training",
-			avatar: "/placeholder.svg?height=100&width=100",
+			avatar:
+				"https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
 			bio: "Dr. Jose Portilla has a BS and MS in Engineering from Santa Clara University and has been teaching data science and programming for over 5 years.",
 		},
 		duration: "60 hours (Self-paced)",
@@ -363,7 +370,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn to create Machine Learning Algorithms in Python and R from scratch. This course covers both the theory and practical implementation of machine learning algorithms, including regression, classification, clustering, and deep learning. You'll work on real-world projects and datasets to build your portfolio.",
 		category: "Data Science",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1518186285589-2f7649de83e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
 		instructor: {
 			name: "Kirill Eremenko",
 			title: "Data Scientist & Forex Systems Expert",
@@ -411,11 +419,13 @@ export const mockCourseData: Course[] = [
 		description:
 			"The Deep Learning Specialization is a foundational program that will help you understand the capabilities, challenges, and consequences of deep learning and prepare you to participate in the development of leading-edge AI technology. You'll learn the foundations of deep learning, how to build neural networks, and how to lead successful machine learning projects.",
 		category: "Data Science",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1677442135136-760c813028c0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Andrew Ng",
 			title: "Founder of DeepLearning.AI & Co-founder of Coursera",
-			avatar: "/placeholder.svg?height=100&width=100",
+			avatar:
+				"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 			bio: "Andrew Ng is a globally recognized leader in AI. He founded and led the Google Brain team, served as Chief Scientist at Baidu, and co-founded Coursera.",
 		},
 		duration: "80 hours (Self-paced)",
@@ -462,7 +472,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn iOS app development by building real-world apps. This course covers Swift programming, UIKit, SwiftUI, Core Data, networking, and more. You'll build over 15 complete apps and gain the skills needed to become a professional iOS developer.",
 		category: "Mobile Development",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1621839673705-6617adf9e890?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80",
 		instructor: {
 			name: "Dr. Angela Yu",
 			title: "Developer and Lead Instructor",
@@ -504,7 +515,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Build native iOS and Android apps with Flutter and Dart. This course covers everything from the basics to advanced topics, including state management, Firebase integration, animations, and more. You'll build real-world apps and learn best practices for Flutter development.",
 		category: "Mobile Development",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1581276879432-15e50529f34b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Maximilian Schwarzmüller",
 			title: "Professional Developer & Instructor",
@@ -578,7 +590,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn React Native from the ground up and build iOS and Android apps with JavaScript and React. This course covers all the fundamentals and advanced concepts of React Native, including navigation, state management, native device features, and deployment. You'll build real-world apps and learn best practices for React Native development.",
 		category: "Mobile Development",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Maximilian Schwarzmüller",
 			title: "Professional Developer & Instructor",
@@ -626,7 +639,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Master ethical hacking and penetration testing with this comprehensive bootcamp. You'll learn how to identify and exploit vulnerabilities, secure networks, perform web application testing, and more. This course covers all the tools and techniques used by professional ethical hackers and security experts.",
 		category: "Cybersecurity",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1614064641938-3bbee52942c7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Zaid Sabih",
 			title: "Ethical Hacker & Cybersecurity Expert",
@@ -674,7 +688,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Prepare for the CompTIA Security+ certification exam with this comprehensive course. You'll learn all the topics covered in the exam, including network security, threats and vulnerabilities, identity management, cryptography, and more. This course includes practice questions, hands-on labs, and exam tips to help you pass the exam on your first attempt.",
 		category: "Cybersecurity",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Jason Dion",
 			title: "Cybersecurity Expert & Certified Instructor",
@@ -723,7 +738,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Prepare for the AWS Certified Solutions Architect - Associate exam with this comprehensive course. You'll learn how to design and deploy scalable, highly available, and fault-tolerant systems on AWS. This course covers all the services and concepts you need to know to pass the exam and become a certified AWS Solutions Architect.",
 		category: "Cloud Computing",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1603695762547-fba8b92408c8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
 		instructor: {
 			name: "Stephane Maarek",
 			title: "AWS Certified Solutions Architect & Developer",
@@ -801,7 +817,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Prepare for the Microsoft Azure Administrator (AZ-104) certification exam with this comprehensive course. You'll learn how to manage Azure subscriptions, secure identities, implement and manage storage, deploy and manage Azure compute resources, configure and manage virtual networking, and monitor your Azure resources. This course includes hands-on labs and practice exams to help you pass the certification.",
 		category: "Cloud Computing",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80",
 		instructor: {
 			name: "Scott Duffy",
 			title: "Microsoft Certified Trainer & Azure Architect",
@@ -852,11 +869,14 @@ export const mockCourseData: Course[] = [
 		description:
 			"This non-technical course will help you understand AI technologies, their applications, and how they can impact your organization. You'll learn what AI can and cannot do, how to spot opportunities to apply AI, and how to work with technical teams to implement AI solutions. Perfect for business professionals, managers, and executives who want to leverage AI in their organizations.",
 		category: "AI & ML",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1677442135068-c5c9f36b5ac4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Andrew Ng",
 			title: "Founder of DeepLearning.AI & Co-founder of Coursera",
-			avatar: "/placeholder.svg?height=100&width=100",
+			avatar:
+				"https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+			bio: "Andrew Ng is a globally recognized leader in AI. He founded and led the Google Brain team, served as Chief Scientist at Baidu, and co-founded Coursera.",
 		},
 		duration: "4 hours (Self-paced)",
 		level: "Beginner",
@@ -890,7 +910,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn how to build practical AI applications using Python and PyTorch. This course covers the fundamentals of deep learning, computer vision, natural language processing, and reinforcement learning. You'll implement real-world projects like image classification, sentiment analysis, and game-playing agents. Perfect for developers who want to add AI capabilities to their applications.",
 		category: "AI & ML",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1620712943543-bcc4688e7485?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2072&q=80",
 		instructor: {
 			name: "Daniel Bourke",
 			title: "Machine Learning Engineer & Educator",
@@ -970,7 +991,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Get the essential knowledge of an MBA without the time and expense. This course covers business strategy, financial analysis, marketing, leadership, operations, and more. You'll learn from real-world case studies and practical examples to develop the skills needed for business success. Perfect for entrepreneurs, managers, and professionals looking to advance their careers.",
 		category: "Business",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
 		instructor: {
 			name: "Chris Haroun",
 			title: "Venture Capitalist & Business School Professor",
@@ -1018,7 +1040,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Master UI/UX design with this comprehensive bootcamp. You'll learn the entire design process, from user research and wireframing to prototyping and testing. This course covers design principles, tools like Figma and Adobe XD, and best practices for creating user-centered designs. Perfect for beginners and those looking to transition into a design career.",
 		category: "Design",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1561070791-2526d30994b5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80",
 		instructor: {
 			name: "Daniel Walter Scott",
 			title: "UI/UX Designer & Adobe Certified Instructor",
@@ -1066,7 +1089,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Become a digital marketing expert with this comprehensive bootcamp. You'll learn SEO, social media marketing, email marketing, content marketing, Google Ads, Facebook Ads, analytics, and more. This course covers all the strategies and tools you need to create successful digital marketing campaigns and grow your business online.",
 		category: "Marketing",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1533750516457-a7f992034fec?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Phil Ebiner",
 			title: "Digital Marketing Expert & Entrepreneur",
@@ -1116,7 +1140,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn the essential mathematics for machine learning and data science. This course covers linear algebra, calculus, probability, and statistics, with a focus on their applications in machine learning algorithms. You'll gain a deep understanding of the mathematical concepts that underpin modern machine learning techniques.",
 		category: "Mathematics",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Dr. Tom Mitchell",
 			title: "Professor of Computer Science & Mathematics",
@@ -1165,7 +1190,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn how to apply data science and machine learning techniques to biological problems. This course covers data analysis, visualization, statistical modeling, and machine learning with a focus on biological applications. You'll work with real biological datasets and learn how to extract meaningful insights from complex biological data.",
 		category: "Science",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Dr. Sarah Johnson",
 			title: "Computational Biologist & Research Scientist",
@@ -1215,7 +1241,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Learn Spanish from scratch with this comprehensive course. You'll master Spanish grammar, vocabulary, pronunciation, and conversation skills. This course includes interactive exercises, real-life dialogues, and cultural insights to help you become fluent in Spanish. Perfect for beginners and those looking to refresh their Spanish skills.",
 		category: "Language",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1546410531-bb4caa6b424d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
 		instructor: {
 			name: "Maria Rodriguez",
 			title: "Spanish Language Teacher & Native Speaker",
@@ -1261,7 +1288,8 @@ export const mockCourseData: Course[] = [
 		description:
 			"Become a certified personal trainer with this comprehensive course. You'll learn exercise science, anatomy, program design, nutrition, client assessment, and business skills. This course prepares you for major personal training certifications and gives you the knowledge and skills to start your career as a fitness professional.",
 		category: "Health & Fitness",
-		image: "/placeholder.svg?height=500&width=600",
+		image:
+			"https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
 		instructor: {
 			name: "Mark Williams",
 			title: "Master Trainer & Exercise Physiologist",
