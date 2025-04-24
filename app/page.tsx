@@ -218,7 +218,7 @@ export default function LandingPage() {
           {/* Assuming AbstractBackground or GridBackground component is used */}
           <AbstractBackground className="opacity-50 dark:opacity-40" /> {/* Example: Reduced opacity */}
 
-          <div className="container px-4 md:px-6 relative"> {/* Use container for consistent padding */}
+          <div className="px-4 md:px-6 relative"> {/* Use container for consistent padding */}
             <SectionHeader
               title="Begin Your Tech Journey in Minutes" // More engaging title
               description="Our simple sign-up process gets you learning faster." // Focused description
