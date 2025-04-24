@@ -237,7 +237,7 @@ export default function LandingPage() {
           <div className="px-4 md:px-6 relative">
             <SectionHeader
               title="What Our Clients Say"
-              description="Hear from institutions that have transformed their educational experience with 1TechAcademy."
+              description="Hear from students, educators, and partners who’ve transformed their learning journey with 1TechAcademy."
             />
             <NodeTestimonialSection />
             <TestimonialCarousel />
