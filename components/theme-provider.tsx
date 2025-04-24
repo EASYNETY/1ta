@@ -35,8 +35,8 @@ export function ThemeToggle() {
     const thumbOffset = "0px";     // Fine-tune thumb start/end position (slightly more than padding)
 
     // Track background colors
-    const lightTrackBg = "bg-primary/25";
-    const darkTrackBg = "bg-primary/25"; // Example dark mode active color
+    const lightTrackBg = "bg-muted";
+    const darkTrackBg = "bg-muted"; // Example dark mode active color
 
     // Thumb background color
     const thumbBg = "bg-white dark:bg-slate-950";
