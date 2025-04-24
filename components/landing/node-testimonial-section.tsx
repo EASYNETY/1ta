@@ -302,7 +302,7 @@ export function NodeTestimonialSection() {
                 {/* Central content area */}
                 <div className="relative z-10 flex-basis-full md:flex-basis-[55%] md:pr-[6%] text-left mb-12 md:mb-0 text-center md:text-left">
                     <motion.span
-                        className="block text-[#d1c0c0] uppercase tracking-[4px] mb-[18px] text-[0.9rem] font-bold opacity-80 relative"
+                        className="block uppercase tracking-[4px] mb-[18px] text-[0.9rem] font-bold opacity-80 relative"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 0.8 }}
                         transition={{ duration: 1 }}
@@ -312,7 +312,7 @@ export function NodeTestimonialSection() {
                     </motion.span>
 
                     <motion.h2
-                        className="text-[#f8f0f0] text-[2.5rem] md:text-[3rem] font-bold leading-[1.15] mb-[35px] text-shadow-lg"
+                        className="text-[2.5rem] md:text-[3rem] font-bold leading-[1.15] mb-[35px] text-shadow-lg"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1, delay: 0.2 }}
@@ -321,7 +321,7 @@ export function NodeTestimonialSection() {
                     </motion.h2>
 
                     <motion.p
-                        className="text-[#d1c0c0] text-[1rem] md:text-[1.1rem] leading-[1.75] max-w-[550px] opacity-90 mx-auto md:mx-0"
+                        className="text-[1rem] md:text-[1.1rem] leading-[1.75] max-w-[550px] opacity-90 mx-auto md:mx-0"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 0.9 }}
                         transition={{ duration: 1, delay: 0.4 }}
