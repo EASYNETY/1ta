@@ -15,6 +15,8 @@ import { AbstractBackground } from "@/components/layout/abstract-background"
 import { ScrollIndicator } from "@/components/layout/scroll-indicator"
 import { SectionDivider } from "@/components/layout/section-divider"
 import { SectionHeader } from "@/components/layout/section-header"
+import { BarcodeScannerSection } from "@/components/landing/barcode-scanner-section"
+import { CoursesSection } from "@/components/landing/course-section"
 
 export default function LandingPage() {
   return (
@@ -106,8 +108,33 @@ export default function LandingPage() {
 
         <SectionDivider />
 
+        {/* Barcode Scanner Section */}
+        <section id="barcode-scanner" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-80" />
+          <div className="container px-4 md:px-6 relative">
+            <BarcodeScannerSection />
+          </div>
+        </section>
+
+        <SectionDivider />
+
+        {/* Courses Section */}
+        <section id="courses" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-80" />
+
+          <div className="px-4 md:px-6 relative">
+            <SectionHeader
+              title="Explore Our Courses"
+              description="Unlock your potential with industry-leading tech courses taught by experts."
+            />
+            <CoursesSection />
+          </div>
+        </section>
+
+        <SectionDivider />
+
         {/* Why Choose Us */}
-        <section id="why-choose-us" className="py-24 relative overflow-hidden">
+        <section id="why-us" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader

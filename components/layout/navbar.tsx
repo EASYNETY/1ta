@@ -29,6 +29,7 @@ import { ThemeToggle } from "../theme-provider";
 const navLinks = [
     { href: "#features", label: "Features" },
     { href: "#why-us", label: "Why Us" },
+    { href: "#courses", label: "Courses" },
     { href: "#testimonials", label: "Testimonials" },
     { href: "#integrations", label: "Integrations" },
 ];
