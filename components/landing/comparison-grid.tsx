@@ -128,8 +128,8 @@ export function ComparisonGrid() {
                   <TableCell className="text-center">
                     {item.techacademy ? (
                       <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
+                        // initial={{ scale: 0 }}
+                        // animate={{ scale: 1 }}
                         transition={{ delay: index * 0.1 + 0.3, duration: 0.3, type: "spring" }}
                       >
                         <CheckCircle className="h-5 w-5 text-green-500 mx-auto" />

@@ -12,24 +12,24 @@ import Image from "next/image"
 const testimonials = [
   {
     quote:
-      "1techacademy has completely transformed how we track attendance and engage with students. The real-time analytics have been invaluable for improving student outcomes.",
+      "1TechAcademy has completely transformed how we track attendance and engage with students. The real-time analytics have been invaluable for improving student outcomes.",
     author: "Dr. Sarah Johnson",
     role: "Principal, Westlake High School",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
   },
   {
     quote:
       "The biometric attendance system has saved our staff countless hours and improved accuracy. Parents love the instant notifications and transparency.",
     author: "Michael Chen",
     role: "Technology Director, Eastside College",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
   },
   {
     quote:
       "As a teacher, the AI-enhanced learning paths have helped me personalize education for each student. I've seen remarkable improvements in engagement and results.",
     author: "Emily Rodriguez",
     role: "Science Teacher, North Academy",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=200&auto=format&fit=crop",
   },
 ]
 
@@ -73,7 +73,9 @@ export function TestimonialCarousel() {
           <DyraneCard className="overflow-hidden">
             <CardContent className="p-8 md:p-12">
               <Quote className="h-12 w-12 text-primary/20 mb-6" />
-              <blockquote className="text-xl md:text-2xl mb-6 italic">&quot;{testimonials[current].quote}&quot;</blockquote>
+              <blockquote className="text-xl md:text-2xl mb-6 italic">
+                &quot;{testimonials[current].quote}&quot;
+              </blockquote>
               <div className="flex items-center">
                 <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
                   <Image

@@ -7,14 +7,32 @@ import { MotionTokens } from "@/lib/motion.tokens"
 import Image from "next/image"
 
 const logos = [
-  { name: "Google Classroom", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Microsoft Teams", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Canvas", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Zoom", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Slack", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Moodle", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Blackboard", logo: "/placeholder.svg?height=60&width=120" },
-  { name: "Notion", logo: "/placeholder.svg?height=60&width=120" },
+  { name: "Google Classroom", logo: "https://upload.wikimedia.org/wikipedia/commons/5/59/Google_Classroom_Logo.png" },
+  {
+    name: "Microsoft Teams",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg",
+  },
+  {
+    name: "Canvas",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Canvas_LMS_logo.svg/1200px-Canvas_LMS_logo.svg.png",
+  },
+  {
+    name: "Zoom",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Zoom_logo.svg/2880px-Zoom_logo.svg.png",
+  },
+  {
+    name: "Slack",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Slack_icon_2019.svg/2048px-Slack_icon_2019.svg.png",
+  },
+  {
+    name: "Moodle",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Moodle_logo.svg/1200px-Moodle_logo.svg.png",
+  },
+  {
+    name: "Blackboard",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Blackboard_Learn_Logo.svg/1200px-Blackboard_Learn_Logo.svg.png",
+  },
+  { name: "Notion", logo: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png" },
 ]
 
 export function IntegrationLogos() {
@@ -62,9 +80,16 @@ export function IntegrationLogos() {
               key={index}
               className="flex-shrink-0 h-16 w-32 bg-background rounded-lg flex items-center justify-center p-4"
             >
-              <Image src={logo.logo || "/placeholder.svg"} alt={logo.name} className="max-h-full max-w-full" width={
-                isMobile ? 120 : 240} height={isMobile ? 60 : 120} priority={index < 4} sizes="(max-width: 768px) 120px, 240px" loading={index < 4 ? "eager" : "lazy"
-              }/>
+              <Image
+                src={logo.logo || "/placeholder.svg"}
+                alt={logo.name}
+                width={isMobile ? 120 : 240}
+                height={isMobile ? 60 : 120}
+                priority={index < 4}
+                sizes="(max-width: 768px) 120px, 240px"
+                loading={index < 4 ? "eager" : "lazy"}
+                className="max-h-full max-w-full object-contain"
+              />
             </div>
           ))}
         </motion.div>
@@ -90,8 +115,13 @@ export function IntegrationLogos() {
             transition: { duration: MotionTokens.duration.fast },
           }}
         >
-          <Image src={logo.logo || "/placeholder.svg"} alt={logo.name}
-            width={120} height={60} className="max-h-full max-w-full" />
+          <Image
+            src={logo.logo || "/placeholder.svg"}
+            alt={logo.name}
+            width={120}
+            height={60}
+            className="max-h-full max-w-full object-contain"
+          />
         </motion.div>
       ))}
     </motion.div>
