@@ -17,6 +17,7 @@ import { SectionDivider } from "@/components/layout/section-divider"
 import { SectionHeader } from "@/components/layout/section-header"
 import { BarcodeScannerSection } from "@/components/landing/barcode-scanner-section"
 import { CoursesSection } from "@/components/landing/course-section"
+import { NodeTestimonialSection } from "@/components/landing/node-testimonial-section"
 
 export default function LandingPage() {
   return (
@@ -238,7 +239,7 @@ export default function LandingPage() {
               title="What Our Clients Say"
               description="Hear from institutions that have transformed their educational experience with 1TechAcademy."
             />
-
+            <NodeTestimonialSection />
             <TestimonialCarousel />
           </div>
         </section>
