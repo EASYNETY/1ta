@@ -94,6 +94,7 @@ export function CoursesSection() {
                 initial="hidden"
                 animate={categoryInView ? "visible" : "hidden"}
             >
+                <h2 className="text-2xl font-bold mb-6 text-center">All Courses</h2>
                 <Tabs defaultValue={courseCategories[0]} className="w-full">
                     <ScrollArea className="w-full whitespace-nowrap pb-4">
                         <TabsList className="inline-flex h-auto w-full justify-start">
