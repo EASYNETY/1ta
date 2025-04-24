@@ -1,5 +1,7 @@
 # 📘 1TechAcademy Platform - Frontend Developer Guide
 
+> 🛠️ **Currently Evolving:** The frontend is being adapted into a student-first experience under the new platform name **onTech**. All references to 1TechAcademy remain valid during transition, but components, flows, and messaging are being personalized for individual users (students, teachers, staff, admins).
+
 **Project:** 1TechAcademy SaaS Platform Frontend
 **Client:** 1Tech Academy
 **Prepared by:** EASYNET TELSURVE CO
