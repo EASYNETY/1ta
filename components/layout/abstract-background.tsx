@@ -1,146 +1,177 @@
-// src/components/background/GridBackground.tsx (or AbstractBackground.tsx)
+// components/layout/AbstractBackground.tsx
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useMousePosition } from "@/providers/MouseTrackerProvider";
-import { motion } from "framer-motion";
+import { useMousePositionValues } from "@/providers/MouseTrackerProvider";
+// Import the custom hook
+import { useDebouncedEffect } from "@/hooks/useDebouncedEffect"; // Adjust path as needed
+import { motion, useSpring, useTransform } from "framer-motion";
 import { useTheme } from "next-themes";
-import React, { useEffect, useId, useRef, useState, useCallback } from "react";
+import React, { useEffect, useId, useRef, useState, useCallback, useMemo } from "react"; // Added useMemo for IDs
 
-// --- Component Props ---
+// --- Interfaces ---
 interface AbstractBackground {
     className?: string;
-    gridSize?: number; // Size of each grid cell
-    strokeDasharray?: number | string; // For dashed lines in the pattern
-    numSquares?: number; // Number of animating squares
-    maxOpacity?: number; // Max opacity for animating squares
-    duration?: number; // Duration for square fade animation
-    repeatDelay?: number; // Delay before square animation repeats
-    lineColor?: string; // CSS color variable or value for grid lines
-    squareColor?: string; // CSS color variable or value for animating squares
+    gridSize?: number;
+    strokeDasharray?: number | string;
+    numSquares?: number;
+    maxOpacity?: number;
+    duration?: number;
+    repeatDelay?: number;
+    debounceDelay?: number; // Add prop for debounce delay
 }
-
-// --- Type for Square State ---
 interface Square {
     id: number;
-    pos: [number, number]; // Explicitly a tuple of two numbers [x, y]
+    pos: [number, number];
 }
 
 export function AbstractBackground({
     className,
-    gridSize = 40, // Default grid size
-    strokeDasharray = 0, // Default: solid lines
-    numSquares = 30, // Reduced default number for potentially better performance
+    gridSize = 40,
+    strokeDasharray = 0,
+    numSquares = 30,
     maxOpacity = 1,
-    duration = 3, // Slightly faster animation
-    repeatDelay = 1, // Increased delay between square fades
+    duration = 3,
+    repeatDelay = 1,
+    debounceDelay = 300, // Default debounce delay for square generation
 }: AbstractBackground) {
-    const uniqueId = useId(); // Unique ID for SVG defs
-    const patternId = `${uniqueId}-pattern`;
-    const maskId = `${uniqueId}-mask`;
-    const fadeMaskId = `${uniqueId}-fade-mask`;
+    // Memoize IDs derived from useId - ensures stability if component structure changes
+    // Although useId itself is stable per instance, explicit memoization is clearest practice.
+    const uniqueId = useId();
+    const patternId = useMemo(() => `${uniqueId}-pattern`, [uniqueId]);
+    const maskId = useMemo(() => `${uniqueId}-mask`, [uniqueId]);
+    const fadeMaskId = useMemo(() => `${uniqueId}-fade-mask`, [uniqueId]);
+
     const { resolvedTheme } = useTheme();
     const isDark = resolvedTheme === 'dark';
-    const lineColor = isDark ? "#C99700" : "#FFD400";
-    const squareColor = isDark ? "#C99700" : "#FFD400";
 
     const containerRef = useRef<SVGSVGElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-    // Explicitly type the state with the Square interface
     const [squares, setSquares] = useState<Square[]>([]);
-    const { x: mouseX, y: mouseY } = useMousePosition();
-    const [mouseGridPos, setMouseGridPos] = useState<[number, number] | null>(null);
+    const { x: mouseClientX, y: mouseClientY } = useMousePositionValues();
+    const [containerOffset, setContainerOffset] = useState({ left: 0, top: 0 });
 
+    // Colors derived from theme
+    const lineColor = isDark ? "#C99700" : "#FFD400"; // Using original colors
+    const squareColor = isDark ? "#C99700" : "#FFD400";
+
+    // --- Layout Update Logic (Optimized) ---
     useEffect(() => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = Math.floor((mouseX - rect.left) / gridSize);
-        const y = Math.floor((mouseY - rect.top) / gridSize);
-        if (x >= 0 && y >= 0 && x * gridSize < dimensions.width && y * gridSize < dimensions.height) {
-            setMouseGridPos([x, y]);
-        } else {
-            setMouseGridPos(null);
-        }
-    }, [mouseX, mouseY, gridSize, dimensions]);
+        const currentRef = containerRef.current;
+        if (!currentRef) return;
+
+        let layoutRafId: number | null = null;
+        let scrollRafId: number | null = null;
+
+        const updateLayout = () => {
+            const rect = currentRef.getBoundingClientRect();
+            // Update both dimensions and offset together on resize
+            setDimensions({ width: rect.width, height: rect.height });
+            setContainerOffset({ left: rect.left, top: rect.top });
+        };
+
+        const requestUpdateLayout = () => {
+            if (layoutRafId) cancelAnimationFrame(layoutRafId);
+            layoutRafId = requestAnimationFrame(updateLayout);
+        };
+
+        const handleScroll = () => {
+            if (scrollRafId) cancelAnimationFrame(scrollRafId);
+            scrollRafId = requestAnimationFrame(() => {
+                if (containerRef.current) { // Check ref existence inside rAF
+                    const rect = containerRef.current.getBoundingClientRect();
+                    setContainerOffset({ left: rect.left, top: rect.top });
+                }
+            });
+        };
+
+        // Initial layout calculation
+        updateLayout();
+
+        const resizeObserver = new ResizeObserver(requestUpdateLayout);
+        resizeObserver.observe(currentRef);
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (currentRef) { // Check ref before unobserving
+                resizeObserver.unobserve(currentRef);
+            }
+            resizeObserver.disconnect();
+            if (layoutRafId) cancelAnimationFrame(layoutRafId);
+            if (scrollRafId) cancelAnimationFrame(scrollRafId);
+        };
+        // This effect runs once on mount
+    }, []);
 
 
-    // --- Helper Function to get Random Grid Position ---
-    // useCallback ensures the function identity is stable unless dependencies change
-    const getPos = useCallback((): [number, number] => { // Ensure return type is tuple
-        if (!dimensions.width || !dimensions.height) {
-            return [0, 0]; // Default position if dimensions aren't set yet
+    // --- Mouse Coordinate Transforms and Springs ---
+    const mouseSvgX = useTransform(mouseClientX, latestClientX => {
+        const relativeX = latestClientX - containerOffset.left;
+        const gridX = Math.floor(relativeX / gridSize);
+        return gridX * gridSize + 0.5;
+    });
+    const mouseSvgY = useTransform(mouseClientY, latestClientY => {
+        const relativeY = latestClientY - containerOffset.top;
+        const gridY = Math.floor(relativeY / gridSize);
+        return gridY * gridSize + 0.5;
+    });
+    const positionSpringConfig = { stiffness: 350, damping: 30, mass: 0.8 };
+    const springX = useSpring(mouseSvgX, positionSpringConfig);
+    const springY = useSpring(mouseSvgY, positionSpringConfig);
+
+    // --- isInside Transform and Opacity Spring ---
+    const isInside = useTransform<number, number>(
+        [mouseClientX, mouseClientY],
+        ([latestX, latestY]) => {
+            const relativeX = latestX - containerOffset.left;
+            const relativeY = latestY - containerOffset.top;
+            // Use current dimensions from state
+            return relativeX >= 0 &&
+                relativeX <= dimensions.width &&
+                relativeY >= 0 &&
+                relativeY <= dimensions.height
+                ? 1 : 0;
         }
+        // This transform implicitly depends on state (dimensions, containerOffset)
+        // Updates correctly because state changes trigger re-renders where the
+        // transform function gets the latest state values via closure.
+    );
+    const opacitySpringConfig = { stiffness: 400, damping: 40 };
+    // Initialize the spring with the *current* isInside value, will animate if needed
+    const springOpacity = useSpring(isInside, opacitySpringConfig);
+
+
+    // --- Random Squares Logic ---
+    const getPos = useCallback((): [number, number] => {
+        if (!dimensions.width || !dimensions.height) return [0, 0];
         return [
-            Math.floor((Math.random() * dimensions.width) / gridSize), // x coordinate
-            Math.floor((Math.random() * dimensions.height) / gridSize), // y coordinate
+            Math.floor((Math.random() * dimensions.width) / gridSize),
+            Math.floor((Math.random() * dimensions.height) / gridSize),
         ];
-    }, [dimensions.width, dimensions.height, gridSize]); // Dependencies
+    }, [dimensions.width, dimensions.height, gridSize]);
 
-    // --- Helper Function to Generate Squares ---
-    // useCallback for stability
     const generateSquares = useCallback((count: number): Square[] => {
-        // Ensure return type matches state type
+        // Ensure dimensions are valid before generating positions
+        if (!dimensions.width || !dimensions.height) return [];
         return Array.from({ length: count }, (_, i): Square => ({
             id: i,
             pos: getPos(),
         }));
-    }, [getPos]); // Dependency
+    }, [getPos, dimensions.width, dimensions.height]); // Add dimension deps here for safety
 
-    // --- Function to Update a Single Square's Position ---
-    // useCallback for stability
-    const updateSquarePosition = useCallback((id: number) => {
-        setSquares((currentSquares) =>
-            currentSquares.map((sq) =>
-                sq.id === id
-                    ? { ...sq, pos: getPos() } // Get a new valid position
-                    : sq
-            )
-        );
-        // Removed console log
-    }, [getPos]); // Dependency
-
-    // --- Effect to Initialize and Update Squares Based on Dimensions ---
-    useEffect(() => {
+    // --- *** DEBOUNCED Effect for Generating Squares *** ---
+    useDebouncedEffect(() => {
+        // Check dimensions again inside the debounced effect
         if (dimensions.width && dimensions.height) {
-            // Generate initial set of squares when dimensions are first available
+            console.log("Debounced: Regenerating squares"); // For debugging
             setSquares(generateSquares(numSquares));
         }
-        // Intentionally disable exhaustive-deps for generateSquares
-        // We only want this to run when dimensions change significantly,
-        // not every time getPos changes (which depends on dimensions anyway).
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dimensions.width, dimensions.height, numSquares]);
-
-    // --- Effect for Resize Observer ---
-    useEffect(() => {
-        // Use a ResizeObserver to update dimensions when the container size changes
-        const resizeObserver = new ResizeObserver((entries) => {
-            for (let entry of entries) {
-                // Use requestAnimationFrame to avoid layout thrashing
-                window.requestAnimationFrame(() => {
-                    if (entry.contentRect) {
-                        setDimensions({
-                            width: entry.contentRect.width,
-                            height: entry.contentRect.height,
-                        });
-                    }
-                });
-            }
-        });
-
-        const currentRef = containerRef.current; // Capture ref value
-        if (currentRef) {
-            resizeObserver.observe(currentRef);
-        }
-
-        // Cleanup function to disconnect observer
-        return () => {
-            if (currentRef) {
-                resizeObserver.unobserve(currentRef);
-            }
-            resizeObserver.disconnect();
-        };
-    }, []); // Empty dependency array ensures this runs only once on mount/unmount
+    },
+        [dimensions.width, dimensions.height, numSquares, generateSquares], // Dependencies
+        debounceDelay // Use the prop for delay duration
+    );
 
     // --- Render SVG ---
     return (
@@ -148,106 +179,84 @@ export function AbstractBackground({
             ref={containerRef}
             aria-hidden="true"
             className={cn(
-                "absolute inset-0 h-full w-full -z-10", // Position behind, disable interaction
+                "pointer-events-none absolute inset-0 h-full w-full -z-10 isolate",
                 className
             )}
         >
+            {/* Defs */}
             <defs>
-                <pattern
-                    id={patternId}
-                    width={gridSize}
-                    height={gridSize}
-                    patternUnits="userSpaceOnUse"
-                >
-                    {/* Vertical line */}
-                    <path
-                        d={`M0 0 V${gridSize - 1}`}
-                        fill="none"
-                        stroke={lineColor}
-                        strokeWidth={1}
-                        strokeDasharray={strokeDasharray}
-                        strokeLinecap="butt"
-                    />
-                    {/* Horizontal line */}
-                    <path
-                        d={`M0 0 H${gridSize - 1}`}
-                        fill="none"
-                        stroke={lineColor}
-                        strokeWidth={1}
-                        strokeDasharray={strokeDasharray}
-                        strokeLinecap="butt"
-                    />
+                {/* Pattern Definition */}
+                <pattern id={patternId} width={gridSize} height={gridSize} patternUnits="userSpaceOnUse">
+                    <path d={`M0 0 V${gridSize - 1}`} fill="none" stroke={lineColor} strokeWidth={1} strokeDasharray={strokeDasharray} strokeLinecap="butt" />
+                    <path d={`M0 0 H${gridSize - 1}`} fill="none" stroke={lineColor} strokeWidth={1} strokeDasharray={strokeDasharray} strokeLinecap="butt" />
                 </pattern>
 
-
-                {/* Radial Gradient Mask for Fading Edges */}
+                {/* Mask Gradient Definition */}
                 <radialGradient id={maskId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                    {/* Gradient starts opaque in center, fades to transparent */}
                     <stop offset="0%" stopColor="white" stopOpacity="1" />
                     <stop offset="100%" stopColor="white" stopOpacity="0" />
                 </radialGradient>
 
-                {/* Apply the Radial Gradient as a Mask */}
+                {/* Mask Definition */}
                 <mask id={fadeMaskId}>
-                    {/* Use the mask gradient to fill the mask area */}
                     <rect width="100%" height="100%" fill={`url(#${maskId})`} />
                 </mask>
+
             </defs>
 
-            {/* Draw the Grid Pattern using the definition */}
-            {/* Apply the fade mask to the grid pattern */}
+            {/* Grid Pattern */}
             <rect
                 width="100%"
                 height="100%"
                 fill={`url(#${patternId})`}
-                mask={`url(#${fadeMaskId})`} // Apply the fade mask here
+                mask={`url(#${fadeMaskId})`}
             />
 
-            {/* Container for Animating Squares */}
-            {/* Apply the same fade mask to the squares so they also fade at edges */}
+            {/* Random Squares */}
             <g mask={`url(#${fadeMaskId})`}>
                 {squares.map(({ pos: [x, y], id }, index) => (
                     <motion.rect
-                        key={`${id}-${x}-${y}`} // Ensure key includes position for re-renders
+                        key={`${id}-${x}-${y}`} // Stable key needed
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: maxOpacity * (Math.random() * 0.5 + 0.5) }} // Randomize opacity slightly
+                        animate={{ opacity: maxOpacity * (Math.random() * 0.5 + 0.5) }}
                         transition={{
-                            duration: duration * (Math.random() * 0.5 + 0.75), // Randomize duration slightly
+                            duration: duration * (Math.random() * 0.5 + 0.75),
                             repeat: Infinity,
-                            delay: index * (repeatDelay / numSquares) + Math.random() * repeatDelay, // Staggered & randomized delay
-                            repeatType: "reverse", // Fade in and out
+                            delay: index * (repeatDelay / numSquares) + Math.random() * repeatDelay,
+                            repeatType: "reverse",
                             ease: "easeInOut",
                         }}
-                        // Call updateSquarePosition when fade-out part of animation completes
-                        // This might require adjusting timing or using onUpdate if onAnimationComplete isn't reliable for repeats
-                        // For simplicity, let's rely on the continuous animation for now.
-                        width={gridSize - 1} // Slightly smaller than cell
+                        width={gridSize - 1}
                         height={gridSize - 1}
-                        x={x * gridSize + 0.5} // Offset slightly for stroke width
+                        x={x * gridSize + 0.5}
                         y={y * gridSize + 0.5}
-                        fill={squareColor} // Use CSS variable/value
-                        fillOpacity={maxOpacity} // Opacity handled by animation
-                        strokeWidth={0} // No stroke needed
+                        fill={squareColor}
+                        strokeWidth={0}
                     />
                 ))}
             </g>
 
-            {mouseGridPos && (
+            {/* Mouse Follower Square */}
+            {/* Render only when dimensions known */}
+            {dimensions.width > 0 && dimensions.height > 0 && (
                 <motion.rect
                     key="mouse-square"
-                    x={mouseGridPos[0] * gridSize + 0.5}
-                    y={mouseGridPos[1] * gridSize + 0.5}
+                    // *** ADDED: Initial opacity for fade-in on mount ***
+                    initial={{ opacity: 0 }}
+                    style={{
+                        x: springX,
+                        y: springY,
+                        // Let the spring control opacity after initial mount
+                        opacity: springOpacity,
+                    }}
                     width={gridSize - 1}
                     height={gridSize - 1}
-                    fill={squareColor}
-                    fillOpacity={1}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.4 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    fill={squareColor} // Using base square color
+                    rx={2} // Slightly rounded corners
+                    ry={2}
+                    strokeWidth={0}
                 />
             )}
-
         </svg>
     );
 }
