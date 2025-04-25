@@ -1,13 +1,11 @@
-// components/layout/AbstractBackground.tsx
 "use client";
 
 import { cn } from "@/lib/utils";
 import { useMousePositionValues } from "@/providers/MouseTrackerProvider";
-// Import the custom hook
-import { useDebouncedEffect } from "@/hooks/useDebouncedEffect"; // Adjust path as needed
+import { useDebouncedEffect } from "@/hooks/useDebouncedEffect";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { useTheme } from "next-themes";
-import React, { useEffect, useId, useRef, useState, useCallback, useMemo } from "react"; // Added useMemo for IDs
+import React, { useEffect, useId, useRef, useState, useCallback, useMemo } from "react";
 
 // --- Interfaces ---
 interface AbstractBackground {
@@ -18,8 +16,9 @@ interface AbstractBackground {
     maxOpacity?: number;
     duration?: number;
     repeatDelay?: number;
-    debounceDelay?: number; // Add prop for debounce delay
+    debounceDelay?: number;
 }
+
 interface Square {
     id: number;
     pos: [number, number];
@@ -30,13 +29,11 @@ export function AbstractBackground({
     gridSize = 40,
     strokeDasharray = 0,
     numSquares = 30,
-    maxOpacity = 1,
+    maxOpacity = 0.8,
     duration = 3,
     repeatDelay = 1,
-    debounceDelay = 300, // Default debounce delay for square generation
+    debounceDelay = 300,
 }: AbstractBackground) {
-    // Memoize IDs derived from useId - ensures stability if component structure changes
-    // Although useId itself is stable per instance, explicit memoization is clearest practice.
     const uniqueId = useId();
     const patternId = useMemo(() => `${uniqueId}-pattern`, [uniqueId]);
     const maskId = useMemo(() => `${uniqueId}-mask`, [uniqueId]);
@@ -65,7 +62,6 @@ export function AbstractBackground({
 
         const updateLayout = () => {
             const rect = currentRef.getBoundingClientRect();
-            // Update both dimensions and offset together on resize
             setDimensions({ width: rect.width, height: rect.height });
             setContainerOffset({ left: rect.left, top: rect.top });
         };
@@ -78,31 +74,26 @@ export function AbstractBackground({
         const handleScroll = () => {
             if (scrollRafId) cancelAnimationFrame(scrollRafId);
             scrollRafId = requestAnimationFrame(() => {
-                if (containerRef.current) { // Check ref existence inside rAF
+                if (containerRef.current) {
                     const rect = containerRef.current.getBoundingClientRect();
                     setContainerOffset({ left: rect.left, top: rect.top });
                 }
             });
         };
 
-        // Initial layout calculation
         updateLayout();
 
         const resizeObserver = new ResizeObserver(requestUpdateLayout);
         resizeObserver.observe(currentRef);
         window.addEventListener('scroll', handleScroll, { passive: true });
 
-        // Cleanup
         return () => {
             window.removeEventListener('scroll', handleScroll);
-            if (currentRef) { // Check ref before unobserving
-                resizeObserver.unobserve(currentRef);
-            }
+            if (currentRef) resizeObserver.unobserve(currentRef);
             resizeObserver.disconnect();
             if (layoutRafId) cancelAnimationFrame(layoutRafId);
             if (scrollRafId) cancelAnimationFrame(scrollRafId);
         };
-        // This effect runs once on mount
     }, []);
 
 
@@ -134,16 +125,10 @@ export function AbstractBackground({
                 relativeY <= dimensions.height
                 ? 1 : 0;
         }
-        // This transform implicitly depends on state (dimensions, containerOffset)
-        // Updates correctly because state changes trigger re-renders where the
-        // transform function gets the latest state values via closure.
     );
-    const opacitySpringConfig = { stiffness: 400, damping: 40 };
-    // Initialize the spring with the *current* isInside value, will animate if needed
+    const opacitySpringConfig = { stiffness: 100, damping: 50 };
     const springOpacity = useSpring(isInside, opacitySpringConfig);
 
-
-    // --- Random Squares Logic ---
     const getPos = useCallback((): [number, number] => {
         if (!dimensions.width || !dimensions.height) return [0, 0];
         return [
@@ -159,18 +144,17 @@ export function AbstractBackground({
             id: i,
             pos: getPos(),
         }));
-    }, [getPos, dimensions.width, dimensions.height]); // Add dimension deps here for safety
+    }, [getPos, dimensions.width, dimensions.height]);
 
     // --- *** DEBOUNCED Effect for Generating Squares *** ---
     useDebouncedEffect(() => {
         // Check dimensions again inside the debounced effect
         if (dimensions.width && dimensions.height) {
-            console.log("Debounced: Regenerating squares"); // For debugging
             setSquares(generateSquares(numSquares));
         }
     },
-        [dimensions.width, dimensions.height, numSquares, generateSquares], // Dependencies
-        debounceDelay // Use the prop for delay duration
+        [dimensions.width, dimensions.height, numSquares, generateSquares],
+        debounceDelay
     );
 
     // --- Render SVG ---
@@ -192,7 +176,7 @@ export function AbstractBackground({
                 </pattern>
 
                 {/* Mask Gradient Definition */}
-                <radialGradient id={maskId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <radialGradient id={maskId} cx="50%" cy="50%" r="45%" fx="50%" fy="50%">
                     <stop offset="0%" stopColor="white" stopOpacity="1" />
                     <stop offset="100%" stopColor="white" stopOpacity="0" />
                 </radialGradient>
@@ -200,6 +184,25 @@ export function AbstractBackground({
                 {/* Mask Definition */}
                 <mask id={fadeMaskId}>
                     <rect width="100%" height="100%" fill={`url(#${maskId})`} />
+                    <motion.rect
+                        style={{
+                            x: springX,
+                            y: springY,
+                        }}
+                        animate={{
+                            scale: [2.2, 2.4, 2.2],
+                            transition: {
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            },
+                        }}
+                        width={gridSize * 2.5}
+                        height={gridSize * 2.5}
+                        fill="white"
+                        opacity={1}
+                        filter="blur(24px)"  // Updated for softer edges
+                    />
                 </mask>
 
             </defs>
@@ -216,7 +219,7 @@ export function AbstractBackground({
             <g mask={`url(#${fadeMaskId})`}>
                 {squares.map(({ pos: [x, y], id }, index) => (
                     <motion.rect
-                        key={`${id}-${x}-${y}`} // Stable key needed
+                        key={`${id}-${x}-${y}`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: maxOpacity * (Math.random() * 0.5 + 0.5) }}
                         transition={{
@@ -242,46 +245,35 @@ export function AbstractBackground({
                     <stop offset="0%" stopColor={squareColor} stopOpacity="0.6" />
                     <stop offset="100%" stopColor={squareColor} stopOpacity="0" />
                 </radialGradient>
+                <radialGradient id="squareGlowGradient" cx="50%" cy="50%" r="70%">
+                    <stop offset="0%" stopColor={isDark ? "#C99700" : "#000000"} stopOpacity={isDark ? "0.15" : "0.05"} />
+                    <stop offset="100%" stopColor={isDark ? "#C99700" : "#000000"} stopOpacity="0" />
+                </radialGradient>
             </defs>
 
-            {/* Mouse Follower Beacon */}
-            {dimensions.width > 0 && dimensions.height > 0 && (
-                <motion.rect
-                    key="mouse-square"
-                    initial={{ opacity: 0, scale: 1, rotate: 0 }}
-                    animate={{
-                        scale: [1, 1.05, 1],
-                        rotate: [0, 1.5, -1.5, 0],
-                        transition: {
-                            scale: {
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            },
-                            rotate: {
-                                duration: 3,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }
-                        }
-                    }}
-                    style={{
-                        x: springX,
-                        y: springY,
-                        opacity: springOpacity,
-                        filter: isDark
-                            ? "drop-shadow(0 0 6px rgba(201, 151, 0, 0.3)) drop-shadow(0 0 10px rgba(201, 151, 0, 0.5))"
-                            : "drop-shadow(0 0 5px rgba(255, 212, 0, 0.15)) drop-shadow(0 0 7px rgba(255, 212, 0, 0.25))",
-                        mixBlendMode: isDark ? "screen" : "multiply",
-                        transformOrigin: "center",
-                    }}
-                    width={gridSize - 1}
-                    height={gridSize - 1}
-                    fill="url(#beaconGradient)"
-                    strokeWidth={0}
-                />
-            )}
-
+            {/* Mouse Follower */}
+            <motion.rect
+                key="mouseFollower"
+                style={{
+                    x: springX,
+                    y: springY,
+                }}
+                animate={{
+                    scale: [1, 1.05, 1],
+                    transition: {
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    },
+                }}
+                width={gridSize * 2.5}
+                height={gridSize * 2.5}
+                fill={`url(#squareGlowGradient)`}
+                opacity={0.8}
+                rx={gridSize * 0.2}
+                ry={gridSize * 0.2}
+                filter="blur(16px)"
+            />
         </svg>
     );
 }
