@@ -145,7 +145,7 @@ export function HeroAnimation() {
             aria-label={`Go to slide ${index + 1}`}
             aria-current={index === currentIndex} // Indicate current slide
             className={cn(
-              "h-2 w-2 rounded-full transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50", // Base dot + focus styles
+              "h-2 w-2 rounded-full transition-all duration-300 ease-[cubic-bezier(0.77, 0, 0.175, 1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50", // Base dot + focus styles
               index === currentIndex
                 ? "bg-white scale-110" // Active dot style
                 : "bg-white/40 hover:bg-white/60 scale-90 hover:scale-100", // Inactive dot style + hover

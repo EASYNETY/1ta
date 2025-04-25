@@ -144,7 +144,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     alt={course.title}
                     fill
                     sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-                    className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105" // Zoom on hover using group
+                    className="object-cover transition-transform duration-300 ease-[cubic-bezier(0.77, 0, 0.175, 1)] group-hover:scale-105" // Zoom on hover using group
                 />
                 {/* Badges */}
                 {course.level && (<Badge variant="outline" className={cn("absolute top-2 right-2 backdrop-blur-sm bg-background/70 text-xs px-1.5 py-0.5", levelBadgeColor(course.level))}>{course.level}</Badge>)}
@@ -184,7 +184,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 </div>
             </DyraneCardContent>
 
-            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-300 ease-in-out"> {/* Reduced padding */}
+            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-700 ease-[cubic-bezier(0.77, 0, 0.175, 1)]"> {/* Reduced padding */}
                 <div className="flex justify-between items-end w-full gap-2">
                     {/* Price */}
                     <div className="flex flex-col text-left">
@@ -202,7 +202,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     <DyraneButton
                         size="sm"
                         variant="secondary" // Example: default to secondary
-                        className="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 ease-in-out" // Fade/scale in on hover
+                        className="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-700 ease-[cubic-bezier(0.77, 0, 0.175, 1)]" // Fade/scale in on hover
                         asChild={!onClick} // Use Link only if no onClick provided
                         onClick={(e) => { if (!onClick) { e.stopPropagation(); } else { onClick(); } }} // Prevent card click if linking
                     >

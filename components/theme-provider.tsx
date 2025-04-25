@@ -73,7 +73,7 @@ export function ThemeToggle() {
             role="switch"
             aria-checked={isDark}
             className={cn(
-                "relative flex cursor-pointer items-center rounded-full border border-transparent transition-all duration-300 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                "relative flex cursor-pointer items-center rounded-full border border-transparent transition-all duration-300 ease-[cubic-bezier(0.77, 0, 0.175, 1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 switchWidth,
                 switchHeight,
                 trackPadding,

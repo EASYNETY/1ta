@@ -55,7 +55,7 @@ export default function NavBar() {
     return (
         <header
             className={cn(
-                "sticky top-0 z-50 w-full transition-colors duration-300 ease-in-out", // Use transition-colors, adjusted z-index
+                "sticky top-0 z-50 w-full transition-colors duration-300 ease-[cubic-bezier(0.77, 0, 0.175, 1)]", // Use transition-colors, adjusted z-index
                 isScrolled
                     ? cn("shadow-sm", scrolledHeaderBorder, scrolledHeaderBg, scrolledHeaderBlur) // Combined scrolled styles
                     : "border-b border-transparent" // Transparent border when at top

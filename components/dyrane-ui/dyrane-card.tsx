@@ -94,7 +94,7 @@ const cardCVA = cva(
     // Base styles: Relative positioning, overflow clipping, stacking context, group for hover trigger
     "relative overflow-hidden isolate group transition-shadow duration-200 ease-out hover:shadow-lg " + // Added hover shadow lift
     // Before pseudo-element setup: Covers area, starts hidden, transitions width, sits behind content
-    "before:content-[''] before:absolute before:inset-0 before:w-1 before:origin-left before:transition-all before:duration-500 before:ease-[cubic-bezier(0.77,0,0.175,1)] before:-z-10 hover:before:w-full before:pointer-events-none before:rounded-2xl" // Match BaseCard rounding
+    "before:content-[''] before:absolute before:inset-0 before:w-1 before:origin-left before:transition-all before:duration-700 before:ease-[cubic-bezier(0.77,0,0.175,1)] before:-z-10 hover:before:w-full before:pointer-events-none before:rounded-2xl" // Match BaseCard rounding
 );
 
 // --- DyraneCard Props ---
