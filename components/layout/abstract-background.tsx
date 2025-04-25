@@ -274,6 +274,44 @@ export function AbstractBackground({
                 ry={gridSize * 0.2}
                 filter="blur(16px)"
             />
+
+            {/* Mouse Follower Beacon */}
+            {dimensions.width > 0 && dimensions.height > 0 && (
+                <motion.rect
+                    key="mouse-square"
+                    initial={{ opacity: 0, scale: 1, rotate: 0 }}
+                    animate={{
+                        scale: [1, 1.05, 1],
+                        rotate: [0, 1.5, -1.5, 0],
+                        transition: {
+                            scale: {
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            },
+                            rotate: {
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }
+                        }
+                    }}
+                    style={{
+                        x: springX,
+                        y: springY,
+                        opacity: springOpacity,
+                        filter: isDark
+                            ? "drop-shadow(0 0 6px rgba(201, 151, 0, 0.3)) drop-shadow(0 0 10px rgba(201, 151, 0, 0.5))"
+                            : "drop-shadow(0 0 5px rgba(255, 212, 0, 0.15)) drop-shadow(0 0 7px rgba(255, 212, 0, 0.25))",
+                        mixBlendMode: isDark ? "screen" : "multiply",
+                        transformOrigin: "center",
+                    }}
+                    width={gridSize - 1}
+                    height={gridSize - 1}
+                    fill="url(#beaconGradient)"
+                    strokeWidth={0}
+                />
+            )}
         </svg>
     );
 }
