@@ -236,25 +236,52 @@ export function AbstractBackground({
                 ))}
             </g>
 
-            {/* Mouse Follower Square */}
-            {/* Render only when dimensions known */}
+            {/* Beacon Gradient Definition */}
+            <defs>
+                <radialGradient id="beaconGradient" r="80%" cx="50%" cy="50%">
+                    <stop offset="0%" stopColor={squareColor} stopOpacity="0.6" />
+                    <stop offset="100%" stopColor={squareColor} stopOpacity="0" />
+                </radialGradient>
+            </defs>
+
+            {/* Mouse Follower Beacon */}
             {dimensions.width > 0 && dimensions.height > 0 && (
                 <motion.rect
                     key="mouse-square"
-                    // *** ADDED: Initial opacity for fade-in on mount ***
-                    initial={{ opacity: 0 }}
+                    initial={{ opacity: 0, scale: 1, rotate: 0 }}
+                    animate={{
+                        scale: [1, 1.05, 1],
+                        rotate: [0, 1.5, -1.5, 0],
+                        transition: {
+                            scale: {
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            },
+                            rotate: {
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }
+                        }
+                    }}
                     style={{
                         x: springX,
                         y: springY,
-                        // Let the spring control opacity after initial mount
                         opacity: springOpacity,
+                        filter: isDark
+                            ? "drop-shadow(0 0 6px rgba(201, 151, 0, 0.3)) drop-shadow(0 0 10px rgba(201, 151, 0, 0.5))"
+                            : "drop-shadow(0 0 5px rgba(255, 212, 0, 0.15)) drop-shadow(0 0 7px rgba(255, 212, 0, 0.25))",
+                        mixBlendMode: isDark ? "screen" : "multiply",
+                        transformOrigin: "center",
                     }}
                     width={gridSize - 1}
                     height={gridSize - 1}
-                    fill={squareColor} // Using base square color
+                    fill="url(#beaconGradient)"
                     strokeWidth={0}
                 />
             )}
+
         </svg>
     );
 }
