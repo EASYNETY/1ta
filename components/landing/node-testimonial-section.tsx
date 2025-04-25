@@ -218,7 +218,7 @@ export function NodeTestimonialSection() {
 
     return (
         <div className="w-full overflow-hidden bg-transparent backdrop-blur-xs relative z-10">
-            <div className="container relative min-h-[70vh] md:min-h-[65vh] py-16 md:py-20 px-4 md:px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            <div className="relative min-h-[70vh] md:min-h-[65vh] py-16 md:py-20 px-4 md:px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
 
                 {/* Text Content Area */}
                 <div className="relative z-10 w-full lg:w-1/2 xl:w-[45%] text-center lg:text-left">
