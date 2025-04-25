@@ -18,8 +18,6 @@ import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/
 import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { useAuth } from "@/features/auth/hooks/use-auth"
-import Image from "next/image"
-import { useTheme } from "next-themes"
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -30,15 +28,13 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 export function LoginForm() {
   const dispatch = useAppDispatch()
-  const { theme, systemTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+
   const { isLoading, error } = useAppSelector((state) => state.auth)
   const router = useRouter()
   const { signInWithGoogle } = useAuth()
   const [serverError, setServerError] = useState<string | null>(null)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const currentTheme = !mounted ? 'light' : (theme === "system" ? systemTheme : theme);
-  useEffect(() => setMounted(true), []);
+
 
   const {
     register,
@@ -109,17 +105,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">
-          {mounted && (
-            <Image
-              src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
-              alt="1techacademy Logo"
-              className="h-6 w-auto"
-              priority
-              width={80}
-              height={24}
-            />
-          )}
-          {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+          Welcome back
         </CardTitle>
       </CardHeader>
       <CardContent>

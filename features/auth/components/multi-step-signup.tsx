@@ -12,8 +12,8 @@ import { z } from "zod"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { loginSuccess } from "@/features/auth/store/auth-slice"
 import { clearCart } from "@/features/cart/store/cart-slice"
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -26,6 +26,7 @@ import { formatCurrency } from "@/lib/utils"
 import { Elements } from "@stripe/react-stripe-js"
 import { loadStripe } from "@stripe/stripe-js"
 import { useStripe, useElements } from "@stripe/react-stripe-js"
+import { Textarea } from "@/components/ui/textarea"
 
 // Load Stripe outside of component render to avoid recreating Stripe object on every render
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "")
@@ -57,6 +58,8 @@ const teacherProfileSchema = z.object({
     yearsOfExperience: z.string().refine((val) => !isNaN(Number(val)), {
         message: "Years of experience must be a number",
     }),
+    subjects: z.string().min(2, "Please list at least one subject you can teach"),
+    qualifications: z.string().min(5, "Please provide your qualifications"),
 })
 
 const adminProfileSchema = z.object({
@@ -149,7 +152,7 @@ export function MultiStepSignup() {
             setIsSubmitting(true)
 
             // In a real implementation, this would be an API call to create a payment intent
-            // const response = await post("/api/create-payment-intent", { amount: totalAmount })
+            // const response = await post("/api/create-payment-intent", { amount: total })
             // setClientSecret(response.clientSecret)
 
             // For demo purposes, simulate a payment intent
@@ -177,7 +180,7 @@ export function MultiStepSignup() {
             // const response = await post("/auth/register", {
             //   ...accountData,
             //   profile: profileData,
-            //   courses: items.map(item => item.id),
+            //   courses: items.map(item => item.courseId),
             // })
 
             // For demo purposes, simulate a successful registration
@@ -201,6 +204,7 @@ export function MultiStepSignup() {
             toast({
                 title: "Registration successful",
                 description: "Your account has been created",
+                variant: "success",
             })
 
             router.push("/dashboard")
@@ -238,11 +242,17 @@ export function MultiStepSignup() {
             // If there are items in the cart, enroll in those courses
             if (items.length > 0) {
                 // In a real implementation, this would be API calls to enroll in courses
-                // await Promise.all(items.map(item => post(`/courses/${item.id}/enroll`, {})))
+                // await Promise.all(items.map(item => post(`/courses/${item.courseId}/enroll`, {})))
 
                 // Clear cart after enrollment
                 dispatch(clearCart())
             }
+
+            toast({
+                title: "Sign in successful",
+                description: "You have been signed in with Google",
+                variant: "success",
+            })
 
             router.push("/dashboard")
         } catch (error) {
@@ -262,7 +272,7 @@ export function MultiStepSignup() {
     const totalSteps = selectedRole === "student" && items.length > 0 ? 3 : 2
 
     return (
-        <DyraneCard className="w-full">
+        <Card className="w-full">
             <CardHeader>
                 <CardTitle className="text-2xl font-bold text-center">Create an Account</CardTitle>
                 <Steps
@@ -276,7 +286,7 @@ export function MultiStepSignup() {
             <CardContent>
                 {currentStep === 0 && (
                     <>
-                        <DyraneButton
+                        <Button
                             variant="outline"
                             className="w-full mb-6"
                             onClick={handleGoogleSignIn}
@@ -307,7 +317,7 @@ export function MultiStepSignup() {
                                     Sign up with Google
                                 </>
                             )}
-                        </DyraneButton>
+                        </Button>
 
                         <div className="relative mb-6">
                             <div className="absolute inset-0 flex items-center">
@@ -386,9 +396,9 @@ export function MultiStepSignup() {
                                 )}
                             </div>
 
-                            <DyraneButton type="submit" className="w-full" disabled={isSubmitting}>
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
                                 {isSubmitting ? "Processing..." : "Continue"}
-                            </DyraneButton>
+                            </Button>
                         </form>
                     </>
                 )}
@@ -441,7 +451,7 @@ export function MultiStepSignup() {
                                         {items.map((item) => (
                                             <div key={item.courseId} className="flex justify-between">
                                                 <span>{item.title}</span>
-                                                <span className="font-medium">{formatCurrency(item.price)}</span>
+                                                <span className="font-medium">{formatCurrency(item.discountPrice || item.price)}</span>
                                             </div>
                                         ))}
                                         <Separator />
@@ -455,12 +465,12 @@ export function MultiStepSignup() {
                         )}
 
                         <div className="flex justify-between pt-4">
-                            <DyraneButton type="button" variant="outline" onClick={() => setCurrentStep(0)}>
+                            <Button type="button" variant="outline" onClick={() => setCurrentStep(0)}>
                                 Back
-                            </DyraneButton>
-                            <DyraneButton type="submit" disabled={isSubmitting}>
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? "Processing..." : items.length > 0 ? "Continue to Payment" : "Complete Registration"}
-                            </DyraneButton>
+                            </Button>
                         </div>
                     </form>
                 )}
@@ -481,6 +491,32 @@ export function MultiStepSignup() {
                         </div>
 
                         <div className="space-y-2">
+                            <Label htmlFor="subjects">Subjects You Can Teach</Label>
+                            <Input
+                                id="subjects"
+                                placeholder="e.g., Algebra, Calculus, Statistics"
+                                {...registerTeacherProfile("subjects")}
+                                aria-invalid={teacherProfileErrors.subjects ? "true" : "false"}
+                            />
+                            {teacherProfileErrors.subjects && (
+                                <p className="text-sm text-red-500">{teacherProfileErrors.subjects.message}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="qualifications">Qualifications</Label>
+                            <Input
+                                id="qualifications"
+                                placeholder="e.g., PhD in Mathematics, Certified Teacher"
+                                {...registerTeacherProfile("qualifications")}
+                                aria-invalid={teacherProfileErrors.qualifications ? "true" : "false"}
+                            />
+                            {teacherProfileErrors.qualifications && (
+                                <p className="text-sm text-red-500">{teacherProfileErrors.qualifications.message}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
                             <Label htmlFor="yearsOfExperience">Years of Experience</Label>
                             <Input
                                 id="yearsOfExperience"
@@ -496,22 +532,23 @@ export function MultiStepSignup() {
 
                         <div className="space-y-2">
                             <Label htmlFor="bio">Professional Bio</Label>
-                            <Input
+                            <Textarea
                                 id="bio"
-                                placeholder="Brief description of your teaching experience"
+                                placeholder="Brief description of your teaching experience and approach"
                                 {...registerTeacherProfile("bio")}
                                 aria-invalid={teacherProfileErrors.bio ? "true" : "false"}
+                                rows={4}
                             />
                             {teacherProfileErrors.bio && <p className="text-sm text-red-500">{teacherProfileErrors.bio.message}</p>}
                         </div>
 
                         <div className="flex justify-between pt-4">
-                            <DyraneButton type="button" variant="outline" onClick={() => setCurrentStep(0)}>
+                            <Button type="button" variant="outline" onClick={() => setCurrentStep(0)}>
                                 Back
-                            </DyraneButton>
-                            <DyraneButton type="submit" disabled={isSubmitting}>
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? "Processing..." : "Complete Registration"}
-                            </DyraneButton>
+                            </Button>
                         </div>
                     </form>
                 )}
@@ -545,12 +582,12 @@ export function MultiStepSignup() {
                         </div>
 
                         <div className="flex justify-between pt-4">
-                            <DyraneButton type="button" variant="outline" onClick={() => setCurrentStep(0)}>
+                            <Button type="button" variant="outline" onClick={() => setCurrentStep(0)}>
                                 Back
-                            </DyraneButton>
-                            <DyraneButton type="submit" disabled={isSubmitting}>
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
                                 {isSubmitting ? "Processing..." : "Complete Registration"}
-                            </DyraneButton>
+                            </Button>
                         </div>
                     </form>
                 )}
@@ -563,7 +600,7 @@ export function MultiStepSignup() {
                                 {items.map((item) => (
                                     <div key={item.courseId} className="flex justify-between">
                                         <span>{item.title}</span>
-                                        <span className="font-medium">{formatCurrency(item.price)}</span>
+                                        <span className="font-medium">{formatCurrency(item.discountPrice || item.price)}</span>
                                     </div>
                                 ))}
                                 <Separator />
@@ -588,7 +625,7 @@ export function MultiStepSignup() {
                     </Link>
                 </p>
             </CardFooter>
-        </DyraneCard>
+        </Card>
     )
 }
 
@@ -627,6 +664,7 @@ function PaymentForm({ onComplete, onBack }: { onComplete: () => void; onBack: (
             toast({
                 title: "Payment successful",
                 description: "Your payment has been processed successfully",
+                variant: "success",
             })
             onComplete()
             // }
@@ -652,12 +690,12 @@ function PaymentForm({ onComplete, onBack }: { onComplete: () => void; onBack: (
             {errorMessage && <div className="p-3 bg-red-100 text-red-600 rounded-md text-sm">{errorMessage}</div>}
 
             <div className="flex justify-between">
-                <DyraneButton type="button" variant="outline" onClick={onBack} disabled={isProcessing}>
+                <Button type="button" variant="outline" onClick={onBack} disabled={isProcessing}>
                     Back
-                </DyraneButton>
-                <DyraneButton type="submit" disabled={isProcessing}>
+                </Button>
+                <Button type="submit" disabled={isProcessing}>
                     {isProcessing ? "Processing Payment..." : "Complete Payment"}
-                </DyraneButton>
+                </Button>
             </div>
         </form>
     )

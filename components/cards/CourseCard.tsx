@@ -114,7 +114,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     </div>
                     {/* ... Modal Enroll Button ... */}
                     <DyraneButton asChild size="lg">
-                        <Link href={`/courses/${course.slug}/enroll`}>Enroll Now</Link>
+                        <Link href={`/courses/${course.id}`}>Enroll Now</Link>
                     </DyraneButton>
                 </div>
             </div>
@@ -158,7 +158,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
             <DyraneCardContent className="flex-1 p-4 space-y-2"> {/* Reduced padding */}
                 {/* Title - Link within */}
                 <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1">
-                    <Link href={`/courses/${course.slug}`} onClick={(e) => e.stopPropagation()} className="hover:text-primary transition-colors">
+                    <Link href={`/courses/${course.id}`} onClick={(e) => e.stopPropagation()} className="hover:text-primary transition-colors">
                         {course.title}
                     </Link>
                 </h3>
@@ -211,7 +211,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                             <span>View Details</span>
                         ) : (
                             // Otherwise, it's a link to the course page
-                            <Link href={`/courses/${course.slug}`}>View Details</Link>
+                            <Link href={`/courses/${course.id}`}>View Details</Link>
                         )}
                     </DyraneButton>
                 </div>

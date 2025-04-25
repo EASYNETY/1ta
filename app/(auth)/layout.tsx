@@ -1,22 +1,44 @@
 // app/(auth)/layout.tsx
+'use client'
 
 import type React from "react"
 import NavBar from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { AbstractBackground } from "@/components/layout/abstract-background"
+import Image from "next/image"
+import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+
+  const { theme, systemTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  const currentTheme = !mounted ? 'light' : (theme === "system" ? systemTheme : theme);
+  useEffect(() => setMounted(true), []);
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
       <main className="flex-1 flex items-center justify-center relative">
         <AbstractBackground className="opacity-70" />
         <div className="w-full max-w-md relative z-10 py-12 px-4">
-          <h1 className="mb-8 text-center text-4xl font-bold">1TechAcademy</h1>
+          <div className="flex items-center justify-center mb-8">
+            {mounted && (
+              <Image
+                src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                alt="1techacademy Logo"
+                className="h-10 w-auto"
+                priority
+                width={80}
+                height={24}
+              />
+            )}
+            {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+          </div>
           {children}
         </div>
       </main>
