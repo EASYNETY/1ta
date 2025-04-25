@@ -84,9 +84,9 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     <Tabs defaultValue="overview" className="w-full">
                         {/* ... TabsList ... */}
                         <TabsList className="mb-4 grid w-full grid-cols-3">
-                            <TabsTrigger value="overview">Overview</TabsTrigger>
-                            <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-                            <TabsTrigger value="instructor">Instructor</TabsTrigger>
+                            <TabsTrigger value="overview" className='hover:bg-background/50 cursor-pointer'>Overview</TabsTrigger>
+                            <TabsTrigger value="curriculum" className='hover:bg-background/50 cursor-pointer'>Curriculum</TabsTrigger>
+                            <TabsTrigger value="instructor" className='hover:bg-background/50 cursor-pointer'>Instructor</TabsTrigger>
                         </TabsList>
                         <TabsContent value="overview" className="space-y-6 text-sm">
                             {/* ... Overview Content ... */}
@@ -109,9 +109,8 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 <div className="p-6 border-t flex justify-between items-center mt-auto">
                     {/* ... Modal Footer Price ... */}
                     <div>
-                        {course.discountPriceUSD && (<span className="text-sm text-muted-foreground line-through mr-2">{formatBaseCurrency(course.priceUSD)}</span>)}
-                        <span className="text-xl font-bold text-primary">{formatBaseCurrency(displayPriceUSD)}</span>
-                        <div className="text-sm text-muted-foreground h-5">{renderNairaPrice(displayNairaAmount)}</div> {/* Increased height slightly */}
+                        {course.discountPriceUSD && (<span className="text-sm text-muted-foreground line-through mr-2">{renderNairaPrice(nairaAmount)}</span>)}
+                        <div className="text-xl font-bold text-primary h-5">{renderNairaPrice(displayNairaAmount)}</div> {/* Increased height slightly */}
                     </div>
                     {/* ... Modal Enroll Button ... */}
                     <DyraneButton asChild size="lg">
@@ -185,19 +184,16 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 </div>
             </DyraneCardContent>
 
-            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30"> {/* Reduced padding */}
+            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-300 ease-in-out"> {/* Reduced padding */}
                 <div className="flex justify-between items-end w-full gap-2">
                     {/* Price */}
                     <div className="flex flex-col text-left">
                         {course.discountPriceUSD && (
                             <span className="text-xs text-muted-foreground line-through h-4">
-                                {formatBaseCurrency(course.priceUSD)}
+                                {renderNairaPrice(nairaAmount)}
                             </span>
                         )}
                         <span className="text-sm font-bold text-primary"> {/* Slightly smaller price */}
-                            {formatBaseCurrency(displayPriceUSD)}
-                        </span>
-                        <span className="text-xs text-muted-foreground h-4">
                             {renderNairaPrice(displayNairaAmount)}
                         </span>
                     </div>
@@ -206,7 +202,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     <DyraneButton
                         size="sm"
                         variant="secondary" // Example: default to secondary
-                        className="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 ease-in-out" // Fade/scale in on hover
+                        className="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500 ease-in-out" // Fade/scale in on hover
                         asChild={!onClick} // Use Link only if no onClick provided
                         onClick={(e) => { if (!onClick) { e.stopPropagation(); } else { onClick(); } }} // Prevent card click if linking
                     >
