@@ -187,4 +187,96 @@ The initial MVP focuses on core functionality. Refer to the detailed MVP Scope D
 - **Project Management:** [Link to Jira/Trello/Linear Board]
 - **DyraneUI Detailed Docs:** [Link to Separate Design System Docs if applicable]
 
----
+## Authentication Flow and Cart System Explanation
+
+I've implemented a comprehensive authentication system with persistent storage, Stripe integration, and consistent navigation across auth pages. Here's a detailed explanation of the implementation:
+
+### 1. Shared Authentication Layout
+
+I created a shared layout for all authentication pages (`app/(auth)/layout.tsx`) that uses the same navbar and footer as the landing page. This ensures a consistent user experience across the site and makes it easy for users to navigate back to the landing page or between auth pages.
+
+### 2. Persistent Storage with Redux Persist
+
+I've implemented Redux Persist to maintain state across page refreshes and browser sessions:
+
+- **Cart State**: Stores course items, prices, and total
+- **Auth State**: Stores user information and authentication status
+- **Persistence**: Uses local storage to maintain state even when the browser is closed
+
+
+This allows users to add courses to their cart, navigate away, and return later to complete their purchase.
+
+### 3. Multi-Step Registration Flow
+
+I've created a comprehensive multi-step registration process:
+
+1. **Account Information**: Basic user details and role selection
+2. **Profile Information**: Additional details based on user role
+3. **Payment** (optional): Only shown for students enrolling in courses
+
+
+The flow adapts based on the user's role:
+
+- **Students**: Complete all steps including payment if enrolling in courses
+- **Teachers/Admins**: Skip the payment step
+
+
+### 4. Stripe Payment Integration
+
+I've integrated Stripe for secure payment processing:
+
+- **Client-Side Integration**: Uses Stripe Elements for secure card collection
+- **Payment Intent**: Creates a payment intent on the server
+- **Confirmation**: Processes payment before completing registration
+
+
+For demo purposes, the payment is simulated, but in a production environment, it would connect to a real Stripe account.
+
+### 5. Cart System
+
+I've implemented a full-featured cart system:
+
+- **Add to Cart**: From course detail pages
+- **View Cart**: Dedicated cart page with course details
+- **Remove Items**: Individual items or clear entire cart
+- **Checkout**: Redirects to signup with cart items preserved
+
+
+### 6. User Role-Based Flows
+
+The system handles different user types elegantly:
+
+- **Students**: Can enroll in courses, requiring payment
+- **Teachers**: Can create and manage courses
+- **Admins**: Have access to all features
+
+
+### 7. Navigation Consistency
+
+All authentication pages use the same navbar and footer as the landing page, ensuring:
+
+- **Brand Consistency**: Same logo, styling, and theme
+- **Easy Navigation**: Users can always return to the landing page
+- **Familiar Experience**: Reduces cognitive load during the auth process
+
+
+### Complete User Journey
+
+1. **Discovery**: User browses courses on the landing page
+2. **Course Selection**: User views course details and adds to cart
+3. **Cart Management**: User reviews cart and proceeds to checkout
+4. **Registration**:
+
+1. Step 1: Account information (with role selection)
+2. Step 2: Profile details
+3. Step 3: Payment (if applicable)
+
+
+
+5. **Confirmation**: User receives confirmation and is redirected to dashboard
+6. **Learning**: User can access enrolled courses from dashboard
+
+
+This implementation provides a seamless, professional experience that adapts to different user types while maintaining state across the entire journey.
+
+Please make sure to add the following environment variable to your project:

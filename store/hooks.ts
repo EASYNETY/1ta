@@ -1,3 +1,5 @@
+// store/hooks.ts
+
 import {
   type TypedUseSelectorHook,
   useDispatch,

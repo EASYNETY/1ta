@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/store/providers";
 import { AuthProvider } from "@/features/auth/components/auth-provider";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { MouseTrackerProvider } from "@/providers/MouseTrackerProvider";
+import { ErrorBoundary } from "@/providers/error-boundary";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -93,11 +95,23 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <AuthProvider>
-              <MouseTrackerProvider>
-                {children}
-              </MouseTrackerProvider>
-            </AuthProvider>
+            <ErrorBoundary>
+              <AuthProvider>
+                <MouseTrackerProvider>
+                  {children}
+                  <Toaster
+                    position="top-right"
+                    richColors
+                    closeButton
+                    toastOptions={{
+                      classNames: {
+                        toast: "rounded-lg",
+                      },
+                    }}
+                  />
+                </MouseTrackerProvider>
+              </AuthProvider>
+            </ErrorBoundary>
           </ThemeProvider>
         </Providers>
       </body>

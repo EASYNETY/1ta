@@ -1,4 +1,4 @@
-// src/components/landing/NavBar.tsx (or wherever your component lives)
+// src/components/landing/navbar.tsx
 "use client";
 
 import Link from "next/link";
@@ -23,7 +23,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils"; // Import cn utility
 import { useScrollPosition } from "@/hooks/use-scroll-position"; // Import the custom hook
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { ThemeToggle } from "../theme-provider";
+import { ThemeToggle } from "../../providers/theme-provider";
 
 // --- Constants for Navigation Links ---
 const navLinks = [
