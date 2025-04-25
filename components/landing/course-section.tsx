@@ -12,12 +12,16 @@ import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { mockCourseData, courseCategories, featuredCourses, type Course } from "@/data/mock-course-data"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { set } from "date-fns"
+import { SectionHeader } from "../layout/section-header"
+import { Badge } from "../ui/badge"
 
 export function CoursesSection() {
     const featuredRef = useRef(null)
     const categoryRef = useRef(null)
     const featuredInView = useInView(featuredRef, { once: true, margin: "-100px 0px" })
     const categoryInView = useInView(categoryRef, { once: true, margin: "-150px 0px" })
+    const [selectedCategory, setSelectedCategory] = useState(courseCategories[0])
 
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -94,7 +98,14 @@ export function CoursesSection() {
                 initial="hidden"
                 animate={categoryInView ? "visible" : "hidden"}
             >
-                <h2 className="text-2xl font-bold mb-6 text-center">All Courses</h2>
+                <Badge variant='outline' className="flex p-2 justify-self-center mb-4 backdrop-blur-sm">
+                    {selectedCategory} Courses
+                </Badge>
+                <SectionHeader
+                    title="Explore Courses by Category"
+                    description="Browse through our extensive library of courses tailored to your needs."
+
+                />
                 <Tabs defaultValue={courseCategories[0]} className="w-full">
                     <ScrollArea className="w-full whitespace-nowrap pb-4">
                         <TabsList className="inline-flex h-auto w-full justify-start">
@@ -102,7 +113,11 @@ export function CoursesSection() {
                                 <TabsTrigger
                                     key={category}
                                     value={category}
-                                    className="px-4 py-2 transition-colors duration-200 ease-out hover:bg-muted/40 hover:text-foreground/90 rounded-md"
+                                    onClick={() => {
+                                        setSelectedCategory(category)
+                                    }
+                                    }
+                                    className="px-4 py-2 cursor-pointer transition-colors duration-200 ease-out hover:bg-background/35 hover:backdrop-blur-md rounded-md"
                                 >
                                     {category}
                                 </TabsTrigger>
