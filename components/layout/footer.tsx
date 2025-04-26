@@ -73,7 +73,7 @@ export function Footer() {
                                         alt="1techacademy Logo"
                                         className="h-6 w-auto"
                                         width={80}
-                                        height={24}
+                                        height={14}
                                     />
                                 ) : (
                                     <div className="h-6 w-[80px] bg-muted rounded animate-pulse" />
@@ -88,7 +88,7 @@ export function Footer() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                                    <span>42 Innovation Street, Lagos, Nigeria</span>
+                                    <span>17 Aje Street, Sabo Yaba Lagos.</span>
                                 </div>
                             </address>
                         </div>
