@@ -166,7 +166,7 @@ export default function NavBar() {
 
                         <SheetContent
                             side="left"
-                            className="w-[300px] sm:w-[350px] px-0 flex flex-col rounded-r-3xl border-0 bg-background/65 backdrop-blur-md" // Remove default padding, add top padding, make flex col
+                            className="w-[320px] sm:w-[350px] px-0 flex flex-col rounded-r-3xl border-0 bg-background/65 backdrop-blur-md" // Remove default padding, add top padding, make flex col
                             aria-describedby={undefined} // Remove default description link if no SheetDescription used
                         >
                             {/* Accessible Title (Visually Hidden) */}

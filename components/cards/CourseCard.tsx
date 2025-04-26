@@ -32,6 +32,9 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
     const router = useRouter()
     const dispatch = useAppDispatch()
     const { isAuthenticated } = useAppSelector((state) => state.auth)
+    const cartItems = useAppSelector((state) => state.cart.items)
+    const isAlreadyInCart = cartItems.some((item) => item.courseId === course.id)
+
     const { toast } = useToast()
 
     const {
@@ -67,29 +70,36 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
     const displayNairaAmount = discountedNairaAmount ?? nairaAmount
 
     const handleEnrollNow = () => {
-        // Add course to cart
-        dispatch(
-            addItem({
-                courseId: course.id,
-                title: course.title,
-                price: course.priceUSD,
-                discountPrice: course.discountPriceUSD,
-                image: course.image,
-                instructor: course.instructor.name,
-            }),
-        )
+        if (isAlreadyInCart) {
+            toast({
+                title: "Already Selected",
+                description: `${course.title} is already in your list.`,
+                variant: "default",
+            })
+        } else {
+            dispatch(
+                addItem({
+                    courseId: course.id,
+                    title: course.title,
+                    price: course.priceUSD,
+                    discountPrice: course.discountPriceUSD,
+                    image: course.image,
+                    instructor: course.instructor.name,
+                }),
+            )
 
-        toast({
-            title: "Course added to cart",
-            description: `${course.title} has been added to your cart`,
-            variant: "success",
-        })
+            toast({
+                title: "Course Selected",
+                description: `${course.title} has been added to your list.`,
+                variant: "success",
+            })
+        }
 
         // Redirect to signup if not authenticated, otherwise to cart
         if (!isAuthenticated) {
             router.push("/signup")
         } else {
-            router.push("/cart")
+            router.push("/cart") // maybe eventually rename to /my-courses ?
         }
     }
 
@@ -242,9 +252,14 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                                     {renderNairaPrice(displayNairaAmount)}
                                 </div>
                             </div>
-                            <DyraneButton asChild size="lg" onClick={handleEnrollNow}>
-                                <Link href={`/signup`}>Enroll Now</Link>
+                            <DyraneButton size="lg" onClick={handleEnrollNow}>
+                                {isAlreadyInCart ? (
+                                    <span className="text-sm">Selected</span>
+                                ) : (
+                                    <span className="text-sm">Enroll Now</span>
+                                )}
                             </DyraneButton>
+
                         </div>
                     </div>
                 </div>
@@ -257,7 +272,12 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
         // Use DyraneCard as the root element
         // It provides the 'group' class and hover animations internally
         <DyraneCard
-            className={cn("flex flex-col h-full", className)} // Base styles for flex layout
+            className={cn(
+                "flex flex-col h-full",
+                isAlreadyInCart && "border border-primary rounded-xl shadow-xl", // Add a glow effect
+                className
+            )}
+            // Base styles for flex layout
             cardClassName="flex flex-col h-full" // Ensure inner BaseCard is also flex col full height
             layout // Animate layout changes if size differs
             onClick={onClick} // Pass onClick for modal trigger

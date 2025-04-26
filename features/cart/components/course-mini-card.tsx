@@ -50,13 +50,13 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
     }
 
     const handleRemove = (e: React.MouseEvent) => {
-        e.stopPropagation() // Prevent card click
+        e.stopPropagation()
         dispatch(removeItem(item.courseId))
 
         toast({
-            title: "Course removed from cart",
-            description: `${item.title} has been removed from your cart.`,
-            variant: "destructive", // Optional: you can use "destructive" for delete feedback
+            title: "Course Removed",
+            description: `${item.title} has been removed from your list.`,
+            variant: "destructive",
         })
     }
 
