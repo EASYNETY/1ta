@@ -29,11 +29,8 @@ import { Skeleton } from "../ui/skeleton"
 export function CoursesSection() {
     const featuredRef = useRef(null)
     const categoryRef = useRef(null)
-    const featuredInView = useInView(featuredRef, { once: true, margin: "-100px 0px" })
-    const categoryInView = useInView(categoryRef, { once: true, margin: "-150px 0px" })
 
     // --- Redux State Access ---
-    const dispatch = useAppDispatch()
     const featuredCourses = useAppSelector(selectFeaturedCourses)
     const coursesByCategory = useAppSelector(selectCoursesByCategory)
     const courseCategories = useAppSelector(selectCourseCategories)
@@ -44,17 +41,6 @@ export function CoursesSection() {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null) // Initialize as null
     const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
-
-    // Fetch currency rate once for the entire section
-    const { isLoading: isRateLoading, error: rateError } = useCurrencyConversion("USD", "NGN")
-
-    // --- Fetch courses on mount ---
-    useEffect(() => {
-        // Only fetch if data is not already loaded or loading/failed
-        if (coursesStatus === "idle") {
-            dispatch(fetchCourses())
-        }
-    }, [coursesStatus, dispatch])
 
     // --- Set default category when categories load ---
     useEffect(() => {
@@ -159,7 +145,7 @@ export function CoursesSection() {
                     ref={featuredRef}
                     initial="hidden"
                     variants={containerVariants}
-                    animate={featuredInView ? "visible" : "hidden"}
+                    animate={'visible'}
                     className="mb-16"
                 >
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -178,7 +164,7 @@ export function CoursesSection() {
                     ref={categoryRef}
                     variants={containerVariants}
                     initial="hidden"
-                    animate={categoryInView ? "visible" : "hidden"}
+                    animate={'visible'}
                 >
                     <Badge variant="outline" className="flex p-2 justify-self-center mb-4 backdrop-blur-sm">
                         {selectedCategory} Courses

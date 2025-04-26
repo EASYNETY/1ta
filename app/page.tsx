@@ -1,3 +1,7 @@
+// Project: 1Tech Academy - Landing Page app/page.tsx
+
+'use client'
+
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
@@ -18,8 +22,20 @@ import { SectionHeader } from "@/components/layout/section-header"
 import { BarcodeScannerSection } from "@/components/landing/barcode-scanner-section"
 import { CoursesSection } from "@/components/landing/course-section"
 import { NodeTestimonialSection } from "@/components/landing/node-testimonial-section"
+import { useEffect } from "react"
+import { fetchCourses } from "@/features/courses/store/course-slice"
+import { useAppDispatch } from "@/store/hooks"
 
 export default function LandingPage() {
+
+  // --- Redux Hooks ---
+  const dispatch = useAppDispatch()
+
+  // --- Fetch courses on mount ---
+  useEffect(() => {
+    dispatch(fetchCourses())
+  }, [])
+
   return (
     <div className="flex flex-col min-h-screen w-full relative">
       {/* Scroll Indicator */}
