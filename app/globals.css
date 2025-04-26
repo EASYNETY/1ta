@@ -200,8 +200,8 @@
 /* globals.css */
 
 ::-webkit-scrollbar {
-	width: 6px; /* Thin scrollbar */
-	height: 6px; /* Thin horizontal scrollbar */
+	width: 2px; /* Thin scrollbar */
+	height: 2px; /* Thin horizontal scrollbar */
 }
 
 ::-webkit-scrollbar-track {

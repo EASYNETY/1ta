@@ -98,8 +98,10 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
         return (
             <div className="relative">
                 <AbstractBackground className="opacity-90 dark:opacity-80" />
-                <div className="relative z-10 max-h-[80vh] overflow-y-auto bg-background/85 backdrop-blur-sm rounded-xl">
-                    <div className="relative aspect-video w-full">
+
+                <div className="relative z-10 max-h-[90vh] overflow-y-auto bg-background/85 backdrop-blur-sm rounded-xl xl:max-h-[80vh]">
+                    {/* Left: Image */}
+                    <div className="relative w-full aspect-video">
                         {/* ... Image and Badges for Modal ... */}
                         <Image
                             src={course.image || "/placeholder.svg"}
@@ -122,126 +124,128 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                             </Badge>
                         )}
                     </div>
-
-                    <div className="p-6">
-                        {/* ... Title, Subtitle, Stats ... */}
-                        <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
-                        {course.subtitle && <p className="text-muted-foreground mb-4">{course.subtitle}</p>}
-                        <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm">
-                            <span className="inline-flex items-center">
-                                <Clock className="size-4 mr-2 text-muted-foreground" />
-                                {course.duration}
-                            </span>
-                            <span className="inline-flex items-center">
-                                <Users className="size-4 mr-2 text-muted-foreground" />
-                                {course.studentsEnrolled.toLocaleString()} students
-                            </span>
-                            {course.rating && (
-                                <span className="inline-flex items-center text-amber-500">
-                                    <Star className="size-4 mr-1 fill-current" />
-                                    {course.rating.toFixed(1)}
-                                    {course.reviewsCount && (
-                                        <span className="ml-1.5 text-xs text-muted-foreground">({course.reviewsCount})</span>
-                                    )}
+                    {/* Right: Content */}
+                    <div className="w-full flex flex-col h-full">
+                        <div className="p-6 overflow-y-auto flex-grow">
+                            {/* ... Title, Subtitle, Stats ... */}
+                            <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
+                            {course.subtitle && <p className="text-muted-foreground mb-4">{course.subtitle}</p>}
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm">
+                                <span className="inline-flex items-center">
+                                    <Clock className="size-4 mr-2 text-muted-foreground" />
+                                    {course.duration}
                                 </span>
-                            )}
-                        </div>
-
-                        <Tabs defaultValue="overview" className="w-full">
-                            <TabsList className="mb-4 grid w-full grid-cols-3">
-                                <TabsTrigger value="overview" className="hover:bg-background/50 cursor-pointer">
-                                    Overview
-                                </TabsTrigger>
-                                <TabsTrigger value="curriculum" className="hover:bg-background/50 cursor-pointer">
-                                    Curriculum
-                                </TabsTrigger>
-                                <TabsTrigger value="instructor" className="hover:bg-background/50 cursor-pointer">
-                                    Instructor
-                                </TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="overview" className="space-y-6 text-sm">
-                                <div>
-                                    <h3 className="font-semibold mb-2 text-base">Description</h3>
-                                    <p className="text-muted-foreground leading-relaxed">{course.description}</p>
-                                </div>
-                                {course.learningOutcomes && (
-                                    <div>
-                                        <h3 className="font-semibold mb-2 text-base">What You'll Learn</h3>
-                                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                                            {course.learningOutcomes.map((outcome, index) => (
-                                                <li key={index} className="flex items-start">
-                                                    <CheckCircle className="size-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
-                                                    <span>{outcome}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                                {course.prerequisites && (
-                                    <div>
-                                        <h3 className="font-semibold mb-2 text-base">Prerequisites</h3>
-                                        <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-                                            {course.prerequisites.map((prereq, index) => (
-                                                <li key={index}>{prereq}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </TabsContent>
-                            <TabsContent value="curriculum">
-                                {course.modules ? (
-                                    <div className="space-y-3">
-                                        {course.modules.map((module, index) => (
-                                            <div key={index} className="p-3 border rounded-md flex justify-between items-center">
-                                                <h4 className="font-medium text-sm">{module.title}</h4>
-                                                <span className="text-xs text-muted-foreground">{module.duration}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-muted-foreground text-sm">Curriculum details will be available soon.</p>
-                                )}
-                            </TabsContent>
-                            <TabsContent value="instructor">
-                                <div className="flex items-center space-x-4">
-                                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                        {course.instructor.avatar ? (
-                                            <Image
-                                                src={course.instructor.avatar || "/placeholder.svg"}
-                                                alt={course.instructor.name}
-                                                width={64}
-                                                height={64}
-                                                className="object-cover"
-                                            />
-                                        ) : (
-                                            <Users className="h-8 w-8 text-muted-foreground" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-semibold">{course.instructor.name}</h3>
-                                        {course.instructor.title && (
-                                            <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </TabsContent>
-                        </Tabs>
-                    </div>
-
-                    <div className="p-6 border-t flex justify-between items-center mt-auto">
-                        <div>
-                            {course.discountPriceUSD && (
-                                <span className="text-sm text-muted-foreground line-through mr-2">
-                                    {renderNairaPrice(nairaAmount)}
+                                <span className="inline-flex items-center">
+                                    <Users className="size-4 mr-2 text-muted-foreground" />
+                                    {course.studentsEnrolled.toLocaleString()} students
                                 </span>
-                            )}
-                            <div className="text-xl font-bold text-primary h-5">
-                                {renderNairaPrice(displayNairaAmount)}
+                                {course.rating && (
+                                    <span className="inline-flex items-center text-amber-500">
+                                        <Star className="size-4 mr-1 fill-current" />
+                                        {course.rating.toFixed(1)}
+                                        {course.reviewsCount && (
+                                            <span className="ml-1.5 text-xs text-muted-foreground">({course.reviewsCount})</span>
+                                        )}
+                                    </span>
+                                )}
                             </div>
+
+                            <Tabs defaultValue="overview" className="w-full">
+                                <TabsList className="mb-4 grid w-full grid-cols-3">
+                                    <TabsTrigger value="overview" className="hover:bg-background/50 cursor-pointer">
+                                        Overview
+                                    </TabsTrigger>
+                                    <TabsTrigger value="curriculum" className="hover:bg-background/50 cursor-pointer">
+                                        Curriculum
+                                    </TabsTrigger>
+                                    <TabsTrigger value="instructor" className="hover:bg-background/50 cursor-pointer">
+                                        Instructor
+                                    </TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="overview" className="space-y-6 text-sm">
+                                    <div>
+                                        <h3 className="font-semibold mb-2 text-base">Description</h3>
+                                        <p className="text-muted-foreground leading-relaxed">{course.description}</p>
+                                    </div>
+                                    {course.learningOutcomes && (
+                                        <div>
+                                            <h3 className="font-semibold mb-2 text-base">What You'll Learn</h3>
+                                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                                                {course.learningOutcomes.map((outcome, index) => (
+                                                    <li key={index} className="flex items-start">
+                                                        <CheckCircle className="size-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
+                                                        <span>{outcome}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {course.prerequisites && (
+                                        <div>
+                                            <h3 className="font-semibold mb-2 text-base">Prerequisites</h3>
+                                            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                                                {course.prerequisites.map((prereq, index) => (
+                                                    <li key={index}>{prereq}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </TabsContent>
+                                <TabsContent value="curriculum">
+                                    {course.modules ? (
+                                        <div className="space-y-3">
+                                            {course.modules.map((module, index) => (
+                                                <div key={index} className="p-3 border rounded-md flex justify-between items-center">
+                                                    <h4 className="font-medium text-sm">{module.title}</h4>
+                                                    <span className="text-xs text-muted-foreground">{module.duration}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-muted-foreground text-sm">Curriculum details will be available soon.</p>
+                                    )}
+                                </TabsContent>
+                                <TabsContent value="instructor">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                                            {course.instructor.avatar ? (
+                                                <Image
+                                                    src={course.instructor.avatar || "/placeholder.svg"}
+                                                    alt={course.instructor.name}
+                                                    width={64}
+                                                    height={64}
+                                                    className="object-cover"
+                                                />
+                                            ) : (
+                                                <Users className="h-8 w-8 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold">{course.instructor.name}</h3>
+                                            {course.instructor.title && (
+                                                <p className="text-sm text-muted-foreground">{course.instructor.title}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
                         </div>
-                        <DyraneButton asChild size="lg">
-                            <Link href={`/signup`}>Enroll Now</Link>
-                        </DyraneButton>
+
+                        <div className="p-6 border-t flex justify-between items-center mt-auto">
+                            <div>
+                                {course.discountPriceUSD && (
+                                    <span className="text-sm text-muted-foreground line-through mr-2">
+                                        {renderNairaPrice(nairaAmount)}
+                                    </span>
+                                )}
+                                <div className="text-xl font-bold text-primary h-5">
+                                    {renderNairaPrice(displayNairaAmount)}
+                                </div>
+                            </div>
+                            <DyraneButton asChild size="lg">
+                                <Link href={`/signup`}>Enroll Now</Link>
+                            </DyraneButton>
+                        </div>
                     </div>
                 </div>
             </div>
