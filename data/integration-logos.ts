@@ -38,14 +38,14 @@ export interface LogoInfo {
     // --- Major Cloud Platforms ---
     { name: "AWS", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg", category: 'Cloud' },
     { name: "Microsoft Azure", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Microsoft_Azure_Logo.svg", category: 'Cloud' },
-    { name: "Google Cloud", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/51/Google_Cloud_logo.svg", category: 'Cloud' },
+    // { name: "Google Cloud", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/5/51/Google_Cloud_logo.svg", category: 'Cloud' },
   
     // --- Essential DevOps / Deployment / Tools ---
     { name: "Docker", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/7/79/Docker_%28container_engine%29_logo.png", category: 'DevOps/Deployment' }, // PNG
     // { name: "Kubernetes", logoUrl: "https://raw.githubusercontent.com/kubernetes/kubernetes.github.io/main/images/kubernetes-logo.svg", category: 'DevOps/Deployment' }, // More advanced
-    { name: "Git", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Git-logo.svg", category: 'Tool' },
+    // { name: "Git", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Git-logo.svg", category: 'Tool' },
     { name: "GitHub", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/960px-Octicons-mark-github.svg.png", category: 'Tool' }, // Use one version, maybe adapt based on theme?
-    { name: "Vercel", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Vercel_logo_black.svg/512px-Vercel_logo_black.svg.png?20221002000905", category: 'DevOps/Deployment' },
+    // { name: "Vercel", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Vercel_logo_black.svg/512px-Vercel_logo_black.svg.png?20221002000905", category: 'DevOps/Deployment' },
     // { name: "Netlify", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Netlify-logo.svg", category: 'DevOps/Deployment' }, // Vercel is often primary with Next.js
   
      // --- Core AI / ML ---
