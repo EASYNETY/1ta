@@ -100,7 +100,7 @@ export function SignupForm() {
             await dispatch(signupThunk(payload)).unwrap();
 
             toast({
-                title: "✅ Account Created Successfully!",
+                title: "Account Created Successfully!",
                 description: "Redirecting you to the next step...",
                 variant: "success",
             });
@@ -116,7 +116,7 @@ export function SignupForm() {
             console.error("Signup Failed:", error);
             setServerError(errorMessage); // Show specific error from backend/thunk
             toast({
-                title: "❌ Registration Failed",
+                title: "Registration Failed",
                 description: errorMessage,
                 variant: "destructive",
             });
