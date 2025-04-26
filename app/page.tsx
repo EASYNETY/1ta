@@ -89,7 +89,7 @@ export default function LandingPage() {
               description="We are a launchpad into a world of endless possibilities. Our mission is simple: to empower students like you with the digital skills needed to thrive in today’s fast-paced, tech-driven world."
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 grid-rows-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 grid-rows-1">
               <FeatureCard
                 icon={<GraduationCap className="h-8 w-8" />}
                 title="Professional Training"
@@ -126,7 +126,7 @@ export default function LandingPage() {
               description="Our platform offers a comprehensive suite of tools designed to transform education."
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 grid-rows-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 grid-rows-1">
               <FeatureCard
                 icon={<Fingerprint className="h-8 w-8" />}
                 title="Fingerprint Attendance"
