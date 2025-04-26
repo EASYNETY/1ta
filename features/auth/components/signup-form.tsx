@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import Link from "next/link"
 import { Eye, EyeOff, GraduationCap } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 const signupSchema = z
     .object({
@@ -35,6 +36,7 @@ export function SignupForm() {
     const [serverError, setServerError] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const { toast } = useToast();
 
     const {
         register,
@@ -66,10 +68,22 @@ export function SignupForm() {
                 }),
             ).unwrap()
 
+            toast({
+                title: "Account created successfully",
+                description: "You can now log in to your account.",
+                variant: "success",
+            })
+
             // Navigation is handled in the thunk
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Registration failed"
             setServerError(errorMessage)
+            toast
+                ({
+                    title: "Registration failed",
+                    description: errorMessage,
+                    variant: "destructive",
+                })
         }
     }
 

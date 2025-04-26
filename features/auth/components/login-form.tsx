@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -26,6 +27,7 @@ export function LoginForm() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const { toast } = useToast();
 
   const {
     register,
@@ -40,9 +42,20 @@ export function LoginForm() {
       setServerError(null);
       await dispatch(loginThunk(data)).unwrap();
       router.push("/dashboard");
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+        variant: "success",
+      });
+
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Login failed";
       setServerError(errorMessage);
+      toast({
+        title: "Login failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
