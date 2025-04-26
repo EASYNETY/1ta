@@ -47,7 +47,7 @@ export default function NavBar() {
 
     // Get cart items from Redux store
     const cart = useAppSelector((state) => state.cart)
-    const router = useRouter()
+    const hasItems = cart.items.length > 0
 
     useEffect(() => setMounted(true), []);
 
@@ -144,12 +144,26 @@ export default function NavBar() {
 
                     {/* Mobile Menu Trigger */}
                     <Sheet>
-                        <SheetTrigger asChild>
-                            <DyraneButton variant="ghost" size="icon" className="lg:hidden group" aria-label="Open navigation menu">
-                                <AlignRight className="h-5 w-5 flex group-hover:hidden" />
-                                <Menu className="h-5 w-5 hidden group-hover:flex" />
-                            </DyraneButton>
-                        </SheetTrigger>
+                        <div className="relative lg:hidden"> {/* Only show on mobile */}
+                            <SheetTrigger asChild>
+                                <DyraneButton variant="ghost" size="icon" className="lg:hidden group" aria-label="Open navigation menu">
+                                    <AlignRight className="h-5 w-5 flex group-hover:hidden" />
+                                    <Menu className="h-5 w-5 hidden group-hover:flex" />
+                                </DyraneButton>
+
+                            </SheetTrigger>
+                            {/* Badge */}
+                            {hasItems && (
+                                <div className="absolute -top-[1px] -right-[1px]">
+                                    {/* Ping animation */}
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                                    {/* Actual badge */}
+                                    <span className="relative flex h-2 w-2 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium ring-2 ring-primary/30">
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
                         <SheetContent
                             side="left"
                             className="w-[300px] sm:w-[350px] px-0 flex flex-col rounded-r-3xl border-0 bg-background/65 backdrop-blur-md" // Remove default padding, add top padding, make flex col
