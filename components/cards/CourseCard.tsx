@@ -248,7 +248,6 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
         )
     }
 
-
     // --- REGULAR CARD VIEW (Compact) ---
     return (
         // Use DyraneCard as the root element
