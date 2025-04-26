@@ -65,13 +65,13 @@ export function Footer() {
                     {/* Column 1: Logo, Description, Address, Socials */}
                     <div className="col-span-2 lg:col-span-2">
                         {/* Logo & Address */}
-                        <div className="flex flex-row items-center justify-between gap-6">
-                            <Link href="/" className="mb-4 inline-block">
+                        <div className="flex flex-col items-start h-auto justify-between gap-6 mb-4">
+                            <Link href="/" className="">
                                 {mounted ? (
                                     <Image
                                         src={currentTheme === 'dark' ? '/logo_dark.png' : '/logo.png'}
                                         alt="1techacademy Logo"
-                                        className="h-6 w-auto"
+                                        className="h-8 w-auto"
                                         width={80}
                                         height={14}
                                     />
@@ -81,7 +81,7 @@ export function Footer() {
                             </Link>
 
                             {/* Company Address with Icons */}
-                            <address className={cn('not-italic text-sm mb-6 space-y-1', mutedTextColor)}>
+                            <address className={cn('not-italic text-sm space-y-1', mutedTextColor)}>
                                 <div className="flex items-center gap-2">
                                     <Building2 className="h-4 w-4 text-muted-foreground" />
                                     <span>1Tech Academy</span>
