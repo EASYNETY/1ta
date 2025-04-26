@@ -277,6 +277,103 @@ All authentication pages use the same navbar and footer as the landing page, ens
 6. **Learning**: User can access enrolled courses from dashboard
 
 
-This implementation provides a seamless, professional experience that adapts to different user types while maintaining state across the entire journey.
+Alright — let's prepare a **clean professional document** for adding the **Cart Display to the Navbar**.  
+I'll format it the way you'd write a proper internal or public **PRD (Product Requirements Doc)** or **feature spec**.
 
-Please make sure to add the following environment variable to your project:
+---
+
+# 📄 1Tech Academy – Cart Display in Navbar  
+*(Document for Development/Integration)*
+
+---
+
+## 🎯 Purpose:
+Integrate a responsive, live-updating **Cart Display** directly into the **Navbar**.  
+Enhance visibility of selected courses and provide a frictionless transition toward checkout/enrollment.
+
+---
+
+## ✨ Key Objectives:
+- Display a **Cart Icon** inside the **NavigationMenuList** (beside nav links).
+- Show a **Badge** with number of items when the cart is not empty.
+- Add a **Glowing Focus Effect** on the cart icon when cart has items.
+- On **Hover** over Cart Icon (desktop only):
+  - **Spring Animate a Dropdown** showing a mini-preview of cart items.
+- **Mobile sheet menu** separately handles cart display (later, separate).
+
+---
+
+## 🧱 Feature Breakdown:
+
+### Desktop Navbar
+| Component       | Behavior |
+|:----------------|:---------|
+| Cart Icon        | Lucide `ShoppingCart` Icon |
+| Badge            | Small counter badge (`h-5 w-5`) on top right of icon |
+| Focus Glow       | `ring-2 ring-primary ring-offset-2 shadow-primary/40` when items exist |
+| Hover Dropdown   | Framer Motion animated spring dropdown |
+| Course Mini Cards | Shows image (if exists), title, instructor, price |
+
+---
+
+### Cart Item Mini Display (`CourseMiniCard`)
+| Field           | Content |
+|:----------------|:--------|
+| Image (optional) | Rounded thumbnail (if available) |
+| Title           | Course title (bold) |
+| Instructor (optional) | Muted subtext (small font) |
+| Price          | Highlighted, show discount if exists |
+
+✅ Clicking anywhere inside a mini-card **redirects to `/cart`**.
+
+---
+
+### Hover Dropdown Animation
+- **Motion Type:** `spring`
+- **Transition:** `ease-[cubic-bezier(0.77,0,0.175,1)]`
+- **Animation Behavior:**
+  - Fade in
+  - Scale slight up from 95% → 100%
+  - Y axis slight down from `-5px` → `0`
+- **Dropdown Max Height:** 300px  
+- **Scroll inside dropdown** if more than 3 cart items.
+
+---
+
+## 🛠️ Technical Components
+
+| Component Name | Purpose |
+|:---------------|:--------|
+| `CartNavItem.tsx` | Handles Cart Icon with badge and glow |
+| `CartDropdown.tsx` | Animated Dropdown with mini-cart items |
+| `CourseMiniCard.tsx` | Reusable component to display each cart item preview |
+
+---
+
+## 📐 Layout Placement
+
+| Location        | Details |
+|:----------------|:--------|
+| Inside `NavigationMenuList` | After the last nav link (e.g., after "Testimonials" or "Contact Us") |
+| No change to login/signup buttons | They remain at far right as is. |
+| Responsive behavior | Only show hover dropdown on devices `lg:` and up (desktop). |
+
+---
+
+## ⚡ UX Notes
+
+| Situation | Behavior |
+|:----------|:---------|
+| Empty cart | Show Cart Icon without badge/glow. Dropdown says: "No courses selected yet." |
+| Items added to cart | Badge updates instantly. Icon glows subtly. Dropdown shows course previews. |
+| Click cart item | Redirect to `/cart` for full checkout view. |
+| No need for Remove functionality (V1) | Keep it minimal for MVP. |
+
+---
+
+## 🚀 Next Steps After Navbar Integration
+- Implement mobile sheet cart display (similar mini-cards under nav links).
+- Add optional "Proceed to Checkout" CTA button inside the dropdown in future.
+- Animate badge entrance for even more polish (later).
+
+---

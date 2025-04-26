@@ -20,10 +20,10 @@ const geistMono = Geist_Mono({
 
 // --- VIEWPORT EXPORT (Add this if it's missing) ---
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F9FAFB' },
-    { media: '(prefers-color-scheme: dark)', color: '#1F2937' },
-  ],
+  // themeColor: [
+  //   { media: '(prefers-color-scheme: light)', color: '#F9FAFB' },
+  //   { media: '(prefers-color-scheme: dark)', color: '#1F2937' },
+  // ],
   width: 'device-width',
   initialScale: 1,
 };
