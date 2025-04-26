@@ -52,15 +52,15 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-tight">
-                  The Future of Tech Education Starts Here. {/* Bold statement */}
+                  Awaken Your Tech Future with 1Tech Academy.
                 </h1>
                 <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl">
-                  Master cutting-edge skills with practical, project-based courses at 1Tech Academy. {/* Focuses on skills and methodology */}
+                  Build real-world skills, master breakthrough technologies, and start your journey with expert-led, project-driven courses.
                 </p>
                 <div className="flex flex-row gap-4 pt-4">
                   <DyraneButton size="lg" asChild>
-                    <Link href="#demo-request">
-                      Get Started
+                    <Link href="/signup">
+                      Enroll Now
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </DyraneButton>
