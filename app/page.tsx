@@ -269,14 +269,14 @@ export default function LandingPage() {
 
         <SectionDivider />
 
-        {/* Integrations & Partners */}
-        <section id="integrations" className="py-24 relative overflow-hidden">
-          <AbstractBackground className="opacity-90 dark:opacity-80" />
+        {/* Technologies Taught Section */}
+        <section id="technologies" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-50 dark:opacity-40" />
 
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Integrations & Partners"
-              description="1TechAcademy seamlessly integrates with your favorite tools and services."
+              title="Technologies We Teach"
+              description="Master the tools and platforms shaping the future of tech."
             />
 
             <IntegrationLogos />
