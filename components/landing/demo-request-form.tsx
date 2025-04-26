@@ -1,4 +1,3 @@
-// src/components/landing/DemoRequestForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -29,13 +28,13 @@ type InquiryFormValues = z.infer<typeof inquiryFormSchema>;
 
 // Example areas of interest
 const areasOfInterest = [
-    "Web Development",
-    "Data Science",
-    "Mobile Development",
-    "Cybersecurity",
-    "Cloud Computing",
-    "AI & Machine Learning",
-    "General Inquiry",
+  "Web Development",
+  "Data Science",
+  "Mobile Development",
+  "Cybersecurity",
+  "Cloud Computing",
+  "AI & Machine Learning",
+  "General Inquiry",
 ];
 
 export function DemoRequestForm() {
@@ -52,10 +51,10 @@ export function DemoRequestForm() {
   } = useForm<InquiryFormValues>({
     resolver: zodResolver(inquiryFormSchema),
     defaultValues: { // Set default values
-        name: "",
-        email: "",
-        interest: "",
-        message: "",
+      name: "",
+      email: "",
+      interest: "",
+      message: "",
     }
   });
 
@@ -67,46 +66,37 @@ export function DemoRequestForm() {
 
     // Simulate API call to your backend endpoint for inquiries
     try {
-        console.log("Sending inquiry:", data);
-        // Replace with your actual API call
-        // const response = await fetch('/api/inquiry', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(data),
-        // });
-        // if (!response.ok) {
-        //     throw new Error('Something went wrong. Please try again.');
-        // }
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate success
-        setIsSubmitted(true);
-        reset(); // Clear form fields on success
+      console.log("Sending inquiry:", data);
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate success
+      setIsSubmitted(true);
+      reset(); // Clear form fields on success
     } catch (error) {
-         setSubmitError(error instanceof Error ? error.message : "An unknown error occurred.");
-         console.error("Inquiry submission failed:", error);
+      setSubmitError(error instanceof Error ? error.message : "An unknown error occurred.");
+      console.error("Inquiry submission failed:", error);
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
   // --- Animation Variants ---
   const formVariants = { /* ... keep as is ... */
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 },
-        },
-    };
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 },
+    },
+  };
   const itemVariants = { /* ... keep as is ... */
-        hidden: { opacity: 0, y: 10 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.3,
-                ease: MotionTokens.ease.easeOut,
-            },
-        },
-    };
+    hidden: { opacity: 0, y: 10 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3,
+        ease: MotionTokens.ease.easeOut,
+      },
+    },
+  };
 
   // --- Success State View ---
   if (isSubmitted) {
@@ -140,7 +130,6 @@ export function DemoRequestForm() {
 
   // --- Form View ---
   return (
-    // Use key for smooth transition between form and success message
     <motion.div key="inquiry-form" initial="hidden" animate="visible" exit="hidden" variants={formVariants}>
       <CardContent className="pt-6 pb-2"> {/* Adjusted padding */}
         <form id="inquiry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -173,31 +162,31 @@ export function DemoRequestForm() {
 
           {/* Area of Interest Select Field */}
           <motion.div className="space-y-1.5" variants={itemVariants}>
-             <Label htmlFor="interest">Area of Interest</Label>
-             {/* Need Controller for Shadcn Select with React Hook Form */}
-             <Controller
-                name="interest"
-                control={control}
-                render={({ field }) => (
-                     <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value} // Control the value
-                        disabled={isSubmitting}
-                    >
-                        <SelectTrigger id="interest" aria-invalid={errors.interest ? "true" : "false"}>
-                            <SelectValue placeholder="Select a category..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {areasOfInterest.map((area) => (
-                                <SelectItem key={area} value={area}>{area}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
-             />
-             {errors.interest && <p className="text-xs text-destructive">{errors.interest.message}</p>}
-         </motion.div>
+            <Label htmlFor="interest">Area of Interest</Label>
+            {/* Need Controller for Shadcn Select with React Hook Form */}
+            <Controller
+              name="interest"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  value={field.value} // Control the value
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="interest" aria-invalid={errors.interest ? "true" : "false"}>
+                    <SelectValue placeholder="Select a category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {areasOfInterest.map((area) => (
+                      <SelectItem key={area} value={area}>{area}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.interest && <p className="text-xs text-destructive">{errors.interest.message}</p>}
+          </motion.div>
 
 
           {/* Optional Message Field */}
@@ -210,15 +199,14 @@ export function DemoRequestForm() {
               rows={3} // Adjust rows
               disabled={isSubmitting}
             />
-             {/* No error display needed for optional field unless specific validation added */}
           </motion.div>
 
-           {/* Submission Error Display */}
-           {submitError && (
-                <motion.div variants={itemVariants}>
-                    <p className="text-sm text-destructive text-center">{submitError}</p>
-                </motion.div>
-           )}
+          {/* Submission Error Display */}
+          {submitError && (
+            <motion.div variants={itemVariants}>
+              <p className="text-sm text-destructive text-center">{submitError}</p>
+            </motion.div>
+          )}
         </form>
       </CardContent>
       <CardFooter>

@@ -203,15 +203,15 @@ export default function LandingPage() {
 
         <SectionDivider />
 
-        {/* Demo Request / Sign Up CTA */}
-        <section id="demo-request" className="py-24 relative overflow-hidden">
+        {/* Contact Us / Inquiry CTA */}
+        <section id="contact-us" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
             <div className="max-w-md mx-auto">
               <SectionHeader
-                title="Ready to Transform?"
-                description="Request a demo or sign up to get started with 1TechAcademy today."
+                title="Ready to Get in Touch?"
+                description="Fill out the form below to request a demo, sign up, or ask a question."
               />
 
               <DyraneCard>
