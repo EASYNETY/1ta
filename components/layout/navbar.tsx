@@ -216,26 +216,33 @@ export default function NavBar() {
 
                             {/* Separator and Auth actions at the bottom */}
                             <div className="mt-auto px-6 py-4 border-t border-border/30"> {/* Bottom padding and border */}
-                                <div className="flex flex-col space-y-4">
-                                    <SheetClose asChild>
-                                        <DyraneButton variant='ghost' asChild size="sm" className="w-full">
-                                            <Link
-                                                href="/login"
-                                                className={cn(
-                                                    "text-base font-medium transition-colors text-foreground",
-                                                    linkHoverColor
-                                                )}
-                                            >
-                                                Log in
-                                            </Link>
-                                        </DyraneButton>
+                                <div className="flex flex-row space-x-4 w-full items-center justify-between">
+                                    {/* Theme Toggle */}
+                                    {mounted && (
+                                        <ThemeToggle />
+                                    )}
+                                    <div className="flex flex-row space-x-4 w-full items-center justify-end">
 
-                                    </SheetClose>
-                                    <SheetClose asChild>
-                                        <DyraneButton asChild size="sm" className="w-full">
-                                            <Link href="/signup">Enroll Now</Link>
-                                        </DyraneButton>
-                                    </SheetClose>
+                                        <SheetClose asChild>
+                                            <DyraneButton variant='ghost' asChild size="sm" className="w-full">
+                                                <Link
+                                                    href="/login"
+                                                    className={cn(
+                                                        "text-base font-medium transition-colors text-foreground",
+                                                        linkHoverColor
+                                                    )}
+                                                >
+                                                    Log in
+                                                </Link>
+                                            </DyraneButton>
+
+                                        </SheetClose>
+                                        <SheetClose asChild>
+                                            <DyraneButton asChild size="sm" className="w-full">
+                                                <Link href="/signup">Enroll Now</Link>
+                                            </DyraneButton>
+                                        </SheetClose>
+                                    </div>
                                 </div>
                             </div>
                         </SheetContent>
