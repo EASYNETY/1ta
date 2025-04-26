@@ -157,8 +157,11 @@ export function ForgotPasswordForm() {
             </CardContent>
 
             <CardFooter className="justify-center text-sm pt-4">
-                <Link href="/login" className="text-muted-foreground hover:text-primary hover:underline underline-offset-2">
-                    Remember password? Login
+                <Link href="/login" className="text-muted-foreground">
+                    Remember password?
+                    <span className="ml-2 font-medium text-primary hover:underline underline-offset-2">
+                        Login
+                    </span>
                 </Link>
             </CardFooter>
         </Card>
