@@ -16,7 +16,7 @@ import { formatCurrency } from "@/lib/utils"
 
 export default function CartPage() {
     const router = useRouter()
-    const { items, totalAmount } = useAppSelector((state) => state.cart)
+    const { items, total } = useAppSelector((state) => state.cart)
     const { isAuthenticated } = useAppSelector((state) => state.auth)
 
     // If authenticated, redirect to dashboard
@@ -56,7 +56,7 @@ export default function CartPage() {
             <CardContent>
                 <div className="space-y-4">
                     {items.map((item) => (
-                        <div key={item.id} className="flex items-start space-x-4">
+                        <div key={item.courseId} className="flex items-start space-x-4">
                             <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border">
                                 {item.image ? (
                                     <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
@@ -88,13 +88,13 @@ export default function CartPage() {
                 <div className="space-y-1.5">
                     <div className="flex justify-between">
                         <span className="font-medium">Total</span>
-                        <span className="font-bold">{formatCurrency(totalAmount)}</span>
+                        <span className="font-bold">{formatCurrency(total)}</span>
                     </div>
                 </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-2">
                 <DyraneButton className="w-full" asChild>
-                    <Link href="/signup">
+                    <Link href="/checkout">
                         Proceed to Checkout
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>

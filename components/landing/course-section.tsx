@@ -10,18 +10,18 @@ import { AlertCircle } from "lucide-react"
 import { MotionTokens } from "@/lib/motion.tokens"
 import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { type Course } from "@/data/mock-course-data"
+import type { Course } from "@/data/mock-course-data"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 // --- Import Redux hooks and selectors ---
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
     fetchCourses,
     selectFeaturedCourses,
     selectCoursesByCategory,
     selectCourseCategories,
     selectCoursesStatus,
-    selectCoursesError
-} from "@/features/courses/store/course-slice";
+    selectCoursesError,
+} from "@/features/courses/store/course-slice"
 import { SectionHeader } from "../layout/section-header"
 import { Badge } from "../ui/badge"
 import { Skeleton } from "../ui/skeleton"
@@ -33,36 +33,35 @@ export function CoursesSection() {
     const categoryInView = useInView(categoryRef, { once: true, margin: "-150px 0px" })
 
     // --- Redux State Access ---
-    const dispatch = useAppDispatch();
-    const featuredCourses = useAppSelector(selectFeaturedCourses);
-    const coursesByCategory = useAppSelector(selectCoursesByCategory);
-    const courseCategories = useAppSelector(selectCourseCategories);
-    const coursesStatus = useAppSelector(selectCoursesStatus);
-    const coursesError = useAppSelector(selectCoursesError);
+    const dispatch = useAppDispatch()
+    const featuredCourses = useAppSelector(selectFeaturedCourses)
+    const coursesByCategory = useAppSelector(selectCoursesByCategory)
+    const courseCategories = useAppSelector(selectCourseCategories)
+    const coursesStatus = useAppSelector(selectCoursesStatus)
+    const coursesError = useAppSelector(selectCoursesError)
 
     // --- Local UI State ---
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Initialize as null
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null) // Initialize as null
+    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     // Fetch currency rate once for the entire section
     const { isLoading: isRateLoading, error: rateError } = useCurrencyConversion("USD", "NGN")
 
-    
     // --- Fetch courses on mount ---
     useEffect(() => {
         // Only fetch if data is not already loaded or loading/failed
-        if (coursesStatus === 'idle') {
-            dispatch(fetchCourses());
+        if (coursesStatus === "idle") {
+            dispatch(fetchCourses())
         }
-    }, [coursesStatus, dispatch]);
+    }, [coursesStatus, dispatch])
 
     // --- Set default category when categories load ---
     useEffect(() => {
-        if (coursesStatus === 'succeeded' && !selectedCategory && courseCategories.length > 0) {
-            setSelectedCategory(courseCategories[0]);
+        if (coursesStatus === "succeeded" && !selectedCategory && courseCategories.length > 0) {
+            setSelectedCategory(courseCategories[0])
         }
-    }, [coursesStatus, courseCategories, selectedCategory]);
+    }, [coursesStatus, courseCategories, selectedCategory])
 
     const handleViewCourse = (course: Course) => {
         setSelectedCourse(course)
@@ -88,7 +87,7 @@ export function CoursesSection() {
     }
 
     // 1. Loading State
-    if (coursesStatus === 'loading' || coursesStatus === 'idle') {
+    if (coursesStatus === "loading" || coursesStatus === "idle") {
         // Use the same Skeleton structure as provided before
         return (
             <section className="container py-16 md:py-24 space-y-12">
@@ -96,14 +95,33 @@ export function CoursesSection() {
                     title="Explore Our Courses"
                     description="Unlock your potential with industry-leading tech courses taught by experts."
                 />
-                <div> <Skeleton className="h-8 w-48 mb-10 rounded-md" /> <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"> {[...Array(3)].map((_, i) => (<Skeleton key={`feat-skel-${i}`} className="h-[380px] rounded-xl" />))} </div> </div>
-                <div className="mt-16 space-y-8"> <Skeleton className="h-8 w-64 mb-10 rounded-md" /> <Skeleton className="h-12 w-full max-w-xl mb-4 rounded-md" /> <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4"> {[...Array(6)].map((_, i) => (<Skeleton key={`cat-skel-${i}`} className="h-20 rounded-lg" />))} </div> </div>
+                <div>
+                    {" "}
+                    <Skeleton className="h-8 w-48 mb-10 rounded-md" />{" "}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                        {" "}
+                        {[...Array(3)].map((_, i) => (
+                            <Skeleton key={`feat-skel-${i}`} className="h-[380px] rounded-xl" />
+                        ))}{" "}
+                    </div>{" "}
+                </div>
+                <div className="mt-16 space-y-8">
+                    {" "}
+                    <Skeleton className="h-8 w-64 mb-10 rounded-md" />{" "}
+                    <Skeleton className="h-12 w-full max-w-xl mb-4 rounded-md" />{" "}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4">
+                        {" "}
+                        {[...Array(6)].map((_, i) => (
+                            <Skeleton key={`cat-skel-${i}`} className="h-20 rounded-lg" />
+                        ))}{" "}
+                    </div>{" "}
+                </div>
             </section>
-        );
+        )
     }
 
     // 2. Error State
-    if (coursesStatus === 'failed') {
+    if (coursesStatus === "failed") {
         return (
             <section className="container py-16 md:py-24">
                 <Alert variant="destructive">
@@ -114,11 +132,11 @@ export function CoursesSection() {
                     </AlertDescription>
                 </Alert>
             </section>
-        );
+        )
     }
 
     // 3. No Data Success State
-    if (coursesStatus === 'succeeded' && courseCategories.length === 0) {
+    if (coursesStatus === "succeeded" && courseCategories.length === 0) {
         return (
             <section className="container py-16 md:py-24">
                 <SectionHeader
@@ -127,7 +145,7 @@ export function CoursesSection() {
                 />
                 <p className="text-center text-muted-foreground mt-10">No courses available at this time.</p>
             </section>
-        );
+        )
     }
 
     // --- 4. Success State ---
@@ -135,7 +153,6 @@ export function CoursesSection() {
 
     return (
         <div className="space-y-16">
-
             {/* Featured Courses Section */}
             {featuredCourses.length > 0 && (
                 <motion.div
@@ -152,7 +169,8 @@ export function CoursesSection() {
                             </motion.div>
                         ))}
                     </div>
-                </motion.div>)}
+                </motion.div>
+            )}
 
             {/* All Courses by Category Section */}
             {courseCategories.length > 0 && (
@@ -162,13 +180,12 @@ export function CoursesSection() {
                     initial="hidden"
                     animate={categoryInView ? "visible" : "hidden"}
                 >
-                    <Badge variant='outline' className="flex p-2 justify-self-center mb-4 backdrop-blur-sm">
+                    <Badge variant="outline" className="flex p-2 justify-self-center mb-4 backdrop-blur-sm">
                         {selectedCategory} Courses
                     </Badge>
                     <SectionHeader
                         title="Explore Courses by Category"
                         description="Browse through our extensive library of courses tailored to your needs."
-
                     />
                     <Tabs value={selectedCategory ?? courseCategories[0]} onValueChange={setSelectedCategory} className="w-full">
                         <ScrollArea className="w-full whitespace-nowrap pb-4">
@@ -177,7 +194,6 @@ export function CoursesSection() {
                                     <TabsTrigger
                                         key={category}
                                         value={category}
-
                                         className="px-4 py-2 cursor-pointer transition-colors duration-200 ease-out hover:bg-background/35 hover:backdrop-blur-md rounded-md"
                                     >
                                         {category}
@@ -204,7 +220,8 @@ export function CoursesSection() {
                             </TabsContent>
                         ))}
                     </Tabs>
-                </motion.div>)}
+                </motion.div>
+            )}
 
             {/* Course Detail Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
