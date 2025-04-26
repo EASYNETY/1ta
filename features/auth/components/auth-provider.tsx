@@ -1,41 +1,42 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAppSelector } from "@/store/hooks";
+import type React from "react"
+
+import { useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useAppSelector } from "@/store/hooks"
 
 interface AuthProviderProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
-const publicRoutes = ["/", "/login", "/signup", "/register", "/forgot-password"];
+const publicRoutes = ["/", "/login", "/signup", "/forgot-password"]
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { isAuthenticated, isInitialized, user } = useAppSelector((state) => state.auth);
-  const router = useRouter();
-  const pathname = usePathname();
+  const { isAuthenticated, isInitialized, user } = useAppSelector((state) => state.auth)
+  const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
-    if (!isInitialized) return;
+    // Skip if not initialized yet
+    if (!isInitialized) return
 
-    const isPublicRoute = publicRoutes.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`),
-    );
+    const isPublicRoute = publicRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
 
     if (!isAuthenticated && !isPublicRoute) {
-      router.push("/login");
+      router.push("/login")
     }
 
     if (isAuthenticated && (pathname === "/login" || pathname === "/signup")) {
-      router.push("/dashboard");
+      router.push("/dashboard")
     }
 
     if (isAuthenticated && user) {
       if (pathname.startsWith("/admin") && user.role !== "admin") {
-        router.push("/dashboard");
+        router.push("/dashboard")
       }
     }
-  }, [isAuthenticated, isInitialized, pathname, router, user]);
+  }, [isAuthenticated, isInitialized, pathname, router, user])
 
   if (!isInitialized) {
     return (
@@ -45,8 +46,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           <p className="mt-4">Loading...</p>
         </div>
       </div>
-    );
+    )
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }

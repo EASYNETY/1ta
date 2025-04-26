@@ -69,7 +69,7 @@ export function CartDropdown({ isOpen, onClose, setIsDropdownOpen }: CartDropdow
                     onMouseLeave={() => setIsDropdownOpen(false)}
                     variants={dropdownVariants}
                 >
-                    <div className="bg-background/55 backdrop-blur-md rounded-md shadow-lg border border-border/50 overflow-hidden">
+                    <div className="bg-background/85 backdrop-blur-md rounded-md shadow-lg border border-border/50 overflow-hidden">
                         <div className="p-3 border-b border-border/30">
                             <h3 className="font-medium text-sm">Your Selected Courses ({cart.items.length})</h3>
                         </div>

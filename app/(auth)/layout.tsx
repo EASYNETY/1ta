@@ -18,8 +18,10 @@ export default function AuthLayout({
   const { theme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  const currentTheme = !mounted ? 'light' : (theme === "system" ? systemTheme : theme);
   useEffect(() => setMounted(true), []);
+
+  const currentTheme = mounted ? (theme === "system" ? systemTheme : theme) : undefined
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
@@ -27,7 +29,7 @@ export default function AuthLayout({
         <AbstractBackground className="opacity-70" />
         <div className="w-full max-w-md relative z-10 py-12 px-4">
           <div className="flex items-center justify-center mb-8">
-            {mounted && (
+            {mounted && currentTheme && (
               <Image
                 src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
                 alt="1techacademy Logo"
@@ -37,7 +39,7 @@ export default function AuthLayout({
                 height={14}
               />
             )}
-            {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+            {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
           </div>
           {children}
         </div>

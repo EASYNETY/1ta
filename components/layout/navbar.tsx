@@ -52,7 +52,7 @@ export default function NavBar() {
     useEffect(() => setMounted(true), []);
 
     // Determine the current theme, defaulting to light if not mounted or system theme is unclear
-    const currentTheme = !mounted ? 'light' : (theme === "system" ? systemTheme : theme);
+    const currentTheme = mounted ? (theme === "system" ? systemTheme : theme) : undefined
 
     // DyraneUI Style Variables (Adjust these to match your tokens/theme)
     const scrolledHeaderBg = "bg-background/65"; // Example: Less opaque background
@@ -74,7 +74,7 @@ export default function NavBar() {
 
                 {/* Logo */}
                 <Link href="/" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
-                    {mounted && (
+                    {mounted && currentTheme && (
                         <Image
                             src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
                             alt="1techacademy Logo"
@@ -84,7 +84,7 @@ export default function NavBar() {
                             height={14}
                         />
                     )}
-                    {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+                    {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
                 </Link>
 
                 {/* Desktop Navigation Menu - Centered */}
@@ -176,7 +176,7 @@ export default function NavBar() {
                                     <VisuallyHidden>Navigation Menu</VisuallyHidden>
                                     {/* Logo */}
                                     <Link href="/" className=""> {/* flex-shrink-0 prevents shrinking */}
-                                        {mounted && (
+                                        {mounted && currentTheme && (
                                             <Image
                                                 src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
                                                 alt="1techacademy Logo"
@@ -186,7 +186,7 @@ export default function NavBar() {
                                                 height={14}
                                             />
                                         )}
-                                        {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+                                        {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
                                     </Link>
                                 </SheetTitle>
                                 {/* Optionally add SheetDescription here if needed */}

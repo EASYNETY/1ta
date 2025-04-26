@@ -51,7 +51,7 @@ export function Footer() {
     useEffect(() => setMounted(true), []);
 
     // Determine the current theme for logo selection
-    const currentTheme = !mounted ? 'light' : theme === 'system' ? systemTheme : theme;
+    const currentTheme = mounted ? (theme === "system" ? systemTheme : theme) : undefined
 
     // Consistent hover color from NavBar example
     const linkHoverColor = 'hover:text-primary';
@@ -67,17 +67,17 @@ export function Footer() {
                         {/* Logo & Address */}
                         <div className="flex flex-col items-start h-auto justify-between gap-6 mb-4">
                             <Link href="/" className="">
-                                {mounted ? (
+                                {mounted && currentTheme && (
                                     <Image
-                                        src={currentTheme === 'dark' ? '/logo_dark.png' : '/logo.png'}
+                                        src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
                                         alt="1techacademy Logo"
                                         className="h-8 w-auto"
+                                        priority
                                         width={80}
                                         height={14}
                                     />
-                                ) : (
-                                    <div className="h-6 w-[80px] bg-muted rounded animate-pulse" />
                                 )}
+                                {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
                             </Link>
 
                             {/* Company Address with Icons */}

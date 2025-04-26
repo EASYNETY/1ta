@@ -1,10 +1,8 @@
-// src/features/auth/store/auth-thunks.ts
-
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { post } from "@/lib/api-client";
 import { loginSuccess, loginFailure, loginStart } from "./auth-slice";
-import router from "next/router";
-import type { AuthResponse } from "@/features/auth/types/auth-types"; // ✅
+import { clearCart } from "@/features/cart/store/cart-slice";
+import type { AuthResponse } from "@/features/auth/types/auth-types";
 
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
@@ -13,19 +11,26 @@ export const loginThunk = createAsyncThunk(
 		try {
 			dispatch(loginStart());
 
-			const { token, user } = await post<AuthResponse>(
-				"/auth/login",
-				credentials
-			); // ✅ Correct typing
+			const response = await post<AuthResponse>("/auth/login", credentials, {
+				requiresAuth: false,
+			});
 
-			dispatch(loginSuccess({ user, token }));
+			// Store auth data in localStorage for persistence
+			localStorage.setItem("authToken", response.token);
+			localStorage.setItem("authUser", JSON.stringify(response.user));
 
-			localStorage.setItem("authToken", token);
-			localStorage.setItem("authUser", JSON.stringify(user));
+			dispatch(
+				loginSuccess({
+					user: response.user,
+					token: response.token,
+				})
+			);
 
-			router.push("/dashboard");
+			return response;
 		} catch (error: any) {
-			dispatch(loginFailure(error.message || "Login failed"));
+			const errorMessage =
+				error instanceof Error ? error.message : "Login failed";
+			dispatch(loginFailure(errorMessage));
 			throw error;
 		}
 	}
@@ -44,24 +49,44 @@ export const signupThunk = createAsyncThunk(
 			barcodeId: string;
 			guardianId: string | null;
 		},
-		{ dispatch }
+		{ dispatch, getState }
 	) => {
 		try {
 			dispatch(loginStart());
 
-			const { token, user } = await post<AuthResponse>(
-				"/auth/register",
-				userData
-			); // ✅
+			// Get cart items from state
+			const state = getState() as any;
+			const cartItems = state.cart.items;
 
-			dispatch(loginSuccess({ user, token }));
+			// Create full payload with cart items
+			const fullPayload = {
+				...userData,
+				cartItems,
+			};
 
-			localStorage.setItem("authToken", token);
-			localStorage.setItem("authUser", JSON.stringify(user));
+			const response = await post<AuthResponse>("/auth/register", fullPayload, {
+				requiresAuth: false,
+			});
 
-			router.push("/dashboard");
+			// Store auth data in localStorage for persistence
+			localStorage.setItem("authToken", response.token);
+			localStorage.setItem("authUser", JSON.stringify(response.user));
+
+			dispatch(
+				loginSuccess({
+					user: response.user,
+					token: response.token,
+				})
+			);
+
+			// Clear cart after successful registration
+			dispatch(clearCart());
+
+			return response;
 		} catch (error: any) {
-			dispatch(loginFailure(error.message || "Signup failed"));
+			const errorMessage =
+				error instanceof Error ? error.message : "Registration failed";
+			dispatch(loginFailure(errorMessage));
 			throw error;
 		}
 	}

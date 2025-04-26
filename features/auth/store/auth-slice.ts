@@ -1,5 +1,3 @@
-// src/features/auth/store/auth-slice.ts
-
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface User {
@@ -41,7 +39,7 @@ export const authSlice = createSlice({
 		) => {
 			state.isLoading = false;
 			state.isAuthenticated = true;
-			state.isInitialized = true; // <-- set initialized
+			state.isInitialized = true;
 			state.user = action.payload.user;
 			state.token = action.payload.token;
 			state.error = null;
@@ -49,27 +47,39 @@ export const authSlice = createSlice({
 		loginFailure: (state, action: PayloadAction<string>) => {
 			state.isLoading = false;
 			state.error = action.payload;
-			state.isInitialized = true; // <-- even if failed, initialized
+			state.isInitialized = true;
 		},
 		logout: (state) => {
 			state.user = null;
 			state.token = null;
 			state.isAuthenticated = false;
-			state.isInitialized = true; // <-- after logout, still initialized
-			state.isLoading = false;
+			state.isInitialized = true;
 			state.error = null;
-			localStorage.removeItem("authToken");
-			localStorage.removeItem("authUser");
+
+			// Clear localStorage on logout
+			if (typeof window !== "undefined") {
+				localStorage.removeItem("authToken");
+				localStorage.removeItem("authUser");
+			}
 		},
 		updateUser: (state, action: PayloadAction<Partial<User>>) => {
 			if (state.user) {
 				state.user = { ...state.user, ...action.payload };
 			}
 		},
+		initializeAuth: (state) => {
+			state.isInitialized = true;
+		},
 	},
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout, updateUser } =
-	authSlice.actions;
+export const {
+	loginStart,
+	loginSuccess,
+	loginFailure,
+	logout,
+	updateUser,
+	initializeAuth,
+} = authSlice.actions;
 
 export default authSlice.reducer;
