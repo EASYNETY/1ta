@@ -5,7 +5,7 @@
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { ArrowRight, Fingerprint, Brain, Video, BarChart3, LayoutGrid, MessageCircle } from "lucide-react"
+import { ArrowRight, Fingerprint, Brain, Video, BarChart3, LayoutGrid, MessageCircle, GraduationCap, BadgeCheck, Users, Home } from "lucide-react"
 import { TestimonialCarousel } from "@/components/landing/testimonial-carousel"
 import { FeatureCard } from "@/components/landing/feature-card"
 import { ComparisonGrid } from "@/components/landing/comparison-grid"
@@ -55,7 +55,7 @@ export default function LandingPage() {
                   Awaken Your Tech Future with 1Tech Academy.
                 </h1>
                 <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl">
-                  Build real-world skills, master breakthrough technologies, and start your journey with expert-led, project-driven courses.
+                  Empowering tomorrow’s tech leaders through real-world projects, professional certifications, and a transformative learning environment.
                 </p>
                 <div className="flex flex-row gap-4 pt-4">
                   <DyraneButton size="lg" asChild>
@@ -72,6 +72,44 @@ export default function LandingPage() {
               <div className="relative h-[400px] lg:h-[500px]">
                 <HeroAnimation />
               </div>
+            </div>
+          </div>
+        </section>
+
+        <SectionDivider />
+
+        {/* Philosophy Section */}
+
+        <section id="philosophy" className="py-24 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-80" />
+
+          <div className="px-4 md:px-6 relative text-center">
+            <SectionHeader
+              title="Our Philosophy"
+              description="We are a launchpad into a world of endless possibilities. Our mission is simple: to empower students like you with the digital skills needed to thrive in today’s fast-paced, tech-driven world."
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 grid-rows-1">
+              <FeatureCard
+                icon={<GraduationCap className="h-8 w-8" />}
+                title="Professional Training"
+                description="Expert-led programs designed to turn aspiring learners into industry-ready professionals."
+              />
+              <FeatureCard
+                icon={<BadgeCheck className="h-8 w-8" />}
+                title="Certifications"
+                description="Earn certifications recognized across the tech industry to validate your skills."
+              />
+              <FeatureCard
+                icon={<Users className="h-8 w-8" />}
+                title="Expert Trainers"
+                description="Learn directly from professionals with real-world tech experience and mentorship."
+              />
+              <FeatureCard
+                icon={<Home className="h-8 w-8" />}
+                title="Conducive Learning Environment"
+                description="Access world-class digital spaces designed for seamless, flexible, and collaborative learning."
+              />
             </div>
           </div>
         </section>

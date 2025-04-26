@@ -27,6 +27,7 @@ import { ThemeToggle } from "../../providers/theme-provider";
 
 // --- Constants for Navigation Links ---
 const navLinks = [
+    { href: "#philosophy", label: "Mission" },
     { href: "#features", label: "Features" },
     { href: "#why-us", label: "Why Us" },
     { href: "#courses", label: "Courses" },

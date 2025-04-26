@@ -52,6 +52,25 @@ const comparisonData: ComparisonItem[] = [
     legacy: false,
     description: "Full-featured mobile experience for on-the-go access",
   },
+  {
+    feature: "Certified Professional Programs",
+    techacademy: true,
+    legacy: false,
+    description: "Earn career-ready certifications aligned with industry standards."
+  },
+  {
+    feature: "Industry-Experienced Trainers",
+    techacademy: true,
+    legacy: false,
+    description: "Learn directly from professionals with real-world tech experience."
+  },
+  {
+    feature: "Student-Focused Environment",
+    techacademy: true,
+    legacy: false,
+    description: "Modern tools, flexible learning, and support built around student needs."
+  },
+
 ]
 
 export function ComparisonGrid() {
