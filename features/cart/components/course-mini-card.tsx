@@ -6,6 +6,7 @@ import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import type { CartItem } from "@/features/cart/store/cart-slice"
+import { useAppSelector } from "@/store/hooks"
 
 interface CourseMiniCardProps {
     item: CartItem
@@ -14,13 +15,18 @@ interface CourseMiniCardProps {
 }
 
 export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps) {
+    const { isAuthenticated } = useAppSelector((state) => state.auth)
     const router = useRouter()
 
     const handleClick = () => {
         if (onClick) {
             onClick()
         } else {
-            router.push("/cart")
+            if (!isAuthenticated) {
+                router.push("/signup")
+            } else {
+                router.push("/cart")
+            }
         }
     }
 

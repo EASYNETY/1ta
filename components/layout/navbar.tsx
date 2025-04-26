@@ -24,11 +24,15 @@ import { cn } from "@/lib/utils"; // Import cn utility
 import { useScrollPosition } from "@/hooks/use-scroll-position"; // Import the custom hook
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { ThemeToggle } from "../../providers/theme-provider";
+import { CartNavItem } from "@/features/cart/components/cart-nav-items"
+import { CourseMiniCard } from "@/features/cart/components/course-mini-card"
+import { useAppSelector } from "@/store/hooks"
+import { useRouter } from "next/navigation"
 
 // --- Constants for Navigation Links ---
 const navLinks = [
     { href: "#philosophy", label: "Mission" },
-    { href: "#features", label: "Features" },
+    // { href: "#features", label: "Features" },
     { href: "#why-us", label: "Why Us" },
     { href: "#courses", label: "Courses" },
     { href: "#testimonials", label: "Testimonials" },
@@ -39,7 +43,11 @@ const navLinks = [
 export default function NavBar() {
     const { theme, setTheme, systemTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const isScrolled = useScrollPosition(10); // Detect scroll past 10px threshold
+    const isScrolled = useScrollPosition(10);
+
+    // Get cart items from Redux store
+    const cart = useAppSelector((state) => state.cart)
+    const router = useRouter()
 
     useEffect(() => setMounted(true), []);
 
@@ -101,6 +109,12 @@ export default function NavBar() {
                                 </NavigationMenuItem>
                             ))}
                         </NavigationMenuList>
+
+                        {/* Cart Nav Item */}
+                        {cart.items.length > 0 && (
+                            <NavigationMenuItem className="ml-4 h-full flex items-center justify-center"> {/* Added margin for spacing */}
+                                <CartNavItem />
+                            </NavigationMenuItem>)}
                     </NavigationMenu>
                 </div>
 
@@ -183,6 +197,22 @@ export default function NavBar() {
                                     </SheetClose>
                                 ))}
                             </nav>
+
+                            {/* Mobile Cart Courses */}
+                            {cart.items.length > 0 && (
+                                <div className="px-6 py-4 border-t border-border/30">
+                                    <h3 className="text-sm font-medium mb-3">Selected Courses</h3>
+                                    <div className="flex flex-col space-y-2">
+                                        {cart.items.map((item) => (
+                                            <CourseMiniCard
+                                                key={item.courseId}
+                                                item={item}
+                                                className="hover:bg-muted rounded-md"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Separator and Auth actions at the bottom */}
                             <div className="mt-auto px-6 py-4 border-t border-border/30"> {/* Bottom padding and border */}

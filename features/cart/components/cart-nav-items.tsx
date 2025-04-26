@@ -8,9 +8,9 @@ import { GraduationCap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CartDropdown } from "./cart-dropdown"
 import { useRouter } from "next/navigation"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 
 export function CartNavItem() {
-    const router = useRouter()
     const cart = useAppSelector((state) => state.cart)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const cartRef = useRef<HTMLDivElement>(null)
@@ -31,7 +31,9 @@ export function CartNavItem() {
 
     return (
         <div className="relative" ref={cartRef}>
-            <button
+            <DyraneButton
+                variant={"ghost"}
+                size="sm"
                 className={cn(
                     "flex items-center justify-center h-9 w-9 rounded-md transition-all",
                     "hover:bg-muted/80",
@@ -40,18 +42,22 @@ export function CartNavItem() {
                 )}
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onMouseLeave={() => setIsDropdownOpen(false)}
-                onClick={() => router.push("/cart")}
+                onClick={() => setIsDropdownOpen((prev) => !prev)}
                 aria-label={`Selected courses (${cart.items.length})`}
             >
                 <GraduationCap className={cn("h-5 w-5", hasItems ? "text-primary" : "text-muted-foreground")} />
-
-                {/* Badge */}
-                {hasItems && (
-                    <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 text-[10px] font-medium bg-primary text-primary-foreground rounded-full">
+            </DyraneButton>
+            {/* Badge */}
+            {hasItems && (
+                <div className="absolute -top-2 -right-2">
+                    {/* Ping animation */}
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
+                    {/* Actual badge */}
+                    <span className="relative flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-medium ring-2 ring-primary/30">
                         {cart.items.length}
                     </span>
-                )}
-            </button>
+                </div>
+            )}
 
             {/* Only show dropdown on desktop */}
             <div className="hidden lg:block">

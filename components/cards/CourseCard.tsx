@@ -242,7 +242,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                                     {renderNairaPrice(displayNairaAmount)}
                                 </div>
                             </div>
-                            <DyraneButton asChild size="lg">
+                            <DyraneButton asChild size="lg" onClick={handleEnrollNow}>
                                 <Link href={`/signup`}>Enroll Now</Link>
                             </DyraneButton>
                         </div>

@@ -17,6 +17,8 @@ interface CartDropdownProps {
 
 export function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
     const cart = useAppSelector((state) => state.cart)
+    const { isAuthenticated } = useAppSelector((state) => state.auth)
+
 
     // Animation variants
     const dropdownVariants = {
@@ -85,7 +87,11 @@ export function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
                                         <span className="text-sm font-medium">${cart.total.toFixed(2)}</span>
                                     </div>
                                     <DyraneButton asChild className="w-full" size="sm" onClick={onClose}>
-                                        <Link href="/cart">View Cart & Checkout</Link>
+                                        {isAuthenticated ? (
+                                            <Link href="/cart">View Cart</Link>
+                                        ) : (
+                                            <Link href="/signup">Sign Up to Checkout</Link>
+                                        )}
                                     </DyraneButton>
                                 </div>
                             </>

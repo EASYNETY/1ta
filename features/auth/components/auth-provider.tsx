@@ -12,7 +12,7 @@ interface AuthProviderProps {
 }
 
 // Update public routes to include all routes that don't require authentication
-const publicRoutes = ["/", "/login", "/signup", "/register", "/forgot-password", "/cart"]
+const publicRoutes = ["/", "/login", "/signup", "/register", "/forgot-password"]
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth)
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // If authenticated and on a login/signup/register page, redirect to dashboard
     if (
       isAuthenticated &&
-      (pathname === "/login" || pathname === "/signup" || pathname === "/register" || pathname === "/cart")
+      (pathname === "/login" || pathname === "/signup")
     ) {
       router.push("/dashboard")
     }
