@@ -1,5 +1,3 @@
-
-// features/auth/components/signup-form.tsx
 "use client"
 
 import { useState } from "react"
@@ -9,21 +7,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { signupThunk } from "@/features/auth/store/auth-thunks"
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { CardContent, CardHeader, CardTitle, CardFooter, Card } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import Link from "next/link"
-import { useAuth } from "@/features/auth/hooks/use-auth"
-import { GraduationCap } from "lucide-react"
+import { Eye, EyeOff, GraduationCap } from "lucide-react"
 
 const signupSchema = z
     .object({
         name: z.string().min(2, "Name must be at least 2 characters"),
         email: z.string().email("Please enter a valid email address"),
-        password: z.string().min(8, "Password must be at least 8 characters"),
+        password: z.string().min(6, "Password must be at least 6 characters"),
         confirmPassword: z.string(),
     })
     .refine((data) => data.password === data.confirmPassword, {
@@ -39,6 +33,8 @@ export function SignupForm() {
     const cart = useAppSelector((state) => state.cart)
     const router = useRouter()
     const [serverError, setServerError] = useState<string | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     const {
         register,
@@ -52,112 +48,128 @@ export function SignupForm() {
         try {
             setServerError(null)
 
+            // Generate unique values for required fields
+            const barcodeId = `TEMP-${crypto.randomUUID()}`
+            const classId = cart.items.length > 0 ? cart.items[0].courseId : "1"
+            const dateOfBirth = "2000-01-01T00:00:00.000Z" // Placeholder
+
             // Remove confirmPassword before sending to API
             const { confirmPassword, ...signupData } = data
 
-            await dispatch(signupThunk(signupData)).unwrap()
+            await dispatch(
+                signupThunk({
+                    ...signupData,
+                    dateOfBirth,
+                    classId,
+                    barcodeId,
+                    guardianId: null,
+                }),
+            ).unwrap()
 
-            // Navigate to dashboard after successful registration
-            router.push("/dashboard")
+            // Navigation is handled in the thunk
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Registration failed"
             setServerError(errorMessage)
         }
     }
 
-
     return (
-        <Card className="w-full max-w-md mx-auto">
-            <CardHeader>
-                <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
-                {cart.items.length > 0 && (
-                    <div className="mt-4 p-3 bg-primary/10 rounded-md">
-                        <div className="flex items-center">
-                            <GraduationCap className="h-5 w-5 text-primary mr-2" />
-                            <p className="text-sm font-medium">
-                                {cart.items.length} {cart.items.length === 1 ? "course" : "courses"} in your selection
-                            </p>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                            Your selected courses will be associated with your account after signup.
+        <div className="w-full max-w-md mx-auto py-10 px-4 sm:px-6 lg:px-8">
+            <div className="mb-8 text-center space-y-2">
+                <h1 className="text-3xl font-bold tracking-tight">Create account</h1>
+                <p className="text-muted-foreground text-sm">Join 1TechAcademy to start learning</p>
+            </div>
+
+            {cart.items.length > 0 && (
+                <div className="mb-6 p-4 bg-primary/10 rounded-lg">
+                    <div className="flex items-center">
+                        <GraduationCap className="h-5 w-5 text-primary mr-2" />
+                        <p className="text-sm font-medium">
+                            {cart.items.length} {cart.items.length === 1 ? "course" : "courses"} in your selection
                         </p>
                     </div>
-                )}
-            </CardHeader>
-            <CardContent>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Your selected courses will be associated with your account after signup.
+                    </p>
+                </div>
+            )}
 
-                <div className="relative mb-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <Separator />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                    </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" placeholder="John Doe" {...register("name")} aria-invalid={errors.name ? "true" : "false"} />
+                    {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input
-                            id="name"
-                            placeholder="John Doe"
-                            {...register("name")}
-                            aria-invalid={errors.name ? "true" : "false"}
-                        />
-                        {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
-                    </div>
+                <div className="space-y-2">
+                    <Label htmlFor="email">Email address</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        placeholder="you@example.com"
+                        {...register("email")}
+                        aria-invalid={errors.email ? "true" : "false"}
+                    />
+                    {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="your@email.com"
-                            {...register("email")}
-                            aria-invalid={errors.email ? "true" : "false"}
-                        />
-                        {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-                    </div>
+                <div className="space-y-2 relative">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        {...register("password")}
+                        aria-invalid={errors.password ? "true" : "false"}
+                        className="pr-10"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute top-1/2 right-3 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                    {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
-                            placeholder="••••••••"
-                            {...register("password")}
-                            aria-invalid={errors.password ? "true" : "false"}
-                        />
-                        {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
-                    </div>
+                <div className="space-y-2 relative">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        {...register("confirmPassword")}
+                        aria-invalid={errors.confirmPassword ? "true" : "false"}
+                        className="pr-10"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute top-1/2 right-3 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                    {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
+                </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <Input
-                            id="confirmPassword"
-                            type="password"
-                            placeholder="••••••••"
-                            {...register("confirmPassword")}
-                            aria-invalid={errors.confirmPassword ? "true" : "false"}
-                        />
-                        {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
-                    </div>
+                {serverError && <div className="p-3 bg-red-100 text-red-600 rounded-md text-sm">{serverError}</div>}
 
-                    {serverError && <div className="p-3 bg-red-100 text-red-600 rounded-md text-sm">{serverError}</div>}
+                <DyraneButton type="submit" size="lg" className="w-full" disabled={isLoading}>
+                    {isLoading ? "Creating account..." : "Create account"}
+                </DyraneButton>
+            </form>
 
-                    <DyraneButton type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? "Creating Account..." : "Create Account"}
-                    </DyraneButton>
-                </form>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-                <p className="text-sm text-center">
+            <div className="mt-6 flex flex-col items-center space-y-2 text-sm">
+                <p className="text-muted-foreground">
                     Already have an account?{" "}
                     <Link href="/login" className="text-primary hover:underline">
-                        Login
+                        Log in
                     </Link>
                 </p>
-            </CardFooter>
-        </Card>
+            </div>
+        </div>
     )
 }

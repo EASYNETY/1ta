@@ -51,7 +51,7 @@ export function LoginForm() {
       <div className="mb-8 text-center space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
         <p className="text-muted-foreground text-sm">
-          Sign in to your account
+          Sign in to your dashboard
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute top-9 right-3 text-muted-foreground hover:text-foreground focus:outline-none"
+            className="absolute top-1/2 right-3 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
