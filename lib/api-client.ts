@@ -12,6 +12,7 @@ import {
 import {
 	login as mockLogin,
 	register as mockRegister,
+	forgotPassword as mockForgotPassword,
 } from "@/data/mock-auth-data";
 
 import type { Course } from "@/data/mock-course-data";
@@ -142,6 +143,13 @@ async function handleMockRequest<T>(
 
 	if (endpoint === "/auth/register" && method === "post") {
 		return mockRegister(body) as unknown as T;
+	}
+
+	if (endpoint === "/auth/forgot-password" && method === "post") {
+		if (!body || typeof body.email !== "string") {
+			throw new Error("Mock API Error: Invalid forgot password payload");
+		}
+		return mockForgotPassword(body) as unknown as T;
 	}
 
 	// --- Fallback ---

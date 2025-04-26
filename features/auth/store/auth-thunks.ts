@@ -1,3 +1,5 @@
+// features/auth/store/auth-thunks.ts
+
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { post } from "@/lib/api-client";
 import { loginSuccess, loginFailure, loginStart } from "./auth-slice";
@@ -91,3 +93,34 @@ export const signupThunk = createAsyncThunk(
 		}
 	}
 );
+
+// --- Forgot Password Thunk ---
+export const forgotPasswordThunk = createAsyncThunk<
+	{ message: string }, // Expected success response structure (adjust if different)
+	{ email: string }, // Input argument type
+	{ rejectValue: string } // Type for rejection payload
+>("auth/forgotPassword", async (payload, { rejectWithValue }) => {
+	try {
+		console.log("Dispatching forgotPasswordThunk for:", payload.email);
+		// Use the post helper from apiClient
+		const response = await post<{ message: string }>(
+			"/auth/forgot-password",
+			payload,
+			{
+				requiresAuth: false, // No auth needed for this endpoint
+			}
+		);
+		console.log("Forgot Password API Response:", response);
+		return response; // Return the success message payload
+	} catch (error: any) {
+		const errorMessage =
+			error?.data?.message ||
+			error?.message ||
+			"Failed to send password reset link.";
+		console.error("Forgot Password Thunk Error:", errorMessage);
+		// Reject with the error message for the component to catch
+		return rejectWithValue(errorMessage);
+	}
+});
+
+// --- Reset Password Thunk ---

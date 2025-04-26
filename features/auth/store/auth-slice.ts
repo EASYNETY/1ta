@@ -1,3 +1,5 @@
+// features/auth/store/auth-slice.ts
+
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface User {

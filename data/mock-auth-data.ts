@@ -96,3 +96,33 @@ export function register(userData: {
 		token: `mock-token-${newUser.id}-${Date.now()}`,
 	};
 }
+
+export function forgotPassword(payload: { email: string }): {
+	message: string;
+} {
+	console.log(
+		`%c MOCK API: Received forgot password request for: ${payload.email} `,
+		"background: #555; color: #eee"
+	);
+
+	// Simulate checking if email exists (optional, real API might not confirm)
+	const userExists = users.some((u) => u.email === payload.email);
+	console.log(
+		`%c MOCK API: User exists check: ${userExists} `,
+		"background: #555; color: #eee"
+	);
+
+	// Always return a generic success message in mock mode for security parity
+	// (Don't confirm if email exists or not)
+	// In a real backend, this is where token generation & email sending would happen.
+	return {
+		message:
+			"If an account with that email exists, a password reset link has been sent.",
+	};
+
+	// --- Example of simulating an error (uncomment to test error handling) ---
+	// if (payload.email === 'error@example.com') {
+	//     throw new Error("Mock simulation: Failed to send reset email.");
+	// }
+	// return { message: "..." };
+}

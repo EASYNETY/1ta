@@ -1,3 +1,5 @@
+// features/auth/types/auth-types.ts
+
 import type { User } from "../store/auth-slice";
 
 export interface AuthResponse {
