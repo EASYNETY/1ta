@@ -80,7 +80,7 @@ export const signupThunk = createAsyncThunk(
 			);
 
 			// Clear cart after successful registration
-			dispatch(clearCart());
+			// dispatch(clearCart());
 
 			return response;
 		} catch (error: any) {
