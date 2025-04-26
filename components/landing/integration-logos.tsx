@@ -6,33 +6,8 @@ import { useMobile } from "@/hooks/use-mobile"
 import { MotionTokens } from "@/lib/motion.tokens"
 import Image from "next/image"
 
-const logos = [
-  // Educational platforms
-  { name: "Google Classroom", logo: "https://upload.wikimedia.org/wikipedia/commons/5/59/Google_Classroom_Logo.png" },
-  { name: "Microsoft Teams", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg" },
-  { name: "Canvas", logo: "https://upload.wikimedia.org/wikipedia/en/b/bb/Canva_Logo.svg" },
-  { name: "Zoom", logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Zoom_Communications_Logo.svg" },
-  { name: "Slack", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Slack_icon_2019.svg/2048px-Slack_icon_2019.svg.png" },
-  { name: "Moodle", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c6/Moodle-logo.svg" },
-  { name: "Blackboard", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Blackboard_logo.png" },
-  { name: "Notion", logo: "https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png" },
-
-  // Technology logos
-  { name: "HTML", logo: "https://upload.wikimedia.org/wikipedia/commons/7/73/HTML5_logo_with_text.png" },
-  { name: "CSS", logo: "https://upload.wikimedia.org/wikipedia/commons/6/62/CSS3_logo.svg" },
-  { name: "JavaScript", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/JavaScript-logo.png" },
-  { name: "React", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" },
-  { name: "Python", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" },
-  { name: "Node.js", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Node.js_logo.svg" },
-  { name: "AWS", logo: "https://upload.wikimedia.org/wikipedia/commons/6/60/Amazon_Web_Services_Logo.svg" },
-
-  // Certifications logos
-  { name: "AWS Certified", logo: "https://upload.wikimedia.org/wikipedia/commons/e/e8/AWS_Certified_Logo.png" },
-  { name: "Microsoft Certified", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Microsoft_Certified_Logo.png" },
-  { name: "Google Certified", logo: "https://upload.wikimedia.org/wikipedia/commons/1/15/Google_Cloud_Certified_Logo.svg" },
-  { name: "Certified Python Developer", logo: "https://upload.wikimedia.org/wikipedia/commons/f/f3/Certified_Python_Developer_Logo.svg" },
-  { name: "React Certified", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" },
-]
+// Importing the integration logos data
+import { integrationLogos } from '@/data/integration-logos'
 
 export function IntegrationLogos() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -74,13 +49,13 @@ export function IntegrationLogos() {
           }}
           className="flex space-x-8 py-4"
         >
-          {[...logos, ...logos].map((logo, index) => (
+          {[...integrationLogos, ...integrationLogos].map((logo, index) => (
             <div
               key={index}
               className="flex-shrink-0 h-16 w-32 bg-background rounded-lg flex items-center justify-center p-4 relative group"
             >
               <Image
-                src={logo.logo || "/placeholder.svg"}
+                src={logo.logoUrl || "/placeholder.svg"}
                 alt={logo.name}
                 width={isMobile ? 120 : 240}
                 height={isMobile ? 60 : 120}
@@ -105,16 +80,16 @@ export function IntegrationLogos() {
       variants={container}
       initial="hidden"
       animate={isInView ? "show" : "hidden"}
-      className="grid grid-cols-2 md:grid-cols-4 gap-6"
+      className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-6"
     >
-      {logos.map((logo, index) => (
+      {integrationLogos.map((logo, index) => (
         <motion.div
           key={index}
           variants={item}
           className="h-24 bg-background rounded-lg flex items-center justify-center p-6 hover:shadow-md transition-shadow relative group"
         >
           <Image
-            src={logo.logo || "/placeholder.svg"}
+            src={logo.logoUrl || "/placeholder.svg"}
             alt={logo.name}
             width={120}
             height={60}
