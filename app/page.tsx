@@ -147,7 +147,7 @@ export default function LandingPage() {
                 title="Smart Analytics"
                 description="Attendance, grades, and behavioral heatmaps to identify trends and improve outcomes."
               />
-              <FeatureCard
+              {/* <FeatureCard
                 icon={<LayoutGrid className="h-8 w-8" />}
                 title="Course Builder"
                 description="Drag & drop modules, resources, and tests with intuitive content management."
@@ -156,7 +156,7 @@ export default function LandingPage() {
                 icon={<MessageCircle className="h-8 w-8" />}
                 title="Parent Communication"
                 description="Guardian portals with attendance & grade reports, plus direct messaging."
-              />
+              /> */}
             </div>
           </div>
         </section>

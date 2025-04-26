@@ -34,12 +34,12 @@ const comparisonData: ComparisonItem[] = [
     legacy: false,
     description: "Instant insights into student engagement and performance",
   },
-  {
-    feature: "Parent Communication",
-    techacademy: true,
-    legacy: true,
-    description: "Direct messaging and updates for parents and guardians",
-  },
+  // {
+  //   feature: "Parent Communication",
+  //   techacademy: true,
+  //   legacy: true,
+  //   description: "Direct messaging and updates for parents and guardians",
+  // },
   {
     feature: "Course Management",
     techacademy: true,
