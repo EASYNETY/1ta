@@ -10,7 +10,7 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
-const publicRoutes = ["/", "/login", "/signup", "/forgot-password",'/reset-password']
+const publicRoutes = ["/", "/login", "/signup", "/forgot-password", '/reset-password']
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticated, isInitialized, user } = useAppSelector((state) => state.auth)
@@ -43,7 +43,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-          <p className="mt-4">Loading...</p>
+          <p className="mt-4">
+            Checking your authentication status...
+          </p>
         </div>
       </div>
     )
