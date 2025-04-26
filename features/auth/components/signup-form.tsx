@@ -74,7 +74,7 @@ export function SignupForm() {
     }
 
     return (
-        <div className="w-full max-w-md mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md mx-auto py-10 px-4 sm:px-6 lg:px-8 backdrop-blur-xs rounded-3xl shadow-lg">
             <div className="mb-8 text-center space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight">Create account</h1>
                 <p className="text-muted-foreground text-sm">Join 1TechAcademy to start learning</p>
