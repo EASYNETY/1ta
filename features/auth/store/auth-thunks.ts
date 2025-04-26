@@ -4,7 +4,10 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { post } from "@/lib/api-client";
 import { loginSuccess, loginFailure, loginStart } from "./auth-slice";
 import { clearCart } from "@/features/cart/store/cart-slice";
-import type { AuthResponse } from "@/features/auth/types/auth-types";
+import type {
+	AuthResponse,
+	ResetPasswordPayload,
+} from "@/features/auth/types/auth-types";
 
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
@@ -124,3 +127,31 @@ export const forgotPasswordThunk = createAsyncThunk<
 });
 
 // --- Reset Password Thunk ---
+export const resetPasswordThunk = createAsyncThunk<
+	{ message: string }, // Expected success response structure
+	ResetPasswordPayload, // Input: { token: string; password: string }
+	{ rejectValue: string } // Type for rejection payload
+>("auth/resetPassword", async (payload, { rejectWithValue }) => {
+	try {
+		console.log("Dispatching resetPasswordThunk...");
+		// Ensure only token and password are sent, not confirmPassword
+		const apiPayload = { token: payload.token, password: payload.password };
+		// Call the API client
+		const response = await post<{ message: string }>(
+			"/auth/reset-password",
+			apiPayload,
+			{
+				requiresAuth: false, // No auth needed for this endpoint
+			}
+		);
+		console.log("Reset Password API Response:", response);
+		return response; // Return success message payload
+	} catch (error: any) {
+		const errorMessage =
+			error?.data?.message ||
+			error?.message ||
+			"Failed to reset password. Link may be invalid/expired.";
+		console.error("Reset Password Thunk Error:", errorMessage);
+		return rejectWithValue(errorMessage);
+	}
+});

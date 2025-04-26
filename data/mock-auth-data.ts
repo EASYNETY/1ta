@@ -126,3 +126,24 @@ export function forgotPassword(payload: { email: string }): {
 	// }
 	// return { message: "..." };
 }
+
+
+export function resetPassword(payload: { token: string; password: string }): { message: string } {
+    console.log(`%c MOCK API: Received reset password request for token: ${payload.token} `, "background: #555; color: #eee");
+
+    // Simulate token validation
+    if (!payload.token || payload.token === 'invalid-mock-token') {
+        throw new Error("Invalid or expired password reset token.");
+    }
+
+    // Simulate password complexity check (optional)
+    if (payload.password.length < 8) {
+         throw new Error("Mock Error: Password too short.");
+    }
+
+    // Simulate finding user by token and updating password (don't actually modify mock users array here unless needed)
+    console.log(`%c MOCK API: Password for token ${payload.token} would be reset. `, "background: #555; color: #eee");
+
+    // Return success message
+    return { message: "Password has been reset successfully." };
+}

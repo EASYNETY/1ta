@@ -10,7 +10,7 @@ interface AuthProviderProps {
   children: React.ReactNode
 }
 
-const publicRoutes = ["/", "/login", "/signup", "/forgot-password"]
+const publicRoutes = ["/", "/login", "/signup", "/forgot-password",'/reset-password']
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticated, isInitialized, user } = useAppSelector((state) => state.auth)

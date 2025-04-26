@@ -13,6 +13,7 @@ import {
 	login as mockLogin,
 	register as mockRegister,
 	forgotPassword as mockForgotPassword,
+	resetPassword as mockResetPassword,
 } from "@/data/mock-auth-data";
 
 import type { Course } from "@/data/mock-course-data";
@@ -150,6 +151,20 @@ async function handleMockRequest<T>(
 			throw new Error("Mock API Error: Invalid forgot password payload");
 		}
 		return mockForgotPassword(body) as unknown as T;
+	}
+	if (endpoint === "/auth/reset-password" && method === "post") {
+		if (
+			!body ||
+			typeof body.token !== "string" ||
+			typeof body.password !== "string"
+		) {
+			throw new Error("Mock API Error: Invalid reset password payload");
+		}
+		// Pass only token and password to the mock function
+		return mockResetPassword({
+			token: body.token,
+			password: body.password,
+		}) as unknown as T;
 	}
 
 	// --- Fallback ---

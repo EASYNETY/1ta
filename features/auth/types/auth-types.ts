@@ -22,3 +22,9 @@ export interface RegisterData {
 	guardianId?: null;
 	cartItems?: any[];
 }
+
+export interface ResetPasswordPayload {
+	token: string;
+	password: string;
+	// confirmPassword is only needed for client-side validation
+}
