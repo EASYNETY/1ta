@@ -154,7 +154,7 @@ export default function NavBar() {
                                                 className="h-6 w-auto"
                                                 priority
                                                 width={80}
-                                                height={24}
+                                                height={14}
                                             />
                                         )}
                                         {!mounted && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
