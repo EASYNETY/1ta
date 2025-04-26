@@ -3,11 +3,27 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { post } from "@/lib/api-client";
 import { loginSuccess, loginFailure, loginStart } from "./auth-slice";
-import { clearCart } from "@/features/cart/store/cart-slice";
+// import { clearCart } from "@/features/cart/store/cart-slice"; // Keep if needed
 import type {
 	AuthResponse,
 	ResetPasswordPayload,
 } from "@/features/auth/types/auth-types";
+import { setCookie } from "nookies"; // Import setCookie
+
+// Helper function for cookie options (optional, but good practice)
+const getCookieOptions = (maxAgeSeconds?: number) => {
+	const options: any = {
+		path: "/", // Make cookie available across the entire site
+		// secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
+		// sameSite: 'lax', // Recommended for most cases ('strict' or 'none' are other options)
+	};
+	if (maxAgeSeconds) {
+		options.maxAge = maxAgeSeconds; // Expires after N seconds
+	}
+	// You might set 'expires' instead of 'maxAge' if preferred
+	// options.expires = new Date(Date.now() + maxAgeSeconds * 1000);
+	return options;
+};
 
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
@@ -15,14 +31,16 @@ export const loginThunk = createAsyncThunk(
 	async (credentials: { email: string; password: string }, { dispatch }) => {
 		try {
 			dispatch(loginStart());
-
 			const response = await post<AuthResponse>("/auth/login", credentials, {
 				requiresAuth: false,
 			});
 
-			// Store auth data in localStorage for persistence
-			localStorage.setItem("authToken", response.token);
-			localStorage.setItem("authUser", JSON.stringify(response.user));
+			// --- Store auth data in cookies ---
+			// Example: Set cookies to expire in 30 days
+			const cookieOptions = getCookieOptions(30 * 24 * 60 * 60);
+			setCookie(null, "authToken", response.token, cookieOptions); // null context for client-side
+			setCookie(null, "authUser", JSON.stringify(response.user), cookieOptions); // Store user as JSON string
+			// --- End Cookie Setting ---
 
 			dispatch(
 				loginSuccess({
@@ -58,24 +76,20 @@ export const signupThunk = createAsyncThunk(
 	) => {
 		try {
 			dispatch(loginStart());
-
-			// Get cart items from state
 			const state = getState() as any;
 			const cartItems = state.cart.items;
-
-			// Create full payload with cart items
-			const fullPayload = {
-				...userData,
-				cartItems,
-			};
+			const fullPayload = { ...userData, cartItems };
 
 			const response = await post<AuthResponse>("/auth/register", fullPayload, {
 				requiresAuth: false,
 			});
 
-			// Store auth data in localStorage for persistence
-			localStorage.setItem("authToken", response.token);
-			localStorage.setItem("authUser", JSON.stringify(response.user));
+			// --- Store auth data in cookies ---
+			// Example: Set cookies to expire in 30 days
+			const cookieOptions = getCookieOptions(30 * 24 * 60 * 60);
+			setCookie(null, "authToken", response.token, cookieOptions);
+			setCookie(null, "authUser", JSON.stringify(response.user), cookieOptions);
+			// --- End Cookie Setting ---
 
 			dispatch(
 				loginSuccess({
@@ -83,9 +97,7 @@ export const signupThunk = createAsyncThunk(
 					token: response.token,
 				})
 			);
-
-			// Clear cart after successful registration
-			// dispatch(clearCart());
+			// dispatch(clearCart()); // Keep if needed
 
 			return response;
 		} catch (error: any) {

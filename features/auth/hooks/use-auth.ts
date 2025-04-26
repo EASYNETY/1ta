@@ -1,47 +1,94 @@
+// features/auth/hooks/use-auth.ts
+
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
 	loginSuccess,
 	logout,
 	initializeAuth,
 } from "@/features/auth/store/auth-slice";
+import { parseCookies } from "nookies"; // Import nookies
+import { store } from "@/store";
+
+// Timeout duration remains the same
+const INITIALIZATION_TIMEOUT_MS = 3000;
 
 export function useAuth() {
 	const dispatch = useAppDispatch();
 	const auth = useAppSelector((state) => state.auth);
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	useEffect(() => {
-		// Only run on client side
 		if (typeof window === "undefined") return;
 
 		if (!auth.isInitialized) {
-			try {
-				const token = localStorage.getItem("authToken");
-				const userJson = localStorage.getItem("authUser");
+			console.log("useAuth: Starting initialization check (using nookies).");
 
-				if (token && userJson) {
-					const user = JSON.parse(userJson);
-					dispatch(
-						loginSuccess({
-							user,
-							token,
-						})
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current);
+			}
+
+			// --- Start the fallback timeout ---
+			timeoutRef.current = setTimeout(() => {
+				const currentState = store.getState().auth;
+				if (!currentState.isInitialized) {
+					console.warn(
+						`useAuth: Initialization timeout (${INITIALIZATION_TIMEOUT_MS}ms) reached. Forcing initialization.`
 					);
-				} else {
-					// No stored credentials, just mark as initialized
 					dispatch(initializeAuth());
 				}
+			}, INITIALIZATION_TIMEOUT_MS);
+
+			// --- Try synchronous initialization from Cookies ---
+			try {
+				// Parse cookies using nookies
+				const cookies = parseCookies(); // No context needed on client-side
+				const token = cookies.authToken; // Read the authToken cookie
+				const userJson = cookies.authUser; // Read the authUser cookie
+
+				if (token && userJson) {
+					console.log("useAuth: Found token and user in cookies.");
+					const user = JSON.parse(userJson); // Parse the user JSON
+					dispatch(loginSuccess({ user, token }));
+					if (timeoutRef.current) clearTimeout(timeoutRef.current);
+					console.log(
+						"useAuth: Dispatched loginSuccess from cookies, cleared timeout."
+					);
+				} else {
+					console.log("useAuth: No token/user found in cookies.");
+					// If no cookies, dispatch initializeAuth to mark as checked (logged out)
+					dispatch(initializeAuth());
+					if (timeoutRef.current) clearTimeout(timeoutRef.current);
+					console.log(
+						"useAuth: Dispatched initializeAuth (no cookies), cleared timeout."
+					);
+				}
 			} catch (error) {
-				console.error("Error initializing auth:", error);
+				console.error(
+					"useAuth: Error reading/parsing auth data from cookies:",
+					error
+				);
+				// If cookies are corrupt (e.g., bad JSON), still initialize
 				dispatch(initializeAuth());
+				if (timeoutRef.current) clearTimeout(timeoutRef.current);
+				console.log(
+					"useAuth: Dispatched initializeAuth (cookie error), cleared timeout."
+				);
 			}
 		}
-	}, [dispatch, auth.isInitialized]);
+
+		return () => {
+			if (timeoutRef.current) {
+				clearTimeout(timeoutRef.current);
+			}
+		};
+	}, [dispatch, store, auth.isInitialized]); // Dependencies remain the same
 
 	const signOut = () => {
 		dispatch(logout());
+		// The logout action below will handle clearing cookies
 	};
 
 	return {

@@ -1,7 +1,9 @@
 // features/auth/store/auth-slice.ts
 
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { destroyCookie } from "nookies"; // Import destroyCookie
 
+// ... (interfaces and initial state remain the same) ...
 export interface User {
 	id: string;
 	name: string;
@@ -31,6 +33,7 @@ export const authSlice = createSlice({
 	name: "auth",
 	initialState,
 	reducers: {
+		// ... (loginStart, loginSuccess, loginFailure, updateUser, initializeAuth remain the same) ...
 		loginStart: (state) => {
 			state.isLoading = true;
 			state.error = null;
@@ -58,10 +61,11 @@ export const authSlice = createSlice({
 			state.isInitialized = true;
 			state.error = null;
 
-			// Clear localStorage on logout
+			// --- Clear cookies on logout ---
 			if (typeof window !== "undefined") {
-				localStorage.removeItem("authToken");
-				localStorage.removeItem("authUser");
+				// Use destroyCookie, ensure path matches the one used in setCookie
+				destroyCookie(null, "authToken", { path: "/" }); // null context for client-side
+				destroyCookie(null, "authUser", { path: "/" });
 			}
 		},
 		updateUser: (state, action: PayloadAction<Partial<User>>) => {

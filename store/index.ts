@@ -1,4 +1,3 @@
-// src/store/index.ts
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import {
 	persistStore,
@@ -9,56 +8,73 @@ import {
 	PERSIST,
 	PURGE,
 	REGISTER,
-} from "redux-persist"; // Import specific action types
-import storage from "redux-persist/lib/storage"; // Default: localStorage
-// Import Reducers
-import authReducer from "@/features/auth/store/auth-slice"; // Assuming path
+} from "redux-persist";
+import { setCookie, parseCookies } from "nookies";
+
+// Import reducers
+import authReducer from "@/features/auth/store/auth-slice";
 import courseReducer from "@/features/courses/store/course-slice";
-import cartReducer from "@/features/cart/store/cart-slice"; // Assuming path
+import cartReducer from "@/features/cart/store/cart-slice";
+
+// --- Custom Cookie Storage ---
+const cookieStorage = {
+	getItem: (key: string) => {
+		return Promise.resolve(parseCookies()[key] || null);
+	},
+	setItem: (key: string, value: string) => {
+		return Promise.resolve(
+			setCookie(null, key, value, {
+				path: "/",
+				maxAge: 30 * 24 * 60 * 60, // Cookie expiration (30 days)
+			})
+		);
+	},
+	removeItem: (key: string) => {
+		return Promise.resolve(setCookie(null, key, "", { path: "/", maxAge: -1 }));
+	},
+};
+
+// --- Storage fallback based on client or SSR ---
+const isClient = typeof window !== "undefined";
+
+// Use `cookieStorage` for SSR and `redux-persist` storage (localStorage) for client-side
+const storage = isClient
+	? require("redux-persist/lib/storage").default
+	: cookieStorage;
 
 // --- Persist Config ---
 const persistConfig = {
-	key: "1techacademy-root", // Use a project-specific key
-	storage, // The storage engine (localStorage by default)
-	version: 1, // Optional: Schema version
-	whitelist: ["auth", "cart"], // Only persist these slices
-	// blacklist: ['courses'] // Courses are typically fetched, not persisted
+	key: "1techacademy-root",
+	storage: storage, // Use appropriate storage based on client/SSR
+	version: 1,
+	whitelist: ["auth", "cart"],
 };
 
 // --- Root Reducer ---
-// Combine all feature reducers here
 const rootReducer = combineReducers({
 	auth: authReducer,
-	courses: courseReducer, // Add the course reducer
-	cart: cartReducer, // Add the cart reducer
-	// Add other reducers as your app grows
+	courses: courseReducer,
+	cart: cartReducer,
 });
 
 // --- Persisted Reducer ---
-// Wrap the root reducer with redux-persist logic
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 // --- Store Configuration ---
 export const store = configureStore({
-	reducer: persistedReducer, // Use the persisted version of the root reducer
+	reducer: persistedReducer,
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({
 			serializableCheck: {
-				// Ignore specific action types from redux-persist to prevent console warnings
 				ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
 			},
-			// Optional: Add other middleware like RTK Query middleware if used
 		}),
-	// Enable Redux DevTools only in development environment for performance/security
 	devTools: process.env.NODE_ENV !== "production",
 });
 
 // --- Persistor Export ---
-// Used by PersistGate in Providers component
 export const persistor = persistStore(store);
 
 // --- Type Exports for Hooks ---
-// Derive RootState type from the rootReducer (before persistence)
 export type RootState = ReturnType<typeof rootReducer>;
-// Standard AppDispatch type
 export type AppDispatch = typeof store.dispatch;
