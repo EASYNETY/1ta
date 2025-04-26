@@ -12,6 +12,26 @@ const heroImages = [
   {
     src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1470&auto=format&fit=crop",
     alt: "Diverse students collaborating on code around a modern workstation",
+    caption: "Collaborative Learning with Professionals",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1590080876641-b0f9fbd2cc79?q=80&w=1470&auto=format&fit=crop",
+    alt: "Student proudly holding a digital certification badge",
+    caption: "Earn Industry-Recognized Certifications",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1596495577886-d920f1fb7238?q=80&w=1470&auto=format&fit=crop",
+    alt: "Mentor guiding students in a hands-on workshop",
+    caption: "Expert Trainers Guiding Your Journey",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1605379399642-870262d3d051?q=80&w=1470&auto=format&fit=crop",
+    alt: "Modern and welcoming tech learning environment",
+    caption: "Learn in a Conducive Digital Environment",
+  },
+  {
+    src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1470&auto=format&fit=crop",
+    alt: "Diverse students collaborating on code around a modern workstation",
     caption: "Collaborative Project-Based Learning",
   },
   {
@@ -23,11 +43,6 @@ const heroImages = [
     src: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1374&auto=format&fit=crop",
     alt: "Abstract digital representation of a secure network structure",
     caption: "Cutting-Edge Cybersecurity Training",
-  },
-  {
-    src: "https://images.unsplash.com/photo-1581092921461-eab62e97a780?q=80&w=1470&auto=format&fit=crop",
-    alt: "Close-up of a student assembling a precision robotics component",
-    caption: "Hands-On Skills for Tomorrow",
   },
 ]
 
