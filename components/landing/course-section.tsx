@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { motion, useInView, AnimatePresence } from "framer-motion"
 import { CourseCard } from "@/components/cards/CourseCard"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -10,24 +10,59 @@ import { AlertCircle } from "lucide-react"
 import { MotionTokens } from "@/lib/motion.tokens"
 import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { mockCourseData, courseCategories, featuredCourses, type Course } from "@/data/mock-course-data"
+import { type Course } from "@/data/mock-course-data"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-import { set } from "date-fns"
+// --- Import Redux hooks and selectors ---
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+    fetchCourses,
+    selectFeaturedCourses,
+    selectCoursesByCategory,
+    selectCourseCategories,
+    selectCoursesStatus,
+    selectCoursesError
+} from "@/features/courses/store/course-slice";
 import { SectionHeader } from "../layout/section-header"
 import { Badge } from "../ui/badge"
+import { Skeleton } from "../ui/skeleton"
 
 export function CoursesSection() {
     const featuredRef = useRef(null)
     const categoryRef = useRef(null)
     const featuredInView = useInView(featuredRef, { once: true, margin: "-100px 0px" })
     const categoryInView = useInView(categoryRef, { once: true, margin: "-150px 0px" })
-    const [selectedCategory, setSelectedCategory] = useState(courseCategories[0])
 
-    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
-    const [isModalOpen, setIsModalOpen] = useState(false)
+    // --- Redux State Access ---
+    const dispatch = useAppDispatch();
+    const featuredCourses = useAppSelector(selectFeaturedCourses);
+    const coursesByCategory = useAppSelector(selectCoursesByCategory);
+    const courseCategories = useAppSelector(selectCourseCategories);
+    const coursesStatus = useAppSelector(selectCoursesStatus);
+    const coursesError = useAppSelector(selectCoursesError);
+
+    // --- Local UI State ---
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // Initialize as null
+    const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Fetch currency rate once for the entire section
     const { isLoading: isRateLoading, error: rateError } = useCurrencyConversion("USD", "NGN")
+
+    
+    // --- Fetch courses on mount ---
+    useEffect(() => {
+        // Only fetch if data is not already loaded or loading/failed
+        if (coursesStatus === 'idle') {
+            dispatch(fetchCourses());
+        }
+    }, [coursesStatus, dispatch]);
+
+    // --- Set default category when categories load ---
+    useEffect(() => {
+        if (coursesStatus === 'succeeded' && !selectedCategory && courseCategories.length > 0) {
+            setSelectedCategory(courseCategories[0]);
+        }
+    }, [coursesStatus, courseCategories, selectedCategory]);
 
     const handleViewCourse = (course: Course) => {
         setSelectedCourse(course)
@@ -52,98 +87,124 @@ export function CoursesSection() {
         },
     }
 
-    // Group courses by category
-    const coursesByCategory = mockCourseData.reduce(
-        (acc, course) => {
-            ; (acc[course.category] = acc[course.category] || []).push(course)
-            return acc
-        },
-        {} as Record<string, Course[]>,
-    )
+    // 1. Loading State
+    if (coursesStatus === 'loading' || coursesStatus === 'idle') {
+        // Use the same Skeleton structure as provided before
+        return (
+            <section className="container py-16 md:py-24 space-y-12">
+                <SectionHeader
+                    title="Explore Our Courses"
+                    description="Unlock your potential with industry-leading tech courses taught by experts."
+                />
+                <div> <Skeleton className="h-8 w-48 mb-10 rounded-md" /> <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"> {[...Array(3)].map((_, i) => (<Skeleton key={`feat-skel-${i}`} className="h-[380px] rounded-xl" />))} </div> </div>
+                <div className="mt-16 space-y-8"> <Skeleton className="h-8 w-64 mb-10 rounded-md" /> <Skeleton className="h-12 w-full max-w-xl mb-4 rounded-md" /> <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-4"> {[...Array(6)].map((_, i) => (<Skeleton key={`cat-skel-${i}`} className="h-20 rounded-lg" />))} </div> </div>
+            </section>
+        );
+    }
+
+    // 2. Error State
+    if (coursesStatus === 'failed') {
+        return (
+            <section className="container py-16 md:py-24">
+                <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error Loading Courses</AlertTitle>
+                    <AlertDescription>
+                        {coursesError || "Could not load course data. Please try refreshing the page."}
+                    </AlertDescription>
+                </Alert>
+            </section>
+        );
+    }
+
+    // 3. No Data Success State
+    if (coursesStatus === 'succeeded' && courseCategories.length === 0) {
+        return (
+            <section className="container py-16 md:py-24">
+                <SectionHeader
+                    title="Explore Our Courses"
+                    description="Unlock your potential with industry-leading tech courses taught by experts."
+                />
+                <p className="text-center text-muted-foreground mt-10">No courses available at this time.</p>
+            </section>
+        );
+    }
+
+    // --- 4. Success State ---
+    // Use featuredCourses, courseCategories, coursesByCategory from useAppSelector
 
     return (
         <div className="space-y-16">
-            {/* Error Display for Currency Rate */}
-            {rateError && (
-                <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Currency Error</AlertTitle>
-                    <AlertDescription>
-                        Could not load current exchange rates. Prices in Naira may be unavailable.
-                    </AlertDescription>
-                </Alert>
-            )}
 
             {/* Featured Courses Section */}
-            <motion.div
-                ref={featuredRef}
-                initial="hidden"
-                variants={containerVariants}
-                animate={featuredInView ? "visible" : "hidden"}
-                className="mb-16"
-            >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {featuredCourses.map((course) => (
-                        <motion.div key={`featured-${course.id}`} variants={itemVariants}>
-                            <CourseCard course={course} onClick={() => handleViewCourse(course)} />
-                        </motion.div>
-                    ))}
-                </div>
-            </motion.div>
+            {featuredCourses.length > 0 && (
+                <motion.div
+                    ref={featuredRef}
+                    initial="hidden"
+                    variants={containerVariants}
+                    animate={featuredInView ? "visible" : "hidden"}
+                    className="mb-16"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {featuredCourses.map((course) => (
+                            <motion.div key={`featured-${course.id}`} variants={itemVariants}>
+                                <CourseCard course={course} onClick={() => handleViewCourse(course)} />
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>)}
 
             {/* All Courses by Category Section */}
-            <motion.div
-                ref={categoryRef}
-                variants={containerVariants}
-                initial="hidden"
-                animate={categoryInView ? "visible" : "hidden"}
-            >
-                <Badge variant='outline' className="flex p-2 justify-self-center mb-4 backdrop-blur-sm">
-                    {selectedCategory} Courses
-                </Badge>
-                <SectionHeader
-                    title="Explore Courses by Category"
-                    description="Browse through our extensive library of courses tailored to your needs."
+            {courseCategories.length > 0 && (
+                <motion.div
+                    ref={categoryRef}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate={categoryInView ? "visible" : "hidden"}
+                >
+                    <Badge variant='outline' className="flex p-2 justify-self-center mb-4 backdrop-blur-sm">
+                        {selectedCategory} Courses
+                    </Badge>
+                    <SectionHeader
+                        title="Explore Courses by Category"
+                        description="Browse through our extensive library of courses tailored to your needs."
 
-                />
-                <Tabs defaultValue={courseCategories[0]} className="w-full">
-                    <ScrollArea className="w-full whitespace-nowrap pb-4">
-                        <TabsList className="inline-flex h-auto w-full justify-start">
-                            {courseCategories.map((category) => (
-                                <TabsTrigger
-                                    key={category}
-                                    value={category}
-                                    onClick={() => {
-                                        setSelectedCategory(category)
-                                    }
-                                    }
-                                    className="px-4 py-2 cursor-pointer transition-colors duration-200 ease-out hover:bg-background/35 hover:backdrop-blur-md rounded-md"
-                                >
-                                    {category}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                        <ScrollBar orientation="horizontal" />
-                    </ScrollArea>
+                    />
+                    <Tabs value={selectedCategory ?? courseCategories[0]} onValueChange={setSelectedCategory} className="w-full">
+                        <ScrollArea className="w-full whitespace-nowrap pb-4">
+                            <TabsList className="inline-flex h-auto w-full justify-start">
+                                {courseCategories.map((category) => (
+                                    <TabsTrigger
+                                        key={category}
+                                        value={category}
 
-                    {courseCategories.map((category) => (
-                        <TabsContent key={category} value={category} className="mt-6">
-                            <motion.div
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate="visible"
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                            >
-                                {coursesByCategory[category]?.map((course) => (
-                                    <motion.div key={course.id} variants={itemVariants}>
-                                        <CourseCard course={course} onClick={() => handleViewCourse(course)} />
-                                    </motion.div>
+                                        className="px-4 py-2 cursor-pointer transition-colors duration-200 ease-out hover:bg-background/35 hover:backdrop-blur-md rounded-md"
+                                    >
+                                        {category}
+                                    </TabsTrigger>
                                 ))}
-                            </motion.div>
-                        </TabsContent>
-                    ))}
-                </Tabs>
-            </motion.div>
+                            </TabsList>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
+
+                        {courseCategories.map((category) => (
+                            <TabsContent key={category} value={category} className="mt-6">
+                                <motion.div
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                >
+                                    {coursesByCategory[category]?.map((course) => (
+                                        <motion.div key={course.id} variants={itemVariants}>
+                                            <CourseCard course={course} onClick={() => handleViewCourse(course)} />
+                                        </motion.div>
+                                    ))}
+                                </motion.div>
+                            </TabsContent>
+                        ))}
+                    </Tabs>
+                </motion.div>)}
 
             {/* Course Detail Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

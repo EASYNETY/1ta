@@ -1,4 +1,4 @@
-// src/data/mock-course-data.ts
+// data/mock-course-data.ts
 
 export interface Course {
 	id: string;
@@ -1369,4 +1369,44 @@ export const searchCourses = (query: string) => {
 			course.category.toLowerCase().includes(lowercaseQuery) ||
 			course.tags?.some((tag) => tag.toLowerCase().includes(lowercaseQuery))
 	);
+};
+
+export const getMockCourses = async (): Promise<Course[]> => {
+	console.log(
+		"%c MOCK API: Fetching all courses ",
+		"background: #555; color: #eee"
+	);
+	await new Promise((resolve) =>
+		setTimeout(resolve, 350 + Math.random() * 250)
+	); // Simulate delay
+	// Return a deep copy to prevent accidental mutation of original mock data
+	return JSON.parse(JSON.stringify(mockCourseData));
+};
+
+// Simulate fetching a single course by slug
+export const getMockCourseBySlug = async (
+	slug: string
+): Promise<Course | undefined> => {
+	console.log(
+		`%c MOCK API: Fetching course by slug: ${slug} `,
+		"background: #555; color: #eee"
+	);
+	await new Promise((resolve) =>
+		setTimeout(resolve, 100 + Math.random() * 100)
+	);
+	const course = mockCourseData.find((course) => course.slug === slug);
+	return course ? JSON.parse(JSON.stringify(course)) : undefined; // Return copy or undefined
+};
+
+// Simulate creating a Stripe checkout session (returns dummy data)
+export const createMockCheckoutSession = async (payload: {
+	courseId: string;
+	userId: string;
+}): Promise<{ sessionId: string }> => {
+	console.log(
+		`%c MOCK API: Creating checkout session for course ${payload.courseId} / user ${payload.userId} `,
+		"background: #555; color: #eee"
+	);
+	await new Promise((resolve) => setTimeout(resolve, 500));
+	return { sessionId: `cs_mock_${Date.now()}` }; // Return a fake session ID
 };
