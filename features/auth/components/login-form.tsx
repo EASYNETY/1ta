@@ -1,3 +1,4 @@
+// src/features/auth/components/LoginForm.tsx (Example Path)
 "use client";
 
 import { useState } from "react";
@@ -5,125 +6,183 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { loginThunk } from "@/features/auth/store/auth-thunks";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
+// Redux Imports
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+// Assume loginThunk is defined and exported correctly
+import { loginThunk } from "@/features/auth/store/auth-thunks"; // Adjust path as needed
+
+// Shadcn UI Imports
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast"; // Assuming you have this hook
+
+// DyraneUI Imports
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
+
+// --- Zod Schema ---
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  // Match backend validation if stricter (e.g., min length if applicable)
+  password: z.string().min(1, "Password is required"), // Basic check for non-empty
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+// --- Component ---
 export function LoginForm() {
   const dispatch = useAppDispatch();
-  const { isLoading, error } = useAppSelector((state) => state.auth);
+  const isLoading = useAppSelector((state) => state.auth.isLoading);
   const router = useRouter();
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormValues>({
+  const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+
+  // --- React Hook Form Setup ---
+  const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
+  // --- Submit Handler ---
   const onSubmit = async (data: LoginFormValues) => {
+    setServerError(null); // Clear previous errors
     try {
-      setServerError(null);
-      await dispatch(loginThunk(data)).unwrap();
-      router.push("/dashboard");
+      // Dispatch the login thunk
+      await dispatch(loginThunk(data)).unwrap(); // unwrap handles throwing on rejection
+
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: "Login Successful",
+        description: "Welcome back! Redirecting...",
         variant: "success",
       });
 
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Login failed";
-      setServerError(errorMessage);
-      toast({
-        title: "Login failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      // Redirect on success - could also be handled by checking auth state elsewhere
+      router.push("/dashboard"); // Or appropriate destination
+
+    } catch (error: any) {
+      const errorMessage = error?.message || "Login failed. Please check your credentials.";
+      console.error("Login Failed:", error);
+      setServerError(errorMessage); // Show error message in the Alert
+      // Toast is optional here since the Alert shows the error
+      // toast({
+      //   title: "Login Failed",
+      //   description: errorMessage,
+      //   variant: "destructive",
+      // });
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto py-10 px-4 sm:px-6 lg:px-8 backdrop-blur-xs rounded-3xl shadow-lg">
-      <div className="mb-8 text-center space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
-        <p className="text-muted-foreground text-sm">
-          Sign in to your dashboard
-        </p>
-      </div>
+    <Card className="w-full max-w-md mx-auto bg-transparent backdrop-blur-xs border-none"> {/* Card structure */}
+      <CardHeader className="text-center space-y-1">
+        <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+        <CardDescription>Sign in to your 1Tech Academy dashboard</CardDescription>
+      </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            {...register("email")}
-            aria-invalid={errors.email ? "true" : "false"}
-          />
-          {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-        </div>
+      <CardContent>
+        {/* Shadcn Form Component */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Server Error Alert */}
+            {serverError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Login Error</AlertTitle>
+                <AlertDescription>{serverError}</AlertDescription>
+              </Alert>
+            )}
 
-        <div className="space-y-2 relative">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            {...register("password")}
-            aria-invalid={errors.password ? "true" : "false"}
-            className="pr-10" // padding for the eye icon
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute top-1/2 right-3 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-          </button>
-          {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
-        </div>
+            {/* Email Field */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="you@example.com"
+                      {...field}
+                      disabled={isLoading}
+                    />
+                  </FormControl>
+                  <FormMessage /> {/* Handles Zod errors */}
+                </FormItem>
+              )}
+            />
 
-        {serverError && (
-          <div className="p-3 bg-red-100 text-red-600 rounded-md text-sm">
-            {serverError}
-          </div>
-        )}
+            {/* Password Field */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        className="pr-10"
+                        {...field}
+                        disabled={isLoading}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute top-0 right-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        disabled={isLoading}
+                        tabIndex={-1} // Improve accessibility
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage /> {/* Handles Zod errors */}
+                </FormItem>
+              )}
+            />
 
-        <DyraneButton type="submit" size="lg" className="w-full" disabled={isLoading}>
-          {isLoading ? "Logging in..." : "Login"}
-        </DyraneButton>
-      </form>
+            {/* Submit Button */}
+            <DyraneButton type="submit" size="lg" className="w-full mt-6" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                  Logging In...
+                </>
+              ) : (
+                "Login"
+              )}
+            </DyraneButton>
+          </form>
+        </Form>
+      </CardContent>
 
-      <div className="mt-6 flex flex-col items-center space-y-2 text-sm">
+      <CardFooter className="flex flex-col items-center space-y-2 text-sm pt-4">
         <p className="text-muted-foreground">
           Don't have an account?{" "}
-          <Link href="/signup" className="text-primary hover:underline">
+          <Link href="/signup" className="font-medium text-primary hover:underline underline-offset-2">
             Sign up
           </Link>
         </p>
-        <Link href="/forgot-password" className="text-xs text-muted-foreground hover:underline">
+        <Link href="/forgot-password" className="text-xs text-muted-foreground hover:underline underline-offset-2">
           Forgot your password?
         </Link>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
