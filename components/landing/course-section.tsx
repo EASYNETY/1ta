@@ -84,7 +84,7 @@ export function CoursesSection() {
                 <div>
                     {" "}
                     <Skeleton className="h-8 w-48 mb-10 rounded-md" />{" "}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
                         {" "}
                         {[...Array(3)].map((_, i) => (
                             <Skeleton key={`feat-skel-${i}`} className="h-[380px] rounded-xl" />
@@ -148,7 +148,7 @@ export function CoursesSection() {
                     animate={'visible'}
                     className="mb-16"
                 >
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {featuredCourses.map((course) => (
                             <motion.div key={`featured-${course.id}`} variants={itemVariants}>
                                 <CourseCard course={course} onClick={() => handleViewCourse(course)} />
@@ -195,7 +195,7 @@ export function CoursesSection() {
                                     variants={containerVariants}
                                     initial="hidden"
                                     animate="visible"
-                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                                 >
                                     {coursesByCategory[category]?.map((course) => (
                                         <motion.div key={course.id} variants={itemVariants}>

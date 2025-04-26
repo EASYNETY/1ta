@@ -53,7 +53,7 @@ export default function DashboardPage() {
 
                 <TabsContent value="overview">
                     <motion.div
-                        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                         variants={container}
                         initial="hidden"
                         animate="show"
@@ -115,7 +115,7 @@ export default function DashboardPage() {
                     <h2 className="text-2xl font-bold mt-8">{user.role === "student" ? "My Courses" : "Recent Activity"}</h2>
 
                     <motion.div
-                        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4"
+                        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4"
                         variants={container}
                         initial="hidden"
                         animate="show"
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                 </TabsContent>
 
                 <TabsContent value="courses">
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {[1, 2, 3, 4, 5].map((i) => (
                             <DyraneCard key={i} className="overflow-hidden">
                                 <div className="aspect-video bg-muted" />
