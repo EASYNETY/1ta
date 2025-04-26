@@ -6,7 +6,7 @@ import type * as React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { Home, BookOpen, Users, Settings, BarChart, Search, LogOut } from "lucide-react"
 import { useAuth } from "@/features/auth/hooks/use-auth"
 import { useRouter } from "next/navigation"
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
+import { logout } from "@/features/auth/store/auth-slice"
 
 interface NavItem {
     title: string
@@ -70,8 +71,7 @@ const navItems: NavItem[] = [
 export function AppSidebar() {
     const pathname = usePathname()
     const { user } = useAppSelector((state) => state.auth)
-    const { signOut } = useAuth()
-    const router = useRouter()
+    const dispatch = useAppDispatch()
     const isMobile = useMobile()
     const [isHovering, setIsHovering] = useState(false)
 
@@ -79,8 +79,7 @@ export function AppSidebar() {
     const filteredNavItems = navItems.filter((item) => user && item.roles.includes(user.role))
 
     const handleLogout = async () => {
-        await signOut()
-        router.push("/login")
+        dispatch(logout())
     }
 
     // Edge hover detection

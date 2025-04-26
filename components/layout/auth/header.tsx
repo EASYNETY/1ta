@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { useRouter } from "next/navigation"
 import { LogOut, User, Bell, Menu } from "lucide-react"
@@ -16,7 +16,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/features/auth/hooks/use-auth"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -24,10 +23,11 @@ import { useMobile } from "@/hooks/use-mobile"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/providers/theme-provider"
+import { logout } from "@/features/auth/store/auth-slice"
 
 export function Header() {
     const { isAuthenticated, user } = useAppSelector((state) => state.auth)
-    const { signOut } = useAuth()
+    const dispatch = useAppDispatch()
     const router = useRouter()
     const isMobile = useMobile()
     const [isScrolled, setIsScrolled] = useState(false)
@@ -44,7 +44,7 @@ export function Header() {
     }, [])
 
     const handleLogout = async () => {
-        await signOut()
+        dispatch(logout())
         router.push("/login")
     }
 

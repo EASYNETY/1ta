@@ -1,7 +1,5 @@
-// app/(auth)/signup/page.tsx
-
-import { MultiStepSignup } from "@/features/auth/components/multi-step-signup"
+import { SignupForm } from "@/features/auth/components/signup-form"
 
 export default function SignupPage() {
-    return <MultiStepSignup />
+    return <SignupForm />
 }
