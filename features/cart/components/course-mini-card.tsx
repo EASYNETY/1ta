@@ -46,7 +46,7 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
     return (
         <div
             className={cn(
-                "flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors ease-[cubic-bezier(0.77,0,0.175,1)]",
+                "flex items-center gap-3 p-2 rounded-md bg-muted/50 hover:bg-primary/15 cursor-pointer transition-colors ease-[cubic-bezier(0.77,0,0.175,1)]",
                 className,
             )}
             onClick={handleClick}
