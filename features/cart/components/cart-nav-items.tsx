@@ -41,7 +41,6 @@ export function CartNavItem() {
                     isDropdownOpen && "bg-muted"
                 )}
                 onMouseEnter={() => setIsDropdownOpen(true)}
-                onMouseLeave={() => setIsDropdownOpen(false)}
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
                 aria-label={`Selected courses (${cart.items.length})`}
             >
@@ -61,7 +60,7 @@ export function CartNavItem() {
 
             {/* Only show dropdown on desktop */}
             <div className="hidden lg:block">
-                <CartDropdown isOpen={isDropdownOpen && hasItems} onClose={() => setIsDropdownOpen(false)} />
+                <CartDropdown isOpen={isDropdownOpen && hasItems} onClose={() => setIsDropdownOpen(false)} setIsDropdownOpen={setIsDropdownOpen} />
             </div>
         </div>
     )

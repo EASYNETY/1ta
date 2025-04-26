@@ -9,16 +9,29 @@ import { GraduationCap } from "lucide-react"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { CourseMiniCard } from "./course-mini-card"
 import Link from "next/link"
+import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface CartDropdownProps {
     isOpen: boolean
     onClose: () => void
+    setIsDropdownOpen: (isOpen: boolean) => void
 }
 
-export function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
+export function CartDropdown({ isOpen, onClose, setIsDropdownOpen }: CartDropdownProps) {
     const cart = useAppSelector((state) => state.cart)
     const { isAuthenticated } = useAppSelector((state) => state.auth)
+    const {
+        isLoading: isRateLoading,
+        formatTargetCurrency,
+        convert,
+    } = useCurrencyConversion("USD", "NGN")
 
+    const renderNairaPrice = (amount: number | null) => {
+        if (isRateLoading) return <Skeleton className="h-4 w-16 mt-0.5 inline-block" />
+        if (amount === null) return <span className="h-4 inline-block"></span>
+        return formatTargetCurrency(amount)
+    }
 
     // Animation variants
     const dropdownVariants = {
@@ -49,13 +62,14 @@ export function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    className="absolute right-0 top-full mt-1 w-80 z-50"
+                    className="absolute right-0 top-full mt-2 w-auto z-50"
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    onMouseLeave={() => setIsDropdownOpen(false)}
                     variants={dropdownVariants}
                 >
-                    <div className="bg-background/95 backdrop-blur-md rounded-md shadow-lg border border-border/50 overflow-hidden">
+                    <div className="bg-background/55 backdrop-blur-md rounded-md shadow-lg border border-border/50 overflow-hidden">
                         <div className="p-3 border-b border-border/30">
                             <h3 className="font-medium text-sm">Your Selected Courses ({cart.items.length})</h3>
                         </div>
@@ -84,13 +98,13 @@ export function CartDropdown({ isOpen, onClose }: CartDropdownProps) {
                                 <div className="p-3 border-t border-border/30 bg-muted/30">
                                     <div className="flex justify-between items-center mb-3">
                                         <span className="text-sm font-medium">Total</span>
-                                        <span className="text-sm font-medium">${cart.total.toFixed(2)}</span>
+                                        <span className="text-sm font-medium">{renderNairaPrice(convert(cart.total))}</span>
                                     </div>
                                     <DyraneButton asChild className="w-full" size="sm" onClick={onClose}>
                                         {isAuthenticated ? (
                                             <Link href="/cart">View Cart</Link>
                                         ) : (
-                                            <Link href="/signup">Sign Up to Checkout</Link>
+                                            <Link href="/signup">Sign Up to Enroll</Link>
                                         )}
                                     </DyraneButton>
                                 </div>

@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import type { CartItem } from "@/features/cart/store/cart-slice"
 import { useAppSelector } from "@/store/hooks"
+import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface CourseMiniCardProps {
     item: CartItem
@@ -17,6 +19,17 @@ interface CourseMiniCardProps {
 export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps) {
     const { isAuthenticated } = useAppSelector((state) => state.auth)
     const router = useRouter()
+    const {
+        isLoading: isRateLoading,
+        formatTargetCurrency,
+        convert,
+    } = useCurrencyConversion("USD", "NGN")
+
+    const renderNairaPrice = (amount: number | null) => {
+        if (isRateLoading) return <Skeleton className="h-4 w-16 mt-0.5 inline-block" />
+        if (amount === null) return <span className="h-4 inline-block"></span>
+        return formatTargetCurrency(amount)
+    }
 
     const handleClick = () => {
         if (onClick) {
@@ -65,10 +78,10 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                     {item.discountPrice ? (
                         <>
                             <span className="text-xs font-medium">
-                                ${item.discountPrice.toFixed(2)}
+                                {renderNairaPrice(convert(item.discountPrice))}
                             </span>
                             <span className="text-xs text-muted-foreground line-through">
-                                ${item.price.toFixed(2)}
+                                {renderNairaPrice(convert(item.price))}
                             </span>
                         </>
                     ) : (
