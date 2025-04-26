@@ -15,7 +15,7 @@ const heroImages = [
     caption: "Collaborative Learning with Professionals",
   },
   {
-    src: "https://images.unsplash.com/photo-1590080876641-b0f9fbd2cc79?q=80&w=1470&auto=format&fit=crop",
+    src: "https://images.pexels.com/photos/20240502/pexels-photo-20240502/free-photo-of-graduate-in-mortarboard-and-diploma-in-hand.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
     alt: "Student proudly holding a digital certification badge",
     caption: "Earn Industry-Recognized Certifications",
   },
