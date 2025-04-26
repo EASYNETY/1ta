@@ -124,7 +124,7 @@ export default function NavBar() {
                             Log in
                         </Link>
                         <DyraneButton asChild size="sm">
-                            <Link href="/signup">Get Started</Link>
+                            <Link href="/signup">Enroll Now</Link>
                         </DyraneButton>
                     </div>
 
@@ -203,7 +203,7 @@ export default function NavBar() {
                                     </SheetClose>
                                     <SheetClose asChild>
                                         <DyraneButton asChild size="sm" className="w-full">
-                                            <Link href="/signup">Get Started</Link>
+                                            <Link href="/signup">Enroll Now</Link>
                                         </DyraneButton>
                                     </SheetClose>
                                 </div>
