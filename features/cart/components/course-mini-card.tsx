@@ -5,10 +5,13 @@
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-import type { CartItem } from "@/features/cart/store/cart-slice"
+import { removeItem, type CartItem } from "@/features/cart/store/cart-slice"
 import { useAppSelector } from "@/store/hooks"
 import { useCurrencyConversion } from "@/hooks/use-currency-conversion"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useDispatch } from "react-redux"
+import { Minus } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface CourseMiniCardProps {
     item: CartItem
@@ -19,6 +22,9 @@ interface CourseMiniCardProps {
 export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps) {
     const { isAuthenticated } = useAppSelector((state) => state.auth)
     const router = useRouter()
+    const dispatch = useDispatch()
+    const { toast } = useToast()
+
     const {
         isLoading: isRateLoading,
         formatTargetCurrency,
@@ -43,10 +49,21 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
         }
     }
 
+    const handleRemove = (e: React.MouseEvent) => {
+        e.stopPropagation() // Prevent card click
+        dispatch(removeItem(item.courseId))
+
+        toast({
+            title: "Course removed from cart",
+            description: `${item.title} has been removed from your cart.`,
+            variant: "destructive", // Optional: you can use "destructive" for delete feedback
+        })
+    }
+
     return (
         <div
             className={cn(
-                "flex items-center gap-3 p-2 rounded-md bg-muted/50 hover:bg-primary/15 cursor-pointer transition-colors ease-[cubic-bezier(0.77,0,0.175,1)]",
+                "flex items-center gap-3 p-2 group rounded-md bg-muted/50 hover:bg-primary/15 cursor-pointer transition-colors ease-[cubic-bezier(0.77,0,0.175,1)] relative",
                 className,
             )}
             onClick={handleClick}
@@ -89,6 +106,17 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                     )}
                 </div>
             </div>
+            {/* Remove Button */}
+            <button
+                onClick={handleRemove}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 flex items-center justify-center rounded-full bg-destructive/50 text-white 
+                opacity-100 md:opacity-0 md:group-hover:opacity-100
+                transition-opacity duration-200 ease-[cubic-bezier(0.77,0,0.175,1)]
+                cursor-pointer hover:bg-destructive"
+            >
+                <Minus className="h-4 w-3" />
+            </button>
+
         </div>
     )
 }
