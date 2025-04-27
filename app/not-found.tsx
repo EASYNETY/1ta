@@ -1,7 +1,11 @@
+'use client'
+
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { useAppSelector } from "@/store/hooks"
 
 export default function NotFound() {
+    const { isAuthenticated } = useAppSelector((state) => state.auth)
     return (
         <div className="flex min-h-screen flex-col items-center justify-center p-4 text-center">
             <h1 className="text-9xl font-bold text-primary">404</h1>
@@ -11,7 +15,14 @@ export default function NotFound() {
             </p>
             <div className="mt-8">
                 <DyraneButton asChild>
-                    <Link href="/">Return to Home</Link>
+                    {
+                        isAuthenticated ? (
+                            <Link href="/dashboard">Return to Dashboard</Link>
+                        ) : (
+                            <Link href="/">Return to Home</Link>
+                        )
+                    }
+
                 </DyraneButton>
             </div>
         </div>

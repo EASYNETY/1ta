@@ -1,9 +1,7 @@
-// app/(auth)/cart/page.tsx
+// app/(authenticated)/cart/page.tsx
 
 "use client"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { useAppSelector } from "@/store/hooks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
@@ -15,16 +13,7 @@ import Image from "next/image"
 import { formatCurrency } from "@/lib/utils"
 
 export default function CartPage() {
-    const router = useRouter()
     const { items, total } = useAppSelector((state) => state.cart)
-    const { isAuthenticated } = useAppSelector((state) => state.auth)
-
-    // If authenticated, redirect to dashboard
-    useEffect(() => {
-        if (isAuthenticated) {
-            router.push("/dashboard")
-        }
-    }, [isAuthenticated, router])
 
     if (items.length === 0) {
         return (
