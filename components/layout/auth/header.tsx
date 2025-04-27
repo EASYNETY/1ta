@@ -252,6 +252,8 @@ export function Header() {
                                                 <DyraneButton
                                                     onClick={handleLogout}
                                                     variant={'destructive'}
+                                                    size="sm"
+                                                    className="bg-destructive/5 hover:bg-destructive/80 text-destructive rounded-md px-4 py-2 transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300"
                                                 >
                                                     <LogOut className="h-4 w-4" />
                                                     <span>Logout</span>

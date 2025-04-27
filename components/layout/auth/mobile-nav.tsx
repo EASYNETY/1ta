@@ -201,11 +201,11 @@ export function MobileNav() {
                             >
                                 <div className="relative mb-1">
                                     {/* Use weight prop for Phosphor icons */}
-                                    <Icon size={22} weight={isActive ? "fill" : "bold"} />
+                                    <Icon size={22} weight={isActive ? "fill" : "regular"} />
                                     {badgeValue > 0 && (
                                         <Badge
                                             variant="destructive"
-                                            className="absolute -top-1.5 -right-2.5 h-4 min-w-[1rem] p-0.5 text-[9px] leading-none flex items-center justify-center shadow-md"
+                                            className="absolute -top-1.5 -right-2 h-4 min-w-[1rem] p-0.5 text-[9px] leading-none flex items-center justify-center shadow-md"
                                         >
                                             {badgeValue > 9 ? "9+" : badgeValue}
                                         </Badge>
