@@ -27,6 +27,8 @@ import {
 import { useMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { logout } from "@/features/auth/store/auth-slice"
+import { useTheme } from "next-themes"
+import Image from "next/image"
 
 interface NavItem {
     title: string
@@ -78,6 +80,16 @@ export function AppSidebar() {
     // Filter nav items based on user role
     const filteredNavItems = navItems.filter((item) => user && item.roles.includes(user.role))
 
+    const { theme, setTheme, systemTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    // Get cart items from Redux store
+    const cart = useAppSelector((state) => state.cart)
+    useEffect(() => setMounted(true), []);
+
+    // Determine the current theme, defaulting to light if not mounted or system theme is unclear
+    const currentTheme = mounted ? (theme === "system" ? systemTheme : theme) : undefined
+
     const handleLogout = async () => {
         dispatch(logout())
     }
@@ -103,19 +115,27 @@ export function AppSidebar() {
     return (
         <Sidebar
             className={cn(
-                "transition-all duration-300",
+                "transition-all duration-300 h-screen bg-transparent backdrop-blur-sm border-r border-border shadow-lg",
                 isHovering && !isMobile ? "opacity-100" : "md:opacity-90 hover:opacity-100",
             )}
         >
-            <SidebarHeader>
-                <form className="px-2">
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <SidebarInput type="search" placeholder="Search..." className="pl-8" />
-                    </div>
-                </form>
+            <SidebarHeader className="p-4">
+                {/* Logo */}
+                <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
+                    {mounted && currentTheme && (
+                        <Image
+                            src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                            alt="1techacademy Logo"
+                            className="h-6 w-auto"
+                            priority
+                            width={80}
+                            height={14}
+                        />
+                    )}
+                    {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
+                </Link>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="bg-background/15 backdrop-blur-sm border-b border-border">
                 <SidebarGroup>
                     <SidebarGroupLabel>Navigation</SidebarGroupLabel>
                     <SidebarGroupContent>

@@ -24,6 +24,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { useAppSelector } from "@/store/hooks";
+import { DyraneButton } from "../dyrane-ui/dyrane-button";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -139,7 +142,7 @@ function SidebarProvider({
             } as React.CSSProperties
           }
           className={cn(
-            "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+            "group/sidebar-wrapper has-data-[variant=inset]:bg-transparent flex min-h-svh w-full",
             className,
           )}
           {...props}
@@ -170,7 +173,7 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
+          "bg-transparent text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
           className,
         )}
         {...props}
@@ -187,7 +190,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-transparent text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -244,7 +247,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="bg-transparent group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
         >
           {children}
         </div>
@@ -259,6 +262,8 @@ function SidebarTrigger({
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar();
+  const { user } = useAppSelector((state) => state.auth)
+
 
   return (
     <Button
@@ -266,14 +271,24 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn("size-7 rounded-full", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
-      {...props}
+    {...props}
     >
-      <PanelLeftIcon />
+      {/* <PanelLeftIcon /> */}
+      <Avatar className="h-8 w-8">
+        <AvatarImage
+          src={user?.name || ""}
+          alt={user?.name || "User"}
+          className="h-full w-full rounded-full object-cover"
+        />
+        <AvatarFallback className="h-7 w-7 rounded-full bg-muted text-primary hover:bg-primary/20 cursor-pointer hover:border hover:border-primary" >
+          {user?.name?.charAt(0) || "U"}
+        </AvatarFallback>
+      </Avatar>
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );

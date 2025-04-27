@@ -8,14 +8,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { useRouter } from "next/navigation"
 import { LogOut, User, Bell, Menu } from "lucide-react"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +16,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/providers/theme-provider"
 import { logout } from "@/features/auth/store/auth-slice"
+import { useTheme } from "next-themes"
+import Image from "next/image"
+import { Avatar } from "@radix-ui/react-avatar"
+import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function Header() {
     const { isAuthenticated, user } = useAppSelector((state) => state.auth)
@@ -33,6 +29,16 @@ export function Header() {
     const [isScrolled, setIsScrolled] = useState(false)
     const [notificationCount, setNotificationCount] = useState(3)
     const [notificationsOpen, setNotificationsOpen] = useState(false)
+
+    const { theme, setTheme, systemTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    // Get cart items from Redux store
+    const cart = useAppSelector((state) => state.cart)
+    useEffect(() => setMounted(true), []);
+
+    // Determine the current theme, defaulting to light if not mounted or system theme is unclear
+    const currentTheme = mounted ? (theme === "system" ? systemTheme : theme) : undefined
 
     // Handle scroll effect
     useEffect(() => {
@@ -73,35 +79,59 @@ export function Header() {
         },
     ]
 
+    // DyraneUI Style Variables (Adjust these to match your tokens/theme)
+    const scrolledHeaderBg = "bg-background/65"; // Example: Less opaque background
+    const scrolledHeaderBlur = "backdrop-blur-md"; // Standard blur
+    const scrolledHeaderBorder = "border-b border-border/30"; // Subtle border
+    const linkHoverColor = "hover:text-primary"; // Primary hover color
+    const mutedTextColor = "text-muted-foreground"; // Muted text color
     return (
         <header
             className={cn(
-                "sticky top-0 z-40 w-full transition-all duration-300",
+                "sticky top-0 z-50 w-full transition-colors duration-300 ease-[cubic-bezier(0.77, 0, 0.175, 1)]", // Use transition-colors, adjusted z-index
                 isScrolled
-                    ? "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b"
-                    : "bg-transparent",
+                    ? cn("shadow-sm", scrolledHeaderBorder, scrolledHeaderBg, scrolledHeaderBlur) // Combined scrolled styles
+                    : "border-b border-transparent" // Transparent border when at top
             )}
         >
-            <div className="container flex h-16 items-center justify-between">
+            <div className="flex h-16 items-center justify-between gap-x-4 px-4 sm:px-6 lg:px-8 w-full"> {/* Added gap, adjusted padding */}
                 {/* Left section */}
                 <div className="flex items-center gap-4">
                     {!isMobile && <SidebarTrigger />}
                     {isMobile ? (
                         <Sheet>
                             <SheetTrigger asChild>
-                                <button className="rounded-full p-2 hover:bg-muted">
-                                    <Menu className="h-5 w-5" />
-                                </button>
+                                <Avatar>
+                                    <AvatarImage
+                                        src={user?.name?.charAt(0) || "U"}
+                                        alt="User Avatar"
+                                        className="h-7 w-7 rounded-full"
+                                    />
+                                    <AvatarFallback className="h-7 w-7 rounded-full bg-muted text-primary hover:bg-primary/20 cursor-pointer hover:border hover:border-primary" >
+                                        {user?.name?.charAt(0) || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
                             </SheetTrigger>
-                            <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                                <SheetHeader>
+                            <SheetContent side="left" className="w-[320px] sm:w-[400px] rounded-r-3xl border-0 bg-background/65 backdrop-blur-md">
+                                <SheetHeader className="">
                                     <SheetTitle>
-                                        <Link href="/" className="flex items-center space-x-2">
-                                            <span className="text-xl font-bold">SmartEdu</span>
+                                        {/* Logo */}
+                                        <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0"> {/* flex-shrink-0 prevents shrinking */}
+                                            {mounted && currentTheme && (
+                                                <Image
+                                                    src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                                    alt="1techacademy Logo"
+                                                    className="h-6 w-auto"
+                                                    priority
+                                                    width={80}
+                                                    height={14}
+                                                />
+                                            )}
+                                            {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
                                         </Link>
                                     </SheetTitle>
                                 </SheetHeader>
-                                <div className="mt-8 flex flex-col space-y-2">
+                                <div className="mt-8 flex flex-col space-y-2 px-2">
                                     {isAuthenticated && user && (
                                         <div className="mb-6 flex items-center space-x-4 rounded-lg bg-muted p-4">
                                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -140,10 +170,7 @@ export function Header() {
                                 </div>
                             </SheetContent>
                         </Sheet>
-                    ) : (
-                        <Link href="/" className="flex items-center space-x-2">
-                            <span className="text-xl font-bold">SmartEdu</span>
-                        </Link>
+                    ) : (null
                     )}
                 </div>
 
@@ -156,8 +183,19 @@ export function Header() {
                             exit={{ opacity: 0, y: -10 }}
                             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
                         >
-                            <Link href="/" className="flex items-center space-x-2">
-                                <span className="text-xl font-bold">SmartEdu</span>
+                            {/* Logo */}
+                            <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
+                                {mounted && currentTheme && (
+                                    <Image
+                                        src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                        alt="1techacademy Logo"
+                                        className="h-6 w-auto"
+                                        priority
+                                        width={80}
+                                        height={14}
+                                    />
+                                )}
+                                {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
                             </Link>
                         </motion.div>
                     </AnimatePresence>
@@ -206,36 +244,6 @@ export function Header() {
                                 </div>
                             </SheetContent>
                         </Sheet>
-                    )}
-
-                    {isAuthenticated && user ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="flex items-center space-x-1 rounded-full bg-primary/10 p-2 text-sm font-medium hover:bg-primary/20">
-                                    <User className="h-5 w-5" />
-                                    {!isMobile && <span>{user.name}</span>}
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href="/profile">Profile</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem asChild>
-                                    <Link href="/settings">Settings</Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-500">
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Logout</span>
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    ) : (
-                        <DyraneButton asChild>
-                            <Link href="/login">Login</Link>
-                        </DyraneButton>
                     )}
                 </div>
             </div>

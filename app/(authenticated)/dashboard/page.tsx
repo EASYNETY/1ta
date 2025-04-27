@@ -9,7 +9,8 @@ import { BookOpen, Users, Clock, Calendar, BarChart } from "lucide-react"
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { motion } from "framer-motion"
-import  LoadingState  from "./loading"
+import LoadingState from "./loading"
+import { AbstractBackground } from "@/components/layout/abstract-background"
 
 export default function DashboardPage() {
     const { user } = useAppSelector((state) => state.auth)

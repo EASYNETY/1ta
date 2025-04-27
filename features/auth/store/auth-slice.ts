@@ -3,7 +3,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { destroyCookie } from "nookies"; // Import destroyCookie
 
-// ... (interfaces and initial state remain the same) ...
 export interface User {
 	id: string;
 	name: string;

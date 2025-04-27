@@ -170,7 +170,7 @@ export default function NavBar() {
                             aria-describedby={undefined} // Remove default description link if no SheetDescription used
                         >
                             {/* Accessible Title (Visually Hidden) */}
-                            <SheetHeader className="px-6"> {/* Add padding to header */}
+                            <SheetHeader className="px-4"> {/* Add padding to header */}
                                 <SheetTitle>
                                     {/* Wrap title in VisuallyHidden for screen readers only */}
                                     <VisuallyHidden>Navigation Menu</VisuallyHidden>
@@ -193,16 +193,14 @@ export default function NavBar() {
 
                             </SheetHeader>
 
-
-
                             {/* Mobile Navigation */}
-                            <nav className="flex-1 flex flex-col space-y-4 px-6 py-4 overflow-y-auto"> {/* Use flex-1 to fill space, add padding */}
+                            <nav className="flex-1 flex flex-col space-y-4 p-4 overflow-y-auto"> {/* Use flex-1 to fill space, add padding */}
                                 {navLinks.map((link) => (
                                     <SheetClose asChild key={link.href}>
                                         <Link
                                             href={link.href}
                                             className={cn(
-                                                "text-base font-medium transition-colors text-foreground", // Use standard text color
+                                                "text-sm transition-colors text-foreground", // Use standard text color
                                                 linkHoverColor
                                             )}
                                         >

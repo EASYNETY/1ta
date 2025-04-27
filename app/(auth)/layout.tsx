@@ -25,8 +25,8 @@ export default function AuthLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
-      <main className="flex-1 flex items-center justify-center relative">
-        <AbstractBackground className="opacity-70" />
+      <main className="flex-1 flex items-center justify-center relative min-h-screen">
+      <AbstractBackground className="opacity-90 dark:opacity-80" />
         <div className="w-full max-w-md relative z-10 py-12 px-4">
           <div className="flex items-center justify-center mb-8">
             {mounted && currentTheme && (

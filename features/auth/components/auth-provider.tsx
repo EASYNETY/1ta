@@ -47,7 +47,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
-    if (isAuthenticated && (pathname === "/login" || pathname === "/signup")) {
+    if (isAuthenticated && (isPublicRoute
+    )) {
       console.log("AuthProvider: Redirecting to /dashboard");
       router.push("/dashboard");
       return;

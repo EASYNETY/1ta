@@ -15,7 +15,9 @@ export default function AuthenticatedLayout({
             <SidebarInset>
                 <div className="flex min-h-screen flex-col">
                     <Header />
-                    <main className="flex-1 p-6 pb-20 md:pb-6">{children}</main>
+                    <main className="flex-1 p-6 pb-20 md:pb-6 relative min-h-screen">
+                        {children}
+                    </main>
                     <MobileNav />
                 </div>
             </SidebarInset>

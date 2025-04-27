@@ -377,3 +377,338 @@ Enhance visibility of selected courses and provide a frictionless transition tow
 - Animate badge entrance for even more polish (later).
 
 ---
+
+# **Navigation:**
+
+1.  **Authentication Routes (`authRoutes.js`):**
+    *   `POST /register`: Implies a **Signup Page** (`/signup`). Primarily for students in MVP.
+    *   `POST /login`: Implies a **Login Page** (`/login`).
+    *   `POST /forgot-password`: Implies a **Forgot Password Page** (`/forgot-password`).
+    *   `POST /reset-password`: Implies a **Reset Password Page** (`/reset-password`).
+
+2.  **Student Model & Associations (`Student.js`, `index.js`):**
+    *   Students belong to a `Class`.
+    *   Students have `Attendance`.
+    *   Students have `Payments` / `Invoices`.
+    *   Students participate in `ChatRooms` / `ChatMessages`.
+    *   Students have `Feedback` / `SupportTickets`.
+    *   Students have a `Guardian` (optional).
+    *   This implies **Student-Specific Pages** within an authenticated dashboard:
+        *   Student Dashboard Home (Overview) (`/dashboard/student`)
+        *   My Courses / Classes Page
+        *   My Attendance Page
+        *   My Payments / Billing History Page
+        *   Chat Page(s) (potentially per class)
+        *   My Support Tickets Page
+        *   My Profile / Settings Page (to view/edit basic info, potentially link Guardian)
+        *   *(Maybe)* A Timetable/Schedule Page (though no specific Timetable model was shown, Class association implies it).
+
+3.  **Admin Routes (`adminRoutes.js`):**
+    *   `GET /dashboard`: Implies an **Admin Dashboard Home** (`/admin/dashboard` or `/dashboard/admin`) showing statistics (Total Students, Classes, Payments, Tickets) and recent activities.
+    *   `GET /students` (paginated): Implies an **Admin - Manage Students Page** (displaying a table/list of students).
+    *   `GET /classes` (paginated): Implies an **Admin - Manage Classes Page**.
+    *   `GET /payments` (paginated): Implies an **Admin - View Payments Page**.
+    *   `GET /support-tickets` (paginated): Implies an **Admin - Manage Support Tickets Page**.
+    *   `GET /feedback` (paginated): Implies an **Admin - View Feedback Page**.
+    *   *(Missing but Implied)*: Routes/pages for *creating/editing* Students, Classes, potentially Admins/Teachers would also be needed in a full admin section.
+
+4.  **Other Models:**
+    *   `Guardian`: Might imply a separate Guardian view/login later, but not explicitly required by routes shown. For MVP, might just be info linked to a Student profile.
+    *   `Class`: Implies a need for pages related to classes (viewing details, maybe content later).
+    *   `Attendance`, `Payment`, `Invoice`, `Chat*`, `Feedback`, `SupportTicket`: These imply detail views or sections within other pages (e.g., viewing attendance *for a specific class*, viewing payment details *for an invoice*, viewing messages *within a chat room*).
+
+**Estimated Page Count (Focusing on distinct views/routes):**
+
+Based *only* on the provided backend code snippets and MVP focus:
+
+**Public / Unauthenticated:**
+
+1.  Landing Page (`/`)
+2.  Login Page (`/login`)
+3.  Signup Page (`/signup`)
+4.  Forgot Password Page (`/forgot-password`)
+5.  Reset Password Page (`/reset-password`)
+
+**Authenticated - Student Role:**
+
+6.  Student Dashboard (`/dashboard/student` or `/dashboard`) - *Could consolidate some views here.*
+7.  My Courses/Classes Page
+8.  My Profile/Settings Page
+9.  *(Maybe)* My Attendance (could be part of My Courses)
+10. *(Maybe)* My Payments (could be part of Profile/Settings initially)
+11. *(Maybe)* Support/Feedback Submission Page
+
+**Authenticated - Admin Role (Based on provided GET routes):**
+
+12. Admin Dashboard (`/admin/dashboard` or `/dashboard/admin`) - Statistics Overview
+13. Admin - Students List Page
+14. Admin - Classes List Page
+15. Admin - Payments List Page
+16. Admin - Support Tickets List Page
+17. Admin - Feedback List Page
+
+**Total Estimated Distinct Pages/Views (MVP based on files): ~17**
+
+**Important Considerations:**
+
+*   **Consolidation:** Many "pages" listed for authenticated users (especially students) could be implemented as sections or tabs within a single dashboard layout rather than entirely separate page routes. The exact number depends heavily on the chosen dashboard UI/UX design.
+*   **CRUD Operations:** The backend snippets primarily show `GET` routes for admin lists and specific auth `POST` routes. A full application would need pages/modals for *Creating*, *Updating*, and *Deleting* (CRUD) Students, Classes, etc., especially within the Admin section. These pages aren't explicitly defined by the provided routes but would be necessary.
+*   **Teacher Role:** No specific backend routes for Teachers were provided, but typically they would need pages to manage their assigned classes, view student attendance/progress for those classes, manage assignments/grades (post-MVP), etc.
+*   **Detail Views:** While list pages are implied (e.g., Admin Student List), clicking on an item would require a *Detail Page* or *Modal* (e.g., Admin Student Detail Page, Support Ticket Detail Page).
+
+So, while the provided backend code directly implies around 17 distinct views/routes, a functional application (even MVP focused on students and basic admin viewing) would likely require consolidating some student views and adding necessary CRUD interfaces for the admin, potentially bringing the practical number closer to **15-20 core page templates/authenticated views**.
+
+---
+
+# **DyraneUI Navigation System Specification v1.0**
+
+---
+
+## **1. Overview**
+
+The DyraneUI Navigation System is crafted to deliver a fluid, intelligent, and beautiful user experience across mobile, tablet, and desktop platforms.  
+It is designed around **human-like motion**, **organic transitions**, **soft visuals**, and **minimal clutter**.  
+Every navigation element responds dynamically to user behavior with **blur effects**, **rounded glassmorphism**, and **natural animation curves** — resulting in a delightful and deeply immersive environment.
+
+---
+
+## **2. Navigation Groups**
+
+### **Main Navigation**
+Primary, most important app destinations (example: Dashboard, Courses, Messages, Payments, Settings).  
+- Maximum 5 items.
+- Always visible where possible (sidebar on tablet/desktop, bottom bar on mobile).
+
+### **Secondary Navigation**
+User-specific actions and notifications.
+- User Profile
+- Notifications
+- Settings
+- Cart
+
+Accessed through sheets opened via avatar (left) or notification icon (right).
+
+### **Helper Actions**
+Supporting links or tools.
+- Support
+- Theme Toggle
+- Search
+- Logout
+
+Placed in sheets or footer areas, keeping the primary surfaces uncluttered.
+
+---
+
+## **3. Behavior by Platform**
+
+### **Mobile**
+
+- **Bottom Bar**: Floating, scroll-sensitive, icon-only navigation (no labels).
+- **Navbar**: Lightweight — only Avatar (left), Logo (center), Theme Toggle + Notification Icon (right).
+- **Sheets**: 
+  - Avatar → Left Sheet (Profile, Cart, Support, etc.)
+  - Notification → Right Sheet (Notification feed).
+- **Floating Plus (+) Button**: Context-sensitive CRUD action, positioned top-right of Bottom Bar.
+- **Scroll Sensitivity**: 
+  - Scrolling down (content moving up) → Bottom Bar hides softly with blur.
+  - Scrolling up (content moving down) → Bottom Bar reappears.
+
+### **Tablet**
+
+- **Left Sidebar**: Collapsible, shows Main Navigation. Profile card moved to sidebar footer.
+- **Navbar**:  
+  - Avatar (left), Logo (center), Theme Toggle + Notifications (right).
+- **Right Sidebar**: Collapsible, used for notifications or contextual panels.
+- **Floating Plus (+) Button**: Becomes part of right side interactions.
+
+### **Desktop**
+
+- **Left Sidebar**: Expanded by default, collapsible manually.
+- **Right Sidebar**: Expanded by default for Notifications or any secondary panels.
+- **Navbar**: Slim — centered Logo, left Avatar, right Theme Toggle and Notifications.
+
+No floating action button needed; actions are integrated in sidebars or top bars.
+
+---
+
+## **4. Navigation Components**
+
+### **Bottom Bar (Mobile)**
+- Max 5 icons.
+- Icons only (no text), must be self-explanatory.
+- Active state uses filled variant.
+- Rounded floating background (`bg-background/50`) with blur.
+- Smart hide/reveal on scroll.
+
+### **Navbar**
+- Always visible.
+- Very light and decluttered.
+- No extra borders or heavy shadows.
+- Responsive behavior based on screen size.
+
+### **Left Sidebar**
+- Contains Main Navigation.
+- Collapsible on tablet, expanded on desktop.
+- Profile Card appears at bottom.
+- Sidebar can show Cart item count or badges dynamically.
+
+### **Right Sidebar**
+- Houses Notifications and optional support panels.
+- Collapsible behavior based on device width.
+- Soft blurred background with rounded shape.
+
+### **Sheets (Left and Right)**
+- Triggered by Avatar (left) and Notifications (right).
+- `rounded-3xl` edges (left or right depending on side).
+- Background: `bg-background/50` with backdrop blur.
+- Smooth 400ms glide transitions (not snappy).
+- No borders or harsh dividers.
+
+---
+
+## **5. Dynamic Behaviors**
+
+### **Scroll Sensitivity**
+- **Bottom Bar** hides when user scrolls downward (reading content).
+- **Bottom Bar** shows when user scrolls upward (looking for actions).
+
+### **Floating Action Button (FAB)**
+- Contextual based on page:
+  - "Add Student" on Students page.
+  - "Create Course" on Courses page.
+- Subtle hover/press animations, with soft curve entry/exit.
+
+### **Badges and Indicators**
+- Avatar Badge:
+  - Blinks if Cart has items or Support ticket updates.
+- Notification Badge:
+  - Simple count badge, blinks if unseen notifications exist.
+- Cart Badge:
+  - Appears in sheets or sidebar dynamically.
+
+---
+
+## **6. Visual and UI Standards**
+
+### **Icons**
+- Use **Phosphor Icons** (or similar refined set).
+- Install: `pnpm add phosphor-react`
+- Use filled variant for active states if available.
+
+### **Backgrounds and Blur**
+- Use soft semi-transparent backgrounds `bg-background/50`.
+- Always apply `backdrop-blur` for glassmorphism effect.
+
+### **Borders and Rounding**
+- Major surfaces (`Bottom Bar`, `Sheets`, `Sidebars`) have `rounded-3xl` or smoother.
+- No harsh visible borders — separation is created by blur and depth, not hard lines.
+
+### **Animation Curves**
+- Use **custom cubic bezier** for fluid motions:
+  - Example: `ease-[cubic-bezier(0.4, 0, 0.2, 1)]`
+- 300ms–400ms preferred for entrance/exit animations.
+- No snapping or abrupt transitions.
+
+---
+
+## **7. Future Considerations**
+
+- Add **Search overlay sheet** from Navbar or Left Sheet.
+- Add **Quick Actions** panel triggered by long-press on Avatar or Notification icons.
+- Theme support for dark mode and high contrast versions.
+- Extensible notification system with multiple channels (alerts, toasts, sheets).
+
+---
+## **8. Navigation Flow Summary (Text Version)**
+
+### **Mobile Navigation Flow**
+- **Bottom Bar**:
+  - Always visible unless scrolling.
+  - Icons only, smart active state.
+  - Contextual Plus (+) button appears top-right.
+- **Navbar**:
+  - Left: Avatar → Opens Left Sheet (Profile, Cart, Support, etc.).
+  - Center: Logo → Links to `/dashboard`.
+  - Right: Theme Toggle → Notification Icon → Right Sheet (Notifications).
+
+---
+
+### **Tablet Navigation Flow**
+- **Left Sidebar**:
+  - Expanded/collapsed manually.
+  - Main Navigation at top.
+  - Profile Card at bottom.
+- **Navbar**:
+  - Avatar (Left) → Profile Sheet (optional).
+  - Logo (Center).
+  - Theme Toggle + Notifications (Right).
+- **Right Sidebar**:
+  - Collapsible notifications panel.
+
+---
+
+### **Desktop Navigation Flow**
+- **Left Sidebar**:
+  - Expanded by default.
+  - Full Main Navigation.
+- **Navbar**:
+  - Avatar (Left), Logo (Center), Theme Toggle + Notifications (Right).
+- **Right Sidebar**:
+  - Always expanded unless manually collapsed.
+  - Notifications feed or optional side panels.
+
+---
+
+## **9. Important Behavior Rules**
+
+- **Sheets have priority**:
+  - If a sheet is open, no other interaction should trigger new sheets.
+  - Sheets can be dismissed by clicking outside or swiping.
+
+- **Bottom Bar Scroll Behavior**:
+  - Scroll **down** → Hide Bottom Bar.
+  - Scroll **up** → Show Bottom Bar.
+  - Animations must be blurred, transparent, and soft.
+
+- **Badges and Blink Effects**:
+  - Cart Badge blinks softly if >0 items.
+  - Avatar Badge blinks for cart updates or profile alerts.
+  - Notification Badge blinks for unseen notifications.
+
+- **Action Context Awareness**:
+  - Floating Plus Button (+) understands page context.
+  - Sidebar navigation highlights current active link softly (no harsh borders).
+
+---
+
+## **10. Design and Development Notes**
+
+- **Use DyraneUI principles**: motion, structure, softness, fluid interactions.
+- **No heavy shadowing**: use depth through blur and transparency.
+- **Animations**:
+  - Entrances = Glide, 400ms preferred.
+  - Exits = Fade/slide away, 300ms preferred.
+  - Curves = Natural bezier (0.4, 0, 0.2, 1) or custom if needed.
+
+- **Visual balance**:
+  - Left and Right sheets must mirror each other in rounding and size.
+  - Bottom bar aligns visually with sheets' rounding and background tone.
+
+---
+
+## **Final Short Version: DyraneUI Navigation Philosophy**
+
+- **Minimal**: No clutter. Only the necessary.
+- **Beautiful**: Soft glassmorphism, blur, perfect rounded edges.
+- **Dynamic**: Smart scroll detection, context-aware actions.
+- **Immersive**: Subtle animations, natural motion.
+- **Extensible**: Designed for growth without redesigning.
+
+---
+# **Final Notes**
+
+This Navigation System embodies DyraneUI's belief in **fluidity, beauty, and clarity**.  
+It respects the user’s focus, giving them maximum screen real estate when needed, and presenting actions only when they're ready for them.
+
+We don't chase trends — we build **timelessly smooth experiences**.
+

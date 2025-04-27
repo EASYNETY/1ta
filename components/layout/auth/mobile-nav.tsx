@@ -74,6 +74,7 @@ export function MobileNav() {
                             className={cn(
                                 "flex flex-1 flex-col items-center justify-center py-2",
                                 isActive ? "text-primary" : "text-muted-foreground",
+                                'hover:text-primary transition-colors duration-200 ease-in-out'
                             )}
                         >
                             <div className="relative">
@@ -86,7 +87,7 @@ export function MobileNav() {
                                     />
                                 )}
                             </div>
-                            <span className="mt-1 text-[10px]">{item.title}</span>
+                            {/* <span className="mt-1 text-[10px]">{item.title}</span> */}
                         </Link>
                     )
                 })}
