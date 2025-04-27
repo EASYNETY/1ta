@@ -308,11 +308,11 @@ export function Header() {
                                     )}
                                 </button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[320px] sm:w-[400px] rounded-l-3xl border-0 bg-background/65 backdrop-blur-md">
+                            <SheetContent side="right" className="w-[320px] sm:w-[400px] rounded-l-3xl border-0 bg-background/65 backdrop-blur-md pb-4">
                                 <SheetHeader className="px-4">
                                     <SheetTitle>Notifications</SheetTitle>
                                 </SheetHeader>
-                                <ScrollArea className="flex-1">
+                                <ScrollArea className="flex-1 overflow-y-scroll">
                                     <div className="p-4 space-y-3">
                                         {notifications.map((notification) => (
                                             <Link href={notification.href || '#'} key={notification.id} className="block" onClick={() => setNotificationsOpen(false)}>
