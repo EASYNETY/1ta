@@ -105,6 +105,8 @@ export function SignupForm() {
                 variant: "success",
             });
 
+            setServerError(null); // Clear any previous errors
+
             // Thunk success should update auth state. Navigation to payment/dashboard
             // should ideally be handled based on that state change, possibly
             // triggered by the component listening to authSlice or by logic within the thunk itself.

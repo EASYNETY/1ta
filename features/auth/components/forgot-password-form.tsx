@@ -62,6 +62,7 @@ export function ForgotPasswordForm() {
                 description: "Password reset link sent to your email.",
                 variant: "default",
             });
+            setServerError(null);
 
         } catch (error: any) {
             const errorMessage = error?.message || "Failed to send reset link. Please try again.";

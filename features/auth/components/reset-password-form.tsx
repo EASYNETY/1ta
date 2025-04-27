@@ -115,6 +115,7 @@ export function ResetPasswordForm() {
             });
             // Redirect after a short delay
             setTimeout(() => router.push('/login'), 2500);
+            setServerError(null); // Clear any previous errors
 
         } catch (error: any) {
             const errorMessage = error?.message || "Failed to reset password. The link may be invalid or expired.";

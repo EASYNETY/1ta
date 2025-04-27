@@ -68,6 +68,7 @@ export function LoginForm() {
 
       // Redirect on success - could also be handled by checking auth state elsewhere
       router.push("/dashboard"); // Or appropriate destination
+      setServerError(null); // Clear any previous errors
 
     } catch (error: any) {
       const errorMessage = error?.message || "Login failed. Please check your credentials.";
