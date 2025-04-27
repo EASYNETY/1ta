@@ -185,7 +185,7 @@ export function Header() {
 
 
                                 {/* Scrollable Navigation Area */}
-                                <ScrollArea className="flex h-full flex-col gap-6 px-2 justify-between overflow-y-scroll">
+                                <div className="flex h-full flex-col gap-6 px-2 justify-between overflow-y-scroll">
                                     {/* Main Navigation Section */}
                                     {sheetNavItems.length > 0 && (
                                         <nav className="space-y-1 py-2 px-0">
@@ -203,7 +203,7 @@ export function Header() {
                                     )}
                                     {/* Cart Mini Card */}
                                     {cart.items.length > 0 && (
-                                        <div className="py-4 border-border/30">
+                                        <div className="py-2 border-border/30">
                                             <h3 className="text-xs text-muted-foreground tracking-wider mb-2">Selected Courses</h3>
                                             <div className="flex flex-col space-y-2 px-2 ">
                                                 {cart.items.map((item: CartItem) => (
@@ -218,14 +218,14 @@ export function Header() {
                                         <p className="px-0 text-xs capitalized text-muted-foreground tracking-wider mb-2">Account & Help</p>
                                         <MobileNavItemsList items={sheetSecondaryItems} closeSheet={closeMobileSheet} />
                                     </div>
-                                </ScrollArea>
+                                </div>
                                 <SheetFooter className="mt-0 py-0">
                                     {/* Separator and Auth actions at the bottom */}
                                     <div className="mt-auto py-2"> {/* Bottom padding and border */}
                                         {isAuthenticated && user && (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl bg-muted p-2">
+                                                    <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent/80 transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
                                                         <Avatar className="size-10">
                                                             <AvatarImage src={user.name || undefined} alt={user.name} />
                                                             <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
