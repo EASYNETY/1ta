@@ -10,7 +10,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logout } from "@/features/auth/store/auth-slice";
 import { useTheme } from "next-themes";
 import {
-    // Import YOUR Sidebar components
     Sidebar,
     SidebarContent,
     SidebarFooter,
@@ -18,39 +17,36 @@ import {
     SidebarGroupContent,
     SidebarGroupLabel,
     SidebarHeader,
-    // SidebarInput, // Not used in this example
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarSeparator, // Import Separator
-    // SidebarRail, // Removed as collapse logic is internal
-    // SidebarTrigger, // Trigger is usually in the Header
-    useSidebar, // Use the context hook from your file
+    useSidebar,
 } from "@/components/ui/sidebar"; // Adjust path
 import {
     LayoutDashboard, BookOpen, Users as AdminUsersIcon, BarChart3 as AdminAnalyticsIcon, LifeBuoy,
-    Settings, LogOut, ShoppingCart, // Added required icons
+    Settings, LogOut, ShoppingCart,
     BarChart3,
     Users,
     MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge"; // Import Badge
+import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle, GraduationCap, User } from "phosphor-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
-import { CartNavItem } from "@/features/cart/components/cart-nav-items";
+import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
 import { ThemeToggle } from "@/providers/theme-provider";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
+import { RootState } from "@/store";
 
 // --- Define Nav Item Type ---
 export interface NavItem {
     title: string;
     href: string;
     icon: React.ElementType;
-    roles: Array<"admin" | "teacher" | "student">; // Use your actual User roles
+    roles: Array<"admin" | "teacher" | "student">;
     badgeCount?: number;
 }
 
@@ -58,20 +54,20 @@ export interface NavItem {
 // Primary Student/Teacher Items
 export const primaryNavItems: NavItem[] = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "teacher", "student"] },
-    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", 'admin'] }, // Student/Teacher view
-    { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] }, // Example
-    { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", 'admin'] }, // Example
-    { title: "Chat", href: "/chat", icon: MessageSquare, roles: ["student", "teacher", 'admin'] }, // Example
+    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", 'admin'] },
+    { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
+    { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", 'admin'] },
+    { title: "Chat", href: "/chat", icon: MessageSquare, roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
 ];
 
 // Admin Specific Items
 export const adminNavItems: NavItem[] = [
-    { title: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] }, // Admin specific dashboard
-    { title: "Students", href: "/students", icon: AdminUsersIcon, roles: ["admin"] },
-    { title: "Classes", href: "/classes", icon: BookOpen, roles: ["admin"] },
-    { title: "Payments", href: "/payments", icon: BarChart3, roles: ["admin"] }, // Use correct icon
-    { title: "Tickets", href: "/support-tickets", icon: LifeBuoy, roles: ["admin"] },
-    { title: "Feedback", href: "/feedback", icon: Users, roles: ["admin"] }, // Use correct icon
+    // { title: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] }, // Often duplicate of primary dashboard
+    { title: "Students", href: "/admin/students", icon: AdminUsersIcon, roles: ["admin"] },
+    { title: "Classes", href: "/admin/classes", icon: BookOpen, roles: ["admin"] },
+    { title: "Payments", href: "/admin/payments", icon: BarChart3, roles: ["admin"] },
+    { title: "Tickets", href: "/admin/support-tickets", icon: LifeBuoy, roles: ["admin"] },
+    { title: "Feedback", href: "/admin/feedback", icon: Users, roles: ["admin"] },
 ];
 
 // Secondary/Bottom Items
@@ -82,7 +78,8 @@ export const secondaryNavItems: NavItem[] = [
 ];
 
 // --- AppSidebar Component ---
-export function AppSidebar() {
+// Add collapsible prop type if needed, based on your Sidebar component's definition
+export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas" | "none" }) {
     const pathname = usePathname();
     const router = useRouter()
     const { user } = useAppSelector((state) => state.auth);
@@ -90,18 +87,17 @@ export function AppSidebar() {
     const hasItems = cart.items.length > 0;
     const dispatch = useAppDispatch();
 
-    // --- Use state and toggle from YOUR Sidebar Context ---
-    const { state: sidebarState } = useSidebar(); // Get collapsed/expanded state from context
-    const isSidebarOpen = sidebarState === 'expanded';
-    // --- End Context Usage ---
+    const { state: sidebarState } = useSidebar();
+    const isSidebarOpen = sidebarState === 'expanded'; // Derived state, true if expanded
+
     const { theme } = useTheme();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => setMounted(true), []);
-    const currentTheme = mounted ? theme : 'light';
+    // Ensure theme defaults correctly before mount or if system theme is used
+    const currentTheme = mounted ? (theme === 'system' ? window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light' : theme) : 'light';
 
-    // Filter nav items based on user role
-    const filterItems = (items: NavItem[]) => items.filter(item => user && item.roles.includes(user.role as any)); // Cast role if needed
+    const filterItems = (items: NavItem[]) => items.filter(item => user && item.roles.includes(user.role as any));
 
     const handleLogout = () => dispatch(logout());
 
@@ -109,9 +105,11 @@ export function AppSidebar() {
         const primaryHrefs = new Set(primary.map(item => item.href));
         return secondary.filter(item => !primaryHrefs.has(item.href));
     }
+
     const visiblePrimaryItems = filterItems(primaryNavItems);
+    // Ensure admin routes are unique from primary ones if needed
     const visibleAdminItems = removeDuplicateNavItems(
-        visiblePrimaryItems,
+        visiblePrimaryItems.filter(item => item.roles.includes('admin')), // Filter primary for admin first
         filterItems(adminNavItems)
     );
     const visibleSecondaryItems = filterItems(secondaryNavItems);
@@ -123,32 +121,47 @@ export function AppSidebar() {
 
 
     return (
-        // Use the Sidebar component provided by your library
+        // Pass the collapsible prop down to the actual Sidebar component
         <Sidebar
-            // Pass necessary props based on your Sidebar component's API
-            // e.g., collapsible="icon" or similar might be needed if not default
+            collapsible={collapsible} // Pass prop here
             className={cn(
                 "border-r border-border/30 bg-background/80 dark:bg-background/80 backdrop-blur-xl shadow-md"
+                // Add any other necessary classes
             )}
         >
             {/* Header */}
-            <SidebarHeader className="mb-0 px-2 py-4">
-                {/* Logo visible only when expanded */}
-                <Link href="/dashboard" className={cn("flex items-center justify-start gap-2 font-semibold", !isSidebarOpen && "hidden")}>
+            <SidebarHeader className="mb-0 px-2 py-4 flex justify-center h-16"> {/* Center content */}
+                {/* Expanded Logo */}
+                <Link href="/dashboard" className={cn(
+                    "flex items-center justify-start gap-2 font-semibold",
+                    !isSidebarOpen && "hidden" // Hide when collapsed
+                )}>
                     <span suppressHydrationWarning className="h-6 w-auto">
                         {mounted ? (
                             <Image src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"} alt="1Tech Logo" width={80} height={14} className="h-6 w-auto" />
-                        )
-                            : (
-                                <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>)}
+                        ) : (
+                            <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>
+                        )}
                     </span>
                 </Link>
-                {/* Placeholder/Icon when collapsed - depends on your library */}
-                {!isSidebarOpen && <div className="h-6 w-6 bg-primary rounded-md mx-auto"></div> /* Example */}
+
+                {/* Collapsed Logo (Icon) */}
+                <Link href="/dashboard" className={cn(
+                    "flex items-center justify-center", // Center the icon
+                    isSidebarOpen && "hidden" // Hide when expanded
+                )}>
+                    <span suppressHydrationWarning className="h-6 w-6"> {/* Use icon size */}
+                        {/* Always use icon.png when collapsed, regardless of theme */}
+                        <Image src="/icon.png" alt="1Tech Icon" width={24} height={24} className="h-6 w-6" />
+                        {/* Optional: Add pulse if icon loading is slow, though usually not needed */}
+                        {/* {!mounted && <div className="h-6 w-6 bg-muted rounded animate-pulse"></div>} */}
+                    </span>
+                </Link>
             </SidebarHeader>
 
             {/* Main Content Area */}
             <SidebarContent>
+                {/* Wrap content in TooltipProvider if tooltips are used */}
                 {/* Primary Navigation */}
                 <SidebarGroup>
                     {isSidebarOpen && <SidebarGroupLabel>Navigation</SidebarGroupLabel>}
@@ -167,18 +180,27 @@ export function AppSidebar() {
                     </SidebarGroup>
                 )}
 
-                {/* Cart Mini Card */}
+                {!isSidebarOpen && hasItems && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            {/* Render CartNavItem directly, likely needs some layout adjustment */}
+                            {/* Wrap in a div to control centering/padding if needed */}
+                            <div className="flex items-center justify-center h-10 w-10 rounded-lg">
+                                <CartNavItem />
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">Cart ({cart.items.length})</TooltipContent>
+                    </Tooltip>
+                )}
+
+                {/* Cart Mini Card - Only show if expanded? Or adjust styling for collapsed? */}
                 {cart.items.length > 0 && (
-                    <SidebarGroup>
-                        {isSidebarOpen &&
-                            <SidebarGroupLabel>Selected Courses</SidebarGroupLabel>}
+                    <SidebarGroup className={cn(!isSidebarOpen && "hidden")}> {/* Hide cart section when collapsed */}
+                        {isSidebarOpen && <SidebarGroupLabel>Selected Courses</SidebarGroupLabel>}
                         <SidebarGroupContent>
                             {cart.items.map((item: CartItem) => (
                                 <CourseMiniCard key={item.courseId} item={item} className="hover:bg-muted rounded-md" onClick={handlecartClick} />
                             ))}
-                            {/* Cart Nav Item */}
-                            {/* {cart.items.length > 0 && (
-                                <CartNavItem />)} */}
                         </SidebarGroupContent>
                     </SidebarGroup>
                 )}
@@ -193,50 +215,42 @@ export function AppSidebar() {
             </SidebarContent>
 
             {/* Footer Area */}
-            <SidebarFooter className="mt-0 py-0">
-                {/* Separator and Auth actions at the bottom */}
-                <div className="mt-auto py-2"> {/* Bottom padding and border */}
-                    {user && (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent/80 transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
-                                    <Avatar className="size-10">
-                                        <AvatarImage src={user.name || undefined} alt={user.name} />
-                                        <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="overflow-hidden">
-                                        <p className="font-semibold text-sm truncate text-foreground">{user.name}</p>
-                                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                                    </div>
-                                </Link>
-                            </TooltipTrigger>
-                            <TooltipContent side="right">{user.name}<br />
-                                <span className="text-xs text-muted">{user.role}</span>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
-                    <div className="flex flex-row space-x-4 w-full items-center justify-between">
-                        {/* Theme Toggle */}
-                        {mounted && (
-                            <ThemeToggle />
-                        )}
-                        <div className="flex flex-row space-x-4 w-full items-center justify-end">
+            <SidebarFooter className={cn(
+                "mt-auto p-2 border-t border-border/30", // Add top border
+                !isSidebarOpen && "items-center justify-center" // Center footer items when collapsed
+            )}>
+                {/* User Profile Link/Avatar */}
+                {user && (
+                    // Only show Tooltip when collapsed
+                    <TooltipProvider delayDuration={0}>
+                        <NavMenuUserItem user={user} isSidebarOpen={isSidebarOpen} />
+                    </TooltipProvider>
+                )}
 
-                            {/* Logout Button */}
-                            <DyraneButton
-                                onClick={handleLogout}
-                                variant={'destructive'}
-                                size="sm"
-                                className="bg-destructive/5 hover:bg-destructive/80 text-destructive rounded-md px-4 py-2 transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300"
-                            >
-                                <LogOut className="h-4 w-4" />
-                                <span>Logout</span>
-                            </DyraneButton>
-                        </div>
-                    </div>
+                {/* Separator */}
+                {/* <SidebarSeparator className="my-1" /> */}
+
+                {/* Theme Toggle and Logout */}
+                <div className={cn(
+                    "flex mt-2 gap-2 w-full",
+                    isSidebarOpen ? "flex-row items-center justify-between" : "flex-col items-center" // Adjust layout based on state
+                )}>
+                    {mounted && <ThemeToggle />}
+                    <DyraneButton
+                        onClick={handleLogout}
+                        variant={'ghost'}
+                        size={isSidebarOpen ? "sm" : "icon"} // Icon button when collapsed
+                        className={cn(
+                            "text-destructive hover:bg-destructive/10 hover:text-destructive",
+                            isSidebarOpen ? "w-full justify-start gap-2 px-2" : "h-8 w-8" // Adjust padding/size
+                        )}
+                        aria-label="Logout"
+                    >
+                        <LogOut className="h-4 w-4 shrink-0" />
+                        {isSidebarOpen && <span>Logout</span>}
+                    </DyraneButton>
                 </div>
             </SidebarFooter>
-
         </Sidebar>
     );
 }
@@ -253,10 +267,9 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
     return (
         <SidebarMenu>
             {items.map((item) => {
-                // More robust active check for nested routes
                 const isActive = item.href === '/dashboard'
-                    ? pathname === item.href // Exact match for dashboard
-                    : pathname.startsWith(item.href); // Starts with for others
+                    ? pathname === item.href
+                    : pathname.startsWith(item.href) && item.href !== '/dashboard'; // More specific active check
 
                 const Icon = item.icon;
                 return (
@@ -264,29 +277,74 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
                         <SidebarMenuButton
                             asChild
                             isActive={isActive}
+                            // Tooltip only needed when collapsed, handled by SidebarMenuButton internally
                             tooltip={item.title}
-                            aria-label={item.title} // Add aria-label
+                            aria-label={item.title}
                         >
                             <Link
                                 href={item.href}
-                                className="flex items-center gap-2 overflow-hidden min-w-0" // <-- ADD THIS
+                                className="flex items-center gap-2" // Removed overflow-hidden, let button handle it
                             >
-                                <Icon className="size-5 shrink-0" />
-                                <span className={cn("truncate", !isSidebarOpen && "sr-only")}>
+                                <Icon className="size-4 shrink-0" /> {/* Standardized icon size */}
+                                {/* Text is hidden via CSS in SidebarMenuButton when collapsed */}
+                                <span>
                                     {item.title}
                                 </span>
+                                {/* Badge Logic - Conditionally render based on isSidebarOpen */}
                                 {item.badgeCount && item.badgeCount > 0 && isSidebarOpen && (
-                                    <Badge variant="default" className="ml-auto h-5 px-1.5 text-xs">
+                                    <Badge variant="default" className="ml-auto h-5 px-1.5 text-[10px] leading-none">
                                         {item.badgeCount > 9 ? "9+" : item.badgeCount}
                                     </Badge>
                                 )}
                             </Link>
-
-
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 );
             })}
         </SidebarMenu>
+    );
+}
+
+// --- Reusable User Item for Footer --- (Optional but good practice)
+interface NavMenuUserItemProps {
+    user: NonNullable<RootState['auth']['user']>;
+    isSidebarOpen: boolean;
+}
+
+function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
+    const triggerContent = (
+        <Link href="/profile" className={cn(
+            "flex items-center gap-3 rounded-md p-1 transition-colors hover:bg-accent w-full overflow-hidden",
+            !isSidebarOpen && "justify-center w-auto px-1 py-1 h-8" // Adjust for collapsed state
+        )}>
+            <Avatar className={cn("size-7", !isSidebarOpen && "size-6")}>
+                <AvatarImage src={user.name || undefined} alt={user.name} />
+                <AvatarFallback className="text-xs">
+                    {user.name?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+            </Avatar>
+            {isSidebarOpen && (
+                <div className="min-w-0 flex-1">
+                    <p className="font-medium text-xs truncate text-foreground">{user.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+                </div>
+            )}
+        </Link>
+    );
+
+    if (isSidebarOpen) {
+        return triggerContent; // No tooltip needed when expanded
+    }
+
+    // Tooltip only when collapsed
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                {triggerContent}
+            </TooltipTrigger>
+            <TooltipContent side="right" align="center" className="text-xs">
+                {user.name} ({user.role})
+            </TooltipContent>
+        </Tooltip>
     );
 }
