@@ -154,7 +154,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                         {/* Always use icon.png when collapsed, regardless of theme */}
                         <Image src="/icon.png" alt="1Tech Icon" width={24} height={24} className="h-6 w-6" />
                         {/* Optional: Add pulse if icon loading is slow, though usually not needed */}
-                        {/* {!mounted && <div className="h-6 w-6 bg-muted rounded animate-pulse"></div>} */}
+                        {!mounted && <div className="h-6 w-6 bg-muted rounded animate-pulse"></div>}
                     </span>
                 </Link>
             </SidebarHeader>
