@@ -208,7 +208,7 @@ export function Header() {
                     {isAuthenticated && (
                         <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
                             <SheetTrigger asChild>
-                                <button className="relative rounded-full p-2 hover:bg-muted">
+                                <button className="relative rounded-full p-2 hover:bg-muted cursor-pointer">
                                     <Bell className="h-5 w-5" />
                                     {notificationCount > 0 && (
                                         <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
@@ -217,15 +217,15 @@ export function Header() {
                                     )}
                                 </button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-                                <SheetHeader>
+                            <SheetContent side="right" className="w-[320px] sm:w-[400px] rounded-l-3xl border-0 bg-background/65 backdrop-blur-md">
+                                <SheetHeader className="px-4">
                                     <SheetTitle>Notifications</SheetTitle>
                                 </SheetHeader>
-                                <div className="mt-6 flex flex-col space-y-4">
+                                <div className="mt-6 flex flex-col space-y-4 px-4">
                                     {notifications.map((notification) => (
                                         <div
                                             key={notification.id}
-                                            className={cn("rounded-lg border p-3", notification.read ? "bg-background" : "bg-muted/50")}
+                                            className={cn("rounded-lg border p-3", notification.read ? "bg-background/50" : "bg-muted/50")}
                                         >
                                             <div className="flex justify-between">
                                                 <h4 className="font-medium">{notification.title}</h4>
