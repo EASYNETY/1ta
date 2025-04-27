@@ -712,3 +712,102 @@ It respects the user’s focus, giving them maximum screen real estate when need
 
 We don't chase trends — we build **timelessly smooth experiences**.
 
+**Dashboard** page, considering the different user roles (Admin, Teacher, Student) and leveraging the backend routes provided, specifically the `/admin/dashboard` endpoint for administrators.
+
+**Goal:** Create a dynamic Dashboard page (`/dashboard`) that displays relevant information based on the logged-in user's role.
+
+**Backend Data Source:**
+
+*   **Admin:** Primarily uses the `GET /admin/dashboard` endpoint which returns:
+    *   `statistics`: `{ totalStudents, totalClasses, totalPayments, totalSupportTickets }`
+    *   `recentPayments`: Array of recent Payment objects (including Student info).
+    *   `recentSupportTickets`: Array of recent SupportTicket objects (including Student info).
+*   **Teacher (Implied):** Would need backend endpoints (e.g., `GET /api/teacher/dashboard` or `GET /api/users/me/dashboard`) providing:
+    *   List of assigned classes.
+    *   Recent activity in those classes (e.g., new messages, submissions - Post-MVP).
+    *   Upcoming schedule/timetable events for their classes.
+    *   Quick attendance summary (Post-MVP).
+*   **Student (Implied):** Would need backend endpoints (e.g., `GET /api/student/dashboard` or `GET /api/users/me/dashboard`) providing:
+    *   List of enrolled courses/classes.
+    *   Upcoming schedule/timetable events.
+    *   Recent grades or feedback (Post-MVP).
+    *   Unread messages/notifications count (Post-MVP).
+
+**Frontend Strategy:**
+
+1.  **Main Dashboard Page (`src/app/dashboard/page.tsx`):**
+    *   This page will be a **Client Component** (`'use client'`) because it needs to fetch data based on the logged-in user and potentially render different components conditionally.
+    *   It will use `useAppSelector` to get the authenticated `user` object (including their `role`).
+    *   Based on the `user.role`, it will conditionally render specific dashboard components (e.g., `<AdminDashboard />`, `<TeacherDashboard />`, `<StudentDashboard />`).
+2.  **Role-Specific Dashboard Components:**
+    *   Create separate components for each role's dashboard view (e.g., `src/features/dashboard/components/AdminDashboard.tsx`, `StudentDashboard.tsx`, etc.).
+    *   Each component will be responsible for fetching its specific data using async thunks or custom hooks that utilize the `apiClient`.
+3.  **Redux Slice/Thunks (Optional but Recommended):**
+    *   Consider creating a `dashboardSlice` to manage the loading/error/data state for *each role's dashboard data*.
+    *   Define async thunks like `fetchAdminDashboardData`, `fetchTeacherDashboardData`, `fetchStudentDashboardData`. These thunks call the relevant `apiClient` endpoints (`/admin/dashboard`, `/api/teacher/dashboard`, etc.).
+    *   The role-specific dashboard components dispatch their corresponding thunk and select data/status from the `dashboardSlice`.
+4.  **UI Components:** Utilize Shadcn UI and DyraneUI components (`DyraneCard`, tables, charts - if needed later) to display the fetched data professionally. Use Skeletons for loading states.
+
+---
+
+**Documentation: Dashboard Feature Plan (MVP)**
+
+## Dashboard Feature (`/dashboard`)
+
+### 1. Overview
+
+The main Dashboard serves as the primary landing page for authenticated users after login. Its content dynamically adapts based on the user's role (Admin, Teacher, Student) to provide relevant information and quick access to key functionalities.
+
+### 2. Core Requirements (MVP)
+
+*   Display a distinct view for each user role (Admin, Teacher, Student).
+*   Fetch and display role-specific summary data from the backend.
+*   Provide clear navigation or links to other relevant sections of the application.
+*   Utilize DyraneUI/Shadcn components for a professional and consistent UI.
+*   Handle loading and error states gracefully.
+
+### 3. Data Flow & State Management
+
+1.  **User Role Check:** The main `/dashboard` page component reads the `user.role` from the `authSlice`.
+2.  **Conditional Rendering:** Based on the role, the page renders the corresponding dashboard component (`<AdminDashboard />`, `<TeacherDashboard />`, or `<StudentDashboard />`).
+3.  **Data Fetching (Thunk/Slice Approach):**
+    *   A `dashboardSlice` manages state (`adminData`, `teacherData`, `studentData`, `status`, `error`).
+    *   Role-specific components (`AdminDashboard`, etc.) dispatch their respective async thunks (`fetchAdminDashboardData`, etc.) on mount if data isn't already loaded.
+    *   Thunks call the appropriate `apiClient` endpoints (e.g., `get('/admin/dashboard')`).
+    *   `apiClient` handles mock/live switching. Mock functions in `mock-dashboard-data.ts` simulate responses for each role's endpoint.
+    *   `extraReducers` in `dashboardSlice` update the state based on thunk lifecycle.
+    *   Components select data, status, and error from `dashboardSlice` using `useAppSelector`.
+4.  **UI Rendering:** Components use the selected data to render cards, lists, statistics, etc. Skeletons are shown during `loading` status. Alerts are shown during `failed` status.
+
+### 4. Component Structure
+
+*   **`src/app/dashboard/page.tsx`**: Main entry point, performs role check and renders the appropriate role-specific component. Marked `'use client'`.
+*   **`src/features/dashboard/components/AdminDashboard.tsx`**: Fetches and displays admin-specific stats, recent payments, recent tickets.
+*   **`src/features/dashboard/components/TeacherDashboard.tsx`**: (MVP definition might be simpler) Fetches and displays assigned classes, maybe upcoming schedule.
+*   **`src/features/dashboard/components/StudentDashboard.tsx`**: Fetches and displays enrolled courses, upcoming schedule.
+*   **`src/features/dashboard/store/dashboard-slice.ts`**: (Optional but recommended) Redux slice for dashboard state.
+*   **`src/features/dashboard/store/dashboard-thunks.ts`**: (Optional but recommended) Async thunks for fetching dashboard data.
+*   **`src/data/mock-dashboard-data.ts`**: (New file needed) Contains mock functions (`getMockAdminDashboard`, `getMockStudentDashboard`, etc.) called by `apiClient`.
+
+### 5. UI Elements (Examples per Role - MVP)
+
+*   **Admin Dashboard:**
+    *   Statistic Cards (`DyraneCard`): Displaying counts for Students, Classes, Payments, Tickets.
+    *   Recent Activity Lists (`DyraneCard` with list): Displaying recent payments, recent support tickets (linking to detail views).
+*   **Teacher Dashboard:**
+    *   My Classes List (`DyraneCard`): List of classes assigned.
+    *   Upcoming Schedule/Timetable Preview (`DyraneCard`).
+*   **Student Dashboard:**
+    *   My Enrolled Courses List (`DyraneCard`): Using `CourseCard` (compact view) or a list.
+    *   Upcoming Schedule/Timetable Preview (`DyraneCard`).
+    *   *(Post-MVP)* Quick links to grades, attendance, chat.
+
+### 6. Mocking Requirements
+
+*   **`mock-dashboard-data.ts`:**
+    *   `getMockAdminDashboard()`: Returns data matching the structure from `GET /admin/dashboard` (stats, recent payments, recent tickets).
+    *   `getMockTeacherDashboard()`: Returns mock data for teacher view (e.g., array of assigned classes).
+    *   `getMockStudentDashboard()`: Returns mock data for student view (e.g., array of enrolled courses).
+*   **`apiClient.ts`:** Update `handleMockRequest` to route GET requests for `/admin/dashboard`, `/teacher/dashboard`, `/student/dashboard` (or `/users/me/dashboard`) to these new mock functions.
+
+---
