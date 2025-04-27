@@ -374,8 +374,8 @@ function MobileNavItemsList({ items, closeSheet }: MobileNavItemsListProps) {
                         <Link
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground",
-                                isActive ? "text-primary bg-primary/10 font-medium" : "text-muted-foreground"
+                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary",
+                                isActive ? "text-primary bg-primary/10 font-medium" : "text-foreground/80",
                             )}
                             onClick={closeSheet} // Ensure sheet closes even if link is current page
                         >
