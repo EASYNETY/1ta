@@ -232,7 +232,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                     "flex mt-2 gap-2 w-full",
                     isSidebarOpen ? "flex-row items-center justify-between" : "flex-col items-center" // Adjust layout based on state
                 )}>
-                    {mounted && isSidebarOpen && <ThemeToggle />}
+                    {/* {mounted && isSidebarOpen && <ThemeToggle />} */}
                     <DyraneButton
                         onClick={handleLogout}
                         variant={'destructive'}

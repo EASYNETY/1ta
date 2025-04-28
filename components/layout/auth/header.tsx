@@ -247,9 +247,9 @@ export function Header() {
                                         )}
                                         <div className="flex flex-row space-x-4 w-full items-center justify-between">
                                             {/* Theme Toggle */}
-                                            {mounted && (
+                                            {/* {mounted && (
                                                 <ThemeToggle />
-                                            )}
+                                            )} */}
                                             <div className="flex flex-row space-x-4 w-full items-center justify-end">
 
                                                 {/* Logout Button */}
@@ -300,7 +300,7 @@ export function Header() {
 
                 {/* Right section */}
                 <div className="flex items-center space-x-4">
-                    <ThemeToggle />
+                    {/* <ThemeToggle /> */}
 
                     {isAuthenticated && (
                         <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>

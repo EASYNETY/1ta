@@ -121,9 +121,9 @@ export default function NavBar() {
                 {/* Right Side Actions */}
                 <div className="flex items-center space-x-2 sm:space-x-3"> {/* Reduced spacing slightly */}
                     {/* Theme Toggle */}
-                    {mounted && (
+                    {/* {mounted && (
                         <ThemeToggle />
-                    )}
+                    )} */}
 
                     {/* Desktop Auth links */}
                     <div className="hidden lg:flex items-center space-x-3"> {/* Reduced spacing */}
@@ -230,9 +230,9 @@ export default function NavBar() {
                             <div className="mt-auto px-6 py-4 border-t border-border/30"> {/* Bottom padding and border */}
                                 <div className="flex flex-row space-x-4 w-full items-center justify-between">
                                     {/* Theme Toggle */}
-                                    {mounted && (
+                                    {/* {mounted && (
                                         <ThemeToggle />
-                                    )}
+                                    )} */}
                                     <div className="flex flex-row space-x-4 w-full items-center justify-end">
 
                                         <SheetClose asChild>

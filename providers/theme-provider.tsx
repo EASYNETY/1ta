@@ -10,7 +10,16 @@ import { cn } from "@/lib/utils";
 
 // --- ThemeProvider Component (remains the same) ---
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-    return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
+    return (
+        <NextThemesProvider
+            defaultTheme="dark"
+            attribute="class"
+            enableSystem={false} // 🚫 Don't auto-detect system theme (optional, but safer if you want *always* dark)
+            {...props}
+        >
+            {children}
+        </NextThemesProvider>
+    );
 }
 
 
