@@ -126,7 +126,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
             collapsible={collapsible} // Pass prop here
             className={cn(
                 "border-r border-border/30 bg-background/80 dark:bg-background/80 backdrop-blur-xl shadow-md",
-                'transition-all duration-500 ease-[cubic-bezier(0.25, 1, 0.5, 1)]',
+                'transition-all duration-500 ease-[cubic-bezier(0.25, 1, 0.5, 1)] h-full',
             )}
         >
             {/* Header */}
@@ -180,13 +180,21 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                     </SidebarGroup>
                 )}
 
+                {/* Secondary Navigation */}
+                <SidebarGroup>
+                    {isSidebarOpen && <SidebarGroupLabel>Account & Help</SidebarGroupLabel>}
+                    <SidebarGroupContent>
+                        <NavMenuList items={visibleSecondaryItems} isSidebarOpen={isSidebarOpen} pathname={pathname} />
+                    </SidebarGroupContent>
+                </SidebarGroup>
+
                 {!isSidebarOpen && hasItems && (
                     <Tooltip>
                         <TooltipTrigger asChild>
                             {/* Render CartNavItem directly, likely needs some layout adjustment */}
                             {/* Wrap in a div to control centering/padding if needed */}
-                            <div className="flex items-center justify-center h-10 w-10 rounded-lg">
-                                <CartNavItem />
+                            <div className="flex items-center justify-center h-10 w-10 rounded-lg pl-1">
+                                <CartNavItem icon={true} />
                             </div>
                         </TooltipTrigger>
                         <TooltipContent side="right">Cart ({cart.items.length})</TooltipContent>
@@ -204,14 +212,6 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                         </SidebarGroupContent>
                     </SidebarGroup>
                 )}
-
-                {/* Secondary Navigation */}
-                <SidebarGroup>
-                    {isSidebarOpen && <SidebarGroupLabel>Account & Help</SidebarGroupLabel>}
-                    <SidebarGroupContent>
-                        <NavMenuList items={visibleSecondaryItems} isSidebarOpen={isSidebarOpen} pathname={pathname} />
-                    </SidebarGroupContent>
-                </SidebarGroup>
             </SidebarContent>
 
             {/* Footer Area */}
@@ -227,21 +227,18 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                     </TooltipProvider>
                 )}
 
-                {/* Separator */}
-                {/* <SidebarSeparator className="my-1" /> */}
-
                 {/* Theme Toggle and Logout */}
                 <div className={cn(
                     "flex mt-2 gap-2 w-full",
                     isSidebarOpen ? "flex-row items-center justify-between" : "flex-col items-center" // Adjust layout based on state
                 )}>
-                    {mounted && <ThemeToggle />}
+                    {mounted && isSidebarOpen && <ThemeToggle />}
                     <DyraneButton
                         onClick={handleLogout}
-                        variant={'ghost'}
+                        variant={'destructive'}
                         size={isSidebarOpen ? "sm" : "icon"} // Icon button when collapsed
                         className={cn(
-                            "text-destructive hover:bg-destructive/10 hover:text-destructive",
+                            "text-destructive bg-destructive/5 hover:bg-destructive/10 hover:text-destructive",
                             isSidebarOpen ? "w-full justify-start gap-2 px-2" : "h-8 w-8" // Adjust padding/size
                         )}
                         aria-label="Logout"
@@ -285,7 +282,7 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
                                 href={item.href}
                                 className="flex items-center gap-2" // Removed overflow-hidden, let button handle it
                             >
-                                <Icon className="size-4 shrink-0" weight={isActive ? "fill" : "regular"}/> {/* Standardized icon size */}
+                                <Icon className="size-4 shrink-0" weight={isActive ? "fill" : "regular"} /> {/* Standardized icon size */}
                                 {/* Text is hidden via CSS in SidebarMenuButton when collapsed */}
                                 <span>
                                     {item.title}
@@ -314,7 +311,7 @@ interface NavMenuUserItemProps {
 function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
     const triggerContent = (
         <Link href="/profile" className={cn(
-            "flex items-center gap-3 rounded-md p-1 transition-colors hover:bg-accent w-full overflow-hidden",
+            "flex items-center gap-3 rounded-md p-2 bg-accent/50 hover:bg-accent transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300 w-full overflow-hidden",
             !isSidebarOpen && "justify-center w-auto px-1 py-1 h-8" // Adjust for collapsed state
         )}>
             <Avatar className={cn("size-7", !isSidebarOpen && "size-6")}>

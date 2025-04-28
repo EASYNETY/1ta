@@ -201,6 +201,14 @@ export function Header() {
                                             <MobileNavItemsList items={sheetAdminItems} closeSheet={closeMobileSheet} />
                                         </nav>
                                     )}
+
+                                    {/* Footer Actions Section */}
+                                    <div className="mt-auto py-2 border-border/30 space-y-1 px-0">
+                                        <p className="px-0 text-xs capitalized text-muted-foreground tracking-wider mb-2">Account & Help</p>
+                                        <MobileNavItemsList items={sheetSecondaryItems} closeSheet={closeMobileSheet} />
+                                    </div>
+
+
                                     {/* Cart Mini Card */}
                                     {cart.items.length > 0 && (
                                         <div className="py-2 border-border/30">
@@ -212,12 +220,6 @@ export function Header() {
                                             </div>
                                         </div>
                                     )}
-
-                                    {/* Footer Actions Section */}
-                                    <div className="mt-auto py-2 border-border/30 space-y-1 px-0">
-                                        <p className="px-0 text-xs capitalized text-muted-foreground tracking-wider mb-2">Account & Help</p>
-                                        <MobileNavItemsList items={sheetSecondaryItems} closeSheet={closeMobileSheet} />
-                                    </div>
                                 </div>
                                 <SheetFooter className="mt-0 py-0">
                                     {/* Separator and Auth actions at the bottom */}
@@ -225,7 +227,7 @@ export function Header() {
                                         {isAuthenticated && user && (
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
-                                                    <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent/80 transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
+                                                    <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
                                                         <Avatar className="size-10">
                                                             <AvatarImage src={user.name || undefined} alt={user.name} />
                                                             <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>

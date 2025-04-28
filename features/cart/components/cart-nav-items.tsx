@@ -10,7 +10,11 @@ import { CartDropdown } from "./cart-dropdown"
 import { useRouter } from "next/navigation"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 
-export function CartNavItem() {
+export function CartNavItem({
+    icon,
+}: {
+    icon?: boolean
+}) {
     const cart = useAppSelector((state) => state.cart)
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const cartRef = useRef<HTMLDivElement>(null)
@@ -35,10 +39,11 @@ export function CartNavItem() {
                 variant={"ghost"}
                 size="sm"
                 className={cn(
-                    "flex items-center justify-center h-9 w-9 rounded-md transition-all",
+                    "flex items-center justify-center rounded-md transition-all",
                     "hover:bg-muted/80",
                     hasItems && "ring-2 ring-primary/20 shadow-sm shadow-primary/20",
-                    isDropdownOpen && "bg-muted"
+                    isDropdownOpen && "bg-muted",
+                    icon ? 'h-6 w-6' : 'h-9 w-9'
                 )}
                 onMouseEnter={() => setIsDropdownOpen(true)}
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
@@ -52,7 +57,10 @@ export function CartNavItem() {
                     {/* Ping animation */}
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
                     {/* Actual badge */}
-                    <span className="relative flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-medium ring-2 ring-primary/30">
+                    <span className={cn(
+                        icon ? 'h-4 w-4' : 'h-5 w-5',
+                        "relative flex  items-center text-[10px] justify-center rounded-full bg-primary text-primary-foreground  font-medium ring-2 ring-primary/30"
+                    )}>
                         {cart.items.length}
                     </span>
                 </div>
