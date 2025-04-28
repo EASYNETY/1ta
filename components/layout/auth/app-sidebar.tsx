@@ -285,7 +285,7 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
                                 href={item.href}
                                 className="flex items-center gap-2" // Removed overflow-hidden, let button handle it
                             >
-                                <Icon className="size-4 shrink-0" /> {/* Standardized icon size */}
+                                <Icon className="size-4 shrink-0" weight={isActive ? "fill" : "regular"}/> {/* Standardized icon size */}
                                 {/* Text is hidden via CSS in SidebarMenuButton when collapsed */}
                                 <span>
                                     {item.title}

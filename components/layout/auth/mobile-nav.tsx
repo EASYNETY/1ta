@@ -19,6 +19,7 @@ import {
     GraduationCap,
     EnvelopeSimple,
 } from "phosphor-react";
+import { is } from "date-fns/locale";
 
 // Interface definitions
 export interface MobileNavItem {
@@ -200,7 +201,11 @@ export function MobileNav() {
                                 )}
                                 aria-current={isActive ? "page" : undefined}
                             >
-                                <div className="relative mb-1">
+                                <div className={cn(
+                                    "relative mb-1 py-0.5",
+                                    isActive && "bg-primary/10 rounded-full px-4 transition-colors duration-200 ease-in-out",
+                                )
+                                }>
                                     {/* Use weight prop for Phosphor icons */}
                                     <Icon size={22} weight={isActive ? "fill" : "regular"} />
                                     {badgeValue > 0 && (
