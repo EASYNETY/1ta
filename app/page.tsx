@@ -78,14 +78,14 @@ export default function LandingPage() {
 
         <SectionDivider />
 
-        {/* Philosophy Section */}
+        {/* About Us Section */}
 
-        <section id="philosophy" className="py-24 relative overflow-hidden">
+        <section id="about_us" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative text-center">
             <SectionHeader
-              title="Our Philosophy"
+              title="About Us"
               description="We are a launchpad into a world of endless possibilities. Our mission is simple: to empower students like you with the digital skills needed to thrive in today’s fast-paced, tech-driven world."
             />
 
@@ -117,7 +117,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Core Features Overview */}
-        <section id="features" className="py-24 relative overflow-hidden">
+        {/* <section id="features" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
@@ -147,7 +147,7 @@ export default function LandingPage() {
                 title="Smart Analytics"
                 description="Attendance, grades, and behavioral heatmaps to identify trends and improve outcomes."
               />
-              {/* <FeatureCard
+              <FeatureCard
                 icon={<LayoutGrid className="h-8 w-8" />}
                 title="Course Builder"
                 description="Drag & drop modules, resources, and tests with intuitive content management."
@@ -156,22 +156,22 @@ export default function LandingPage() {
                 icon={<MessageCircle className="h-8 w-8" />}
                 title="Parent Communication"
                 description="Guardian portals with attendance & grade reports, plus direct messaging."
-              /> */}
+              />
             </div>
           </div>
         </section>
 
-        <SectionDivider />
+        <SectionDivider /> */}
 
         {/* Barcode Scanner Section */}
-        <section id="barcode-scanner" className="py-24 relative overflow-hidden">
+        {/* <section id="barcode-scanner" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="container px-4 md:px-6 relative">
             <BarcodeScannerSection />
           </div>
         </section>
 
-        <SectionDivider />
+        <SectionDivider /> */}
 
         {/* Courses Section */}
         <section id="courses" className="py-24 relative overflow-hidden">
@@ -189,7 +189,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Why Choose Us */}
-        <section id="why-us" className="py-24 relative overflow-hidden">
+        <section id="why_us" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader

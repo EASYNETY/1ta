@@ -354,7 +354,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 </div>
             </DyraneCardContent>
 
-            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-700 ease-[cubic-bezier(0.77, 0, 0.175, 1)]"> {/* Reduced padding */}
+            {isAuthenticated && <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-700 ease-[cubic-bezier(0.77, 0, 0.175, 1)]"> {/* Reduced padding */}
                 <div className="flex justify-between items-end w-full gap-2">
                     {/* Price */}
                     <div className="flex flex-col text-left">
@@ -389,7 +389,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                         )}
                     </DyraneButton>
                 </div>
-            </DyraneCardFooter>
+            </DyraneCardFooter>}
         </DyraneCard>
     )
 }
