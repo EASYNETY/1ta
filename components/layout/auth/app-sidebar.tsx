@@ -125,8 +125,8 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         <Sidebar
             collapsible={collapsible} // Pass prop here
             className={cn(
-                "border-r border-border/30 bg-background/80 dark:bg-background/80 backdrop-blur-xl shadow-md"
-                // Add any other necessary classes
+                "border-r border-border/30 bg-background/80 dark:bg-background/80 backdrop-blur-xl shadow-md",
+                'transition-all duration-500 ease-[cubic-bezier(0.25, 1, 0.5, 1)]',
             )}
         >
             {/* Header */}
@@ -160,7 +160,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
             </SidebarHeader>
 
             {/* Main Content Area */}
-            <SidebarContent>
+            <SidebarContent className="flex justify-between flex-col h-full">
                 {/* Wrap content in TooltipProvider if tooltips are used */}
                 {/* Primary Navigation */}
                 <SidebarGroup>
