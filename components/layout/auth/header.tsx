@@ -379,7 +379,7 @@ function MobileNavItemsList({ items, closeSheet }: MobileNavItemsListProps) {
                             )}
                             onClick={closeSheet} // Ensure sheet closes even if link is current page
                         >
-                            <Icon className="size-5 shrink-0" />
+                            <Icon className="size-5 shrink-0" weight={isActive ? "fill" : "regular"} />
                             {item.title}
                             {/* Badge logic can be added here if needed for specific items */}
                             {item.badgeCount && item.badgeCount > 0 && (
