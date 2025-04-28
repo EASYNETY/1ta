@@ -32,8 +32,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   // --- Basic Metadata ---
   title: {
-    default: "1techacademy Platform", // Default title for layout
-    template: "%s | 1techacademy", // Template for nested pages (e.g., "Dashboard | 1techacademy")
+    default: "1Tech Academy Platform", // Default title for layout
+    template: "%s | 1 TechAcademy", // Template for nested pages (e.g., "Dashboard | 1techacademy")
   },
   description: "A modern platform for online learning and course management.",
 

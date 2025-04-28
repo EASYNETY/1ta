@@ -1,6 +1,6 @@
 {
-	"name": "1techacademy Platform",
-	"short_name": "1techacademy",
+	"name": "1Tech Academy Platform",
+	"short_name": "1Tech Academy",
 	"description": "A modern platform for online learning and course management.",
 	"start_url": "/",
 	"display": "standalone",
