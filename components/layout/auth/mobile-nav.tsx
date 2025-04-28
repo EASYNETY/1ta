@@ -17,6 +17,7 @@ import {
     ChatCircleDots,
     Plus,
     GraduationCap,
+    EnvelopeSimple,
 } from "phosphor-react";
 
 // Interface definitions
@@ -38,7 +39,7 @@ export const mobileNavItems: MobileNavItem[] = [
     { title: "Home", href: "/dashboard", icon: HouseSimple, roles: ["admin", "teacher", "student"] },
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["admin", "teacher", "student"] }, // Using GraduationCap
     { title: "Timetable", href: "/timetable", icon: CalendarBlank, roles: ["teacher", "student", "admin"] },
-    { title: "Chat", href: "/chat", icon: ChatCircleDots, roles: ["teacher", "student", "admin"], badgeKey: "messages" },
+    { title: "Chat", href: "/chat", icon: EnvelopeSimple, roles: ["teacher", "student", "admin"], badgeKey: "messages" },
 ];
 
 // --- Contextual FAB Action Logic ---
@@ -73,7 +74,7 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
                 action = { href: "/classes/create", ariaLabel: "Add New Class Instance", show: true }; // Add Class Instance
                 break;
             case "student":
-                action = { href: "/courses", ariaLabel: "Browse Courses", show: false }; // Hide or link back? Hide for now.
+                action = { href: "/courses", ariaLabel: "Browse Courses", show: true };
                 break;
         }
     } else if (pathname.startsWith("/chat")) {
@@ -154,7 +155,7 @@ export function MobileNav() {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 350, damping: 25, delay: 0.1 }}
-                        className="fixed bottom-20 right-4 z-50" // Position above bottom bar
+                        className="fixed bottom-20 right-8 z-50" // Position above bottom bar
                     >
                         <DyraneButton
                             size="icon"
