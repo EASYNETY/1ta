@@ -91,7 +91,7 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                 {item.instructor && (
                     <p className="text-xs text-muted-foreground truncate">{item.instructor}</p>
                 )}
-                <div className="flex items-center gap-1 mt-0.5">
+                {isAuthenticated && <div className="flex items-center gap-1 mt-0.5">
                     {item.discountPrice ? (
                         <>
                             <span className="text-xs font-medium">
@@ -104,7 +104,7 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                     ) : (
                         <span className="text-xs font-medium">${item.price.toFixed(2)}</span>
                     )}
-                </div>
+                </div>}
             </div>
             {/* Remove Button */}
             <button
