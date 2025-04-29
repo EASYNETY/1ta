@@ -71,7 +71,7 @@ export function Card({
         hover: {
             scale: 1.05,
             rotate: 45,
-            transition: { duration: 0.3, ease: [0.65, 0, 0.35, 1] }
+            transition: { duration: 0.2, ease: [0.65, 0, 0.35, 1] }
         }
     };
 
@@ -180,10 +180,9 @@ export function Card({
                     <motion.button
                         key="plus-button"
                         className={cn(
-                            "absolute bottom-[-1px] left-1/2 -translate-x-1/2 z-40",
-                            "flex items-center justify-center size-12 rounded-full shadow-lg cursor-pointer",
+                            "absolute bottom-[-6px] left-1/2 -translate-x-1/2 z-40",
+                            "flex items-center justify-center size-16 rounded-full shadow-lg cursor-pointer",
                             "bg-black text-white",
-                            'animate-[wiggle_0.5s_ease-in-out_infinite]',
                             "hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         )}
                         aria-label="Toggle details"
@@ -203,7 +202,7 @@ export function Card({
                             initial="initial"
                             animate={isIconHovered ? "hover" : "initial"}
                         >
-                            <Plus size={20} strokeWidth={2.5} />
+                            <Plus size={32} strokeWidth={2} />
                         </motion.div>
                     </motion.button>
 
