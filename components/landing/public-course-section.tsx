@@ -53,6 +53,11 @@ export function CoursesSection() {
         setIsModalOpen(true)
     }
 
+    const handleCloseModal = () => {
+        setIsModalOpen(false)
+        setSelectedCourse(null)
+    }
+
     // Animation variants
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -180,7 +185,7 @@ export function CoursesSection() {
                                 >
                                     {coursesByCategory[category]?.map((course) => (
                                         <motion.div key={course.id} variants={itemVariants}>
-                                            <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} />
+                                            <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                                         </motion.div>
                                     ))}
                                 </motion.div>
@@ -205,7 +210,7 @@ export function CoursesSection() {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                             >
-                                <PublicCourseCard course={selectedCourse} isModal={true} />
+                                <PublicCourseCard course={selectedCourse} isModal={true} onClose={handleCloseModal} />
                             </motion.div>
                         )}
                     </AnimatePresence>

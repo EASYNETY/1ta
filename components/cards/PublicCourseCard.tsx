@@ -24,6 +24,7 @@ interface PublicCourseCardProps {
     className?: string
     onClick?: () => void
     isModal?: boolean
+    onClose?: () => void
 }
 
 // Component to render either Video or Fallback Image
@@ -60,7 +61,7 @@ const CourseMediaPreview = ({ course }: { course: PublicCourse }) => {
 };
 
 
-export function PublicCourseCard({ course, className, onClick, isModal = false }: PublicCourseCardProps) {
+export function PublicCourseCard({ course, className, onClick, isModal = false, onClose }: PublicCourseCardProps) {
     const router = useRouter()
     const dispatch = useAppDispatch()
     const { isAuthenticated } = useAppSelector((state) => state.auth)
@@ -103,7 +104,10 @@ export function PublicCourseCard({ course, className, onClick, isModal = false }
                             </Tabs>
                         </div>
                         {/* Modal Footer */}
-                        <div className="p-6 border-t flex justify-end items-center mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm">
+                        <div className="p-6 border-t flex justify-between items-center mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm">
+                            <DyraneButton variant="ghost" onClick={() => onClose?.()} >
+                                Close
+                            </DyraneButton>
                             <DyraneButton size="lg" onClick={handleEnrollNow}>
                                 {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enroll Now</span>)}
                             </DyraneButton>
