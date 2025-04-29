@@ -136,13 +136,6 @@ export default function ProfilePage() {
                     : "Your profile has been updated successfully.",
                 variant: "success",
             })
-
-            // If this is onboarding and there are items in cart, redirect to pricing
-            if (isOnboarding && hasItemsInCart) {
-                router.push("/pricing?type=" + data.accountType)
-            } else if (isOnboarding) {
-                router.push("/dashboard")
-            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to update profile"
 

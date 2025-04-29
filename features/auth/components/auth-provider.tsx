@@ -60,14 +60,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
-    if (isAuthenticated && user) {
-      if (pathname.startsWith("/admin") && user.role !== "admin") {
-        console.log("AuthProvider: Admin route unauthorized. Redirecting to /dashboard");
-        router.push("/dashboard");
-        return;
-      }
-    }
-
     // If authenticated but profile is incomplete and not skipped, redirect to profile page
     // unless already on the profile page or pricing page
     if (
