@@ -25,6 +25,22 @@ const getCookieOptions = (maxAgeSeconds?: number) => {
 	return options;
 };
 
+// --- Fetch User Profile Thunk ---
+export const fetchUserProfileThunk = createAsyncThunk<
+	Partial<User>,
+	void,
+	{ rejectValue: string }
+>("auth/fetchUserProfile", async (_, { rejectWithValue }) => {
+	try {
+		const response = await get<User>("/users/me");
+		return response;
+	} catch (error: any) {
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch user profile";
+		return rejectWithValue(errorMessage);
+	}
+});
+
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
 	"auth/login",
@@ -111,22 +127,6 @@ export const signupThunk = createAsyncThunk(
 		}
 	}
 );
-
-// --- Fetch User Profile Thunk ---
-export const fetchUserProfileThunk = createAsyncThunk<
-	Partial<User>,
-	void,
-	{ rejectValue: string }
->("auth/fetchUserProfile", async (_, { rejectWithValue }) => {
-	try {
-		const response = await get<User>("/users/me");
-		return response;
-	} catch (error: any) {
-		const errorMessage =
-			error instanceof Error ? error.message : "Failed to fetch user profile";
-		return rejectWithValue(errorMessage);
-	}
-});
 
 // --- Update User Profile Thunk ---
 export const updateUserProfileThunk = createAsyncThunk<
