@@ -27,6 +27,8 @@ import { CourseMiniCard } from "@/features/cart/components/course-mini-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { CartItem } from "@/features/cart/store/cart-slice"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import Barcode from 'react-barcode';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 
 // Mock notifications data
@@ -250,7 +252,45 @@ export function Header() {
                                             {/* {mounted && (
                                                 <ThemeToggle />
                                             )} */}
-                                            <div className="flex flex-row space-x-4 w-full items-center justify-end">
+                                            <div className="flex flex-row space-x-4 w-full items-center justify-between">
+                                                {/* Barcode Section */}
+                                                {isAuthenticated && user && user.id && (
+                                                    <Dialog>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <DialogTrigger asChild>
+                                                                    <div className="flex items-center justify-center p-1 bg-transparent backdrop-blur-sm rounded cursor-pointer hover:opacity-80 transition-opacity">
+                                                                        <Barcode
+                                                                            value={String(user.id)}
+                                                                            height={22.85} // Standard height in mm
+                                                                            width={1.5}    // Standard bar width in mm
+                                                                            displayValue={false}
+                                                                            margin={0}
+                                                                            lineColor="#C99700"
+                                                                            background="#000000"
+                                                                        />
+                                                                    </div>
+                                                                </DialogTrigger>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="top">Click to enlarge | User ID: {user.id}</TooltipContent>
+                                                        </Tooltip>
+
+                                                        <DialogContent className="sm:max-w-[300px] bg-background/85 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+                                                            <DialogHeader className="mb-4">
+                                                                <DialogTitle className="text-center text-lg font-medium">Scan User ID</DialogTitle>
+                                                            </DialogHeader>
+                                                            <Barcode
+                                                                value={String(user.id)}
+                                                                height={100}            // Increased height
+                                                                width={3}               // Thicker bars
+                                                                displayValue={false}
+                                                                lineColor="#000000"     // Dark bars
+                                                                background="#ffffff"    // Light background
+                                                            />
+
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                )}
 
                                                 {/* Logout Button */}
                                                 <DyraneButton
