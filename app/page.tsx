@@ -26,7 +26,7 @@ import { useEffect } from "react"
 import { fetchCourses } from "@/features/courses/store/course-slice"
 import { useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
-import { Envelope, Eye, Target, TiktokLogo } from "phosphor-react"
+import { Envelope, Eye, MapPin, Target, TiktokLogo } from "phosphor-react"
 
 export default function LandingPage() {
 
@@ -270,7 +270,7 @@ export default function LandingPage() {
                 {/* Contact Info */}
                 <div className="space-y-3 text-muted-foreground w-full flex flex-col items-center md:items-start text-center md:text-left">
                   <div className="flex items-center md: items-start gap-2">
-                    <Building size={20} />
+                    <MapPin size={20} />
                     <span><strong>Address:</strong> 123 Tech Lane, Innovation City</span>
                   </div>
                   <div className="flex items-center md: items-start gap-2">
@@ -305,7 +305,7 @@ export default function LandingPage() {
                     <InstagramIcon />
                   </a>
                   <a href="#" aria-label="Tiktok" className="hover:text-primary transition-colors">
-                    <TiktokLogo />
+                    <TiktokLogo size={24} weight="bold"/>
                   </a>
                 </div>
               </div>
