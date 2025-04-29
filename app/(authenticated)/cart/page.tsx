@@ -88,7 +88,7 @@ export default function CartPage() {
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
             {!profileComplete && (
-                <Alert className="mb-6">
+                <Alert variant="default" className="mb-6 bg-primary/5 border-primary/20">
                     <AlertTitle>Complete Your Profile</AlertTitle>
                     <AlertDescription>Please complete your profile before proceeding to checkout.</AlertDescription>
                 </Alert>

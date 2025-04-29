@@ -26,7 +26,7 @@ export function OnboardingStatusCard() {
     }
 
     return (
-        <Alert variant="default" className="mb-6 bg-amber-50 border-amber-200 dark:bg-amber-950 dark:border-amber-800">
+        <Alert variant="default" className="mb-6 bg-primary/5 border-primary/20">
             <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             <AlertTitle className="text-amber-800 dark:text-amber-300 font-medium">Profile Completion Required</AlertTitle>
             <AlertDescription className="text-amber-700 dark:text-amber-400">
