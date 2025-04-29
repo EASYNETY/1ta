@@ -5,7 +5,7 @@
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { ArrowRight, Fingerprint, Brain, Video, BarChart3, LayoutGrid, MessageCircle, GraduationCap, BadgeCheck, Users, Home, Telescope } from "lucide-react"
+import { ArrowRight, Fingerprint, Brain, Video, BarChart3, LayoutGrid, MessageCircle, GraduationCap, BadgeCheck, Users, Home, Telescope, LinkedinIcon, TwitterIcon, InstagramIcon, Phone, Building } from "lucide-react"
 import { TestimonialCarousel } from "@/components/landing/testimonial-carousel"
 import { FeatureCard } from "@/components/landing/feature-card"
 import { ComparisonGrid } from "@/components/landing/comparison-grid"
@@ -26,7 +26,7 @@ import { useEffect } from "react"
 import { fetchCourses } from "@/features/courses/store/course-slice"
 import { useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
-import { Eye, Target } from "phosphor-react"
+import { Envelope, Eye, Target } from "phosphor-react"
 
 export default function LandingPage() {
 
@@ -253,16 +253,59 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Contact Us / Inquiry CTA */}
-        <section id="contact_us" className="py-24 relative overflow-hidden">
+        <section id="contact-us" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
-            <div className="max-w-md mx-auto">
-              <SectionHeader
-                title="Ready to Get in Touch?"
-                description="Fill out the form below to request a demo, sign up, or ask a question."
-              />
+            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10 items-start">
+              {/* Left: Header + Info */}
+              <div className="space-y-8">
+                {/* Section Heading */}
+                <SectionHeader
+                  title="Ready to Get in Touch?"
+                  description="Fill out the form or reach out directly through any of the following methods."
+                />
 
+                {/* Contact Info */}
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <div className="flex items-start gap-2">
+                    <Building className="mt-0.5" />
+                    <span><strong>Address:</strong> 123 Tech Lane, Innovation City</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Phone className="mt-0.5" />
+                    <span>
+                      <strong>Phone:</strong>{" "}
+                      <a href="tel:+1234567890" className="underline">
+                        +1 (234) 567-890
+                      </a>
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Envelope className="mt-0.5" />
+                    <span>
+                      <strong>Email:</strong>{" "}
+                      <a href="mailto:hello@ontech.io" className="underline">
+                        hello@ontech.io
+                      </a>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                <div className="flex items-center space-x-4 pt-4">
+                  <a href="#" aria-label="Twitter" className="hover:text-primary transition-colors">
+                    <TwitterIcon />
+                  </a>
+                  <a href="#" aria-label="LinkedIn" className="hover:text-primary transition-colors">
+                    <LinkedinIcon />
+                  </a>
+                  <a href="#" aria-label="Instagram" className="hover:text-primary transition-colors">
+                    <InstagramIcon />
+                  </a>
+                </div>
+              </div>
+              {/* Right: Form */}
               <DyraneCard>
                 <DemoRequestForm />
               </DyraneCard>

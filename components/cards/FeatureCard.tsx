@@ -99,14 +99,17 @@ export function Card({
         setIsHovered(false); // Ensure hover state is off when modal opens
     };
 
-    const toggleModal = () => setIsModalOpen(prev => !prev);
-
-
     // Define colors using CSS variables for theme friendliness
     // Make sure these variables (--muted-foreground-rgb, --card-foreground-rgb etc.) are defined in your global CSS or theme setup
     // Or replace with Tailwind text classes e.g., text-muted-foreground group-hover:text-card-foreground
     const initialTextColor = "text-muted-foreground"; // Example fallback Tailwind class
     const hoverTextColor = "text-card-foreground";   // Example fallback Tailwind class
+
+    React.useEffect(() => {
+        if (isModalOpen) {
+            setIsHovered(false);
+        }
+    }, [isModalOpen]);
 
 
     return (
@@ -120,6 +123,7 @@ export function Card({
             )}
             onHoverStart={() => !isModalOpen && setIsHovered(true)} // Only trigger hover if modal isn't open
             onHoverEnd={() => setIsHovered(false)}
+            onTouchStart={() => !isModalOpen && setIsHovered(true)}
             // Use animate prop to potentially control text color based on hover state if not using group-hover
             animate={isHovered ? "hover" : "initial"}
             initial="initial"
@@ -137,7 +141,7 @@ export function Card({
                     className="absolute top-0 left-0 h-[80%] w-full origin-top rounded-[22px] bg-black/80 dark:bg-primary/70 z-20 pointer-events-none"
                     variants={overlayVariants}
                     initial="hidden"
-                    animate={isHovered ? "visible" : "hidden"} // Animate based on hover state (only if modal closed)
+                    animate={isHovered || isModalOpen ? "visible" : "hidden"} // Animate based on hover state (only if modal closed)
                 />
 
                 {/* 3. Text Area */}
@@ -197,7 +201,21 @@ export function Card({
                             "hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         )}
                         aria-label="Toggle details"
-                        onClick={toggleModal}
+                        onClick={() => {
+                            setIsModalOpen(true);
+                        }}
+                        onTouchStart={
+                            () => {
+                                setIsModalOpen(true);
+                                setIsHovered(false);
+                            }
+                        }
+                        onTouchEnd={
+                            () => {
+                                setIsModalOpen(true);
+                                setIsHovered(false);
+                            }
+                        }
                         onMouseEnter={() => {
                             setIsIconHovered(true);
                             setIsModalOpen(true); // open modal on hover in
