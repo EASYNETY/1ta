@@ -296,7 +296,7 @@ export default function LandingPage() {
                 {/* Social Links */}
                 <div className="flex items-center justify-center md:justify-start w-full space-x-4 pt-4">
                   <a href="https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr" aria-label="Facebook" className="hover:text-primary transition-colors">
-                    <FacebookLogo />
+                    <FacebookLogo size={24} weight="bold"/>
                   </a>
                   <a href="https://www.linkedin.com/company/1tech-academy/?viewAsMember=true" aria-label="LinkedIn" className="hover:text-primary transition-colors">
                     <LinkedinIcon />
