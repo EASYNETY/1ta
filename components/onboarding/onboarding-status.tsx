@@ -9,14 +9,12 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
 
 export function OnboardingStatusCard() {
     const cart = useAppSelector((state) => state.cart)
     const hasItemsInCart = cart.items.length > 0
     const dispatch = useAppDispatch()
     const { toast } = useToast()
-    const router = useRouter()
 
     const handleSkipOnboarding = () => {
         dispatch(skipOnboardingProcess())

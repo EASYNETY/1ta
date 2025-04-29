@@ -1,6 +1,7 @@
-"use client"
+// app/(authenticated)/profile/page.tsx
 
 "use client"
+
 
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -13,7 +14,7 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { User, AlertCircle, ShoppingCart } from "lucide-react"
+import { User, AlertCircle, ShoppingCart, CalendarIcon } from "lucide-react"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -22,7 +23,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+
 import { Calendar } from "@/components/ui/calendar"
 import { useRouter } from "next/navigation"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -53,18 +54,31 @@ export default function ProfilePage() {
     const [isOnboarding, setIsOnboarding] = useState(false)
 
     useEffect(() => {
-        setIsOnboarding(user ? !isProfileComplete(user) : false)
+        if (user) {
+            setIsOnboarding(!isProfileComplete(user))
+        }
     }, [user])
+
+    useEffect(() => {
+        if (skipOnboarding && isOnboarding) {
+            router.push("/dashboard")
+        }
+    }, [skipOnboarding, isOnboarding, router])
+
+    // Now we can safely have conditional returns
+    if (!user) {
+        return <div>Loading...</div>
+    }
 
     // Check if this is part of onboarding
     // const isOnboarding = user ? !isProfileComplete(user) : false
     const hasItemsInCart = cart.items.length > 0
 
     // Redirect if onboarding is skipped
-    if (skipOnboarding && isOnboarding) {
-        router.push("/dashboard")
-        return null
-    }
+    // if (skipOnboarding && isOnboarding) {
+    //   router.push("/dashboard")
+    //   return null
+    // }
 
     // Mock class data (in a real app, this would come from an API)
     const classes = [
@@ -85,14 +99,18 @@ export default function ProfilePage() {
         return user?.classId || ""
     }
 
+    if (!user) return null
+
+    const defaultValues: ProfileFormValues = {
+        name: user?.name || "",
+        dateOfBirth: new Date(user?.dateOfBirth || ""),
+        classId: getDefaultClassId(),
+        accountType: "individual", // Default to individual
+    }
+
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
-        defaultValues: {
-            name: user?.name || "",
-            dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth) : undefined,
-            classId: getDefaultClassId(),
-            accountType: "individual", // Default to individual
-        },
+        defaultValues,
     })
 
     const onSubmit = async (data: ProfileFormValues) => {
@@ -146,10 +164,6 @@ export default function ProfilePage() {
             variant: "default",
         })
         router.push("/dashboard")
-    }
-
-    if (!user) {
-        return <div>Loading...</div>
     }
 
     return (

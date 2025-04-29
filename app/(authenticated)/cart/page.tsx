@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
+import { Card } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { removeItem } from "@/features/cart/store/cart-slice"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
@@ -60,9 +60,9 @@ export default function CartPage() {
 
     if (!hasItems) {
         return (
-            <div className="mx-auto py-8 max-w-4xl">
+            <div className="container mx-auto py-8 max-w-4xl">
                 <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
-                <DyraneCard className="p-8 text-center">
+                <Card className="p-8 text-center">
                     <div className="flex flex-col items-center justify-center py-12">
                         <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
                         <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
@@ -71,13 +71,13 @@ export default function CartPage() {
                             <a href="/#courses">Browse Courses</a>
                         </DyraneButton>
                     </div>
-                </DyraneCard>
+                </Card>
             </div>
         )
     }
 
     return (
-        <div className="mx-auto max-w-4xl">
+        <div className="container mx-auto py-8 max-w-4xl">
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
             {!profileComplete && (
@@ -92,7 +92,7 @@ export default function CartPage() {
                     <motion.div className="space-y-4" variants={container} initial="hidden" animate="show">
                         {cart.items.map((item) => (
                             <motion.div key={item.courseId}>
-                                <DyraneCard className="p-4">
+                                <Card className="p-4">
                                     <div className="flex gap-4">
                                         <div className="w-24 h-16 relative bg-muted rounded-md overflow-hidden flex-shrink-0">
                                             {item.image ? (
@@ -129,14 +129,14 @@ export default function CartPage() {
                                             </button>
                                         </div>
                                     </div>
-                                </DyraneCard>
+                                </Card>
                             </motion.div>
                         ))}
                     </motion.div>
                 </div>
 
                 <div>
-                    <DyraneCard className="p-6">
+                    <Card className="p-6">
                         <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
                         <div className="space-y-2 mb-4">
                             <div className="flex justify-between">
@@ -163,7 +163,7 @@ export default function CartPage() {
                                 </>
                             )}
                         </DyraneButton>
-                    </DyraneCard>
+                    </Card>
                 </div>
             </div>
         </div>
