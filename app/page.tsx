@@ -118,7 +118,7 @@ export default function LandingPage() {
               description="We are more than just a school; we're a launchpad into a world of tech possibilities, built on a foundation of excellence and empowerment." />
 
             {/* Grid for Mission & Vision Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mx-auto mb-16 md:mb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 mx-auto mb-16 lg:mb-20">
               {/* Mission Card */}
               <Card
                 title={missionContent.title}

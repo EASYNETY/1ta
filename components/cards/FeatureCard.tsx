@@ -70,6 +70,7 @@ export function Card({
         <motion.div
             className={cn(
                 "relative inline-block align-top rounded-[22px] isolate transition-transform duration-500 ease-[cubic-bezier(0.65,0,0.35,1)] hover:-translate-y-1.5 hover:shadow-xl",
+                'flex items-center justify-center',
                 className
             )}
             onMouseEnter={() => !isModalOpen && setIsHovered(true)}
@@ -77,7 +78,7 @@ export function Card({
             onTouchStart={() => !isModalOpen && setIsHovered(true)}
         >
             {/* Card Container */}
-            <div className="relative w-full min-h-[480px] rounded-[22px] group">
+            <div className="relative w-full min-h-[480px] max-w-[600px] rounded-[22px] group">
                 {/* Background and Overlay */}
                 <div className="absolute inset-0 h-[80%] rounded-[22px] bg-muted/10 backdrop-blur-xs shadow-md z-10"></div>
                 <motion.div
