@@ -10,7 +10,7 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
+
 
 interface BarcodeDialogProps {
     userId: string;
@@ -62,7 +62,7 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
             <Tooltip>
                 <TooltipTrigger asChild>
                     <DialogTrigger asChild>
-                        <div className="flex items-center justify-center p-1 bg-background/85 backdrop-blur-sm rounded cursor-pointer hover:opacity-80 transition-opacity">
+                        <div className="flex items-center justify-center p-1 bg-[#00000000] rounded cursor-pointer hover:opacity-80 transition-opacity">
                             <Barcode
                                 value={userId}
                                 height={20} // Adjusted height for visual balance with padding
@@ -79,14 +79,14 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
             </Tooltip>
 
             {/* Modal content - Styling seems okay, keep background/blur */}
-            <DialogContent className="sm:max-w-[300px] bg-background/85 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+            <DialogContent className="sm:max-w-[300px] bg-[#000000] opacity-85 flex flex-col items-center justify-center p-6">
                 <DialogHeader className="mb-4">
                     <DialogTitle className="text-center text-lg font-medium">Scan User ID</DialogTitle>
                 </DialogHeader>
 
                 {/* This div contains the barcode for download */}
                 {/* Ref is correctly placed here */}
-                <div ref={barcodeRef} className="bg-white p-4 inline-block"> {/* Ensure white background for capture, padding added via class */}
+                <div ref={barcodeRef} className="bg-[#fff] p-4 inline-block"> {/* Ensure white background for capture, padding added via class */}
                     <Barcode
                         value={userId}
                         height={100}
@@ -98,9 +98,9 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
                 </div>
 
                 {/* Use the corrected download handler */}
-                <Button variant="outline" className="mt-4" onClick={handleDownload}>
+                <button  className="mt-4 cursor-pointer" onClick={handleDownload}>
                     Download Barcode
-                </Button>
+                </button>
             </DialogContent>
         </Dialog>
     );
