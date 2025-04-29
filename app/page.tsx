@@ -53,7 +53,7 @@ export default function LandingPage() {
   const visionContent = {
     title: "Our Vision",
     subtitle: "Shaping the Future of Tech in Africa",
-    imageSrc: "/images/vision.jpg",
+    imageSrc: "https://img.freepik.com/free-photo/black-woman-experiencing-virtual-reality-with-vr-headset_53876-137559.jpg?t=st=1745919842~exp=1745923442~hmac=8f8854025973efa823ba857549a70fe3ff1fa013ad4c0225e4e81e97bc847092&w=740",
     imageAlt: "Abstract representation of digital transformation in Africa",
     modalContent: {
       bio: "To shape Africa’s next generation of tech leaders by combining global expertise with local excellence — in a space built for bold ambition and real transformation.",
@@ -114,7 +114,7 @@ export default function LandingPage() {
               description="We are more than just a school; we're a launchpad into a world of tech possibilities, built on a foundation of excellence and empowerment." />
 
             {/* Grid for Mission & Vision Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto mb-16 md:mb-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mx-auto mb-16 md:mb-20">
               {/* Mission Card */}
               <Card
                 title={missionContent.title}
@@ -138,7 +138,7 @@ export default function LandingPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 grid-rows-1">
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 grid-rows-1">
               <FeatureCard
                 icon={<GraduationCap className="h-8 w-8" />}
                 title="Professional Training"
@@ -159,7 +159,7 @@ export default function LandingPage() {
                 title="Conducive Learning Environment"
                 description="Access world-class digital spaces designed for seamless, flexible, and collaborative learning."
               />
-            </div>
+            </div> */}
           </div>
         </section>
 

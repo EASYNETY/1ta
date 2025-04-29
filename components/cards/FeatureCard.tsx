@@ -43,6 +43,8 @@ export function Card({
     const [isHovered, setIsHovered] = React.useState(false);
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const shouldReduceMotion = useReducedMotion();
+    const [isIconHovered, setIsIconHovered] = React.useState(false);
+
 
     // --- Animation Variants ---
     const overlayVariants = {
@@ -66,8 +68,12 @@ export function Card({
 
     const plusIconVariants = {
         initial: { scale: 1, rotate: 0 },
-        hover: { scale: 1.1, rotate: 90, transition: { duration: 0.4, ease: [0.65, 0, 0.35, 1] } }
-    }
+        hover: {
+            scale: 1.05,
+            rotate: 45,
+            transition: { duration: 0.3, ease: [0.65, 0, 0.35, 1] }
+        }
+    };
 
     const modalVariants = {
         hidden: { opacity: 0, y: 15, scale: 0.95 },
@@ -82,9 +88,8 @@ export function Card({
         setIsHovered(false); // Ensure hover state is off when modal opens
     };
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-    };
+    const toggleModal = () => setIsModalOpen(prev => !prev);
+
 
     // Define colors using CSS variables for theme friendliness
     // Make sure these variables (--muted-foreground-rgb, --card-foreground-rgb etc.) are defined in your global CSS or theme setup
@@ -118,10 +123,10 @@ export function Card({
 
                 {/* 2. Dark Hover Overlay */}
                 <motion.div
-                    className="absolute top-0 left-0 h-[80%] w-full origin-top rounded-[22px] bg-black/80 dark:bg-black/70 z-20 pointer-events-none"
+                    className="absolute top-0 left-0 h-[80%] w-full origin-top rounded-[22px] bg-black/80 dark:bg-primary/70 z-20 pointer-events-none"
                     variants={overlayVariants}
                     initial="hidden"
-                    animate={isHovered && !isModalOpen ? "visible" : "hidden"} // Animate based on hover state (only if modal closed)
+                    animate={isHovered ? "visible" : "hidden"} // Animate based on hover state (only if modal closed)
                 />
 
                 {/* 3. Text Area */}
@@ -135,14 +140,17 @@ export function Card({
                     animate={isHovered && !isModalOpen ? "hover" : "initial"}
                     variants={textVariants}
                 >
-                    <h3 className={cn(
-                        "text-lg font-semibold mb-0.5 leading-tight",
+                    <h2 className={cn(
+                        "text-2xl font-semibold mb-0.5 leading-tight",
                         isHovered && !isModalOpen ? "text-white" : "text-foreground", // Ensure title stands out slightly more
                         "text-foreground group-hover:text-white"
                     )}>
                         {title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground"> {/* Subtitle uses the parent's animated color */}
+                    </h2>
+                    <p className={cn(
+                        "text-md text-foreground/50",
+                        isHovered && 'text-white italic', // Italicize on hover
+                    )}> {/* Subtitle uses the parent's animated color */}
                         {subtitle}
                     </p>
                 </motion.div>
@@ -168,26 +176,37 @@ export function Card({
                 {/* 5. Plus Icon Button */}
                 {/* Hide plus button when modal is open using AnimatePresence */}
                 <AnimatePresence>
-                    {!isModalOpen && (
-                        <motion.button
-                            key="plus-button"
-                            className={cn(
-                                "absolute bottom-[-1px] left-1/2 -translate-x-1/2 z-40",
-                                "flex items-center justify-center size-12 rounded-full shadow-lg cursor-pointer",
-                                "bg-black text-white", // Use neutral dark bg
-                                "hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                            )}
-                            aria-label="View details"
-                            onClick={handleOpenModal}
+
+                    <motion.button
+                        key="plus-button"
+                        className={cn(
+                            "absolute bottom-[-1px] left-1/2 -translate-x-1/2 z-40",
+                            "flex items-center justify-center size-12 rounded-full shadow-lg cursor-pointer",
+                            "bg-black text-white",
+                            'animate-[wiggle_0.5s_ease-in-out_infinite]',
+                            "hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        )}
+                        aria-label="Toggle details"
+                        onClick={toggleModal}
+                        onMouseEnter={() => {
+                            setIsIconHovered(true);
+                            setIsModalOpen(true); // open modal on hover in
+                        }}
+                        onMouseLeave={() => {
+                            setIsIconHovered(false);
+                            setIsModalOpen(false); // close modal on hover out
+                        }}
+
+                    >
+                        <motion.div
                             variants={plusIconVariants}
                             initial="initial"
-                            whileHover="hover"
-                            // Exit animation for the button itself
-                            exit={{ scale: 0.8, opacity: 0, transition: { duration: 0.2 } }}
+                            animate={isIconHovered ? "hover" : "initial"}
                         >
                             <Plus size={20} strokeWidth={2.5} />
-                        </motion.button>
-                    )}
+                        </motion.div>
+                    </motion.button>
+
                 </AnimatePresence>
 
                 {/* Modal - Renders conditionally outside the main flow, positioned absolutely */}
@@ -196,59 +215,26 @@ export function Card({
                         <motion.div
                             key="modal-content"
                             className={cn(
-                                "absolute inset-x-4 bottom-4 top-[80px] z-50", // Position within card bounds, adjust top offset
-                                "rounded-[18px] overflow-hidden shadow-xl", // Match image rounding, add shadow
-                                "bg-background/80 dark:bg-neutral-900/85 backdrop-blur-lg border border-border/50" // Dyrane style bg/blur
+                                "absolute inset-0 bottom-0 top-[80px] z-50",
+                                "h-[calc(100%-96px-64px)]", // top+bottom padding removed
+                                "w-auto max-w-none",         // grow horizontally without constraint
+                                "flex flex-col items-center justify-center gap-4 px-6 py-4", // vertical stacking
+                                "rounded-[18px] shadow-xl bg-background/80 backdrop-blur-lg border border-border/50"
                             )}
                             variants={modalVariants}
                             initial="hidden"
                             animate="visible"
                             exit="exit"
+                            onMouseLeave={() => setIsModalOpen(false)}
                         >
-                            {/* Modal Content with internal scroll */}
-                            <div className="relative h-full flex flex-col">
-                                {/* Close Button */}
-                                <button
-                                    className="absolute top-3 right-3 z-50 flex items-center justify-center size-7 rounded-full bg-black/10 hover:bg-black/20 dark:bg-white/10 dark:hover:bg-white/20 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                    onClick={handleCloseModal}
-                                    aria-label="Close details"
-                                >
-                                    <X size={16} strokeWidth={2.5} />
-                                </button>
+                            {/* Icon centered */}
+                            {icon && (
+                                <div className="p-3 w-fit rounded-lg bg-primary/10 text-primary">{icon}</div>
+                            )}
 
-                                {/* Scrollable area for modal text content */}
-                                <ScrollArea className="flex-1 px-5 py-6 pt-12"> {/* Add padding, pt for close button */}
-                                    {/* <h4 className="font-semibold text-base mb-1 text-foreground">
-                                        {modalContent.title || title}
-                                    </h4>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        {modalContent.subtitle || subtitle}
-                                    </p>
-                                    <div className="text-sm text-foreground/90 leading-relaxed space-y-3">
-                                        {typeof modalContent.bio === 'string' ? <p>{modalContent.bio}</p> : modalContent.bio}
-                                    </div> */}
-                                    {/* Optional: Add action buttons or links inside modal */}
-                                    {/* <DyraneButton size="sm" className="mt-6">Learn More</DyraneButton> */}
-                                    <FeatureCard
-                                        icon={icon}
-                                        title={modalContent.subtitle || subtitle}
-                                        description={modalContent.bio as string} // Ensure this is a string
-                                    />
-                                </ScrollArea>
-
-                                {/* Optional: Render social links inside modal footer */}
-                                {links && links.length > 0 && (
-                                    <div className="p-4 border-t border-border/30 flex justify-center items-center gap-4 mt-auto shrink-0">
-                                        {links.map(link => {
-                                            const Icon = link.icon;
-                                            return (
-                                                <Link key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label} className="text-muted-foreground hover:text-primary transition-colors">
-                                                    <Icon size={18} />
-                                                </Link>
-                                            );
-                                        })}
-                                    </div>
-                                )}
+                            {/* Bio Content */}
+                            <div className="text-foreground text-center font-thin italic leading-relaxed tracking-wide text-base px-4 max-w-[42rem]">
+                                {modalContent.bio}
                             </div>
                         </motion.div>
                     )}
