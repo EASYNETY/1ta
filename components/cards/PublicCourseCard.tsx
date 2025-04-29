@@ -141,7 +141,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
             </DyraneCardContent>
 
             {/* Card Footer */}
-            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-500 ease-[cubic-bezier(0.77, 0, 0.175, 1)]">
                 <div className="flex justify-end items-center w-full">
                     <DyraneButton size="sm" variant="secondary" onClick={(e) => { if (onClick) { e.stopPropagation(); onClick(); } else { router.push('/signup'); } }}>
                         <span>View Details</span>
