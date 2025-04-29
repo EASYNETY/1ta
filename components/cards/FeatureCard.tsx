@@ -243,7 +243,7 @@ export function Card({
                             )}
 
                             {/* Bio Content */}
-                            <div className="text-foreground text-center font-light italic leading-relaxed tracking-wide text-base sm:text-lg md:text-xl max-w-[42rem] px-4 sm:px-8">
+                            <div className="text-foreground text-center font-thin italic leading-relaxed tracking-wide text-base sm:text-lg md:text-xl max-w-[42rem] px-4 sm:px-8">
                                 {modalContent.bio}
                             </div>
                         </motion.div>
