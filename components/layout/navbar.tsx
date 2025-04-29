@@ -35,7 +35,7 @@ const navLinks = [
     { href: "#why_us", label: "Why Us" },
     { href: "#courses", label: "Courses" },
     { href: "#testimonials", label: "Testimonials" },
-    { href: "#contact-us", label: "Contact Us" },
+    { href: "#contact_us", label: "Contact Us" },
 ];
 
 // --- Main NavBar Component ---

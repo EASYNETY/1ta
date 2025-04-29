@@ -253,7 +253,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Contact Us / Inquiry CTA */}
-        <section id="contact-us" className="py-24 relative overflow-hidden">
+        <section id="contact_us" className="py-24 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
