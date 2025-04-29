@@ -109,7 +109,7 @@ export function Card({
                             alt={imageAlt || title}
                             fill
                             sizes="(max-width: 768px) 90vw, 33vw"
-                            className="object-cover object-center"
+                            className="object-fit object-center"
                         />
                     </motion.div>
                 </div>
