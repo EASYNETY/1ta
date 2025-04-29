@@ -26,7 +26,7 @@ import { useEffect } from "react"
 import { fetchCourses } from "@/features/courses/store/course-slice"
 import { useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
-import { Envelope, Eye, MapPin, Target, TiktokLogo } from "phosphor-react"
+import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo } from "phosphor-react"
 
 export default function LandingPage() {
 
@@ -295,17 +295,17 @@ export default function LandingPage() {
 
                 {/* Social Links */}
                 <div className="flex items-center justify-center md:justify-start w-full space-x-4 pt-4">
-                  <a href="#" aria-label="Twitter" className="hover:text-primary transition-colors">
-                    <TwitterIcon />
+                  <a href="https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr" aria-label="Facebook" className="hover:text-primary transition-colors">
+                    <FacebookLogo />
                   </a>
-                  <a href="#" aria-label="LinkedIn" className="hover:text-primary transition-colors">
+                  <a href="https://www.linkedin.com/company/1tech-academy/?viewAsMember=true" aria-label="LinkedIn" className="hover:text-primary transition-colors">
                     <LinkedinIcon />
                   </a>
-                  <a href="#" aria-label="Instagram" className="hover:text-primary transition-colors">
+                  <a href="https://www.instagram.com/1tech_academy?igsh=ZmptMDJyemtjZ2lm&utm_source=qr" aria-label="Instagram" className="hover:text-primary transition-colors">
                     <InstagramIcon />
                   </a>
-                  <a href="#" aria-label="Tiktok" className="hover:text-primary transition-colors">
-                    <TiktokLogo size={24} weight="bold"/>
+                  <a href="https://www.tiktok.com/@1tech.academy?_t=ZM-8vuaPPKBpLR&_r=1" aria-label="Tiktok" className="hover:text-primary transition-colors">
+                    <TiktokLogo size={24} weight="bold" />
                   </a>
                 </div>
               </div>

@@ -10,6 +10,7 @@ import { Building2, Github, Linkedin, MapPin, TwitterIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button'; // Using base Button for simplicity, replace with DyraneButton if needed
+import { FacebookLogo, InstagramLogo, TiktokLogo } from 'phosphor-react';
 // Or import DyraneButton if you prefer its effects here:
 // import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
@@ -38,9 +39,10 @@ const footerLinks = {
 };
 
 const socialLinks = [
-    { href: '#', label: 'Twitter', icon: TwitterIcon },
-    { href: '#', label: 'LinkedIn', icon: Linkedin },
-    { href: '#', label: 'GitHub', icon: Github }, // Example
+    { href: 'https://www.linkedin.com/company/1tech-academy/?viewAsMember=true', label: 'LinkedIn', icon: Linkedin },
+    { href: 'https://www.instagram.com/1tech_academy?igsh=ZmptMDJyemtjZ2lm&utm_source=qr', label: 'Instagram', icon: InstagramLogo }, // Example
+    { href: 'https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr', label: 'Facebook', icon: FacebookLogo },
+    { href: 'https://www.tiktok.com/@1tech.academy?_t=ZM-8vuaPPKBpLR&_r=1', label: 'Tiktok', icon: TiktokLogo },
 ];
 
 // --- Main Footer Component ---
