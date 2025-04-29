@@ -3,40 +3,69 @@
 import type { AuthResponse } from "@/features/auth/types/auth-types";
 import type { User } from "@/features/auth/store/auth-slice";
 
+// Define a type for the mock user with password
+type MockUser = {
+	id: string;
+	name: string;
+	email: string;
+	password: string;
+	role: "admin" | "teacher" | "student";
+	dateOfBirth: string | null;
+	classId: string | null;
+	barcodeId: string;
+	guardianId: null;
+	onboardingStatus: "incomplete" | "complete";
+};
+
 // Mock user database
-const users = [
+const users: MockUser[] = [
 	{
 		id: "1",
 		name: "Admin User",
 		email: "admin@example.com",
 		password: "password123",
-		role: "admin" as const,
+		role: "admin",
 		dateOfBirth: "1990-01-01T00:00:00.000Z",
 		classId: "1",
 		barcodeId: "ADMIN-123",
 		guardianId: null,
+		onboardingStatus: "complete",
 	},
 	{
 		id: "2",
 		name: "Teacher User",
 		email: "teacher@example.com",
 		password: "password123",
-		role: "teacher" as const,
+		role: "teacher",
 		dateOfBirth: "1985-01-01T00:00:00.000Z",
 		classId: "1",
 		barcodeId: "TEACHER-123",
 		guardianId: null,
+		onboardingStatus: "complete",
 	},
 	{
 		id: "3",
 		name: "Student User",
 		email: "student@example.com",
 		password: "password123",
-		role: "student" as const,
+		role: "student",
 		dateOfBirth: "2000-01-01T00:00:00.000Z",
 		classId: "1",
 		barcodeId: "STUDENT-123",
 		guardianId: null,
+		onboardingStatus: "complete",
+	},
+	{
+		id: "4",
+		name: "New Student",
+		email: "newstudent@example.com",
+		password: "password123",
+		role: "student",
+		dateOfBirth: null,
+		classId: null,
+		barcodeId: "TEMP-123",
+		guardianId: null,
+		onboardingStatus: "incomplete",
 	},
 ];
 
@@ -65,26 +94,27 @@ export function register(userData: {
 	name: string;
 	email: string;
 	password: string;
-	dateOfBirth: string;
-	classId: string;
-	barcodeId: string;
-	guardianId: null;
+	dateOfBirth?: string;
+	classId?: string;
+	barcodeId?: string;
+	guardianId?: null;
 	cartItems?: any[];
 }): AuthResponse {
 	if (users.some((u) => u.email === userData.email)) {
 		throw new Error("User with this email already exists");
 	}
 
-	const newUser = {
+	const newUser: MockUser = {
 		id: `${users.length + 1}`,
 		name: userData.name,
 		email: userData.email,
 		password: userData.password,
-		role: "student" as const,
-		dateOfBirth: userData.dateOfBirth,
-		classId: userData.classId,
-		barcodeId: userData.barcodeId,
-		guardianId: userData.guardianId,
+		role: "student",
+		dateOfBirth: userData.dateOfBirth || null,
+		classId: userData.classId || null,
+		barcodeId: userData.barcodeId || `TEMP-${Date.now()}`,
+		guardianId: null,
+		onboardingStatus: "incomplete",
 	};
 
 	users.push(newUser);
@@ -119,31 +149,66 @@ export function forgotPassword(payload: { email: string }): {
 		message:
 			"If an account with that email exists, a password reset link has been sent.",
 	};
-
-	// --- Example of simulating an error (uncomment to test error handling) ---
-	// if (payload.email === 'error@example.com') {
-	//     throw new Error("Mock simulation: Failed to send reset email.");
-	// }
-	// return { message: "..." };
 }
 
+export function resetPassword(payload: { token: string; password: string }): {
+	message: string;
+} {
+	console.log(
+		`%c MOCK API: Received reset password request for token: ${payload.token} `,
+		"background: #555; color: #eee"
+	);
 
-export function resetPassword(payload: { token: string; password: string }): { message: string } {
-    console.log(`%c MOCK API: Received reset password request for token: ${payload.token} `, "background: #555; color: #eee");
+	// Simulate token validation
+	if (!payload.token || payload.token === "invalid-mock-token") {
+		throw new Error("Invalid or expired password reset token.");
+	}
 
-    // Simulate token validation
-    if (!payload.token || payload.token === 'invalid-mock-token') {
-        throw new Error("Invalid or expired password reset token.");
-    }
+	// Simulate password complexity check (optional)
+	if (payload.password.length < 8) {
+		throw new Error("Mock Error: Password too short.");
+	}
 
-    // Simulate password complexity check (optional)
-    if (payload.password.length < 8) {
-         throw new Error("Mock Error: Password too short.");
-    }
+	// Simulate finding user by token and updating password (don't actually modify mock users array here unless needed)
+	console.log(
+		`%c MOCK API: Password for token ${payload.token} would be reset. `,
+		"background: #555; color: #eee"
+	);
 
-    // Simulate finding user by token and updating password (don't actually modify mock users array here unless needed)
-    console.log(`%c MOCK API: Password for token ${payload.token} would be reset. `, "background: #555; color: #eee");
+	// Return success message
+	return { message: "Password has been reset successfully." };
+}
 
-    // Return success message
-    return { message: "Password has been reset successfully." };
+// --- New mock functions for profile management ---
+
+export function mockGetMyProfile(): User {
+	// In a real implementation, this would use the token to identify the user
+	// For mock purposes, we'll just return the first user
+	const user = users[3]; // Using the incomplete profile user for testing
+	const { password, ...userWithoutPassword } = user;
+	return userWithoutPassword as User;
+}
+
+export function mockUpdateMyProfile(profileData: Partial<User>): User {
+	// In a real implementation, this would use the token to identify the user
+	// For mock purposes, we'll just update the first user
+	const userIndex = users.findIndex((u) => u.id === "4"); // Using the incomplete profile user for testing
+
+	if (userIndex === -1) {
+		throw new Error("User not found");
+	}
+
+	// Update the user with the new profile data
+	users[userIndex] = {
+		...users[userIndex],
+		...profileData,
+	} as MockUser;
+
+	// If dateOfBirth and classId are provided, mark onboarding as complete
+	if (profileData.dateOfBirth && profileData.classId) {
+		users[userIndex].onboardingStatus = "complete";
+	}
+
+	const { password, ...userWithoutPassword } = users[userIndex];
+	return userWithoutPassword as User;
 }

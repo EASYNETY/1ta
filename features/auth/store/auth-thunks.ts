@@ -1,14 +1,14 @@
 // features/auth/store/auth-thunks.ts
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { post } from "@/lib/api-client";
+import { post, get, put } from "@/lib/api-client";
 import { loginSuccess, loginFailure, loginStart } from "./auth-slice";
-// import { clearCart } from "@/features/cart/store/cart-slice"; // Keep if needed
 import type {
 	AuthResponse,
 	ResetPasswordPayload,
 } from "@/features/auth/types/auth-types";
 import { setCookie } from "nookies"; // Import setCookie
+import type { User } from "./auth-slice";
 
 // Helper function for cookie options (optional, but good practice)
 const getCookieOptions = (maxAgeSeconds?: number) => {
@@ -49,6 +49,9 @@ export const loginThunk = createAsyncThunk(
 				})
 			);
 
+			// Fetch full user profile after login
+			dispatch(fetchUserProfileThunk());
+
 			return response;
 		} catch (error: any) {
 			const errorMessage =
@@ -67,10 +70,10 @@ export const signupThunk = createAsyncThunk(
 			name: string;
 			email: string;
 			password: string;
-			dateOfBirth: string;
-			classId: string;
-			barcodeId: string;
-			guardianId: string | null;
+			dateOfBirth?: string;
+			classId?: string;
+			barcodeId?: string;
+			guardianId?: string | null;
 		},
 		{ dispatch, getState }
 	) => {
@@ -108,6 +111,38 @@ export const signupThunk = createAsyncThunk(
 		}
 	}
 );
+
+// --- Fetch User Profile Thunk ---
+export const fetchUserProfileThunk = createAsyncThunk<
+	Partial<User>,
+	void,
+	{ rejectValue: string }
+>("auth/fetchUserProfile", async (_, { rejectWithValue }) => {
+	try {
+		const response = await get<User>("/users/me");
+		return response;
+	} catch (error: any) {
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to fetch user profile";
+		return rejectWithValue(errorMessage);
+	}
+});
+
+// --- Update User Profile Thunk ---
+export const updateUserProfileThunk = createAsyncThunk<
+	Partial<User>,
+	Partial<User>,
+	{ rejectValue: string }
+>("auth/updateUserProfile", async (profileData, { rejectWithValue }) => {
+	try {
+		const response = await put<User>("/users/me", profileData);
+		return response;
+	} catch (error: any) {
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to update user profile";
+		return rejectWithValue(errorMessage);
+	}
+});
 
 // --- Forgot Password Thunk ---
 export const forgotPasswordThunk = createAsyncThunk<

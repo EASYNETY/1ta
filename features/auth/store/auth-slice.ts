@@ -2,12 +2,18 @@
 
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { destroyCookie } from "nookies"; // Import destroyCookie
+import { fetchUserProfileThunk, updateUserProfileThunk } from "./auth-thunks";
 
 export interface User {
 	id: string;
 	name: string;
 	email: string;
 	role: "admin" | "teacher" | "student";
+	dateOfBirth?: string | null;
+	classId?: string | null;
+	barcodeId?: string | null;
+	guardianId?: string | null;
+	onboardingStatus?: "incomplete" | "complete";
 }
 
 export interface AuthState {
@@ -17,6 +23,7 @@ export interface AuthState {
 	isInitialized: boolean;
 	isLoading: boolean;
 	error: string | null;
+	skipOnboarding: boolean;
 }
 
 const initialState: AuthState = {
@@ -26,13 +33,13 @@ const initialState: AuthState = {
 	isInitialized: false,
 	isLoading: false,
 	error: null,
+	skipOnboarding: false,
 };
 
 export const authSlice = createSlice({
 	name: "auth",
 	initialState,
 	reducers: {
-		// ... (loginStart, loginSuccess, loginFailure, updateUser, initializeAuth remain the same) ...
 		loginStart: (state) => {
 			state.isLoading = true;
 			state.error = null;
@@ -59,6 +66,7 @@ export const authSlice = createSlice({
 			state.isAuthenticated = false;
 			state.isInitialized = true;
 			state.error = null;
+			state.skipOnboarding = false;
 
 			// --- Clear cookies on logout ---
 			if (typeof window !== "undefined") {
@@ -75,6 +83,53 @@ export const authSlice = createSlice({
 		initializeAuth: (state) => {
 			state.isInitialized = true;
 		},
+		setOnboardingStatus: (
+			state,
+			action: PayloadAction<"incomplete" | "complete">
+		) => {
+			if (state.user) {
+				state.user.onboardingStatus = action.payload;
+			}
+		},
+		skipOnboardingProcess: (state) => {
+			state.skipOnboarding = true;
+		},
+		resetSkipOnboarding: (state) => {
+			state.skipOnboarding = false;
+		},
+	},
+	extraReducers: (builder) => {
+		// Handle fetchUserProfileThunk
+		builder.addCase(fetchUserProfileThunk.pending, (state) => {
+			state.isLoading = true;
+			state.error = null;
+		});
+		builder.addCase(fetchUserProfileThunk.fulfilled, (state, action) => {
+			state.isLoading = false;
+			if (state.user) {
+				state.user = { ...state.user, ...action.payload };
+			}
+		});
+		builder.addCase(fetchUserProfileThunk.rejected, (state, action) => {
+			state.isLoading = false;
+			state.error = action.error.message || "Failed to fetch user profile";
+		});
+
+		// Handle updateUserProfileThunk
+		builder.addCase(updateUserProfileThunk.pending, (state) => {
+			state.isLoading = true;
+			state.error = null;
+		});
+		builder.addCase(updateUserProfileThunk.fulfilled, (state, action) => {
+			state.isLoading = false;
+			if (state.user) {
+				state.user = { ...state.user, ...action.payload };
+			}
+		});
+		builder.addCase(updateUserProfileThunk.rejected, (state, action) => {
+			state.isLoading = false;
+			state.error = action.error.message || "Failed to update user profile";
+		});
 	},
 });
 
@@ -85,6 +140,9 @@ export const {
 	logout,
 	updateUser,
 	initializeAuth,
+	setOnboardingStatus,
+	skipOnboardingProcess,
+	resetSkipOnboarding,
 } = authSlice.actions;
 
 export default authSlice.reducer;

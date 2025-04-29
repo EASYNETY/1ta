@@ -1,3 +1,5 @@
+// features/auth/components/auth-provider.tsx
+
 "use client";
 
 import type React from "react";
@@ -5,6 +7,8 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 // Only need useAppSelector to READ the state
 import { useAppSelector } from "@/store/hooks";
+import { isProfileComplete } from "../utils/profile-completeness";
+import { selectSkipPricing } from "@/features/pricing/store/pricing-slice";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -14,9 +18,11 @@ const publicRoutes = ["/", "/login", "/signup", "/forgot-password", "/reset-pass
 
 export function AuthProvider({ children }: AuthProviderProps) {
   // Read state managed by useAuth and reducers
-  const { isAuthenticated, isInitialized, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isInitialized, user, skipOnboarding } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
+  const cart = useAppSelector((state) => state.cart)
+  const skipPricing = useAppSelector(selectSkipPricing)
 
   // State to track whether component has mounted (client-side only)
   const [isMounted, setIsMounted] = useState(false);
@@ -61,8 +67,43 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
     }
+
+    // If authenticated but profile is incomplete and not skipped, redirect to profile page
+    // unless already on the profile page or pricing page
+    if (
+      user &&
+      !isProfileComplete(user) &&
+      !skipOnboarding &&
+      pathname !== "/profile" &&
+      !pathname.startsWith("/pricing")
+    ) {
+      router.push("/profile")
+      return
+    }
+
+    // If profile is complete and there are items in the cart, redirect to pricing
+    // unless already on the pricing page or payment page or user has skipped pricing
+    if (
+      user &&
+      isProfileComplete(user) &&
+      cart.items.length > 0 &&
+      !skipPricing &&
+      !pathname.startsWith("/pricing") &&
+      !pathname.startsWith("/payment") &&
+      !pathname.startsWith("/cart")
+    ) {
+      router.push("/pricing")
+    }
     console.log("AuthProvider: Route check complete, no redirect needed.");
-  }, [isAuthenticated, isInitialized, pathname, router, user, isMounted]);
+  }, [isAuthenticated,
+    isInitialized,
+    pathname,
+    router,
+    user,
+    isMounted,
+    cart.items.length,
+    skipPricing,
+    skipOnboarding,]);
 
   // Show loading spinner ONLY while waiting for useAuth
   if (!isInitialized || !isMounted) {

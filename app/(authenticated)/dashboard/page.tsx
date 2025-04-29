@@ -10,7 +10,8 @@ import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { motion } from "framer-motion"
 import LoadingState from "./loading"
-import { AbstractBackground } from "@/components/layout/abstract-background"
+import { OnboardingStatusCard } from "@/components/onboarding/onboarding-status"
+import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 
 export default function DashboardPage() {
     const { user } = useAppSelector((state) => state.auth)
@@ -35,6 +36,9 @@ export default function DashboardPage() {
         show: { opacity: 1, y: 0 },
     }
 
+    // Check if profile is complete
+    const profileComplete = isProfileComplete(user)
+
     return (
         <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -43,6 +47,9 @@ export default function DashboardPage() {
                     <Link href="/courses">Browse Courses</Link>
                 </DyraneButton>
             </div>
+
+            {/* Show onboarding card if profile is incomplete */}
+            {!profileComplete && <OnboardingStatusCard />}
 
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="mb-4">

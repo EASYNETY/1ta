@@ -2,97 +2,170 @@
 
 "use client"
 
-import { useAppSelector } from "@/store/hooks"
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { ShoppingCart, Trash2, ArrowRight } from "lucide-react"
-import Link from "next/link"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { removeItem } from "@/features/cart/store/cart-slice"
+import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
+import { Trash2, ShoppingCart, ArrowRight } from "lucide-react"
 import Image from "next/image"
-import { formatCurrency } from "@/lib/utils"
-import { CartItem } from "@/features/cart/store/cart-slice"
+import { motion, type Variants } from "framer-motion"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
 
 export default function CartPage() {
-    const { items, total } = useAppSelector((state) => state.cart)
+    const { user } = useAppSelector((state) => state.auth)
+    const cart = useAppSelector((state) => state.cart)
+    const dispatch = useAppDispatch()
+    const router = useRouter()
+    const [isProcessing, setIsProcessing] = useState(false)
 
-    if (items.length === 0) {
+    const profileComplete = user ? isProfileComplete(user) : false
+    const hasItems = cart.items.length > 0
+
+    const handleRemoveItem = (courseId: string) => {
+        dispatch(removeItem(courseId))
+    }
+
+    const handleCheckout = () => {
+        setIsProcessing(true)
+
+        // If profile is not complete, redirect to profile page
+        if (!profileComplete) {
+            router.push("/profile")
+            return
+        }
+
+        // If profile is complete, redirect to pricing
+        router.push("/pricing")
+    }
+
+    // Define proper motion variants
+    const container: Variants = {
+        hidden: { opacity: 0 },
+        show: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+            },
+        },
+    }
+
+    const item: Variants = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 },
+    }
+
+    if (!hasItems) {
         return (
-            <DyraneCard className="w-full">
-                <CardHeader>
-                    <CardTitle className="flex items-center">
-                        <ShoppingCart className="mr-2 h-5 w-5" />
-                        Your Cart
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center py-12">
-                    <p className="text-muted-foreground mb-6">Your cart is empty</p>
-                    <DyraneButton asChild>
-                        <Link href="/courses">Browse Courses</Link>
-                    </DyraneButton>
-                </CardContent>
-            </DyraneCard>
+            <div className="mx-auto py-8 max-w-4xl">
+                <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+                <DyraneCard className="p-8 text-center">
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
+                        <p className="text-muted-foreground mb-6">Browse our courses and add some to your cart.</p>
+                        <DyraneButton asChild>
+                            <a href="/#courses">Browse Courses</a>
+                        </DyraneButton>
+                    </div>
+                </DyraneCard>
+            </div>
         )
     }
 
     return (
-        <DyraneCard className="w-full">
-            <CardHeader>
-                <CardTitle className="flex items-center">
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    Your Cart ({items.length} {items.length === 1 ? "item" : "items"})
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {items.map((item: CartItem) => (
-                        <div key={item.courseId} className="flex items-start space-x-4">
-                            <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border">
-                                {item.image ? (
-                                    <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-muted">
-                                        <span className="text-xs text-muted-foreground">No image</span>
+        <div className="mx-auto py-8 max-w-4xl">
+            <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+
+            {!profileComplete && (
+                <Alert className="mb-6">
+                    <AlertTitle>Complete Your Profile</AlertTitle>
+                    <AlertDescription>Please complete your profile before proceeding to checkout.</AlertDescription>
+                </Alert>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <motion.div className="space-y-4" variants={container} initial="hidden" animate="show">
+                        {cart.items.map((item) => (
+                            <motion.div key={item.courseId}>
+                                <DyraneCard className="p-4">
+                                    <div className="flex gap-4">
+                                        <div className="w-24 h-16 relative bg-muted rounded-md overflow-hidden flex-shrink-0">
+                                            {item.image ? (
+                                                <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-muted">
+                                                    <ShoppingCart className="h-6 w-6 text-muted-foreground" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-medium">{item.title}</h3>
+                                            {item.instructor && (
+                                                <p className="text-sm text-muted-foreground">Instructor: {item.instructor}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col items-end justify-between">
+                                            <div className="text-right">
+                                                {item.discountPrice ? (
+                                                    <>
+                                                        <p className="line-through text-sm text-muted-foreground">₦{item.price}</p>
+                                                        <p className="font-medium">₦{item.discountPrice}</p>
+                                                    </>
+                                                ) : (
+                                                    <p className="font-medium">₦{item.price}</p>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => handleRemoveItem(item.courseId)}
+                                                className="text-muted-foreground hover:text-destructive transition-colors"
+                                                aria-label="Remove item"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                )}
+                                </DyraneCard>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </div>
+
+                <div>
+                    <DyraneCard className="p-6">
+                        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                        <div className="space-y-2 mb-4">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>₦{cart.total}</span>
                             </div>
-                            <div className="flex-1">
-                                <h3 className="font-medium">{item.title}</h3>
-                                <p className="text-sm text-muted-foreground">{item.instructor}</p>
-                                <div className="mt-1 flex items-center text-sm">
-                                    <span className="font-medium text-primary">{item.price}</span>
-                                </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tax</span>
+                                <span>₦0</span>
                             </div>
-                            <button
-                                className="text-muted-foreground hover:text-destructive transition-colors"
-                                aria-label={`Remove ${item.title} from cart`}
-                            >
-                                <Trash2 className="h-5 w-5" />
-                            </button>
+                            <Separator className="my-2" />
+                            <div className="flex justify-between font-medium">
+                                <span>Total</span>
+                                <span>₦{cart.total}</span>
+                            </div>
                         </div>
-                    ))}
+                        <DyraneButton className="w-full mt-4" onClick={handleCheckout} disabled={isProcessing}>
+                            {isProcessing ? (
+                                "Processing..."
+                            ) : (
+                                <>
+                                    Proceed to Checkout
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </>
+                            )}
+                        </DyraneButton>
+                    </DyraneCard>
                 </div>
-
-                <Separator className="my-6" />
-
-                <div className="space-y-1.5">
-                    <div className="flex justify-between">
-                        <span className="font-medium">Total</span>
-                        <span className="font-bold">{formatCurrency(total)}</span>
-                    </div>
-                </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-2">
-                <DyraneButton className="w-full" asChild>
-                    <Link href="/checkout">
-                        Proceed to Checkout
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                </DyraneButton>
-                <DyraneButton variant="outline" className="w-full" asChild>
-                    <Link href="/courses">Continue Shopping</Link>
-                </DyraneButton>
-            </CardFooter>
-        </DyraneCard>
+            </div>
+        </div>
     )
 }

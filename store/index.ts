@@ -1,3 +1,5 @@
+// store/index.ts
+
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import {
 	persistStore,
@@ -16,6 +18,7 @@ import authReducer from "@/features/auth/store/auth-slice";
 import courseReducer from "@/features/courses/store/course-slice";
 import cartReducer from "@/features/cart/store/cart-slice";
 import publicCourseReducer from "@/features/public-course/store/public-course-slice";
+import pricingReducer from "@/features/pricing/store/pricing-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -48,7 +51,7 @@ const persistConfig = {
 	key: "1techacademy-root",
 	storage: storage, // Use appropriate storage based on client/SSR
 	version: 1,
-	whitelist: ["auth", "cart"],
+	whitelist: ["auth", "cart", "pricing"],
 };
 
 // --- Root Reducer ---
@@ -57,6 +60,7 @@ const rootReducer = combineReducers({
 	courses: courseReducer,
 	cart: cartReducer,
 	public_courses: publicCourseReducer,
+	pricing: pricingReducer,
 });
 
 // --- Persisted Reducer ---

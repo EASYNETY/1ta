@@ -1,16 +1,30 @@
-// components/layout/auth/layout.tsx
+// app/(authenticated)/layout.tsx
+
+'use client'
+
 import type React from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/auth/app-sidebar";
 import { Header } from "@/components/layout/auth/header";
 import { MobileNav } from "@/components/layout/auth/mobile-nav";
 import { AbstractBackground } from "@/components/layout/abstract-background";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useEffect } from "react";
+import { fetchUserProfileThunk } from "@/features/auth/store/auth-thunks";
 
 export default function AuthenticatedLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    const dispatch = useAppDispatch()
+    const { user, isAuthenticated, isInitialized } = useAppSelector((state) => state.auth)
+    useEffect(() => {
+        // Fetch user profile data when authenticated
+        if (isAuthenticated && user) {
+            dispatch(fetchUserProfileThunk())
+        }
+    }, [isAuthenticated, dispatch])
     return (
         // Set defaultOpen to false here
         <SidebarProvider defaultOpen={false}>
