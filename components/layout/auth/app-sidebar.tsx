@@ -206,7 +206,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                 {cart.items.length > 0 && (
                     <SidebarGroup className={cn(!isSidebarOpen && "hidden")}> {/* Hide cart section when collapsed */}
                         {isSidebarOpen && <SidebarGroupLabel>Selected Courses</SidebarGroupLabel>}
-                        <SidebarGroupContent>
+                        <SidebarGroupContent className="flex flex-col gap-2">
                             {cart.items.map((item: CartItem) => (
                                 <CourseMiniCard key={item.courseId} item={item} className="hover:bg-muted rounded-md" onClick={handlecartClick} />
                             ))}
