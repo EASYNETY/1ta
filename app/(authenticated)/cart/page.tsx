@@ -22,7 +22,7 @@ export default function CartPage() {
     const cart = useAppSelector((state) => state.cart)
     const dispatch = useAppDispatch()
     const router = useRouter()
-    const toast = useToast()
+    const { toast } = useToast()
     const [isProcessing, setIsProcessing] = useState(false)
 
     const profileComplete = user ? isProfileComplete(user) : false
