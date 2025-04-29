@@ -26,7 +26,7 @@ import { useEffect } from "react"
 import { fetchCourses } from "@/features/courses/store/course-slice"
 import { useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
-import { Envelope, Eye, Target } from "phosphor-react"
+import { Envelope, Eye, Target, TiktokLogo } from "phosphor-react"
 
 export default function LandingPage() {
 
@@ -257,35 +257,36 @@ export default function LandingPage() {
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
-            <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-10 items-start">
+            <div className="mx-auto grid md:grid-cols-2 gap-10 items-start">
               {/* Left: Header + Info */}
               <div className="space-y-8">
                 {/* Section Heading */}
                 <SectionHeader
                   title="Ready to Get in Touch?"
                   description="Fill out the form or reach out directly through any of the following methods."
+                  className="text-center md:text-left"
                 />
 
                 {/* Contact Info */}
-                <div className="space-y-3 text-sm text-muted-foreground">
-                  <div className="flex items-start gap-2">
-                    <Building className="mt-0.5" />
+                <div className="space-y-3 text-muted-foreground w-full flex flex-col items-center md:items-start text-center md:text-left">
+                  <div className="flex items-center md: items-start gap-2">
+                    <Building size={20} />
                     <span><strong>Address:</strong> 123 Tech Lane, Innovation City</span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Phone className="mt-0.5" />
+                  <div className="flex items-center md: items-start gap-2">
+                    <Phone size={20} />
                     <span>
                       <strong>Phone:</strong>{" "}
-                      <a href="tel:+1234567890" className="underline">
+                      <a href="tel:+1234567890">
                         +1 (234) 567-890
                       </a>
                     </span>
                   </div>
-                  <div className="flex items-start gap-2">
-                    <Envelope className="mt-0.5" />
+                  <div className="flex items-center md: items-start gap-2">
+                    <Envelope size={20} />
                     <span>
                       <strong>Email:</strong>{" "}
-                      <a href="mailto:hello@ontech.io" className="underline">
+                      <a href="mailto:hello@ontech.io">
                         hello@ontech.io
                       </a>
                     </span>
@@ -293,7 +294,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Social Links */}
-                <div className="flex items-center space-x-4 pt-4">
+                <div className="flex items-center justify-center md:justify-start w-full space-x-4 pt-4">
                   <a href="#" aria-label="Twitter" className="hover:text-primary transition-colors">
                     <TwitterIcon />
                   </a>
@@ -302,6 +303,9 @@ export default function LandingPage() {
                   </a>
                   <a href="#" aria-label="Instagram" className="hover:text-primary transition-colors">
                     <InstagramIcon />
+                  </a>
+                  <a href="#" aria-label="Tiktok" className="hover:text-primary transition-colors">
+                    <TiktokLogo />
                   </a>
                 </div>
               </div>
