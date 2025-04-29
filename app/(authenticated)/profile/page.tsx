@@ -14,7 +14,7 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { User, AlertCircle, ShoppingCart, CalendarIcon } from "lucide-react"
+import { User, AlertCircle, GraduationCap, CalendarIcon } from "lucide-react"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -173,7 +173,7 @@ export default function ProfilePage() {
 
             {hasItemsInCart && (
                 <Alert className="mb-6 bg-primary/10 border-primary/20">
-                    <ShoppingCart className="h-4 w-4 text-primary" />
+                    <GraduationCap className="h-4 w-4 text-primary" />
                     <AlertTitle>Course Selected</AlertTitle>
                     <AlertDescription>
                         You have {cart.items.length} course{cart.items.length > 1 ? "s" : ""} in your cart. Complete your profile to
@@ -336,7 +336,7 @@ export default function ProfilePage() {
                         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                             {hasItemsInCart && (
                                 <DyraneButton variant="outline" onClick={() => router.push("/cart")} className="w-full sm:w-auto">
-                                    <ShoppingCart className="mr-2 h-4 w-4" />
+                                    <GraduationCap className="mr-2 h-4 w-4" />
                                     View Selected Courses
                                 </DyraneButton>
                             )}

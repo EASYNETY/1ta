@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { PlusCircle, ShoppingCart, Student, BookOpen } from "phosphor-react";
+import { PlusCircle, GraduationCap, Student, BookOpen } from "phosphor-react";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
@@ -61,7 +61,7 @@ function getActionForPath(path: string) {
         return {
             label: "Checkout",
             href: "/cart/checkout",
-            icon: <ShoppingCart size={20} weight="bold" />
+            icon: <GraduationCap size={20} weight="bold" />
         };
     }
     if (path.startsWith("/assignments")) {

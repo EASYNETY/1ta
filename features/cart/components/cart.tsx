@@ -39,7 +39,7 @@ export function Cart({ onClose }: CartProps) {
         return (
             <DyraneCard className="w-full">
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                    <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+                    <GraduationCapclassName="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-lg font-medium mb-2">Your cart is empty</p>
                     <p className="text-muted-foreground mb-6">Add courses to your cart to get started</p>
                     <DyraneButton asChild>

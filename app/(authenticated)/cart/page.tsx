@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { removeItem } from "@/features/cart/store/cart-slice"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
-import { Trash2, ShoppingCart, ArrowRight } from "lucide-react"
+import { Trash2, GraduationCap, ArrowRight } from "lucide-react"
 import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -71,7 +71,7 @@ export default function CartPage() {
                 <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
                 <Card className="p-8 text-center">
                     <div className="flex flex-col items-center justify-center py-12">
-                        <ShoppingCart className="h-16 w-16 text-muted-foreground mb-4" />
+                        <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" />
                         <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
                         <p className="text-muted-foreground mb-6">Browse our courses and add some to your cart.</p>
                         <DyraneButton asChild>
@@ -106,7 +106,7 @@ export default function CartPage() {
                                                 <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-muted">
-                                                    <ShoppingCart className="h-6 w-6 text-muted-foreground" />
+                                                    <GraduationCap className="h-6 w-6 text-muted-foreground" />
                                                 </div>
                                             )}
                                         </div>

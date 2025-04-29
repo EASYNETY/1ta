@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { Check, X, ShoppingCart } from "lucide-react"
+import { Check, X, GraduationCap } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -139,7 +139,7 @@ export default function PricingPage() {
 
             {hasItemsInCart && (
                 <Alert className="mb-8 bg-primary/10 border-primary/20">
-                    <ShoppingCart className="h-4 w-4 text-primary" />
+                    <GraduationCap className="h-4 w-4 text-primary" />
                     <AlertTitle>Course Selected</AlertTitle>
                     <AlertDescription className="flex flex-col">
                         <div>

@@ -8,7 +8,7 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, BookOpen, Users, Clock, ShoppingCart } from "lucide-react"
+import { ArrowLeft, BookOpen, Users, Clock, GraduationCap } from "lucide-react"
 import Link from "next/link"
 import { post } from "@/lib/api-client"
 
@@ -264,7 +264,7 @@ export default function CourseDetailPage() {
                       onClick={handleAddToCart}
                       disabled={isAddingToCart}
                     >
-                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      <GraduationCap className="mr-2 h-4 w-4" />
                       Add to Cart
                     </DyraneButton>
                   </>
@@ -276,7 +276,7 @@ export default function CourseDetailPage() {
               ) : (
                 <>
                   <DyraneButton className="w-full" onClick={handleAddToCart} disabled={isAddingToCart}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    <GraduationCap className="mr-2 h-4 w-4" />
                     Add to Cart
                   </DyraneButton>
                   <DyraneButton variant="outline" className="w-full" asChild>

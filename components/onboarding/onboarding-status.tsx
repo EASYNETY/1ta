@@ -3,7 +3,7 @@
 "use client"
 
 import Link from "next/link"
-import { AlertCircle, ShoppingCart } from "lucide-react"
+import { AlertCircle, GraduationCap } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
@@ -44,7 +44,7 @@ export function OnboardingStatusCard() {
                     {hasItemsInCart && (
                         <DyraneButton asChild size="sm" variant="outline">
                             <Link href="/cart">
-                                <ShoppingCart className="mr-2 h-4 w-4" />
+                                <GraduationCap className="mr-2 h-4 w-4" />
                                 View Cart ({cart.items.length})
                             </Link>
                         </DyraneButton>
