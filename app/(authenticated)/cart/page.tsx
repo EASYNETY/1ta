@@ -14,6 +14,7 @@ import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
 
 export default function CartPage() {
     const { user } = useAppSelector((state) => state.auth)
@@ -34,10 +35,14 @@ export default function CartPage() {
 
         // If profile is not complete, redirect to profile page
         if (!profileComplete) {
+            toast({
+                title: "Profile Incomplete",
+                description: "Please complete your profile before proceeding to checkout.",
+                variant: "default",
+            })
             router.push("/profile")
             return
         }
-
         // If profile is complete, redirect to pricing
         router.push("/pricing")
     }
