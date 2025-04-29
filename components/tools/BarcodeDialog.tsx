@@ -26,29 +26,34 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
     const barcodeRef = useRef<HTMLDivElement>(null);
 
     const handleDownload = () => {
-        const el = barcodeRef.current;
-        if (!el) {
-            console.error("Barcode element ref not found.");
+        const elementToCapture = barcodeRef.current;
+        if (!elementToCapture) {
+            console.error("Barcode element ref is not attached.");
+            // Optionally: Show error to user (e.g., using a toast notification)
             return;
         }
 
-        // No need to manually change style here anymore
+        console.log("Attempting to capture element:", elementToCapture);
 
-        // Use html2canvas options to fix background issue and improve quality
-        html2canvas(el, {
-            backgroundColor: '#ffffff', // Explicitly set background for canvas rendering
-            scale: 2, // Optional: Render at higher scale for better resolution
-            // You might need other options depending on specific CSS issues
-            // logging: true, // Enable logging for debugging if needed
+        html2canvas(elementToCapture, {
+            backgroundColor: '#ffffff', // Explicitly set background for canvas
+            scale: 2, // Increase resolution
+            logging: true, // Enable logging from html2canvas for debugging
+            onclone: (clonedDoc) => {
+                // Optional: You could try to modify the cloned document here
+                // before rendering if needed, but usually not necessary with explicit styles.
+                console.log("Document cloned for canvas rendering.");
+            }
         }).then((canvas) => {
+            console.log("Canvas generated successfully.");
             const link = document.createElement('a');
             link.download = `barcode-${userId}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-            // No need to restore background color here
+            console.log("Download initiated.");
         }).catch(err => {
-            console.error("Error generating barcode image:", err);
-            // Add user feedback here (e.g., toast notification)
+            console.error("Error during html2canvas generation:", err);
+            // Optionally: Show error to user
         });
     };
 
