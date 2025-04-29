@@ -11,6 +11,7 @@ import { ShoppingCart, Trash2, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { formatCurrency } from "@/lib/utils"
+import { CartItem } from "@/features/cart/store/cart-slice"
 
 export default function CartPage() {
     const { items, total } = useAppSelector((state) => state.cart)
@@ -44,7 +45,7 @@ export default function CartPage() {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {items.map((item) => (
+                    {items.map((item: CartItem) => (
                         <div key={item.courseId} className="flex items-start space-x-4">
                             <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-md border">
                                 {item.image ? (

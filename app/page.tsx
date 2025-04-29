@@ -5,7 +5,7 @@
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { ArrowRight, Fingerprint, Brain, Video, BarChart3, LayoutGrid, MessageCircle, GraduationCap, BadgeCheck, Users, Home } from "lucide-react"
+import { ArrowRight, Fingerprint, Brain, Video, BarChart3, LayoutGrid, MessageCircle, GraduationCap, BadgeCheck, Users, Home, Telescope } from "lucide-react"
 import { TestimonialCarousel } from "@/components/landing/testimonial-carousel"
 import { FeatureCard } from "@/components/landing/feature-card"
 import { ComparisonGrid } from "@/components/landing/comparison-grid"
@@ -25,6 +25,8 @@ import { NodeTestimonialSection } from "@/components/landing/node-testimonial-se
 import { useEffect } from "react"
 import { fetchCourses } from "@/features/courses/store/course-slice"
 import { useAppDispatch } from "@/store/hooks"
+import { Card } from "@/components/cards/FeatureCard"
+import { Eye, Target } from "phosphor-react"
 
 export default function LandingPage() {
 
@@ -35,6 +37,29 @@ export default function LandingPage() {
   useEffect(() => {
     dispatch(fetchCourses())
   }, [])
+
+  // Define content for Mission and Vision FeatureCards
+  const missionContent = {
+    title: "Our Mission",
+    subtitle: "Empowering Africa's Tech Leaders",
+    imageSrc: "https://images.pexels.com/photos/7689856/pexels-photo-7689856.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1", // Replace with relevant image
+    imageAlt: "Students collaborating on a tech project",
+    modalContent: {
+      bio: "At 1Tech Academy, our mission is to empower Africa’s next generation of tech leaders by delivering world-class, hands-on training through in-person mentorship, global expertise, and an uncompromising standard of excellence.",
+    },
+    icon: Target,
+  };
+
+  const visionContent = {
+    title: "Our Vision",
+    subtitle: "Shaping the Future of Tech in Africa",
+    imageSrc: "/images/vision.jpg",
+    imageAlt: "Abstract representation of digital transformation in Africa",
+    modalContent: {
+      bio: "To shape Africa’s next generation of tech leaders by combining global expertise with local excellence — in a space built for bold ambition and real transformation.",
+    },
+    icon: Eye,
+  };
 
   return (
     <div className="flex flex-col min-h-screen w-full relative">
@@ -85,9 +110,33 @@ export default function LandingPage() {
 
           <div className="px-4 md:px-6 relative text-center">
             <SectionHeader
-              title="About Us"
-              description="We are a launchpad into a world of endless possibilities. Our mission is simple: to empower students like you with the digital skills needed to thrive in today’s fast-paced, tech-driven world."
-            />
+              title="About 1Tech Academy"
+              description="We are more than just a school; we're a launchpad into a world of tech possibilities, built on a foundation of excellence and empowerment." />
+
+            {/* Grid for Mission & Vision Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto mb-16 md:mb-20">
+              {/* Mission Card */}
+              <Card
+                title={missionContent.title}
+                subtitle={missionContent.subtitle}
+                imageSrc={missionContent.imageSrc}
+                imageAlt={missionContent.imageAlt}
+                modalContent={missionContent.modalContent}
+                // Pass Icon if FeatureCard supports it, otherwise render icon separately
+                icon={<missionContent.icon className="h-8 w-8" />} // Example if prop exists
+                className="h-full" // Ensure cards try to match height
+              />
+              {/* Vision Card */}
+              <Card
+                title={visionContent.title}
+                subtitle={visionContent.subtitle}
+                imageSrc={visionContent.imageSrc}
+                imageAlt={visionContent.imageAlt}
+                modalContent={visionContent.modalContent}
+                icon={<visionContent.icon className="h-8 w-8" />} // Example if prop exists
+                className="h-full"
+              />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 grid-rows-1">
               <FeatureCard
