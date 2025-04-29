@@ -14,13 +14,15 @@ import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
+
 
 export default function CartPage() {
     const { user } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
     const dispatch = useAppDispatch()
     const router = useRouter()
+    const toast = useToast()
     const [isProcessing, setIsProcessing] = useState(false)
 
     const profileComplete = user ? isProfileComplete(user) : false
