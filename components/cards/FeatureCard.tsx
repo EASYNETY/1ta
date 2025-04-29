@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { EyeClosed, Plus } from "lucide-react"; // Example Icon
+import { CircleX, Plus } from "lucide-react"; // Example Icon
 import { useReducedMotion } from "framer-motion"; // Respect reduced motion
 import { cn } from "@/lib/utils"; // Utility for conditional class names
 
@@ -145,8 +145,8 @@ export function Card({
                             exit="exit"
                             onMouseLeave={() => setIsModalOpen(false)}
                         >
-                            <div className="absolute top-4 right-6 cursor-pointer" onClick={() => setIsModalOpen(false)}>
-                                <EyeClosed size={24} strokeWidth={2} />
+                            <div className="absolute bottom-8 right-8 cursor-pointer hover:text-primary" onClick={() => setIsModalOpen(false)}>
+                                <CircleX size={32} strokeWidth={2} />
                             </div>
                             {icon && <div className="p-3 w-fit rounded-lg bg-primary/10 text-primary">{icon}</div>}
                             <div className="text-foreground  text-center font-thin italic leading-relaxed tracking-wide text-base max-w-[42rem] px-4 sm:px-8">
