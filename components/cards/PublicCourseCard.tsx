@@ -1,0 +1,149 @@
+"use client"
+import Image from "next/image" // Keep Image for fallback
+// import Link from "next/link" // Link might not be needed if button handles action
+import { useRouter } from "next/navigation"
+import { Clock, Layers, PlayCircle, FileQuestion, CheckCircle, Users } from "lucide-react"
+import {
+    DyraneCard,
+    DyraneCardContent,
+    DyraneCardFooter,
+} from "@/components/dyrane-ui/dyrane-card"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/utils"
+
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { addItem } from "@/features/cart/store/cart-slice"
+import { useToast } from "@/hooks/use-toast"
+import { AbstractBackground } from "../layout/abstract-background"
+import { PublicCourse } from "@/features/public-course/types/public-course-interface"
+
+interface PublicCourseCardProps {
+    course: PublicCourse
+    className?: string
+    onClick?: () => void
+    isModal?: boolean
+}
+
+// Component to render either Video or Fallback Image
+const CourseMediaPreview = ({ course }: { course: PublicCourse }) => {
+    // Use video if URL exists, otherwise use placeholder image
+    if (course.previewVideoUrl) {
+        return (
+            <video
+                key={course.previewVideoUrl} // Add key to force re-render if URL changes
+                src={course.previewVideoUrl}
+                muted
+                playsInline
+                preload="metadata" // Attempt to load first frame info
+                disablePictureInPicture
+                // DO NOT ADD 'controls' or 'autoPlay'
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            // Optional: Add poster="/placeholder.svg" if you want placeholder while video loads metadata
+            // poster={course.image}
+            />
+        );
+    }
+
+    // Fallback to placeholder image
+    return (
+        <Image
+            src={course.image || "/placeholder.svg"} // Use course.image as defined in interface
+            alt={course.title}
+            fill
+            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            priority={!course.previewVideoUrl} // Prioritize if it's the only thing showing
+        />
+    );
+};
+
+
+export function PublicCourseCard({ course, className, onClick, isModal = false }: PublicCourseCardProps) {
+    const router = useRouter()
+    const dispatch = useAppDispatch()
+    const { isAuthenticated } = useAppSelector((state) => state.auth)
+    const cartItems = useAppSelector((state) => state.cart.items)
+    const isAlreadyInCart = cartItems.some((item) => item.courseId === course.id)
+    const { toast } = useToast()
+
+    const levelBadgeColor = (level?: string) => { /* ... color logic ... */
+        switch (level) { case "Beginner": return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-300/50 dark:border-green-700/50"; case "Intermediate": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-300/50 dark:border-yellow-700/50"; case "Advanced": return "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-300/50 dark:border-red-700/50"; default: return "bg-muted text-muted-foreground border-border"; }
+    }
+
+    const handleEnrollNow = () => { /* ... cart logic ... */
+        if (isAlreadyInCart) { toast({ title: "Already Selected", description: `${course.title} is already in your list.`, variant: "default" }); } else { dispatch(addItem({ courseId: course.id, title: course.title, price: course.priceUSD, discountPrice: course.discountPriceUSD, image: course.image, instructor: course.instructor.name, }),); toast({ title: "Course Selected", description: `${course.title} has been added to your list.`, variant: "success" }); } if (!isAuthenticated) { router.push("/signup"); } else { router.push("/cart"); }
+    }
+
+    // --- MODAL VIEW ---
+    if (isModal) {
+        return (
+            <div className="relative">
+                <AbstractBackground className="opacity-90 dark:opacity-80" />
+                <div className="relative z-10 max-h-[90vh] overflow-y-auto bg-background/85 backdrop-blur-sm rounded-xl xl:max-h-[80vh]">
+                    {/* *** MODIFIED: Use CourseMediaPreview for video/image *** */}
+                    <div className="relative w-full aspect-video bg-muted"> {/* Added bg-muted as backdrop */}
+                        <CourseMediaPreview course={course} />
+                        {course.level && (<Badge variant="outline" className={cn("absolute top-4 right-4 backdrop-blur-sm bg-background/70", levelBadgeColor(course.level))}>{course.level}</Badge>)}
+                    </div>
+                    {/* *** END MODIFICATION *** */}
+
+                    <div className="w-full flex flex-col h-full">
+                        <div className="p-6 overflow-y-auto flex-grow">
+                            {/* ... Rest of Modal Content (Title, Stats, Tabs, etc.) ... */}
+                            <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
+                            {course.subtitle && <p className="text-muted-foreground mb-4">{course.subtitle}</p>}
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm"> <span className="inline-flex items-center"><Layers className="size-4 mr-2 text-muted-foreground" />{course.lessonCount} lessons</span> {course.totalVideoDuration && (<span className="inline-flex items-center"><Clock className="size-4 mr-2 text-muted-foreground" />{course.totalVideoDuration}</span>)} </div>
+                            <Tabs defaultValue="overview" className="w-full">
+                                <TabsList className="mb-4 grid w-full grid-cols-3"> <TabsTrigger value="overview" className="hover:bg-background/50 cursor-pointer">Overview</TabsTrigger> <TabsTrigger value="curriculum" className="hover:bg-background/50 cursor-pointer">Curriculum</TabsTrigger> <TabsTrigger value="instructor" className="hover:bg-background/50 cursor-pointer">Instructor</TabsTrigger> </TabsList>
+                                <TabsContent value="overview" className="space-y-6 text-sm"> <div> <h3 className="font-semibold mb-2 text-base">Description</h3> <div className="text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: course.description || "" }} /> </div> {course.learningOutcomes && course.learningOutcomes.length > 0 && (<div><h3 className="font-semibold mb-2 text-base">What You'll Learn</h3><ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">{course.learningOutcomes.map((outcome, index) => (<li key={index} className="flex items-start"><CheckCircle className="size-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" /><span>{outcome}</span></li>))}</ul></div>)} {course.prerequisites && course.prerequisites.length > 0 && (<div><h3 className="font-semibold mb-2 text-base">Prerequisites</h3><ul className="list-disc pl-5 space-y-1 text-muted-foreground">{course.prerequisites.map((prereq, index) => (<li key={index}>{prereq}</li>))}</ul></div>)} </TabsContent>
+                                <TabsContent value="curriculum"> {course.modules && course.modules.length > 0 ? (<div className="space-y-4"> {course.modules.map((module, index) => (<div key={index} className="border rounded-md overflow-hidden"> <div className="p-3 bg-muted/50 flex justify-between items-center border-b"><h4 className="font-medium text-sm">{module.title}</h4><span className="text-xs text-muted-foreground flex-shrink-0 ml-4">{module.duration}</span></div> {module.lessons && module.lessons.length > 0 && (<ul className="p-3 text-sm space-y-1.5"> {module.lessons.map((lesson, lessonIndex) => (<li key={lessonIndex} className="flex items-center text-muted-foreground text-xs"> {lesson.duration.includes('quiz') ? (<FileQuestion className="size-3.5 mr-2 flex-shrink-0 text-blue-500" />) : (<PlayCircle className="size-3.5 mr-2 flex-shrink-0 text-green-500" />)} <span>{lesson.title}</span> </li>))} </ul>)} </div>))} </div>) : (<p className="text-muted-foreground text-sm">Curriculum details not available.</p>)} </TabsContent>
+                                <TabsContent value="instructor"> <div className="flex items-center space-x-4"> <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden"><Users className="h-8 w-8 text-muted-foreground" /></div> <div><h3 className="font-semibold">{course.instructor.name}</h3>{course.instructor.title && (<p className="text-sm text-muted-foreground">{course.instructor.title}</p>)}</div> </div> </TabsContent>
+                            </Tabs>
+                        </div>
+                        {/* Modal Footer */}
+                        <div className="p-6 border-t flex justify-end items-center mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm">
+                            <DyraneButton size="lg" onClick={handleEnrollNow}>
+                                {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enroll Now</span>)}
+                            </DyraneButton>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    // --- REGULAR CARD VIEW ---
+    return (
+        <DyraneCard
+            className={cn("flex flex-col h-full overflow-hidden group", className)}
+            cardClassName="flex flex-col h-full"
+            layout
+            onClick={onClick}
+            style={{ cursor: onClick ? "pointer" : "default" }}
+        >
+            {/* *** MODIFIED: Use CourseMediaPreview for video/image *** */}
+            <div className="aspect-[16/10] relative overflow-hidden bg-muted"> {/* Added bg-muted as backdrop */}
+                <CourseMediaPreview course={course} />
+                {course.level && (<Badge variant="outline" className={cn("absolute top-2 right-2 backdrop-blur-sm bg-background/70 text-xs px-1.5 py-0.5", levelBadgeColor(course.level))}>{course.level}</Badge>)}
+            </div>
+            {/* *** END MODIFICATION *** */}
+
+            {/* Card Content */}
+            <DyraneCardContent className="flex-1 p-4 space-y-2">
+                <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1 h-10"><span className={onClick ? "group-hover:text-primary transition-colors" : ""}>{course.title}</span></h3>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"> <span className="inline-flex items-center"><Layers className="size-3.5 mr-1" />{course.lessonCount} lessons</span> {course.totalVideoDuration && (<span className="inline-flex items-center"><Clock className="size-3.5 mr-1" />{course.totalVideoDuration}</span>)} </div>
+            </DyraneCardContent>
+
+            {/* Card Footer */}
+            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="flex justify-end items-center w-full">
+                    <DyraneButton size="sm" variant="secondary" onClick={(e) => { if (onClick) { e.stopPropagation(); onClick(); } else { router.push('/signup'); } }}>
+                        <span>View Details</span>
+                    </DyraneButton>
+                </div>
+            </DyraneCardFooter>
+        </DyraneCard>
+    )
+}

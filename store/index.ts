@@ -15,6 +15,7 @@ import { setCookie, parseCookies } from "nookies";
 import authReducer from "@/features/auth/store/auth-slice";
 import courseReducer from "@/features/courses/store/course-slice";
 import cartReducer from "@/features/cart/store/cart-slice";
+import publicCourseReducer from "@/features/public-course/store/public-course-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -55,6 +56,7 @@ const rootReducer = combineReducers({
 	auth: authReducer,
 	courses: courseReducer,
 	cart: cartReducer,
+	public_courses: publicCourseReducer,
 });
 
 // --- Persisted Reducer ---

@@ -18,6 +18,7 @@ import {
 	forgotPassword as mockForgotPassword,
 	resetPassword as mockResetPassword,
 } from "@/data/mock-auth-data";
+import { getPublicMockCourses } from "@/data/public-mock-course-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -130,6 +131,9 @@ async function handleMockRequest<T>(
 	// --- Courses
 	if (endpoint === "/courses" && method === "get") {
 		return (await getMockCourses()) as unknown as T;
+	}
+	if (endpoint === "/public_courses" && method === "get") {
+		return (await getPublicMockCourses()) as unknown as T;
 	}
 
 	const courseSlugMatch = endpoint.match(/^\/courses\/slug\/([\w-]+)$/);
