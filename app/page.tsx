@@ -27,6 +27,8 @@ import { fetchCourses } from "@/features/courses/store/course-slice"
 import { useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
 import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo } from "phosphor-react"
+import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
+import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
 
 export default function LandingPage() {
 
@@ -237,18 +239,40 @@ export default function LandingPage() {
 
         <SectionDivider />
 
-        {/* Why Choose Us */}
+        {/* === UPDATED Why Choose Us Section === */}
         <section id="why_us" className="py-24 relative overflow-hidden">
-          <AbstractBackground className="opacity-90 dark:opacity-80" />
+          <AbstractBackground className="opacity-60 dark:opacity-50" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Why Choose Us"
-              description="See how 1TechAcademy compares to traditional learning management systems."
+              title="Why Choose 1Tech Academy"
+              description="Discover what makes us the premier choice for your tech journey."
             />
 
-            <ComparisonGrid />
+            {/* Static Cards: Who We Are & What We Do */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 max-w-5xl mx-auto mb-16 md:mb-24">
+              {/* **** Use imported data **** */}
+              <FeatureCard
+                icon={whoWeAreFeatureData.icon}
+                title={whoWeAreFeatureData.title}
+                description={whoWeAreFeatureData.description}
+              />
+              <FeatureCard
+                icon={whatWeDoFeatureData.icon}
+                title={whatWeDoFeatureData.title}
+                description={whatWeDoFeatureData.description}
+              />
+            </div>
+
+            {/* Dynamic Slideshow: Why We Stand Out */}
+            <SectionHeader
+              title="Key Advantages"
+              description="What sets our programs apart."
+            />
+            {/* **** Slideshow component imports its own data **** */}
+            <StandOutSlideshowSimple />
           </div>
         </section>
+        {/* === END UPDATED Why Choose Us Section === */}
 
         <SectionDivider />
 
@@ -296,7 +320,7 @@ export default function LandingPage() {
                 {/* Social Links */}
                 <div className="flex items-center justify-center md:justify-start w-full space-x-4 pt-4">
                   <a href="https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr" aria-label="Facebook" className="hover:text-primary transition-colors">
-                    <FacebookLogo size={24} weight="bold"/>
+                    <FacebookLogo size={24} weight="bold" />
                   </a>
                   <a href="https://www.linkedin.com/company/1tech-academy/?viewAsMember=true" aria-label="LinkedIn" className="hover:text-primary transition-colors">
                     <LinkedinIcon />
