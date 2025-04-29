@@ -3,6 +3,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { destroyCookie } from "nookies"; // Import destroyCookie
 import { fetchUserProfileThunk, updateUserProfileThunk } from "./auth-thunks";
+import { addAuthExtraReducers } from "./auth-extra-reducers";
 
 export interface User {
 	id: string;
@@ -99,38 +100,8 @@ export const authSlice = createSlice({
 		},
 	},
 	extraReducers: (builder) => {
-		// Handle fetchUserProfileThunk
-		builder.addCase(fetchUserProfileThunk.pending, (state) => {
-			state.isLoading = true;
-			state.error = null;
-		});
-		builder.addCase(fetchUserProfileThunk.fulfilled, (state, action) => {
-			state.isLoading = false;
-			if (state.user) {
-				state.user = { ...state.user, ...action.payload };
-			}
-		});
-		builder.addCase(fetchUserProfileThunk.rejected, (state, action) => {
-			state.isLoading = false;
-			state.error = action.error.message || "Failed to fetch user profile";
-		});
-
-		// Handle updateUserProfileThunk
-		builder.addCase(updateUserProfileThunk.pending, (state) => {
-			state.isLoading = true;
-			state.error = null;
-		});
-		builder.addCase(updateUserProfileThunk.fulfilled, (state, action) => {
-			state.isLoading = false;
-			if (state.user) {
-				state.user = { ...state.user, ...action.payload };
-			}
-		});
-		builder.addCase(updateUserProfileThunk.rejected, (state, action) => {
-			state.isLoading = false;
-			state.error = action.error.message || "Failed to update user profile";
-		});
-	},
+		addAuthExtraReducers(builder);
+	}
 });
 
 export const {
