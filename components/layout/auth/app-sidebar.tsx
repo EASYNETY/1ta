@@ -40,6 +40,7 @@ import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Unco
 import { ThemeToggle } from "@/providers/theme-provider";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { RootState } from "@/store";
+import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 
 // --- Define Nav Item Type ---
 export interface NavItem {
@@ -82,7 +83,7 @@ export const secondaryNavItems: NavItem[] = [
 export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas" | "none" }) {
     const pathname = usePathname();
     const router = useRouter()
-    const { user } = useAppSelector((state) => state.auth);
+    const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const cart = useAppSelector((state) => state.cart);
     const hasItems = cart.items.length > 0;
     const dispatch = useAppDispatch();
@@ -233,6 +234,11 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                     isSidebarOpen ? "flex-row items-center justify-between" : "flex-col items-center" // Adjust layout based on state
                 )}>
                     {/* {mounted && isSidebarOpen && <ThemeToggle />} */}
+                    {/* Barcode Section */}
+                    {isAuthenticated && user?.id && isSidebarOpen && (
+                        <BarcodeDialog userId={user.id} lineColor="#C99700" />
+                    )}
+
                     <DyraneButton
                         onClick={handleLogout}
                         variant={'destructive'}
