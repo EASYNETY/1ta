@@ -59,11 +59,11 @@ export default function ProfilePage() {
         }
     }, [user])
 
-    useEffect(() => {
-        if (skipOnboarding && isOnboarding) {
-            router.push("/dashboard")
-        }
-    }, [skipOnboarding, isOnboarding, router])
+    // useEffect(() => {
+    //     if (skipOnboarding && isOnboarding) {
+    //         router.push("/dashboard")
+    //     }
+    // }, [skipOnboarding, isOnboarding, router])
 
     // Now we can safely have conditional returns
     if (!user) {
