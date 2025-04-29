@@ -267,7 +267,7 @@ export default function LandingPage() {
 
             {/* Dynamic Slideshow: Why We Stand Out */}
             <SectionHeader
-              title="Key Advantages"
+              title="Why We Stand Out "
               description="What sets our programs apart."
             />
             {/* **** Slideshow component imports its own data **** */}
