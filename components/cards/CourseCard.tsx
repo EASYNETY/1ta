@@ -242,16 +242,18 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                         </div>
 
                         <div className="p-6 border-t flex justify-between items-center mt-auto">
-                            <div>
-                                {course.discountPriceUSD && (
-                                    <span className="text-sm text-muted-foreground line-through mr-2">
-                                        {renderNairaPrice(nairaAmount)}
-                                    </span>
-                                )}
-                                <div className="text-xl font-bold text-primary h-5">
-                                    {renderNairaPrice(displayNairaAmount)}
+                            {isAuthenticated &&
+                                <div>
+                                    {course.discountPriceUSD && (
+                                        <span className="text-sm text-muted-foreground line-through mr-2">
+                                            {renderNairaPrice(nairaAmount)}
+                                        </span>
+                                    )}
+                                    <div className="text-xl font-bold text-primary h-5">
+                                        {renderNairaPrice(displayNairaAmount)}
+                                    </div>
                                 </div>
-                            </div>
+                            }
                             <DyraneButton size="lg" onClick={handleEnrollNow}>
                                 {isAlreadyInCart ? (
                                     <span className="text-sm">Selected</span>
@@ -354,19 +356,20 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 </div>
             </DyraneCardContent>
 
-            {isAuthenticated && <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-700 ease-[cubic-bezier(0.77, 0, 0.175, 1)]"> {/* Reduced padding */}
+            <DyraneCardFooter className="p-4 pt-3 mt-auto border-t border-border/30 hidden group-hover:inline transition-all duration-700 ease-[cubic-bezier(0.77, 0, 0.175, 1)]"> {/* Reduced padding */}
                 <div className="flex justify-between items-end w-full gap-2">
                     {/* Price */}
-                    <div className="flex flex-col text-left">
-                        {course.discountPriceUSD && (
-                            <span className="text-xs text-muted-foreground line-through h-4">{renderNairaPrice(nairaAmount)}</span>
-                        )}
-                        <span className="text-sm font-bold text-primary">
-                            {" "}
-                            {/* Slightly smaller price */}
-                            {renderNairaPrice(displayNairaAmount)}
-                        </span>
-                    </div>
+                    {isAuthenticated &&
+                        <div className="flex flex-col text-left">
+                            {course.discountPriceUSD && (
+                                <span className="text-xs text-muted-foreground line-through h-4">{renderNairaPrice(nairaAmount)}</span>
+                            )}
+                            <span className="text-sm font-bold text-primary">
+                                {" "}
+                                {/* Slightly smaller price */}
+                                {renderNairaPrice(displayNairaAmount)}
+                            </span>
+                        </div>}
 
                     {/* Button always visible */}
                     <DyraneButton
@@ -389,7 +392,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                         )}
                     </DyraneButton>
                 </div>
-            </DyraneCardFooter>}
+            </DyraneCardFooter>
         </DyraneCard>
     )
 }
