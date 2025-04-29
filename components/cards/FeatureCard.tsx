@@ -71,15 +71,26 @@ export function Card({
         hover: {
             scale: 1.05,
             rotate: 45,
-            transition: { duration: 0.2, ease: [0.65, 0, 0.35, 1] }
+            transition: { duration: 0.3, ease: [0.65, 0, 0.35, 1] }
         }
     };
 
     const modalVariants = {
-        hidden: { opacity: 0, y: 15, scale: 0.95 },
-        visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: MotionTokens.ease.subtle_easeInOut } },
-        exit: { opacity: 0, y: 10, scale: 0.95, transition: { duration: 0.3, ease: MotionTokens.ease.easeIn } }
-    }
+        hidden: { opacity: 0, y: 20, scale: 0.98 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: { duration: 0.4, ease: [0.65, 0, 0.35, 1] }
+        },
+        exit: {
+            opacity: 0,
+            y: 10,
+            scale: 0.95,
+            transition: { duration: 0.3, ease: [0.65, 0, 0.35, 1] }
+        }
+    };
+
 
     // --- Handlers ---
     const handleOpenModal = (e: React.MouseEvent) => {
@@ -182,7 +193,7 @@ export function Card({
                         className={cn(
                             "absolute bottom-[-6px] left-1/2 -translate-x-1/2 z-40",
                             "flex items-center justify-center size-16 rounded-full shadow-lg cursor-pointer",
-                            "bg-black text-white",
+                            "bg-background text-white",
                             "hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         )}
                         aria-label="Toggle details"
@@ -232,7 +243,7 @@ export function Card({
                             )}
 
                             {/* Bio Content */}
-                            <div className="text-foreground text-center font-thin italic leading-relaxed tracking-wide text-base px-4 max-w-[42rem]">
+                            <div className="text-foreground text-center font-light italic leading-relaxed tracking-wide text-base sm:text-lg md:text-xl max-w-[42rem] px-4 sm:px-8">
                                 {modalContent.bio}
                             </div>
                         </motion.div>
