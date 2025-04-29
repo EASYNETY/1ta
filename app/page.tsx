@@ -297,14 +297,14 @@ export default function LandingPage() {
                 <div className="space-y-3 text-muted-foreground w-full flex flex-col items-center md:items-start text-center md:text-left">
                   <div className="flex items-center md: items-start gap-2">
                     <MapPin size={20} />
-                    <span><strong>Address:</strong> 123 Tech Lane, Innovation City</span>
+                    <span><strong>Address:</strong> 17 Aje Street, Sabo Yaba Lagos.</span>
                   </div>
                   <div className="flex items-center md: items-start gap-2">
                     <Phone size={20} />
                     <span>
                       <strong>Phone:</strong>{" "}
-                      <a href="tel:+1234567890">
-                        +1 (234) 567-890
+                      <a href="tel:+2347074693513">
+                        +2347074693513
                       </a>
                     </span>
                   </div>
@@ -312,8 +312,8 @@ export default function LandingPage() {
                     <Envelope size={20} />
                     <span>
                       <strong>Email:</strong>{" "}
-                      <a href="mailto:hello@ontech.io">
-                        hello@ontech.io
+                      <a href="mailto:info@1techacademy.com">
+                        info@1techacademy.com
                       </a>
                     </span>
                   </div>
