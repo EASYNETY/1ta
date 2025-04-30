@@ -22,7 +22,7 @@ export default function AuthenticatedLayout({
 
     useEffect(() => {
         // Fetch user profile data when authenticated
-        if (isAuthenticated && user) {
+        if (isAuthenticated && user && isInitialized) {
             dispatch(fetchUserProfileThunk())
         }
     }, [isAuthenticated, dispatch])
