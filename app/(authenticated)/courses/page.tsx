@@ -17,6 +17,8 @@ import { motion } from "framer-motion"
 import { CourseCard } from "@/components/dashboard/course-card"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { CoursesSection } from "@/components/landing/public-course-section"
+import { SectionHeader } from "@/components/layout/section-header"
 
 export default function CoursesPage() {
   const { user } = useAppSelector((state) => state.auth)
@@ -145,7 +147,7 @@ export default function CoursesPage() {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
+        {activeTab !== "all-courses" && <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -186,7 +188,7 @@ export default function CoursesPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </div>}
 
         <TabsContent value="all-courses">
           {status === "loading" ? (
@@ -198,16 +200,9 @@ export default function CoursesPage() {
                 ))}
             </div>
           ) : filteredCourses.length > 0 ? (
-            <motion.div
-              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              variants={container}
-              initial="hidden"
-              animate="show"
-            >
-              {filteredCourses.map((course, index) => (
-                <CourseCard key={course.id} course={course} index={index} />
-              ))}
-            </motion.div>
+            <div className="px-4 md:px-6 relative">
+              <CoursesSection />
+            </div>
           ) : (
             <DyraneCard>
               <CardContent className="flex flex-col items-center justify-center py-12">
