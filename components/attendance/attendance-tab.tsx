@@ -1,4 +1,4 @@
-// compo
+// components/attendance/attendance-tab.tsx
 
 "use client"
 

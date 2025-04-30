@@ -185,7 +185,7 @@ export default function CourseDetailPage() {
                 )
             default:
                 return (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                         <DyraneButton variant="outline" size="sm">
                             <Bookmark className="mr-2 h-4 w-4" />
                             Bookmark
