@@ -45,11 +45,11 @@ export default function PricingPage() {
     const [isProcessing, setIsProcessing] = useState(false)
 
     // If user has skipped pricing, redirect to dashboard
-    useEffect(() => {
-        if (skipPricing) {
-            router.push("/dashboard")
-        }
-    }, [skipPricing, router])
+    // useEffect(() => {
+    //     if (skipPricing) {
+    //         router.push("/dashboard")
+    //     }
+    // }, [skipPricing, router])
 
     const handleSelectPlan = (plan: (typeof plans)[0]) => {
         // Select the plan in the state
