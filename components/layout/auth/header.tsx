@@ -126,6 +126,7 @@ export function Header() {
         <header
             className={cn(
                 "sticky top-0 z-50 w-full transition-all duration-300 ease-[cubic-bezier(0.77, 0, 0.175, 1)]", // Use transition-colors, adjusted z-index
+                'bg-background/15 backdrop-blur-xs supports-[backdrop-filter]:bg-background/15',
                 isScrolled && isVisible // Only apply styles when scrolled and visible
                     ? cn("shadow-sm", scrolledHeaderBorder, scrolledHeaderBg, scrolledHeaderBlur, 'opacity-0') // Combined scrolled styles
                     : "border-b border-transparent opacity-100" // Transparent border when at top
