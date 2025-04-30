@@ -1,7 +1,7 @@
 // src/data/mock-auth-data.ts
 
+import { User } from "@/features/auth/store/auth-thunks";
 import type { AuthResponse } from "@/features/auth/types/auth-types";
-import type { User } from "@/features/auth/store/auth-slice";
 
 // Define a type for the mock user with password
 type MockUser = {
