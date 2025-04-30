@@ -1,3 +1,5 @@
+// app/(authenticated)/courses/page.tsx
+
 "use client"
 
 import { useState } from "react"

@@ -1,3 +1,5 @@
+// app/(authenticated)/courses/%5Bid%5D/page.tsx
+
 "use client"
 
 import { useState, useEffect } from "react"

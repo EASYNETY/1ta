@@ -1,3 +1,5 @@
+// components/tools/BarcodeDialog.tsx
+
 import { useRef } from 'react';
 import Barcode from 'react-barcode';
 
