@@ -5,6 +5,7 @@ import { post, get, put } from "@/lib/api-client";
 import { setCookie } from "nookies"; // Import setCookie
 import type {
 	AuthResponse,
+	AuthState,
 	ResetPasswordPayload,
 } from "@/features/auth/types/auth-types";
 import { AUTH_ACTIONS } from "./auth-action-types";
@@ -41,17 +42,30 @@ const getCookieOptions = (maxAgeSeconds?: number) => {
 export const fetchUserProfileThunk = createAsyncThunk<
 	Partial<User>,
 	void,
-	{ rejectValue: string }
->("auth/fetchUserProfile", async (_, { rejectWithValue }) => {
-	try {
-		const response = await get<User>("/users/me");
-		return response;
-	} catch (error: any) {
-		const errorMessage =
-			error instanceof Error ? error.message : "Failed to fetch user profile";
-		return rejectWithValue(errorMessage);
+	{
+		rejectValue: string;
+		state: { auth: AuthState }; // provide state type here
+		condition: boolean;
 	}
-});
+>(
+	"auth/fetchUserProfile",
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await get<User>("/users/me");
+			return response;
+		} catch (error: any) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to fetch user profile";
+			return rejectWithValue(errorMessage);
+		}
+	},
+	{
+		condition: (_, { getState }) => {
+			const { token } = getState().auth;
+			return !!token; // only allow fetch if token exists
+		},
+	}
+);
 
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
@@ -77,9 +91,6 @@ export const loginThunk = createAsyncThunk(
 					token: response.token,
 				},
 			});
-
-			// Fetch full user profile after login
-			dispatch(fetchUserProfileThunk());
 
 			return response;
 		} catch (error: any) {
