@@ -250,7 +250,7 @@ export default function ProfilePage() {
             )}
 
             <div className="grid gap-6">
-                <Card className="bg-card/15 backdrop-blur-xs border-primary/50 shadow-md">
+                <Card className="bg-card/15 backdrop-blur-xs border-primary/10 shadow-md">
                     <CardHeader>
                         <CardTitle>{isOnboarding ? "Complete Your Profile" : "Profile Information"}</CardTitle>
                     </CardHeader>
