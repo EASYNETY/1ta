@@ -1,3 +1,5 @@
+// compo
+
 "use client"
 
 import { useMemo, useState } from "react"
@@ -138,6 +140,15 @@ export function Attendance() {
         }
     }
 
+    const getStatusStyle = (status: any) => {
+        switch (status) {
+            case "present": return "bg-green-100 text-green-800 border-green-300"
+            case "absent": return "bg-red-100 text-red-800 border-red-300"
+            case "late": return "bg-yellow-100 text-yellow-800 border-yellow-300"
+            default: return ""
+        }
+    }
+
     // Calculate attendance statistics
     const calculateAttendanceStats = () => {
         const total = mockStudentAttendance.length
@@ -191,96 +202,60 @@ export function Attendance() {
                 <>
                     {/* Student Attendance View */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <DyraneCard>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Present</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{stats.present} days</div>
-                                <Progress value={stats.presentPercentage} className="h-2 mt-2" />
-                                <p className="text-xs text-muted-foreground mt-1">{stats.presentPercentage.toFixed(1)}% of classes</p>
-                            </CardContent>
-                        </DyraneCard>
-
-                        <DyraneCard>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Absent</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{stats.absent} days</div>
-                                <Progress value={stats.absentPercentage} className="h-2 mt-2 bg-red-100">
-                                    <div className="h-full bg-red-500 rounded-full" style={{ width: `${stats.absentPercentage}%` }} />
-                                </Progress>
-                                <p className="text-xs text-muted-foreground mt-1">{stats.absentPercentage.toFixed(1)}% of classes</p>
-                            </CardContent>
-                        </DyraneCard>
-
-                        <DyraneCard>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium">Late</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{stats.late} days</div>
-                                <Progress value={stats.latePercentage} className="h-2 mt-2 bg-yellow-100">
-                                    <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${stats.latePercentage}%` }} />
-                                </Progress>
-                                <p className="text-xs text-muted-foreground mt-1">{stats.latePercentage.toFixed(1)}% of classes</p>
-                            </CardContent>
-                        </DyraneCard>
+                        {[
+                            { label: "Present", value: stats.present, color: "green", percent: stats.presentPercentage },
+                            { label: "Absent", value: stats.absent, color: "red", percent: stats.absentPercentage },
+                            { label: "Late", value: stats.late, color: "yellow", percent: stats.latePercentage },
+                        ].map(({ label, value, color, percent }) => (
+                            <DyraneCard key={label}>
+                                <CardHeader className="pb-2">
+                                    <CardTitle className="text-sm font-medium">{label}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{value} days</div>
+                                    <Progress value={percent} className={`h-2 mt-2 bg-${color}-100`} />
+                                    <p className="text-xs text-muted-foreground mt-1">{percent.toFixed(1)}% of classes</p>
+                                </CardContent>
+                            </DyraneCard>
+                        ))}
                     </div>
 
                     <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-medium">
-                            {format(currentMonth, "MMMM yyyy")}
-                        </h2>
+                        <h2 className="text-lg font-medium">{format(currentMonth, "MMMM yyyy")}</h2>
                         <div className="flex gap-2">
-                            <DyraneButton variant="outline" size="sm" onClick={goToPreviousMonth}>
-                                Previous
-                            </DyraneButton>
-                            <DyraneButton variant="outline" size="sm" onClick={() => setCurrentMonth(new Date())}>
-                                Today
-                            </DyraneButton>
-                            <DyraneButton variant="outline" size="sm" onClick={goToNextMonth}>
-                                Next
-                            </DyraneButton>
+                            <DyraneButton variant="outline" size="sm" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>Previous</DyraneButton>
+                            <DyraneButton variant="outline" size="sm" onClick={() => setCurrentMonth(new Date())}>Today</DyraneButton>
+                            <DyraneButton variant="outline" size="sm" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>Next</DyraneButton>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-7 gap-2">
                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                            <div key={day} className="text-center font-medium text-sm py-2">
-                                {day}
-                            </div>
+                            <div key={day} className="text-center font-medium text-sm py-2">{day}</div>
                         ))}
 
                         {daysInMonth.map((day, i) => {
                             const status = getAttendanceStatus(day)
+
                             return (
                                 <div
-                                    onClick={() => {
-                                        const hasAttendance = mockClassAttendance.some(a => a.date === format(day, "yyyy-MM-dd"))
-                                        if (hasAttendance) {
-                                            setSelectedDate(day)
-                                            setShowModal(true)
-                                        }
-                                    }}
-
                                     key={i}
                                     className={cn(
-                                        "h-14 p-2 border rounded-md flex flex-col items-center justify-center",
+                                        "h-14 p-2 border rounded-md flex flex-col items-center justify-center text-sm cursor-pointer",
                                         isWeekend(day) ? "bg-muted/50" : "",
-                                        status ? getStatusColor(status) : ""
+                                        getStatusStyle(status)
                                     )}
                                 >
-                                    <span className="text-sm">{format(day, "d")}</span>
-                                    {status && (
-                                        <span className="mt-1">{getStatusIcon(status)}</span>
-                                    )}
+                                    {format(day, "d")}
+                                    {status && <span className="mt-1">{getStatusIcon(status)}</span>}
                                 </div>
                             )
                         })}
                     </div>
-                        <BarcodeDialog userId={user.id} lineColor="#C99700" />
+
+                    <div className="pt-6">
+                        <BarcodeDialog userId={user.id} lineColor="#28A745" />
+                    </div>
                 </>
             ) : (
                 <>

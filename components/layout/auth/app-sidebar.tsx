@@ -27,7 +27,8 @@ import {
     Settings, LogOut, ShoppingCart,
     BarChart3,
     Users,
-    MessageSquare
+    MessageSquare,
+    Award
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
