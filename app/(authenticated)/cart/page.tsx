@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast"
 
 
 export default function CartPage() {
-    const { user } = useAppSelector((state) => state.auth)
+    const { user ,skipOnboarding } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
     const dispatch = useAppDispatch()
     const router = useRouter()
@@ -30,13 +30,18 @@ export default function CartPage() {
 
     const handleRemoveItem = (courseId: string) => {
         dispatch(removeItem(courseId))
+        toast({
+            title: "Item Removed",
+            description: "The item has been removed from your cart.",
+            variant: "default",
+          })
     }
 
     const handleCheckout = () => {
         setIsProcessing(true)
 
         // If profile is not complete, redirect to profile page
-        if (!profileComplete) {
+        if (!profileComplete && !skipOnboarding) {
             toast({
                 title: "Profile Incomplete",
                 description: "Please complete your profile before proceeding to checkout.",
@@ -87,7 +92,7 @@ export default function CartPage() {
         <div className="container mx-auto py-8 max-w-4xl">
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
-            {!profileComplete && (
+            {!profileComplete &&  !skipOnboarding && (
                 <Alert variant="default" className="mb-6 bg-primary/5 border-primary/20">
                     <AlertTitle>Complete Your Profile</AlertTitle>
                     <AlertDescription>Please complete your profile before proceeding to checkout.</AlertDescription>

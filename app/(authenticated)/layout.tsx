@@ -19,12 +19,14 @@ export default function AuthenticatedLayout({
 }) {
     const dispatch = useAppDispatch()
     const { user, isAuthenticated, isInitialized } = useAppSelector((state) => state.auth)
+
     useEffect(() => {
         // Fetch user profile data when authenticated
         if (isAuthenticated && user) {
             dispatch(fetchUserProfileThunk())
         }
     }, [isAuthenticated, dispatch])
+
     return (
         // Set defaultOpen to false here
         <SidebarProvider defaultOpen={false}>

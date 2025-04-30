@@ -53,6 +53,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
 
+    // Role-based access control
+    if (isAuthenticated && user) {
+      // Admin-only routes
+      if (pathname.startsWith("/admin") && user.role !== "admin") {
+        console.log("AuthProvider: Admin route unauthorized. Redirecting to /dashboard")
+        router.push("/dashboard")
+        return
+      }
+
+      // Teacher-only routes
+      if (pathname.startsWith("/teacher") && user.role !== "teacher" && user.role !== "admin") {
+        console.log("AuthProvider: Teacher route unauthorized. Redirecting to /dashboard")
+        router.push("/dashboard")
+        return
+      }
+    }
+
     if (isAuthenticated && (isPublicRoute
     )) {
       console.log("AuthProvider: Redirecting to /dashboard");
@@ -87,7 +104,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       router.push("/pricing")
     }
     console.log("AuthProvider: Route check complete, no redirect needed.");
-  }, [isAuthenticated,
+  }, [
+    isAuthenticated,
     isInitialized,
     pathname,
     router,
@@ -95,7 +113,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isMounted,
     cart.items.length,
     skipPricing,
-    skipOnboarding,]);
+    skipOnboarding,
+  ]);
 
   // Show loading spinner ONLY while waiting for useAuth
   if (!isInitialized || !isMounted) {
@@ -115,7 +134,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
               animation: "spin 1s ease infinite",
               margin: "0 auto",
             }}
-          ></div>
+          >
+
+          </div>
 
           {/* Animation styles */}
           <style jsx global>{`

@@ -2,7 +2,6 @@
 
 "use client"
 
-
 import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,9 +11,9 @@ import { updateUserProfileThunk } from "@/features/auth/store/auth-thunks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { CardContent, CardHeader, CardTitle, CardFooter, Card } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { User, AlertCircle, GraduationCap, CalendarIcon } from "lucide-react"
+import { User, AlertCircle, ShoppingCart, CalendarIcon } from "lucide-react"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -23,10 +22,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-
 import { Calendar } from "@/components/ui/calendar"
 import { useRouter } from "next/navigation"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Textarea } from "@/components/ui/textarea"
+import { GraduationCap } from "phosphor-react"
 
 // Define the schema for profile completion
 const profileSchema = z.object({
@@ -40,6 +40,8 @@ const profileSchema = z.object({
     accountType: z.enum(["individual", "corporate"], {
         required_error: "Please select an account type",
     }),
+    bio: z.string().optional(),
+    phoneNumber: z.string().optional(),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>
@@ -58,27 +60,6 @@ export default function ProfilePage() {
             setIsOnboarding(!isProfileComplete(user))
         }
     }, [user])
-
-    // useEffect(() => {
-    //     if (skipOnboarding && isOnboarding) {
-    //         router.push("/dashboard")
-    //     }
-    // }, [skipOnboarding, isOnboarding, router])
-
-    // Now we can safely have conditional returns
-    if (!user) {
-        return <div>Loading...</div>
-    }
-
-    // Check if this is part of onboarding
-    // const isOnboarding = user ? !isProfileComplete(user) : false
-    const hasItemsInCart = cart.items.length > 0
-
-    // Redirect if onboarding is skipped
-    // if (skipOnboarding && isOnboarding) {
-    //   router.push("/dashboard")
-    //   return null
-    // }
 
     // Mock class data (in a real app, this would come from an API)
     const classes = [
@@ -99,19 +80,33 @@ export default function ProfilePage() {
         return user?.classId || ""
     }
 
-    if (!user) return null
-
     const defaultValues: ProfileFormValues = {
         name: user?.name || "",
-        dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date(), // fallback to today if undefined
+        dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date(),
         classId: getDefaultClassId(),
         accountType: "individual", // Default to individual
+        bio: "",
+        phoneNumber: "",
     }
 
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
         defaultValues,
     })
+
+    // Now we can safely have conditional returns
+    if (!user) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <div className="text-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    <p className="mt-2 text-sm text-muted-foreground">Loading profile...</p>
+                </div>
+            </div>
+        )
+    }
+
+    const hasItemsInCart = cart.items.length > 0
 
     const onSubmit = async (data: ProfileFormValues) => {
         if (!user) return
@@ -136,6 +131,13 @@ export default function ProfilePage() {
                     : "Your profile has been updated successfully.",
                 variant: "success",
             })
+
+            // If this is onboarding and there are items in cart, redirect to pricing
+            if (isOnboarding && hasItemsInCart) {
+                router.push("/pricing?type=" + data.accountType)
+            } else if (isOnboarding) {
+                router.push("/dashboard")
+            }
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "Failed to update profile"
 
@@ -157,6 +159,71 @@ export default function ProfilePage() {
             variant: "default",
         })
         router.push("/dashboard")
+    }
+
+    // Role-specific fields
+    const getRoleSpecificFields = () => {
+        switch (user.role) {
+            case "admin":
+                return (
+                    <div className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="phoneNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone Number</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="Enter your phone number" />
+                                    </FormControl>
+                                    <FormDescription>For emergency contact purposes</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )
+            case "teacher":
+                return (
+                    <div className="space-y-6">
+                        <FormField
+                            control={form.control}
+                            name="bio"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Professional Bio</FormLabel>
+                                    <FormControl>
+                                        <Textarea
+                                            {...field}
+                                            placeholder="Share your professional background and teaching experience"
+                                            className="min-h-[120px]"
+                                        />
+                                    </FormControl>
+                                    <FormDescription>This will be visible to your students</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="phoneNumber"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone Number</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="Enter your phone number" />
+                                    </FormControl>
+                                    <FormDescription>For administrative contact only</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                )
+            case "student":
+            default:
+                return null
+        }
     }
 
     return (
@@ -312,6 +379,9 @@ export default function ProfilePage() {
                                         )}
                                     />
                                 )}
+
+                                {/* Role-specific fields */}
+                                {getRoleSpecificFields()}
 
                                 <div className="space-y-2">
                                     <FormLabel htmlFor="email">Email</FormLabel>
