@@ -2,13 +2,25 @@
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { post, get, put } from "@/lib/api-client";
-import { loginSuccess, loginFailure, loginStart } from "./auth-slice";
+import { setCookie } from "nookies"; // Import setCookie
 import type {
 	AuthResponse,
 	ResetPasswordPayload,
 } from "@/features/auth/types/auth-types";
-import { setCookie } from "nookies"; // Import setCookie
-import type { User } from "./auth-slice";
+import { AUTH_ACTIONS } from "./auth-action-types";
+
+// Define User type here to avoid circular imports
+export interface User {
+	id: string;
+	name: string;
+	email: string;
+	role: "admin" | "teacher" | "student";
+	dateOfBirth?: string | null;
+	classId?: string | null;
+	barcodeId?: string | null;
+	guardianId?: string | null;
+	onboardingStatus?: "incomplete" | "complete";
+}
 
 // Helper function for cookie options (optional, but good practice)
 const getCookieOptions = (maxAgeSeconds?: number) => {
@@ -46,7 +58,7 @@ export const loginThunk = createAsyncThunk(
 	"auth/login",
 	async (credentials: { email: string; password: string }, { dispatch }) => {
 		try {
-			dispatch(loginStart());
+			dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 			const response = await post<AuthResponse>("/auth/login", credentials, {
 				requiresAuth: false,
 			});
@@ -58,12 +70,13 @@ export const loginThunk = createAsyncThunk(
 			setCookie(null, "authUser", JSON.stringify(response.user), cookieOptions); // Store user as JSON string
 			// --- End Cookie Setting ---
 
-			dispatch(
-				loginSuccess({
+			dispatch({
+				type: AUTH_ACTIONS.LOGIN_SUCCESS,
+				payload: {
 					user: response.user,
 					token: response.token,
-				})
-			);
+				},
+			});
 
 			// Fetch full user profile after login
 			dispatch(fetchUserProfileThunk());
@@ -72,7 +85,10 @@ export const loginThunk = createAsyncThunk(
 		} catch (error: any) {
 			const errorMessage =
 				error instanceof Error ? error.message : "Login failed";
-			dispatch(loginFailure(errorMessage));
+			dispatch({
+				type: AUTH_ACTIONS.LOGIN_FAILURE,
+				payload: errorMessage,
+			});
 			throw error;
 		}
 	}
@@ -94,7 +110,7 @@ export const signupThunk = createAsyncThunk(
 		{ dispatch, getState }
 	) => {
 		try {
-			dispatch(loginStart());
+			dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 			const state = getState() as any;
 			const cartItems = state.cart.items;
 			const fullPayload = { ...userData, cartItems };
@@ -110,19 +126,23 @@ export const signupThunk = createAsyncThunk(
 			setCookie(null, "authUser", JSON.stringify(response.user), cookieOptions);
 			// --- End Cookie Setting ---
 
-			dispatch(
-				loginSuccess({
+			dispatch({
+				type: AUTH_ACTIONS.LOGIN_SUCCESS,
+				payload: {
 					user: response.user,
 					token: response.token,
-				})
-			);
+				},
+			});
 			// dispatch(clearCart()); // Keep if needed
 
 			return response;
 		} catch (error: any) {
 			const errorMessage =
 				error instanceof Error ? error.message : "Registration failed";
-			dispatch(loginFailure(errorMessage));
+			dispatch({
+				type: AUTH_ACTIONS.LOGIN_FAILURE,
+				payload: errorMessage,
+			});
 			throw error;
 		}
 	}

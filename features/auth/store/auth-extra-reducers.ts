@@ -1,7 +1,12 @@
 // features/auth/store/auth-extra-reducers.ts
-import { PayloadAction, createAsyncThunk, AsyncThunk } from "@reduxjs/toolkit";
-import { AuthState, User } from "./auth-slice";
-import { fetchUserProfileThunk, updateUserProfileThunk } from "./auth-thunks";// Adjust path based on your structure
+
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { AuthState } from "./auth-slice";
+import {
+	type User,
+	fetchUserProfileThunk,
+	updateUserProfileThunk,
+} from "./auth-thunks";
 
 export const addAuthExtraReducers = (builder: any) => {
 	// FETCH USER PROFILE

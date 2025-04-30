@@ -2,20 +2,8 @@
 
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { destroyCookie } from "nookies"; // Import destroyCookie
-import { fetchUserProfileThunk, updateUserProfileThunk } from "./auth-thunks";
 import { addAuthExtraReducers } from "./auth-extra-reducers";
-
-export interface User {
-	id: string;
-	name: string;
-	email: string;
-	role: "admin" | "teacher" | "student";
-	dateOfBirth?: string | null;
-	classId?: string | null;
-	barcodeId?: string | null;
-	guardianId?: string | null;
-	onboardingStatus?: "incomplete" | "complete";
-}
+import type { User } from "./auth-thunks";
 
 export interface AuthState {
 	user: User | null;
@@ -101,7 +89,7 @@ export const authSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		addAuthExtraReducers(builder);
-	}
+	},
 });
 
 export const {
