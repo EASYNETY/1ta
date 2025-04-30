@@ -18,6 +18,7 @@ import authReducer from "@/features/auth/store/auth-slice";
 import courseReducer from "@/features/courses/store/course-slice";
 import cartReducer from "@/features/cart/store/cart-slice";
 import publicCourseReducer from "@/features/public-course/store/public-course-slice";
+import authCourseReducer from "@/features/auth-course/store/auth-course-slice";
 import pricingReducer from "@/features/pricing/store/pricing-slice";
 
 // --- Custom Cookie Storage ---
@@ -49,9 +50,9 @@ const storage = isClient
 // --- Persist Config ---
 const persistConfig = {
 	key: "1techacademy-root",
-	storage: storage, // Use appropriate storage based on client/SSR
+	storage: storage,
 	version: 1,
-	whitelist: ["auth", "cart", "pricing"],
+	whitelist: ["auth", "cart", "pricing", "public_courses", "auth_courses"],
 };
 
 // --- Root Reducer ---
@@ -60,6 +61,7 @@ const rootReducer = combineReducers({
 	courses: courseReducer,
 	cart: cartReducer,
 	public_courses: publicCourseReducer,
+	auth_courses: authCourseReducer,
 	pricing: pricingReducer,
 });
 
