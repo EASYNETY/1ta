@@ -2,7 +2,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, use } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -62,22 +62,14 @@ export default function ProfilePage() {
     }, [user])
 
     // Mock class data (in a real app, this would come from an API)
-    const classes = [
-        { id: "1", name: "Web Development Fundamentals" },
-        { id: "2", name: "Advanced JavaScript" },
-        { id: "3", name: "React & Next.js Masterclass" },
-        { id: "4", name: "Mobile App Development" },
-        { id: "5", name: "Data Science Basics" },
-    ]
-
-    // Pre-select class from cart if available
+    const classes = useAppSelector((state) => state.auth_courses.courses
+        .map((course) => ({
+            id: course.id,
+            name: course.slug,
+        })))
     const getDefaultClassId = () => {
-        if (cart.items.length > 0) {
-            // This is a simplified example - in a real app, you'd map courseId to classId
-            // or fetch the appropriate class based on the course
-            return "1" // Default to first class for demo
-        }
-        return user?.classId || ""
+        const defaultClass = classes.find((classItem) => classItem.id === user?.classId)
+        return defaultClass ? defaultClass.id : ""
     }
 
     const defaultValues: ProfileFormValues = {
@@ -92,7 +84,47 @@ export default function ProfilePage() {
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
         defaultValues,
+        mode: "onBlur",
     })
+
+    const hasItemsInCart = cart.items.length > 0
+
+    const courseOptions = classes.filter((classItem) => classItem.id === user?.classId)
+
+
+    // Function to determine the default course ID based on context
+    const determineDefaultCourseId = useCallback(() => {
+        // 👇 Prioritize cart items if onboarding and cart is not empty
+        if (isOnboarding && hasItemsInCart) {
+            // Get the courseId from the first item in the cart
+            return cart.items[0]?.courseId || ""; // Safer access
+        }
+        // 👇 Fallback logic (uses courseOptions which includes enrolled courses)
+        if (courseOptions.length > 0) {
+            return courseOptions[0]?.id || ""; // Select first available option otherwise
+        }
+        // 👇 Final fallback if nothing is available
+        return "";
+    }, [isOnboarding, hasItemsInCart, cart.items, courseOptions]); // Dependencies
+
+    // Inside the main ProfilePage component:
+    useEffect(() => {
+        if (user) {
+            // 👇 Calculate the default ID using the logic above
+            const defaultCourseId = determineDefaultCourseId();
+
+            // ... other setValue calls for name, dob, etc. ...
+
+            // Set courseId form value based on the calculated default
+            const currentCourseId = form.getValues("classId");
+            if (currentCourseId !== defaultCourseId && defaultCourseId) {
+                // 👇 Apply the determined default ID (which might be from the cart) to the form
+                form.setValue("classId", defaultCourseId, { shouldValidate: true, shouldDirty: true });
+            } else if (!defaultCourseId && currentCourseId !== "" && courseOptions.length === 0) {
+                form.setValue("classId", "", { shouldValidate: true, shouldDirty: true });
+            }
+        }
+    }, [user, form, courseOptions, isOnboarding, determineDefaultCourseId]); // Dependencies
 
     // Now we can safely have conditional returns
     if (!user) {
@@ -106,7 +138,6 @@ export default function ProfilePage() {
         )
     }
 
-    const hasItemsInCart = cart.items.length > 0
 
     const onSubmit = async (data: ProfileFormValues) => {
         if (!user) return
