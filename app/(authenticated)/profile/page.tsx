@@ -164,7 +164,7 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold mb-6">{isOnboarding ? "Complete Your Profile" : "My Profile"}</h1>
 
             {isOnboarding && (
-                <Alert className="mb-6">
+                <Alert className="mb-6 bg-secondary/10 border-secondary/20">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Profile Completion Required</AlertTitle>
                     <AlertDescription>Please complete your profile to access all features of the platform.</AlertDescription>
@@ -183,7 +183,7 @@ export default function ProfilePage() {
             )}
 
             <div className="grid gap-6">
-                <Card>
+                <Card className="bg-card/15 backdrop-blur-xs border-primary/50 shadow-md">
                     <CardHeader>
                         <CardTitle>{isOnboarding ? "Complete Your Profile" : "Profile Information"}</CardTitle>
                     </CardHeader>
