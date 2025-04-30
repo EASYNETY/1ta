@@ -251,7 +251,11 @@ export default function CourseDetailPage() {
                                                             )}
                                                         </div>
                                                         <span className="flex-1 truncate">{lesson.title}</span>
-                                                        <span className="text-xs text-muted-foreground">{formatDuration(lesson.duration)}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {typeof lesson.duration === 'number' && !isNaN(lesson.duration)
+                                                                ? formatDuration(lesson.duration)
+                                                                : '--'}
+                                                        </span>
                                                     </button>
                                                 ))}
                                             </div>
