@@ -16,6 +16,7 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { CourseCard } from "@/components/dashboard/course-card"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export default function CoursesPage() {
   const { user } = useAppSelector((state) => state.auth)
@@ -139,7 +140,10 @@ export default function CoursesPage() {
       </div>
 
       <Tabs defaultValue="all-courses" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4 overflow-x-auto">{getRoleTabs()}</TabsList>
+        <ScrollArea className="w-full whitespace-nowrap pb-0">
+          <TabsList className="mb-4 overflow-x-auto">{getRoleTabs()}</TabsList>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1">

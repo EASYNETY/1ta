@@ -21,6 +21,7 @@ import { CourseCard } from "@/components/dashboard/course-card"
 import { GradesTab } from "@/components/dashboard/grades-tab"
 import { AssignmentsTab } from "@/components/dashboard/assignments-tab"
 import { ScheduleTab } from "@/components/dashboard/schedule-tab"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
@@ -232,9 +233,12 @@ export default function DashboardPage() {
                     </CardContent>
                 </DyraneCard>
             )}
-
+            {/* Tabs for different sections */}
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4 overflow-x-auto">{getRoleTabs()}</TabsList>
+                <ScrollArea className="w-full whitespace-nowrap pb-0">
+                    <TabsList className="mb-4 overflow-x-auto">{getRoleTabs()}</TabsList>
+                    <ScrollBar orientation="horizontal" />
+                </ScrollArea>
 
                 <TabsContent value="overview">
                     {/* Stats Cards */}
