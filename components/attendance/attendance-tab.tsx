@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { CardHeader, CardTitle, CardContent, Card } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { useAppSelector } from "@/store/hooks"
 import { CalendarIcon, Check, X, AlertCircle, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -253,9 +253,19 @@ export function Attendance() {
                         })}
                     </div>
 
-                    <div className="pt-6">
-                        <BarcodeDialog userId={user.id} lineColor="#28A745" />
-                    </div>
+                    <Card className="w-full max-w-md mx-auto border border-muted shadow-md rounded-2xl">
+                        <CardHeader className="text-center">
+                            <CardTitle className="text-lg font-semibold text-foreground">
+                                Student Barcode
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center gap-4">
+                            <p className="text-muted-foreground text-sm">
+                                Show this to scan your attendance
+                            </p>
+                            <BarcodeDialog userId={user.id} lineColor="gold" />
+                        </CardContent>
+                    </Card>
                 </>
             ) : (
                 <>
