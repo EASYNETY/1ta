@@ -103,7 +103,7 @@ export default function ProfilePage() {
 
     const defaultValues: ProfileFormValues = {
         name: user?.name || "",
-        dateOfBirth: new Date(user?.dateOfBirth || ""),
+        dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth) : new Date(), // fallback to today if undefined
         classId: getDefaultClassId(),
         accountType: "individual", // Default to individual
     }
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                                                                 !field.value && "text-muted-foreground",
                                                             )}
                                                         >
-                                                            {field.value ? (field.value, "PPP") : <span>Select your date of birth</span>}
+                                                            {field.value ? format(field.value, "PPP") : <span>Select your date of birth</span>}
                                                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                         </button>
                                                     </FormControl>
