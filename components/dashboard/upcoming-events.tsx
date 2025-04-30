@@ -7,40 +7,67 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Calendar } from "lucide-react"
 import { useAppSelector } from "@/store/hooks"
 
-// Mock events data - in a real app, this would come from an API
+// Tech-course-based events
 const mockEvents = [
     {
         id: 1,
-        title: "Mathematics Quiz",
-        datetime: "Today, 2:00 PM - 3:00 PM",
-        type: "quiz",
+        title: "React Workshop",
+        datetime: "Today, 4:00 PM - 6:00 PM",
+        type: "workshop",
     },
     {
         id: 2,
-        title: "Physics Lab Session",
-        datetime: "Tomorrow, 10:00 AM - 12:00 PM",
-        type: "lab",
+        title: "Backend API Assessment",
+        datetime: "Tomorrow, 1:00 PM - 2:30 PM",
+        type: "assessment",
     },
     {
         id: 3,
-        title: "History Assignment Due",
-        datetime: "Friday, 11:59 PM",
-        type: "assignment",
+        title: "DevOps Lab",
+        datetime: "Friday, 10:00 AM - 12:00 PM",
+        type: "lab",
     },
     {
         id: 4,
-        title: "Group Project Meeting",
-        datetime: "Saturday, 3:00 PM - 5:00 PM",
+        title: "UI/UX Group Review",
+        datetime: "Saturday, 3:00 PM - 4:00 PM",
         type: "meeting",
     },
 ]
+
+// Role-based action labels
+const roleBasedActions: Record<string, Record<string, string>> = {
+    student: {
+        workshop: "Join",
+        assessment: "Attempt",
+        lab: "Attend",
+        meeting: "Join",
+    },
+    teacher: {
+        workshop: "Host",
+        assessment: "Grade",
+        lab: "Lead",
+        meeting: "Moderate",
+    },
+    staff: {
+        workshop: "Assist",
+        assessment: "Support",
+        lab: "Setup",
+        meeting: "Coordinate",
+    },
+    admin: {
+        workshop: "Manage",
+        assessment: "Oversee",
+        lab: "Audit",
+        meeting: "Review",
+    },
+}
 
 export function UpcomingEvents() {
     const { user } = useAppSelector((state) => state.auth)
 
     if (!user) return null
 
-    // Animation variants
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -55,6 +82,9 @@ export function UpcomingEvents() {
         hidden: { opacity: 0, y: 10 },
         show: { opacity: 1, y: 0 },
     }
+
+    const getActionLabel = (role: string, type: string) =>
+        roleBasedActions[role]?.[type] ?? "View"
 
     return (
         <DyraneCard>
@@ -78,13 +108,7 @@ export function UpcomingEvents() {
                             </div>
                             <div className="ml-auto">
                                 <DyraneButton variant="outline" size="sm">
-                                    {user.role === "student"
-                                        ? event.type === "assignment"
-                                            ? "Submit"
-                                            : "Join"
-                                        : event.type === "assignment"
-                                            ? "Review"
-                                            : "Manage"}
+                                    {getActionLabel(user.role, event.type)}
                                 </DyraneButton>
                             </div>
                         </motion.div>

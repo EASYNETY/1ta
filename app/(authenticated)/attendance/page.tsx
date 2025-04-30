@@ -1,6 +1,6 @@
 // app/(auth)/login/page.tsx
 
-import { Attendance } from "@/components/dashboard/attendance-tab"
+import { Attendance } from "@/components/attendance/attendance-tab"
 
 
 export default function AttendancePage() {
