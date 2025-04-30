@@ -12,7 +12,7 @@ import { updateUserProfileThunk } from "@/features/auth/store/auth-thunks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { User, AlertCircle, GraduationCap, CalendarIcon } from "lucide-react"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
@@ -183,7 +183,7 @@ export default function ProfilePage() {
             )}
 
             <div className="grid gap-6">
-                <DyraneCard>
+                <Card>
                     <CardHeader>
                         <CardTitle>{isOnboarding ? "Complete Your Profile" : "Profile Information"}</CardTitle>
                     </CardHeader>
@@ -357,7 +357,7 @@ export default function ProfilePage() {
                             {isSubmitting ? "Saving..." : isOnboarding ? "Complete Profile" : "Save Changes"}
                         </DyraneButton>
                     </CardFooter>
-                </DyraneCard>
+                </Card>
             </div>
         </div>
     )
