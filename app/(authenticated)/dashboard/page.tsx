@@ -18,7 +18,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 // Import our new modular components
 import { StatsCards } from "@/components/dashboard/stats-cards"
 import { CourseCard } from "@/components/dashboard/course-card"
-import { UpcomingEvents } from "@/components/dashboard/upcoming-events"
+import { GradesTab } from "@/components/dashboard/grades-tab"
+import { AssignmentsTab } from "@/components/dashboard/assignments-tab"
+import { ScheduleTab } from "@/components/dashboard/schedule-tab"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
@@ -294,7 +296,16 @@ export default function DashboardPage() {
                 </TabsContent>
 
                 <TabsContent value="schedule">
-                    <UpcomingEvents />
+                    <ScheduleTab />
+                </TabsContent>
+
+                <TabsContent value="assignments">
+                    {/* Assignments content would go here */}
+                    <AssignmentsTab />
+                </TabsContent>
+
+                <TabsContent value="grades">
+                    <GradesTab />
                 </TabsContent>
 
                 {/* Other tabs content would go here */}
