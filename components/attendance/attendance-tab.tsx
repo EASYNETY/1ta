@@ -82,6 +82,8 @@ export function Attendance() {
     const [currentMonth, setCurrentMonth] = useState(new Date())
     const [searchQuery, setSearchQuery] = useState("")
     const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
+    const [showModal, setShowModal] = useState(false)
+
 
     if (!user) return null
 
@@ -255,6 +257,14 @@ export function Attendance() {
                             const status = getAttendanceStatus(day)
                             return (
                                 <div
+                                    onClick={() => {
+                                        const hasAttendance = mockClassAttendance.some(a => a.date === format(day, "yyyy-MM-dd"))
+                                        if (hasAttendance) {
+                                            setSelectedDate(day)
+                                            setShowModal(true)
+                                        }
+                                    }}
+
                                     key={i}
                                     className={cn(
                                         "h-14 p-2 border rounded-md flex flex-col items-center justify-center",
@@ -270,10 +280,7 @@ export function Attendance() {
                             )
                         })}
                     </div>
-
-                    <div className="flex justify-center mt-4">
-                        <BarcodeDialog userId={user.id || "user123"} triggerLabel="Show your attendance barcode" />
-                    </div>
+                        <BarcodeDialog userId={user.id} lineColor="#C99700" />
                 </>
             ) : (
                 <>
@@ -316,9 +323,16 @@ export function Attendance() {
                                             return (
                                                 <button
                                                     key={i}
-                                                    onClick={() => setSelectedDate(day)}
+                                                    onClick={() => {
+                                                        const hasAttendance = mockClassAttendance.some(a => a.date === format(day, "yyyy-MM-dd"))
+                                                        if (hasAttendance) {
+                                                            setSelectedDate(day)
+                                                            setShowModal(true)
+                                                        }
+                                                    }}
+
                                                     className={cn(
-                                                        "h-8 w-8 rounded-full text-xs flex items-center justify-center transition-colors",
+                                                        "h-8 w-8 rounded-full text-xs flex items-center justify-center transition-colors cursor-pointer",
                                                         isSelected && "bg-primary text-white",
                                                         hasAttendance && !isSelected && "bg-primary/10 text-primary",
                                                         !hasAttendance && "text-muted-foreground hover:bg-accent"
@@ -336,7 +350,7 @@ export function Attendance() {
                 </>
             )}
 
-            {selectedDayAttendance && (
+            {showModal && selectedDayAttendance && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
