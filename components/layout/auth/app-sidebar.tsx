@@ -28,7 +28,8 @@ import {
     BarChart3,
     Users,
     MessageSquare,
-    Award
+    Award,
+    RefreshCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
@@ -79,7 +80,7 @@ export const secondaryNavItems: NavItem[] = [
     { title: "Support", href: "/support", icon: LifeBuoy, roles: ["admin", "teacher", "student"] },
     // pricing page
     { title: 'Pricing', href: '/pricing', icon: Money, roles: ['student'] },
-    { title: 'Subscription', href: '/subscription/manage', icon: Money, roles: ['student'] }
+    { title: 'Subscription', href: '/subscription/manage', icon: RefreshCcw, roles: ['student'] }
 ];
 
 // --- AppSidebar Component ---
