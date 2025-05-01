@@ -146,17 +146,20 @@ export default function CourseDetailPage() {
 
     // Format duration
     const formatDuration = (duration: string) => {
-        if (duration.includes(":")) return duration // Already formatted
+        if (duration.includes(":")) return duration; // Already formatted
 
-        // Simple formatting for demo
-        const hours = Math.floor(Number.parseInt(duration) / 60)
-        const minutes = Number.parseInt(duration) % 60
+        const numeric = Number.parseInt(duration);
+        if (isNaN(numeric)) return "--"; // Invalid input
+
+        const hours = Math.floor(numeric / 60);
+        const minutes = numeric % 60;
 
         if (hours > 0) {
-            return `${hours}h ${minutes}m`
+            return `${hours}h ${minutes}m`;
         }
-        return `${minutes}m`
-    }
+        return `${minutes}m`;
+    };
+
 
     // Role-specific actions
     const getRoleActions = () => {
@@ -252,9 +255,7 @@ export default function CourseDetailPage() {
                                                         </div>
                                                         <span className="flex-1 truncate">{lesson.title}</span>
                                                         <span className="text-xs text-muted-foreground">
-                                                            {typeof lesson.duration === 'number' && !isNaN(lesson.duration)
-                                                                ? formatDuration(lesson.duration)
-                                                                : '--'}
+                                                            {formatDuration(lesson.duration)}
                                                         </span>
                                                     </button>
                                                 ))}
