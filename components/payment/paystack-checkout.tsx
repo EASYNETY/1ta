@@ -1,227 +1,186 @@
-// components/payment/paystack-checkout.tsx
-
 "use client"
+import { useState, useEffect } from "react"
+import { usePaystackPayment } from "react-paystack"
+import type { PaystackProps } from "react-paystack/dist/types"
 
-import type React from "react"
-
-import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { AlertCircle, CreditCard, Lock } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Lock, Loader2 } from "lucide-react" // Added Loader2
 import { Separator } from "@/components/ui/separator"
-import { post } from "@/lib/api-client"
+import { Alert, AlertDescription } from "@/components/ui/alert" // For potential errors
 
 interface PaystackCheckoutProps {
-    courseId: string
-    courseTitle: string
-    amount: number
+    // Keep these props
+    courseId: string // Or PlanId in your case
+    courseTitle: string // Or PlanTitle
+    amount: number // Amount in Major Currency (e.g., NGN). We convert to Kobo here.
     email: string
-    onSuccess?: () => void
+
+    // Callbacks remain the same conceptually
+    onSuccess?: (reference: any) => void // Pass reference back
     onCancel?: () => void
+
+    // Optional: Pass user ID for reference/metadata
+    userId?: string
 }
 
-export function PaystackCheckout({ courseId, courseTitle, amount, email, onSuccess, onCancel }: PaystackCheckoutProps) {
-    const router = useRouter()
+export function PaystackCheckout({
+    courseId, // Renaming for clarity: planId
+    courseTitle, // Renaming for clarity: planName
+    amount,
+    email,
+    onSuccess,
+    onCancel,
+    userId,
+}: PaystackCheckoutProps) {
     const { toast } = useToast()
-    const [isProcessing, setIsProcessing] = useState(false)
-    const [cardNumber, setCardNumber] = useState("")
-    const [expiryDate, setExpiryDate] = useState("")
-    const [cvv, setCvv] = useState("")
-    const [cardName, setCardName] = useState("")
+    const [isLoading, setIsLoading] = useState(false) // Loading state for the button click itself
+    const [isPublicKeyAvailable, setIsPublicKeyAvailable] = useState(false)
 
-    // Format card number with spaces
-    const formatCardNumber = (value: string) => {
-        const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "")
-        const matches = v.match(/\d{4,16}/g)
-        const match = (matches && matches[0]) || ""
-        const parts = []
+    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
 
-        for (let i = 0; i < match.length; i += 4) {
-            parts.push(match.substring(i, i + 4))
-        }
-
-        if (parts.length) {
-            return parts.join(" ")
+    useEffect(() => {
+        if (publicKey) {
+            setIsPublicKeyAvailable(true)
         } else {
-            return value
+            console.error("Paystack Public Key is not defined in environment variables.")
+            setIsPublicKeyAvailable(false)
+        }
+    }, [publicKey])
+
+    // Generate a unique reference for each transaction attempt
+    const generateReference = () => {
+        // Example: Combine identifiers and timestamp for uniqueness
+        const prefix = "dyrane"
+        const userPart = userId ? `_${userId}` : ""
+        const planPart = courseId ? `_${courseId}` : ""
+        const timePart = `_${Date.now()}`
+        return `${prefix}${userPart}${planPart}${timePart}`.replace(/[^a-zA-Z0-9_]/g, "_") // Ensure valid characters
+    }
+
+    const config: PaystackProps = {
+        reference: generateReference(),
+        email: email,
+        amount: Math.round(amount * 100), // Convert Amount to Kobo (or cents) and ensure integer
+        publicKey: publicKey || "", // Ensure publicKey is not undefined when passed to PaystackProps
+        metadata: {
+            // Pass relevant info that you might need later (on webhook, dashboard, etc.)
+            user_id: userId || "",
+            item_id: courseId, // Keep consistent naming if possible (plan_id)
+            item_name: courseTitle, // (plan_name)
+            // custom_fields: [ // Example structure
+            //   {
+            //     display_name: "Description",
+            //     variable_name: "item_description",
+            //     value: `Subscription to ${courseTitle}`
+            //   }
+            // ]
+        },
+        // channel: ['card', 'bank'], // Optional: Specify allowed channels
+    }
+
+    const initializePayment = usePaystackPayment(config)
+
+    const handlePaystackSuccess = (reference: any) => {
+        // This function is called by react-paystack when payment is successful
+        console.log("Paystack Payment Successful, Reference:", reference)
+        setIsLoading(false) // Stop button loading
+        toast({
+            title: "Payment Received",
+            description: "Verifying your subscription...",
+            variant: "success",
+        })
+        // Call the onSuccess prop passed from the parent component
+        // This will trigger the logic to create the subscription in the backend
+        if (onSuccess) {
+            onSuccess(reference)
         }
     }
 
-    // Format expiry date
-    const formatExpiryDate = (value: string) => {
-        const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "")
-
-        if (v.length >= 2) {
-            return `${v.substring(0, 2)}/${v.substring(2, 4)}`
-        }
-
-        return v
-    }
-
-    // Handle payment submission
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-
-        if (!cardNumber || !expiryDate || !cvv || !cardName) {
+    const handlePaystackClose = () => {
+        // This function is called by react-paystack when the modal is closed
+        console.log("Paystack Modal Closed")
+        setIsLoading(false) // Stop button loading
+        // Call the onCancel prop passed from the parent component
+        if (onCancel) {
+            onCancel()
+        } else {
             toast({
-                title: "Missing Information",
-                description: "Please fill in all card details",
+                title: "Payment Cancelled",
+                description: "You have closed the payment window.",
+                variant: "default",
+            })
+        }
+    }
+
+    const handlePaymentInitiation = () => {
+        if (!email) {
+            toast({
+                title: "Error",
+                description: "User email is missing. Cannot initiate payment.",
                 variant: "destructive",
             })
             return
         }
-
-        try {
-            setIsProcessing(true)
-
-            // Mock API call to create checkout session
-            const response = await post("/payments/create-checkout-session", {
-                courseId,
-                amount,
-                email,
-                cardDetails: {
-                    number: cardNumber.replace(/\s+/g, ""),
-                    expiry: expiryDate,
-                    cvv,
-                    name: cardName,
-                },
-            })
-
-            // Simulate processing delay
-            await new Promise((resolve) => setTimeout(resolve, 2000))
-
+        if (amount <= 0) {
             toast({
-                title: "Payment Successful",
-                description: `You have successfully enrolled in ${courseTitle}`,
-                variant: "success",
-            })
-
-            if (onSuccess) {
-                onSuccess()
-            } else {
-                router.push(`/courses/${courseId}`)
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Payment processing failed"
-
-            toast({
-                title: "Payment Failed",
-                description: errorMessage,
+                title: "Error",
+                description: "Invalid amount. Cannot initiate payment for zero or negative value.",
                 variant: "destructive",
             })
-        } finally {
-            setIsProcessing(false)
+            return
         }
+        setIsLoading(true) // Start loading when button is clicked
+        initializePayment(handlePaystackSuccess, handlePaystackClose)
+    }
+
+    if (!isPublicKeyAvailable) {
+        return (
+            <Alert variant="destructive">
+                <AlertDescription>Payment configuration error. Please contact support.</AlertDescription>
+            </Alert>
+        )
     }
 
     return (
-        <DyraneCard className="w-full max-w-md mx-auto">
+        <DyraneCard className="w-full max-w-md mx-auto border-none shadow-none">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <Lock className="h-5 w-5" />
                     Secure Checkout
                 </CardTitle>
             </CardHeader>
-            <CardContent>
-                <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-2">{courseTitle}</h3>
-                    <div className="flex justify-between">
-                        <span>Course Price:</span>
-                        <span>₦{amount.toLocaleString()}</span>
-                    </div>
-                    <Separator className="my-2" />
-                    <div className="flex justify-between font-semibold">
+            <CardContent className="pt-0">
+                <div className="mb-6 space-y-2">
+                    <h3 className="text-lg font-semibold">{courseTitle}</h3>
+                    <Separator />
+                    <div className="flex justify-between font-bold text-xl">
                         <span>Total:</span>
                         <span>₦{amount.toLocaleString()}</span>
                     </div>
                 </div>
 
-                <Alert className="mb-6 bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
-                    <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    <AlertTitle className="text-blue-800 dark:text-blue-300 font-medium">Test Mode</AlertTitle>
-                    <AlertDescription className="text-blue-700 dark:text-blue-400">
-                        <p className="mb-2">This is a test payment. Use the following test card details:</p>
-                        <ul className="list-disc pl-5 space-y-1">
-                            <li>Card Number: 4084 0840 8408 4081</li>
-                            <li>Expiry Date: Any future date</li>
-                            <li>CVV: Any 3 digits</li>
-                        </ul>
-                    </AlertDescription>
-                </Alert>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="cardName">Cardholder Name</Label>
-                        <Input
-                            id="cardName"
-                            placeholder="John Doe"
-                            value={cardName}
-                            onChange={(e) => setCardName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="cardNumber">Card Number</Label>
-                        <div className="relative">
-                            <Input
-                                id="cardNumber"
-                                placeholder="4084 0840 8408 4081"
-                                value={cardNumber}
-                                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                                maxLength={19}
-                                required
-                            />
-                            <CreditCard className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="expiryDate">Expiry Date</Label>
-                            <Input
-                                id="expiryDate"
-                                placeholder="MM/YY"
-                                value={expiryDate}
-                                onChange={(e) => setExpiryDate(formatExpiryDate(e.target.value))}
-                                maxLength={5}
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="cvv">CVV</Label>
-                            <Input
-                                id="cvv"
-                                placeholder="123"
-                                value={cvv}
-                                onChange={(e) => setCvv(e.target.value.replace(/\D/g, ""))}
-                                maxLength={3}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <div className="pt-2">
-                        <DyraneButton type="submit" className="w-full" disabled={isProcessing}>
-                            {isProcessing ? (
-                                <>
-                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
-                                    Processing...
-                                </>
-                            ) : (
-                                <>Pay ₦{amount.toLocaleString()}</>
-                            )}
-                        </DyraneButton>
-                    </div>
-                </form>
+                {/* Add the Paystack Button */}
+                <div className="pt-2">
+                    <DyraneButton
+                        onClick={handlePaymentInitiation}
+                        className="w-full"
+                        disabled={isLoading || !publicKey} // Disable if loading or key missing
+                    >
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                            </>
+                        ) : (
+                            <>Pay ₦{amount.toLocaleString()} Now</>
+                        )}
+                    </DyraneButton>
+                </div>
             </CardContent>
-            <CardFooter className="flex flex-col items-center text-center">
+            <CardFooter className="flex flex-col items-center text-center pt-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Lock className="h-4 w-4" />
                     <span>Secured by Paystack</span>

@@ -1,8 +1,6 @@
 // src/lib/api-client.ts
 
 "use client";
-import { store } from "@/store";
-
 // Import Mock Handlers
 import {
 	getMockCourses,
@@ -24,6 +22,27 @@ import {
 	getAuthMockCourses,
 	markLessonCompleteMock,
 } from "@/data/mock-auth-course-data";
+import {
+	getUserSubscription as mockGetUserSubscription,
+	createSubscription as mockCreateSubscription,
+	updateSubscription as mockUpdateSubscription,
+	cancelSubscription as mockCancelSubscription,
+	getAllPlans as mockGetAllPlans,
+	createPlan as mockCreatePlan,
+	updatePlan as mockUpdatePlan,
+	deletePlan as mockDeletePlan,
+	togglePlanActive as mockTogglePlanActive,
+} from "@/data/mock-pricing-data";
+import {
+	AllPlansResponse,
+	CancelSubscriptionResponse,
+	CreatePlanData,
+	DeletePlanResponse,
+	PricingPlan,
+	UpdatePlanData,
+	UpdateSubscriptionData,
+	UserSubscription,
+} from "@/features/pricing/types/pricing-types";
 
 // --- Config ---
 const API_BASE_URL =
@@ -51,20 +70,6 @@ async function apiClient<T>(
 	if (!headers.has("Content-Type") && options.body)
 		headers.set("Content-Type", "application/json");
 	if (!headers.has("Accept")) headers.set("Accept", "application/json");
-
-	// 🧠 Only fetch token dynamically during runtime
-	if (requiresAuth) {
-		try {
-			const token = store.getState().auth.token;
-			if (token) {
-				headers.set("Authorization", `Bearer ${token}`);
-			}
-		} catch (e) {
-			console.warn(
-				"Warning: Unable to access token during SSR, skipping auth header."
-			);
-		}
-	}
 
 	const config: RequestInit = { ...fetchOptions, headers };
 
@@ -207,6 +212,63 @@ async function handleMockRequest<T>(
 		return mockUpdateMyProfile(body) as unknown as T;
 	}
 
+	// --- Pricing and Subscriptions
+	const userSubscriptionMatch = endpoint.match(/^\/users\/(.+)\/subscription$/);
+	if (userSubscriptionMatch && method === "get") {
+		const userId = userSubscriptionMatch[1];
+		return mockGetUserSubscription(userId) as unknown as T;
+	}
+
+	if (endpoint === "/subscriptions" && method === "post") {
+		if (!body?.userId || !body?.planId)
+			throw new Error(
+				"Mock API Error: Missing userId or planId in create subscription"
+			);
+		return mockCreateSubscription(body.userId, body.planId) as unknown as T;
+	}
+
+	const updateSubscriptionMatch = endpoint.match(/^\/subscriptions\/(.+)$/);
+	if (updateSubscriptionMatch && method === "put") {
+		const subscriptionId = updateSubscriptionMatch[1];
+		return mockUpdateSubscription(subscriptionId, body) as unknown as T;
+	}
+
+	const cancelSubscriptionMatch = endpoint.match(
+		/^\/subscriptions\/(.+)\/cancel$/
+	);
+	if (cancelSubscriptionMatch && method === "post") {
+		const subscriptionId = cancelSubscriptionMatch[1];
+		return mockCancelSubscription(subscriptionId) as unknown as T;
+	}
+
+	if (endpoint === "/plans" && method === "get") {
+		return mockGetAllPlans() as unknown as T;
+	}
+
+	if (endpoint === "/plans" && method === "post") {
+		return mockCreatePlan(body) as unknown as T;
+	}
+
+	const updatePlanMatch = endpoint.match(/^\/plans\/(.+)$/);
+	if (updatePlanMatch && method === "put") {
+		const planId = updatePlanMatch[1];
+		return mockUpdatePlan(planId, body) as unknown as T;
+	}
+
+	const deletePlanMatch = endpoint.match(/^\/plans\/(.+)$/);
+	if (deletePlanMatch && method === "delete") {
+		const planId = deletePlanMatch[1];
+		return mockDeletePlan(planId) as unknown as T;
+	}
+
+	const togglePlanActiveMatch = endpoint.match(
+		/^\/plans\/(.+)\/toggle-active$/
+	);
+	if (togglePlanActiveMatch && method === "post") {
+		const planId = togglePlanActiveMatch[1];
+		return mockTogglePlanActive(planId) as unknown as T;
+	}
+
 	console.error(
 		`Mock API: Endpoint "${endpoint}" (Method: ${method}) not implemented`
 	);
@@ -247,6 +309,81 @@ export const del = <T>(
 	endpoint: string,
 	options?: Omit<FetchOptions, "method" | "body">
 ) => apiClient<T>(endpoint, { ...options, method: "DELETE" });
+
+// --- Pricing API Methods ---
+export const getUserSubscription = async (
+	userId: string
+): Promise<UserSubscription | null> => {
+	// Add error handling or ensure your mock/API *can* return null gracefully
+	try {
+		return await get<UserSubscription>(`/users/${userId}/subscription`);
+	} catch (error: any) {
+		if (error?.status === 404) {
+			// Example: Handle not found
+			return null;
+		}
+		console.error("Failed to get user subscription:", error);
+		throw error; // Re-throw other errors
+	}
+};
+
+export const createSubscription = async (
+	userId: string,
+	planId: string
+): Promise<UserSubscription> => {
+	return post<UserSubscription>(`/subscriptions`, { userId, planId });
+};
+
+export const updateSubscription = async (
+	subscriptionId: string,
+	data: UpdateSubscriptionData
+): Promise<UserSubscription> => {
+	// Assuming the API returns the *full* updated subscription object
+	return put<UserSubscription>(`/subscriptions/${subscriptionId}`, data);
+};
+
+export const cancelSubscription = async (
+	subscriptionId: string
+): Promise<CancelSubscriptionResponse> => {
+	// Adjust the expected return type <...> based on your actual API response
+	return post<CancelSubscriptionResponse>(
+		`/subscriptions/${subscriptionId}/cancel`,
+		{}
+	);
+};
+
+export const getAllPlans = async (): Promise<AllPlansResponse> => {
+	return get<AllPlansResponse>(`/plans`);
+};
+
+export const createPlan = async (
+	planData: CreatePlanData
+): Promise<PricingPlan> => {
+	// Assuming the API returns the newly created plan object
+	return post<PricingPlan>(`/plans`, planData);
+};
+
+export const updatePlan = async (
+	planId: string,
+	planData: UpdatePlanData
+): Promise<PricingPlan> => {
+	// Assuming the API returns the full updated plan object
+	return put<PricingPlan>(`/plans/${planId}`, planData);
+};
+
+export const deletePlan = async (
+	planId: string
+): Promise<DeletePlanResponse> => {
+	// Assuming the API returns { success: boolean, id: string }
+	return del<DeletePlanResponse>(`/plans/${planId}`);
+};
+
+export const togglePlanActive = async (
+	planId: string
+): Promise<PricingPlan> => {
+	// Assuming the API returns the full updated plan object
+	return post<PricingPlan>(`/plans/${planId}/toggle-active`, {});
+};
 
 // --- Export ---
 export { apiClient };

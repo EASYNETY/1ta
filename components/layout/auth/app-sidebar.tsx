@@ -66,6 +66,7 @@ export const primaryNavItems: NavItem[] = [
 export const adminNavItems: NavItem[] = [
     // { title: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] }, // Often duplicate of primary dashboard
     { title: "Students", href: "/users?tab=students", icon: AdminUsersIcon, roles: ["admin"] },
+    { title: "Pricing", href: "/admin/pricing", icon: Money, roles: ["admin"] },
     { title: "Payments", href: "/payments", icon: BarChart3, roles: ["admin"] },
     { title: "Tickets", href: "/support-tickets", icon: LifeBuoy, roles: ["admin"] },
     { title: "Feedback", href: "/feedback", icon: Users, roles: ["admin"] },
@@ -77,7 +78,8 @@ export const secondaryNavItems: NavItem[] = [
     { title: "Settings", href: "/settings", icon: Settings, roles: ["admin", "teacher", "student"] },
     { title: "Support", href: "/support", icon: LifeBuoy, roles: ["admin", "teacher", "student"] },
     // pricing page
-    { title: 'Pricing', href: '/pricing', icon: Money, roles: ['student'] }
+    { title: 'Pricing', href: '/pricing', icon: Money, roles: ['student'] },
+    { title: 'Subscription', href: '/subscription/manage', icon: Money, roles: ['student'] }
 ];
 
 // --- AppSidebar Component ---

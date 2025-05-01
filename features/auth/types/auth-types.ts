@@ -38,3 +38,13 @@ export interface AuthState {
 	error: string | null;
 	skipOnboarding: boolean;
 }
+
+export interface UserSubscription {
+	id: string;
+	planId: string;
+	planName: string;
+	startDate: string;
+	expiryDate: string;
+	autoRenew: boolean;
+	status: "active" | "expired" | "canceled";
+}

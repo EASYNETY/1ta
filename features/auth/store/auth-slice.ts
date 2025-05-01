@@ -3,7 +3,21 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { destroyCookie } from "nookies"; // Import destroyCookie
 import { addAuthExtraReducers } from "./auth-extra-reducers";
-import type { User } from "./auth-thunks";
+
+
+// Define User type here to avoid circular imports
+export interface User {
+	id: string;
+	name: string;
+	email: string;
+	role: "admin" | "teacher" | "student";
+	dateOfBirth?: string | null;
+	classId?: string | null;
+	barcodeId?: string | null;
+	guardianId?: string | null;
+	onboardingStatus?: "incomplete" | "complete";
+	accountType?: "individual" | "institutional";
+}
 
 export interface AuthState {
 	user: User | null;

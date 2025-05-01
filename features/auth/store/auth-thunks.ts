@@ -21,6 +21,7 @@ export interface User {
 	barcodeId?: string | null;
 	guardianId?: string | null;
 	onboardingStatus?: "incomplete" | "complete";
+	accountType?: "individual" | "institutional";
 }
 
 // Helper function for cookie options (optional, but good practice)
