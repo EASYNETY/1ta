@@ -1,4 +1,4 @@
-// app/(auth)/login/page.tsx
+// app/(authenticated)/attendance/page.tsx
 
 import { Attendance } from "@/components/attendance/attendance-tab"
 
