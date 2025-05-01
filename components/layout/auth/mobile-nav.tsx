@@ -19,8 +19,12 @@ import {
     GraduationCap,
     EnvelopeSimple,
     CheckCircle,
+    Barcode as BarcodeIcon,
+    QrCode,
 } from "phosphor-react";
 import { is } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Barcode from "react-barcode";
 
 // Interface definitions
 export interface MobileNavItem {
@@ -50,13 +54,40 @@ interface FabAction {
     href: string;
     ariaLabel: string;
     show: boolean; // Should the FAB be shown on this page/role?
+    actionType?: 'navigate' | 'showStudentBarcode' | 'scanBarcode' | 'showStudentDetails' | 'showCourseDetails' | 'showEventDetails';
 }
 
 function getFabAction(role: "admin" | "teacher" | "student", pathname: string): FabAction {
     // Default actions (shown on dashboard or unrecognized paths)
     let action: FabAction = { href: "/", ariaLabel: "Primary Action", show: false }; // Default hidden
 
-    if (pathname.startsWith("/dashboard")) {
+    // --- ATTENDANCE PAGE LOGIC ---
+    if (pathname.startsWith("/attendance")) {
+        switch (role) {
+            case "admin":
+            case "teacher":
+                action = {
+                    href: "/attendance/scan", // Link to your scanning page/component
+                    ariaLabel: "Scan Attendance Barcode",
+                    show: true,
+                    actionType: 'scanBarcode' // Or 'navigate' if /attendance/scan is a page
+                };
+                break;
+            case "student":
+                action = {
+                    href: "#", // Not a navigation link, handled by onClick
+                    ariaLabel: "Show My Attendance Barcode",
+                    show: true,
+                    actionType: 'showStudentBarcode' // Custom type for onClick handler
+                };
+                break;
+            default:
+                // Hide for any other roles on attendance page
+                action = { href: "/", ariaLabel: "Action", show: false, actionType: 'navigate' };
+                break;
+        }
+    }
+    else if (pathname.startsWith("/dashboard")) {
         switch (role) {
             case "admin":
                 action = { href: "/students/create", ariaLabel: "Add New Student", show: true }; // Changed from students/create for consistency
@@ -129,6 +160,8 @@ export function MobileNav() {
     const scrollDirection = useScrollDirection();
 
     const isVisible = scrollDirection === "up" || scrollDirection === "none";
+    // --- State for Student Barcode Modal ---
+    const [showStudentBarcodeModal, setShowStudentBarcodeModal] = React.useState(false);
 
     // --- Badge Counts (Example) ---
     const badgeCounts: MobileNavBadges = {
@@ -141,10 +174,35 @@ export function MobileNav() {
         (item) => user && item.roles.includes(user.role)
     ).slice(0, 5); // Ensure max 5 items
 
-    // Determine FAB action
-    const fabAction = user ? getFabAction(user.role, pathname) : { href: "/", ariaLabel: "", show: false };
+    // --- Determine FAB action & Icon ---
+    const fabAction = user ? getFabAction(user.role, pathname) : { href: "/", ariaLabel: "", show: false, actionType: 'navigate' };
+    const isAttendancePage = pathname.startsWith("/attendance");
+
+    let FabIcon = Plus; // Default icon
+    if (isAttendancePage) {
+        if (user?.role === 'student') {
+            FabIcon = BarcodeIcon; // Icon for showing barcode
+        } else if (user?.role === 'admin' || user?.role === 'teacher') {
+            FabIcon = QrCode; // Icon for scanning
+        }
+    }
 
     if (!isMobile || !user) return null; // Don't render if not mobile or no user
+
+    // --- FAB Click Handler ---
+    const handleFabClick = (e: React.MouseEvent) => {
+        // Prevent navigation if actionType is not 'navigate'
+        if (fabAction.actionType === 'showStudentBarcode') {
+            e.preventDefault(); // Prevent default link behavior for '#' href
+            setShowStudentBarcodeModal(true);
+        }
+        // Add future logic for other actionTypes like 'scanBarcode' if triggering a modal directly
+        // else if (fabAction.actionType === 'scanBarcode') {
+        //   e.preventDefault();
+        //   // openScanModal();
+        // }
+        // Otherwise, allow default navigation via Link component
+    };
 
     return (
         <>
@@ -160,19 +218,51 @@ export function MobileNav() {
                         transition={{ type: "spring", stiffness: 350, damping: 25, delay: 0.1 }}
                         className="fixed bottom-20 right-8 z-50" // Position above bottom bar
                     >
-                        <DyraneButton
-                            size="icon"
-                            className="rounded-full shadow-lg h-12 w-12" // Larger FAB size
-                            asChild
-                            aria-label={fabAction.ariaLabel}
-                        >
-                            <Link href={fabAction.href}>
-                                <Plus size={24} weight="bold" />
-                            </Link>
-                        </DyraneButton>
+                        {fabAction.actionType === 'navigate' || fabAction.actionType === 'scanBarcode' ? (
+                            <DyraneButton
+                                size="icon"
+                                className="rounded-full shadow-lg h-12 w-12"
+                                asChild // Use asChild for Link wrapper
+                                aria-label={fabAction.ariaLabel}
+                            >
+                                <Link href={fabAction.href} onClick={handleFabClick}>
+                                    <FabIcon size={24} weight="bold" />
+                                </Link>
+                            </DyraneButton>
+                        ) : (
+                            <DyraneButton
+                                size="icon"
+                                className="rounded-full shadow-lg h-12 w-12"
+                                aria-label={fabAction.ariaLabel}
+                                onClick={handleFabClick} // Use direct onClick for student barcode
+                            >
+                                <FabIcon size={24} weight="bold" />
+                            </DyraneButton>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <Dialog open={showStudentBarcodeModal} onOpenChange={setShowStudentBarcodeModal}>
+                <DialogContent className="sm:max-w-[300px] flex flex-col items-center">
+                    <DialogHeader>
+                        <DialogTitle>Your Attendance Barcode</DialogTitle>
+                    </DialogHeader>
+                    {/* Render the barcode directly if user exists */}
+                    {user && (
+                        <div className="p-4 bg-white rounded-md border shadow-inner mt-4">
+                            <Barcode
+                                value={user.id} // The value to encode
+                                height={80}     // Height of the barcode
+                                width={2}       // Width of the narrowest bar
+                                displayValue={false} // Set true to show text below
+                                background="#ffffff" // Background color
+                                lineColor="#000000" // Bar color
+                            />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             {/* Bottom Navigation Bar */}
             <motion.div
