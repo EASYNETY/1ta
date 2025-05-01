@@ -18,6 +18,7 @@ import {
     Plus,
     GraduationCap,
     EnvelopeSimple,
+    CheckCircle,
 } from "phosphor-react";
 import { is } from "date-fns/locale";
 
@@ -40,6 +41,7 @@ export const mobileNavItems: MobileNavItem[] = [
     { title: "Home", href: "/dashboard", icon: HouseSimple, roles: ["admin", "teacher", "student"] },
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["admin", "teacher", "student"] }, // Using GraduationCap
     { title: "Timetable", href: "/timetable", icon: CalendarBlank, roles: ["teacher", "student", "admin"] },
+    { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
     { title: "Chat", href: "/chat", icon: EnvelopeSimple, roles: ["teacher", "student", "admin"], badgeKey: "messages" },
 ];
 
@@ -137,7 +139,7 @@ export function MobileNav() {
     // Filter nav items
     const filteredNavItems = mobileNavItems.filter(
         (item) => user && item.roles.includes(user.role)
-    ).slice(0, 4); // Ensure max 4 items
+    ).slice(0, 5); // Ensure max 5 items
 
     // Determine FAB action
     const fabAction = user ? getFabAction(user.role, pathname) : { href: "/", ariaLabel: "", show: false };

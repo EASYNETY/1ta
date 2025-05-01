@@ -205,7 +205,7 @@ export function Header() {
                                     )}
 
                                     {/* Footer Actions Section */}
-                                    <div className="mt-auto py-2 border-border/30 space-y-1 px-0">
+                                    <div className="py-2 border-border/30 space-y-1 px-0">
                                         <p className="px-0 text-xs capitalized text-muted-foreground tracking-wider mb-2">Account & Help</p>
                                         <MobileNavItemsList items={sheetSecondaryItems} closeSheet={closeMobileSheet} />
                                     </div>
