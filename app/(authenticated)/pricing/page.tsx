@@ -170,7 +170,7 @@ export default function PricingPage() {
     if (userSubscription && userSubscription.status === "active") {
         return (
             <div className="mx-auto w-full">
-                <div className="text-center sm:text-left mb-10 w-full">
+                <div className="text-left mb-10 w-full">
                     <h1 className="text-3xl font-bold mb-4">Your Subscription</h1>
                     <p className="text-muted-foreground">
                         You are currently subscribed to the {userSubscription.planName} plan.
@@ -251,9 +251,9 @@ export default function PricingPage() {
 
     return (
         <div className="mx-auto">
-            <div className="text-center sm:text-left mb-10">
+            <div className="text-left mb-10">
                 <h1 className="text-3xl font-bold mb-4">Choose Your Plan</h1>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-muted-foreground mx-auto">
                     Select the plan that best fits your needs. You can upgrade or downgrade at any time.
                 </p>
             </div>
