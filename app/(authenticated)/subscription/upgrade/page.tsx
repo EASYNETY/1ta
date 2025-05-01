@@ -117,8 +117,8 @@ export default function UpgradeSubscriptionPage() {
                 <h1 className="text-3xl font-bold">Upgrade Subscription</h1>
             </div>
 
-            <div className="text-center mb-10">
-                <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="mb-10">
+                <p className="text-muted-foreground mx-auto">
                     You are currently on the <span className="font-medium">{userSubscription.planName}</span> plan. Choose a plan
                     below to upgrade your subscription.
                 </p>

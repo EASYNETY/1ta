@@ -99,7 +99,7 @@ export default function ManageSubscriptionPage() {
         : "Not set to renew"
 
     return (
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto">
             <div className="flex items-center gap-2 mb-8">
                 <DyraneButton variant="outline" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-4 w-4" />

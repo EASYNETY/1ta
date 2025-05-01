@@ -177,7 +177,7 @@ export default function PricingPage() {
                     </p>
                 </div>
 
-                <div className="max-w-3xl mx-auto">
+                <div className="mx-auto">
                     <DyraneCard className="border-primary">
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
