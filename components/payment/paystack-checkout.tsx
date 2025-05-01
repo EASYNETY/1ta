@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Lock, Loader2 } from "lucide-react" // Added Loader2
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert" // For potential errors
+import Image from "next/image"
 
 interface PaystackCheckoutProps {
     // Keep these props
@@ -70,13 +71,13 @@ export function PaystackCheckout({
             user_id: userId || "",
             item_id: courseId, // Keep consistent naming if possible (plan_id)
             item_name: courseTitle, // (plan_name)
-            // custom_fields: [ // Example structure
-            //   {
-            //     display_name: "Description",
-            //     variable_name: "item_description",
-            //     value: `Subscription to ${courseTitle}`
-            //   }
-            // ]
+            custom_fields: [ // Example structure
+                {
+                    display_name: "Description",
+                    variable_name: "item_description",
+                    value: `Subscription to ${courseTitle}`
+                }
+            ]
         },
         // channel: ['card', 'bank'], // Optional: Specify allowed channels
     }
@@ -148,7 +149,7 @@ export function PaystackCheckout({
         <DyraneCard className="w-full max-w-md mx-auto border-none shadow-none">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Lock className="h-5 w-5" />
+                    <Image src={"/paystack.png"} alt="Paystack Logo" width={20} height={20} />
                     Secure Checkout
                 </CardTitle>
             </CardHeader>
@@ -182,7 +183,7 @@ export function PaystackCheckout({
             </CardContent>
             <CardFooter className="flex flex-col items-center text-center pt-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Lock className="h-4 w-4" />
+                    <Image src={"/paystack.png"} alt="Paystack Logo" width={20} height={20} />
                     <span>Secured by Paystack</span>
                 </div>
             </CardFooter>

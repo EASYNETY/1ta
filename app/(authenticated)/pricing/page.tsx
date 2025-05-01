@@ -167,87 +167,87 @@ export default function PricingPage() {
     }
 
     // If user already has an active subscription, show subscription details
-    if (userSubscription && userSubscription.status === "active") {
-        return (
-            <div className="mx-auto w-full">
-                <div className="text-center sm:text-left mb-10 w-full">
-                    <h1 className="text-3xl font-bold mb-4">Your Subscription</h1>
-                    <p className="text-muted-foreground">
-                        You are currently subscribed to the {userSubscription.planName} plan.
-                    </p>
-                </div>
+    // if (userSubscription && userSubscription.status === "active") {
+    //     return (
+    //         <div className="mx-auto w-full">
+    //             <div className="text-center sm:text-left mb-10 w-full">
+    //                 <h1 className="text-3xl font-bold mb-4">Your Subscription</h1>
+    //                 <p className="text-muted-foreground">
+    //                     You are currently subscribed to the {userSubscription.planName} plan.
+    //                 </p>
+    //             </div>
 
-                <div className="mx-auto">
-                    <DyraneCard className="border-primary">
-                        <div className="p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold">{userSubscription.planName} Plan</h2>
-                                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
-                                    Active
-                                </Badge>
-                            </div>
+    //             <div className="mx-auto">
+    //                 <DyraneCard className="border-primary">
+    //                     <div className="p-6">
+    //                         <div className="flex items-center justify-between mb-6">
+    //                             <h2 className="text-2xl font-bold">{userSubscription.planName} Plan</h2>
+    //                             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+    //                                 Active
+    //                             </Badge>
+    //                         </div>
 
-                            <div className="space-y-4 mb-6">
-                                <div className="flex items-center">
-                                    <Calendar className="h-5 w-5 text-muted-foreground mr-2" />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Subscription Period</p>
-                                        <p className="font-medium">
-                                            {format(new Date(userSubscription.startDate), "PPP")} -{" "}
-                                            {format(new Date(userSubscription.expiryDate), "PPP")}
-                                        </p>
-                                    </div>
-                                </div>
+    //                         <div className="space-y-4 mb-6">
+    //                             <div className="flex items-center">
+    //                                 <Calendar className="h-5 w-5 text-muted-foreground mr-2" />
+    //                                 <div>
+    //                                     <p className="text-sm text-muted-foreground">Subscription Period</p>
+    //                                     <p className="font-medium">
+    //                                         {format(new Date(userSubscription.startDate), "PPP")} -{" "}
+    //                                         {format(new Date(userSubscription.expiryDate), "PPP")}
+    //                                     </p>
+    //                                 </div>
+    //                             </div>
 
-                                <div className="flex items-center">
-                                    <AlertCircle className="h-5 w-5 text-muted-foreground mr-2" />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Auto-Renewal</p>
-                                        <p className="font-medium">{userSubscription.autoRenew ? "Enabled" : "Disabled"}</p>
-                                    </div>
-                                </div>
-                            </div>
+    //                             <div className="flex items-center">
+    //                                 <AlertCircle className="h-5 w-5 text-muted-foreground mr-2" />
+    //                                 <div>
+    //                                     <p className="text-sm text-muted-foreground">Auto-Renewal</p>
+    //                                     <p className="font-medium">{userSubscription.autoRenew ? "Enabled" : "Disabled"}</p>
+    //                                 </div>
+    //                             </div>
+    //                         </div>
 
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <DyraneButton variant="outline" className="flex-1" onClick={() => router.push("/subscription/manage")}>
-                                    Manage Subscription
-                                </DyraneButton>
-                                <DyraneButton className="flex-1" onClick={() => router.push("/subscription/upgrade")}>
-                                    Upgrade Plan
-                                </DyraneButton>
-                            </div>
-                        </div>
-                    </DyraneCard>
+    //                         <div className="flex flex-col sm:flex-row gap-4">
+    //                             <DyraneButton variant="outline" className="flex-1" onClick={() => router.push("/subscription/manage")}>
+    //                                 Manage Subscription
+    //                             </DyraneButton>
+    //                             <DyraneButton className="flex-1" onClick={() => router.push("/subscription/upgrade")}>
+    //                                 Upgrade Plan
+    //                             </DyraneButton>
+    //                         </div>
+    //                     </div>
+    //                 </DyraneCard>
 
-                    <div className="mt-8">
-                        <h3 className="text-xl font-semibold mb-4">Payment History</h3>
-                        <DyraneCard>
-                            <div className="p-4">
-                                <div className="space-y-4">
-                                    {userSubscription.paymentHistory.map((payment, index) => (
-                                        <div key={index} className="flex justify-between items-center p-3 border-b last:border-0">
-                                            <div>
-                                                <p className="font-medium">{payment.planName} Plan</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    {payment.paymentDate ? format(new Date(payment.paymentDate), "PPP") : "N/A"}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-medium">₦{payment.amount.toLocaleString()}</p>
-                                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                                    {payment.status}
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </DyraneCard>
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    //                 <div className="mt-8">
+    //                     <h3 className="text-xl font-semibold mb-4">Payment History</h3>
+    //                     <DyraneCard>
+    //                         <div className="p-4">
+    //                             <div className="space-y-4">
+    //                                 {userSubscription.paymentHistory.map((payment, index) => (
+    //                                     <div key={index} className="flex justify-between items-center p-3 border-b last:border-0">
+    //                                         <div>
+    //                                             <p className="font-medium">{payment.planName} Plan</p>
+    //                                             <p className="text-sm text-muted-foreground">
+    //                                                 {payment.paymentDate ? format(new Date(payment.paymentDate), "PPP") : "N/A"}
+    //                                             </p>
+    //                                         </div>
+    //                                         <div className="text-right">
+    //                                             <p className="font-medium">₦{payment.amount.toLocaleString()}</p>
+    //                                             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+    //                                                 {payment.status}
+    //                                             </Badge>
+    //                                         </div>
+    //                                     </div>
+    //                                 ))}
+    //                             </div>
+    //                         </div>
+    //                     </DyraneCard>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
     return (
         <div className="mx-auto">
