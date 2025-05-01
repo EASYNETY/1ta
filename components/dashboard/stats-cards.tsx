@@ -53,7 +53,7 @@ export function StatsCards() {
                         subtitle="+3 this month"
                         icon={<GraduationCap className="h-4 w-4" />}
                     />
-                    <StatsCard title="Total Classes" value="32" subtitle="+5 this month" icon={<School className="h-4 w-4" />} />
+                    <StatsCard title="Total Courses" value="32" subtitle="+5 this month" icon={<School className="h-4 w-4" />} />
                     <StatsCard
                         title="Revenue"
                         value="₦1.2M"
@@ -69,7 +69,7 @@ export function StatsCards() {
         case "teacher":
             return (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    <StatsCard title="My Classes" value="5" subtitle="+1 this month" icon={<School className="h-4 w-4" />} />
+                    <StatsCard title="My Courses" value="5" subtitle="+1 this month" icon={<School className="h-4 w-4" />} />
                     <StatsCard title="My Students" value="128" subtitle="+12 this month" icon={<Users className="h-4 w-4" />} />
                     <StatsCard
                         title="Assignments"

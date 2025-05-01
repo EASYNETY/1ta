@@ -60,7 +60,7 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
                 action = { href: "/students/create", ariaLabel: "Add New Student", show: true }; // Changed from students/create for consistency
                 break;
             case "teacher":
-                action = { href: "/classes/create", ariaLabel: "Add New Class", show: true }; // Example teacher path
+                action = { href: "/courses/create", ariaLabel: "Add New Class", show: true }; // Example teacher path
                 break;
             case "student":
                 action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true }; // Keep support ticket for student
@@ -72,7 +72,7 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
                 action = { href: "/courses/create", ariaLabel: "Add New Course Template", show: true }; // Add Course Template
                 break;
             case "teacher":
-                action = { href: "/classes/create", ariaLabel: "Add New Class Instance", show: true }; // Add Class Instance
+                action = { href: "/courses/create", ariaLabel: "Add New Class Instance", show: true }; // Add Class Instance
                 break;
             case "student":
                 action = { href: "/courses", ariaLabel: "Browse Courses", show: true };
@@ -95,8 +95,8 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
     } else if (pathname.startsWith("/students")) {
         if (role === 'admin') action = { href: "/students/create", ariaLabel: "Add New Student", show: true };
         else action = { href: "/", ariaLabel: "Action", show: false };
-    } else if (pathname.startsWith("/classes")) {
-        if (role === 'admin') action = { href: "/classes/create", ariaLabel: "Add New Class Instance", show: true };
+    } else if (pathname.startsWith("/courses")) {
+        if (role === 'admin') action = { href: "/courses/create", ariaLabel: "Add New Class Instance", show: true };
         else action = { href: "/", ariaLabel: "Action", show: false };
     }
     // Add more rules for /analytics, /payments, /support-tickets etc.
@@ -108,7 +108,7 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
     else {
         switch (role) {
             case "admin": action = { href: "/students/create", ariaLabel: "Add New Student", show: true }; break;
-            case "teacher": action = { href: "/classes/create", ariaLabel: "Add New Class", show: true }; break;
+            case "teacher": action = { href: "/courses/create", ariaLabel: "Add New Class", show: true }; break;
             case "student": action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true }; break;
         }
     }

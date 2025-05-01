@@ -71,7 +71,7 @@ export const standOutPointsData: StandOutPoint[] = [
     icon: <Clock className="h-10 w-10" />,
     title: "Flexible Learning Options",
     description:
-      "Intensive onsite programs and virtual classes fitting your schedule.",
+      "Intensive onsite programs and virtual courses fitting your schedule.",
   },
   {
     icon: <GraduationCap className="h-10 w-10" />,

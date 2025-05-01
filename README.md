@@ -162,7 +162,7 @@ The initial MVP focuses on core functionality. Refer to the detailed MVP Scope D
 3.  **Core Application Shell (Authenticated Routes)**: Main layout (`AppLayout`) with header/sidebar navigation (using DyraneUI animated components). Includes basic Profile page and placeholder Dashboard.
 4.  **Course Management (Basic)**: Views for available/enrolled courses (using `DyraneCard`/`DyraneTable`). Simple course creation form for Admin/Teacher roles. Basic API interactions.
 
-**Explicitly Deferred from MVP:** Content authoring, real-time chat/classes, attendance tracking, reporting/analytics, payments, advanced admin dashboards, i18n.
+**Explicitly Deferred from MVP:** Content authoring, real-time chat/courses, attendance tracking, reporting/analytics, payments, advanced admin dashboards, i18n.
 
 ---
 
@@ -172,7 +172,7 @@ The initial MVP focuses on core functionality. Refer to the detailed MVP Scope D
 - **Linting/Formatting:** ESLint & Prettier are enforced via Husky/lint-staged on pre-commit. Run `pnpm lint` / `pnpm format` manually if needed.
 - **Naming Conventions:** `PascalCase` for components/types, `camelCase` for variables/functions.
 - **Component Design:** Functional components with hooks. Aim for small, reusable, and well-defined components.
-- **Styling:** Prioritize Tailwind utility classes. Create custom CSS/components sparingly.
+- **Styling:** Prioritize Tailwind utility courses. Create custom CSS/components sparingly.
 - **Accessibility:** Build with accessibility in mind from the start (semantic HTML, ARIA, keyboard navigation, color contrast). Test regularly.
 - **Testing:** Write meaningful unit/integration tests (Jest/RTL) for components/hooks/utils and E2E tests (Cypress) for critical user flows.
 - **Git Workflow:** Use Feature Branch workflow (branch from `main`/`develop`, descriptive commits, Pull Requests with reviews).
@@ -395,7 +395,7 @@ Enhance visibility of selected courses and provide a frictionless transition tow
     *   Students have a `Guardian` (optional).
     *   This implies **Student-Specific Pages** within an authenticated dashboard:
         *   Student Dashboard Home (Overview) (`/dashboard/student`)
-        *   My Courses / Classes Page
+        *   My Courses / Courses Page
         *   My Attendance Page
         *   My Payments / Billing History Page
         *   Chat Page(s) (potentially per class)
@@ -404,17 +404,17 @@ Enhance visibility of selected courses and provide a frictionless transition tow
         *   *(Maybe)* A Timetable/Schedule Page (though no specific Timetable model was shown, Class association implies it).
 
 3.  **Admin Routes (`adminRoutes.js`):**
-    *   `GET /dashboard`: Implies an **Admin Dashboard Home** (`/admin/dashboard` or `/dashboard/admin`) showing statistics (Total Students, Classes, Payments, Tickets) and recent activities.
+    *   `GET /dashboard`: Implies an **Admin Dashboard Home** (`/admin/dashboard` or `/dashboard/admin`) showing statistics (Total Students, Courses, Payments, Tickets) and recent activities.
     *   `GET /students` (paginated): Implies an **Admin - Manage Students Page** (displaying a table/list of students).
-    *   `GET /classes` (paginated): Implies an **Admin - Manage Classes Page**.
+    *   `GET /courses` (paginated): Implies an **Admin - Manage Courses Page**.
     *   `GET /payments` (paginated): Implies an **Admin - View Payments Page**.
     *   `GET /support-tickets` (paginated): Implies an **Admin - Manage Support Tickets Page**.
     *   `GET /feedback` (paginated): Implies an **Admin - View Feedback Page**.
-    *   *(Missing but Implied)*: Routes/pages for *creating/editing* Students, Classes, potentially Admins/Teachers would also be needed in a full admin section.
+    *   *(Missing but Implied)*: Routes/pages for *creating/editing* Students, Courses, potentially Admins/Teachers would also be needed in a full admin section.
 
 4.  **Other Models:**
     *   `Guardian`: Might imply a separate Guardian view/login later, but not explicitly required by routes shown. For MVP, might just be info linked to a Student profile.
-    *   `Class`: Implies a need for pages related to classes (viewing details, maybe content later).
+    *   `Class`: Implies a need for pages related to courses (viewing details, maybe content later).
     *   `Attendance`, `Payment`, `Invoice`, `Chat*`, `Feedback`, `SupportTicket`: These imply detail views or sections within other pages (e.g., viewing attendance *for a specific class*, viewing payment details *for an invoice*, viewing messages *within a chat room*).
 
 **Estimated Page Count (Focusing on distinct views/routes):**
@@ -432,7 +432,7 @@ Based *only* on the provided backend code snippets and MVP focus:
 **Authenticated - Student Role:**
 
 6.  Student Dashboard (`/dashboard/student` or `/dashboard`) - *Could consolidate some views here.*
-7.  My Courses/Classes Page
+7.  My Courses/Courses Page
 8.  My Profile/Settings Page
 9.  *(Maybe)* My Attendance (could be part of My Courses)
 10. *(Maybe)* My Payments (could be part of Profile/Settings initially)
@@ -442,7 +442,7 @@ Based *only* on the provided backend code snippets and MVP focus:
 
 12. Admin Dashboard (`/admin/dashboard` or `/dashboard/admin`) - Statistics Overview
 13. Admin - Students List Page
-14. Admin - Classes List Page
+14. Admin - Courses List Page
 15. Admin - Payments List Page
 16. Admin - Support Tickets List Page
 17. Admin - Feedback List Page
@@ -452,8 +452,8 @@ Based *only* on the provided backend code snippets and MVP focus:
 **Important Considerations:**
 
 *   **Consolidation:** Many "pages" listed for authenticated users (especially students) could be implemented as sections or tabs within a single dashboard layout rather than entirely separate page routes. The exact number depends heavily on the chosen dashboard UI/UX design.
-*   **CRUD Operations:** The backend snippets primarily show `GET` routes for admin lists and specific auth `POST` routes. A full application would need pages/modals for *Creating*, *Updating*, and *Deleting* (CRUD) Students, Classes, etc., especially within the Admin section. These pages aren't explicitly defined by the provided routes but would be necessary.
-*   **Teacher Role:** No specific backend routes for Teachers were provided, but typically they would need pages to manage their assigned classes, view student attendance/progress for those classes, manage assignments/grades (post-MVP), etc.
+*   **CRUD Operations:** The backend snippets primarily show `GET` routes for admin lists and specific auth `POST` routes. A full application would need pages/modals for *Creating*, *Updating*, and *Deleting* (CRUD) Students, Courses, etc., especially within the Admin section. These pages aren't explicitly defined by the provided routes but would be necessary.
+*   **Teacher Role:** No specific backend routes for Teachers were provided, but typically they would need pages to manage their assigned courses, view student attendance/progress for those courses, manage assignments/grades (post-MVP), etc.
 *   **Detail Views:** While list pages are implied (e.g., Admin Student List), clicking on an item would require a *Detail Page* or *Modal* (e.g., Admin Student Detail Page, Support Ticket Detail Page).
 
 So, while the provided backend code directly implies around 17 distinct views/routes, a functional application (even MVP focused on students and basic admin viewing) would likely require consolidating some student views and adding necessary CRUD interfaces for the admin, potentially bringing the practical number closer to **15-20 core page templates/authenticated views**.
@@ -719,16 +719,16 @@ We don't chase trends — we build **timelessly smooth experiences**.
 **Backend Data Source:**
 
 *   **Admin:** Primarily uses the `GET /admin/dashboard` endpoint which returns:
-    *   `statistics`: `{ totalStudents, totalClasses, totalPayments, totalSupportTickets }`
+    *   `statistics`: `{ totalStudents, totalCourses, totalPayments, totalSupportTickets }`
     *   `recentPayments`: Array of recent Payment objects (including Student info).
     *   `recentSupportTickets`: Array of recent SupportTicket objects (including Student info).
 *   **Teacher (Implied):** Would need backend endpoints (e.g., `GET /api/teacher/dashboard` or `GET /api/users/me/dashboard`) providing:
-    *   List of assigned classes.
-    *   Recent activity in those classes (e.g., new messages, submissions - Post-MVP).
-    *   Upcoming schedule/timetable events for their classes.
+    *   List of assigned courses.
+    *   Recent activity in those courses (e.g., new messages, submissions - Post-MVP).
+    *   Upcoming schedule/timetable events for their courses.
     *   Quick attendance summary (Post-MVP).
 *   **Student (Implied):** Would need backend endpoints (e.g., `GET /api/student/dashboard` or `GET /api/users/me/dashboard`) providing:
-    *   List of enrolled courses/classes.
+    *   List of enrolled courses/courses.
     *   Upcoming schedule/timetable events.
     *   Recent grades or feedback (Post-MVP).
     *   Unread messages/notifications count (Post-MVP).
@@ -783,7 +783,7 @@ The main Dashboard serves as the primary landing page for authenticated users af
 
 *   **`src/app/dashboard/page.tsx`**: Main entry point, performs role check and renders the appropriate role-specific component. Marked `'use client'`.
 *   **`src/features/dashboard/components/AdminDashboard.tsx`**: Fetches and displays admin-specific stats, recent payments, recent tickets.
-*   **`src/features/dashboard/components/TeacherDashboard.tsx`**: (MVP definition might be simpler) Fetches and displays assigned classes, maybe upcoming schedule.
+*   **`src/features/dashboard/components/TeacherDashboard.tsx`**: (MVP definition might be simpler) Fetches and displays assigned courses, maybe upcoming schedule.
 *   **`src/features/dashboard/components/StudentDashboard.tsx`**: Fetches and displays enrolled courses, upcoming schedule.
 *   **`src/features/dashboard/store/dashboard-slice.ts`**: (Optional but recommended) Redux slice for dashboard state.
 *   **`src/features/dashboard/store/dashboard-thunks.ts`**: (Optional but recommended) Async thunks for fetching dashboard data.
@@ -792,10 +792,10 @@ The main Dashboard serves as the primary landing page for authenticated users af
 ### 5. UI Elements (Examples per Role - MVP)
 
 *   **Admin Dashboard:**
-    *   Statistic Cards (`DyraneCard`): Displaying counts for Students, Classes, Payments, Tickets.
+    *   Statistic Cards (`DyraneCard`): Displaying counts for Students, Courses, Payments, Tickets.
     *   Recent Activity Lists (`DyraneCard` with list): Displaying recent payments, recent support tickets (linking to detail views).
 *   **Teacher Dashboard:**
-    *   My Classes List (`DyraneCard`): List of classes assigned.
+    *   My Courses List (`DyraneCard`): List of courses assigned.
     *   Upcoming Schedule/Timetable Preview (`DyraneCard`).
 *   **Student Dashboard:**
     *   My Enrolled Courses List (`DyraneCard`): Using `CourseCard` (compact view) or a list.
@@ -806,7 +806,7 @@ The main Dashboard serves as the primary landing page for authenticated users af
 
 *   **`mock-dashboard-data.ts`:**
     *   `getMockAdminDashboard()`: Returns data matching the structure from `GET /admin/dashboard` (stats, recent payments, recent tickets).
-    *   `getMockTeacherDashboard()`: Returns mock data for teacher view (e.g., array of assigned classes).
+    *   `getMockTeacherDashboard()`: Returns mock data for teacher view (e.g., array of assigned courses).
     *   `getMockStudentDashboard()`: Returns mock data for student view (e.g., array of enrolled courses).
 *   **`apiClient.ts`:** Update `handleMockRequest` to route GET requests for `/admin/dashboard`, `/teacher/dashboard`, `/student/dashboard` (or `/users/me/dashboard`) to these new mock functions.
 

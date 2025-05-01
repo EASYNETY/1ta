@@ -62,13 +62,13 @@ export default function ProfilePage() {
     }, [user])
 
     // Mock class data (in a real app, this would come from an API)
-    const classes = useAppSelector((state) => state.auth_courses.courses
+    const courses = useAppSelector((state) => state.auth_courses.courses
         .map((course) => ({
             id: course.id,
             name: course.slug,
         })))
     const getDefaultClassId = () => {
-        const defaultClass = classes.find((classItem) => classItem.id === user?.classId)
+        const defaultClass = courses.find((classItem) => classItem.id === user?.classId)
         return defaultClass ? defaultClass.id : ""
     }
 
@@ -89,7 +89,7 @@ export default function ProfilePage() {
 
     const hasItemsInCart = cart.items.length > 0
 
-    const courseOptions = classes.filter((classItem) => classItem.id === user?.classId)
+    const courseOptions = courses.filter((classItem) => classItem.id === user?.classId)
 
 
     // Function to determine the default course ID based on context
@@ -363,7 +363,7 @@ export default function ProfilePage() {
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {classes.map((classItem) => (
+                                                    {courses.map((classItem) => (
                                                         <SelectItem key={classItem.id} value={classItem.id}>
                                                             {classItem.name}
                                                         </SelectItem>

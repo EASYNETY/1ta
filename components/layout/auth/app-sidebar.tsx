@@ -66,7 +66,7 @@ export const primaryNavItems: NavItem[] = [
 export const adminNavItems: NavItem[] = [
     // { title: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] }, // Often duplicate of primary dashboard
     { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["admin"] },
-    { title: "Classes", href: "/classes", icon: BookOpen, roles: ["admin"] },
+    { title: "Courses", href: "/courses", icon: BookOpen, roles: ["admin"] },
     { title: "Payments", href: "/payments", icon: BarChart3, roles: ["admin"] },
     { title: "Tickets", href: "/support-tickets", icon: LifeBuoy, roles: ["admin"] },
     { title: "Feedback", href: "/feedback", icon: Users, roles: ["admin"] },

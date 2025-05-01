@@ -246,7 +246,7 @@ export default function DashboardPage() {
 
                     {/* My Courses Section */}
                     <h2 className="text-2xl font-bold mt-8">
-                        {user.role === "student" ? "My Courses" : user.role === "teacher" ? "My Classes" : "Recent Activity"}
+                        {user.role === "student" ? "My Courses" : user.role === "teacher" ? "My Courses" : "Recent Activity"}
                     </h2>
 
                     <motion.div

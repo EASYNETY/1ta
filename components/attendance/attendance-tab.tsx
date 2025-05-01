@@ -214,7 +214,7 @@ export function Attendance() {
                                 <CardContent>
                                     <div className="text-2xl font-bold">{value} days</div>
                                     <Progress value={percent} className={`h-2 mt-2 bg-${color}-100`} />
-                                    <p className="text-xs text-muted-foreground mt-1">{percent.toFixed(1)}% of classes</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{percent.toFixed(1)}% of courses</p>
                                 </CardContent>
                             </DyraneCard>
                         ))}

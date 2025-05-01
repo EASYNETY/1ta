@@ -173,7 +173,7 @@ const DyraneCard = React.forwardRef<HTMLDivElement, DyraneCardProps>(
                         cardCVA(), // Apply base CVA styles (relative, overflow, isolate, group, ::before setup)
                         overlayClassName, // Apply the overlay background class (e.g., "before:bg-primary/10")
                         reducedMotionClass, // Apply reduced motion override if needed
-                        cardClassName // Apply any specific classes passed for the card itself
+                        cardClassName // Apply any specific courses passed for the card itself
                     )}
                 // BaseCard receives standard div props if needed, but usually just children/className
                 >
