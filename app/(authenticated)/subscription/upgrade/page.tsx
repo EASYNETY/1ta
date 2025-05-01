@@ -9,7 +9,7 @@ import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Check, X, ArrowLeft } from "lucide-react"
 import { motion } from "framer-motion"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
 import { PaystackCheckout } from "@/components/payment/paystack-checkout"
@@ -22,6 +22,7 @@ import {
     createUserSubscription,
     selectPricingLoading,
 } from "@/features/pricing/store/pricing-slice"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 export default function UpgradeSubscriptionPage() {
     const router = useRouter()
@@ -221,6 +222,9 @@ export default function UpgradeSubscriptionPage() {
             {/* Payment Modal */}
             <Dialog open={showPaymentModal} onOpenChange={(open) => dispatch(setShowPaymentModal(open))}>
                 <DialogContent className="sm:max-w-md">
+                    <DialogTitle>
+                        <VisuallyHidden>Payment Modal</VisuallyHidden>
+                    </DialogTitle>
                     {selectedPlanId && (
                         <PaystackCheckout
                             courseId={selectedPlanId}
