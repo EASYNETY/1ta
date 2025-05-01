@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CheckCircle, EnvelopeSimple, GraduationCap, User } from "phosphor-react";
+import { Calendar, CheckCircle, EnvelopeSimple, GraduationCap, Money, User } from "phosphor-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
@@ -77,6 +77,8 @@ export const secondaryNavItems: NavItem[] = [
     { title: "Profile", href: "/profile", icon: User, roles: ["admin", "teacher", "student"] },
     { title: "Settings", href: "/settings", icon: Settings, roles: ["admin", "teacher", "student"] },
     { title: "Support", href: "/support", icon: LifeBuoy, roles: ["admin", "teacher", "student"] },
+    // pricing page
+    { title: 'Pricing', href: '/pricing', icon: Money, roles: ['student'] }
 ];
 
 // --- AppSidebar Component ---
