@@ -69,8 +69,7 @@ export const adminNavItems: NavItem[] = [
     { title: "Students", href: "/users?tab=students", icon: AdminUsersIcon, roles: ["admin"] },
     { title: "Pricing", href: "/admin/pricing", icon: Money, roles: ["admin"] },
     { title: "Payments", href: "/payments", icon: BarChart3, roles: ["admin"] },
-    { title: "Tickets", href: "/support-tickets", icon: LifeBuoy, roles: ["admin"] },
-    { title: "Feedback", href: "/feedback", icon: Users, roles: ["admin"] },
+    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["admin"] },
 ];
 
 // Secondary/Bottom Items

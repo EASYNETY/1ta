@@ -157,7 +157,7 @@ export default function TicketDetailPage() {
             {/* Response List */}
             <div className="space-y-4 mb-6">
                 {ticket.responses && ticket.responses.length > 0 ? (
-                    ticket.responses.map(response => (
+                    ticket.responses.map((response: TicketResponse) => (
                         <div key={response.id} className="flex gap-3">
                             <Avatar className="h-8 w-8 border">
                                 {/* <AvatarImage src={response.userAvatar} /> */}
