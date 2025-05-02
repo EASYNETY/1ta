@@ -213,14 +213,14 @@ export function PaystackCheckout({
                 {/* <VisuallyHidden><CardTitle>Payment Checkout</CardTitle></VisuallyHidden> */}
                 {/* Or display a title if needed within the component */}
                 <CardTitle className="flex items-center gap-2">
-                    <Image src="/images/paystack.png" alt="Paystack Logo" width={20} height={20} />
+                    <Image src="/paystack.png" alt="Paystack Logo" width={20} height={20} />
                     Secure Checkout
                 </CardTitle>
             </CardHeader>
             {renderCardContent()}
             <CardFooter className="flex flex-col items-center text-center pt-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Image src="/images/paystack.png" alt="Paystack Logo" width={20} height={20} />
+                    <Image src="/paystack.png" alt="Paystack Logo" width={20} height={20} />
                     <span>Secured by {IS_LIVE_API ? 'Paystack' : 'Mock Interface'}</span>
                 </div>
             </CardFooter>
