@@ -87,7 +87,11 @@ const ScanPage: FC = () => {
             // No need to manually activate scanner here, useEffect handles it
             console.log("Selected Class:", selected);
         } else {
-            dispatch(setCourseClass(null)); // Clear selected class if 'select...' option chosen
+            dispatch(setCourseClass({
+                id: "",
+                courseName: "",
+                sessionName: "",
+            })); // Reset selected class if 'select...' option chosen
         }
     };
 

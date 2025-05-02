@@ -15,7 +15,6 @@ type BarcodeScannerProps = {
     className?: string;
     paused?: boolean; // Control scanning externally
     deviceId?: string; // Allow parent to pass specific device ID
-    hints?: Map<DecodeHintType, any>; // Pass hints to the decoder
     timeBetweenDecodingAttempts?: number; // Customize delay
 };
 
@@ -37,7 +36,6 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
             className,
             paused = false,
             deviceId: initialDeviceId, // Device ID passed from parent
-            hints,
             timeBetweenDecodingAttempts
         },
         ref
@@ -89,7 +87,7 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
             torch,        // Torch controls (optional)
             // Other potential properties if needed from the hook
         } = useZxing({
-            deviceId: selectedDeviceId, // Pass the selected device ID
+            deviceId: selectedDeviceId as string, // Pass the selected device ID
             paused: paused || !selectedDeviceId || hasPermission === false, // Pause if prop says so, or no device/permission
             onDecodeResult(result) {
                 onResult(result.getText()); // Call parent's handler with decoded text
@@ -106,7 +104,6 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
                  if (onDeviceError) onDeviceError(error); // Treat as device error
                  setHasPermission(false); // Assume permission/access issue on hook error
             },
-            hints,
             timeBetweenDecodingAttempts,
         });
 
