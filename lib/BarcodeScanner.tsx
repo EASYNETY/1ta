@@ -1,194 +1,146 @@
 // lib/BarcodeScanner.tsx
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useZxing } from 'react-zxing'; // <-- Import the hook
-import type { DecodeHintType } from '@zxing/library'; // Import hint types if needed
+import React, { useState, useEffect } from 'react';
+import RqrbScanner from "react-qr-barcode-scanner"; // Renamed import to avoid name clash
+
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Camera, Loader2, ScanLine } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type BarcodeScannerProps = {
-    onResult: (value: string) => void;
-    onError?: (error: Error) => void; // For errors *during* scanning or setup
-    onDeviceError?: (error: Error) => void; // Specifically for device access errors
+    onResult: (text: string) => void; // Callback when a barcode is successfully scanned
+    onDecodeError?: (error: Error) => void; // Optional: Callback for errors *during* decoding (e.g., blurry image)
+    onDeviceError?: (error: Error) => void; // Optional: Callback for camera device errors (permissions, not found)
     className?: string;
-    paused?: boolean; // Control scanning externally
-    deviceId?: string; // Allow parent to pass specific device ID
-    timeBetweenDecodingAttempts?: number; // Customize delay
+    paused?: boolean; // If true, stops scanning and hides the camera view
+    timeBetweenDecodingAttempts?: number; // Maps to 'delay' prop
+    facingMode?: 'user' | 'environment'; // Control front/back camera
+    stopStream?: boolean; // Propagate stopStream for unmounting scenarios
+    width?: number | string; // Pass through width
+    height?: number | string; // Pass through height
 };
 
-export interface BarcodeScannerHandle {
-    reset: () => void; // May not be needed with the hook's handling
-    // Torch controls could be exposed here if needed
-    // turnTorchOn: () => void;
-    // turnTorchOff: () => void;
-    // isTorchOn: () => boolean;
-    // isTorchAvailable: () => boolean;
-}
+// No longer using forwardRef or exposing handles as the new component doesn't support it directly
+export const BarcodeScanner: React.FC<BarcodeScannerProps> = (
+    {
+        onResult,
+        onDecodeError, // Renamed for clarity from original 'onError'
+        onDeviceError,
+        className,
+        paused = false,
+        timeBetweenDecodingAttempts = 500, // Default from new library's docs
+        facingMode = "environment", // Default from new library's docs
+        stopStream = false,         // Default to false
+        width = "100%",             // Default from new library's docs
+        height = "100%",            // Default from new library's docs
+    }
+) => {
+    // State to hold camera device errors (permissions, etc.)
+    const [deviceError, setDeviceError] = useState<Error | null>(null);
+    const {toast} = useToast(); // Assuming you have a toast function for notifications
 
-export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerProps>(
-    (
-        {
-            onResult,
-            onError, // General scanning errors
-            onDeviceError, // Camera access errors
-            className,
-            paused = false,
-            deviceId: initialDeviceId, // Device ID passed from parent
-            timeBetweenDecodingAttempts
-        },
-        ref
-    ) => {
-        const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-        const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
-        // Internal state for selected device, potentially overridden by parent prop
-        const [selectedDeviceId, setSelectedDeviceId] = useState<string | undefined>(initialDeviceId);
-
-        // Effect for permissions and devices (similar to before)
-        useEffect(() => {
-            let stream: MediaStream | null = null;
-            const checkPermissionsAndDevices = async () => {
-                try {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const videoInputDevices = devices.filter(device => device.kind === 'videoinput');
-                    setVideoDevices(videoInputDevices);
-
-                    if (videoInputDevices.length > 0) {
-                        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                        setHasPermission(true);
-                        // Set default/initial device only if not provided by parent
-                        if (!initialDeviceId) {
-                            const backCamera = videoInputDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment'));
-                            setSelectedDeviceId(backCamera?.deviceId || videoInputDevices[0]?.deviceId);
-                        } else {
-                            setSelectedDeviceId(initialDeviceId); // Use parent's preference
-                        }
-                    } else {
-                        setHasPermission(false);
-                        console.error("No video input devices found.");
-                        if (onDeviceError) onDeviceError(new Error("No video input devices found."));
-                    }
-                } catch (err) {
-                    console.error("Error accessing media devices.", err);
-                    setHasPermission(false);
-                    if (onDeviceError) onDeviceError(err instanceof Error ? err : new Error('Unknown camera access error'));
-                } finally {
-                    if (stream) stream.getTracks().forEach(track => track.stop());
-                }
-            };
-            checkPermissionsAndDevices();
-            return () => { if (stream) stream.getTracks().forEach(track => track.stop()); };
-        }, [initialDeviceId, onDeviceError]); // Rerun if initialDeviceId changes
-
-        // --- Use the useZxing Hook ---
-        const {
-            ref: zxingRef, // Ref for the <video> element
-            torch,        // Torch controls (optional)
-            // Other potential properties if needed from the hook
-        } = useZxing({
-            deviceId: selectedDeviceId as string, // Pass the selected device ID
-            paused: paused || !selectedDeviceId || hasPermission === false, // Pause if prop says so, or no device/permission
-            onDecodeResult(result) {
-                onResult(result.getText()); // Call parent's handler with decoded text
-            },
-            onDecodeError(error) {
-                if (error?.name !== 'NotFoundException' && !error?.message?.includes('NotFoundException')) {
-                    console.error('Decode Error:', error);
-                    if (onError) onError(error);
+    const handleUpdate = (err: any, result: any) => {
+        if (result) {
+            // Check if the result object and text property exist
+            if (result.text) {
+                setDeviceError(null); // Clear any previous device error on successful scan
+                onResult(result.text);
+            } else {
+                // Handle cases where result is truthy but text is missing (shouldn't usually happen)
+                console.warn("Scan result detected, but no text found:", result);
+            }
+        } else if (err) {
+            // This 'err' is often a decoding error (NotFoundException)
+            // Filter out common 'NotFoundException' unless a specific handler is provided
+            if (err?.name !== 'NotFoundException' && !err?.message?.includes('NotFoundException')) {
+                console.error("Decoding Error:", err);
+                if (onDecodeError) {
+                    onDecodeError(err instanceof Error ? err : new Error(String(err)));
                 }
             }
-            ,
-            onError(error: any) { // Catches other errors like camera stream issues
-                console.error('Hook Error:', error);
-                if (onDeviceError) onDeviceError(error); // Treat as device error
-                setHasPermission(false); // Assume permission/access issue on hook error
-            },
-            timeBetweenDecodingAttempts,
-        });
+            // Don't set deviceError here, as this is usually a decode error, not a device issue
+        }
+    };
 
-        // Expose methods via ref (reset might be less useful now)
-        useImperativeHandle(ref, () => ({
-            reset: () => {
-                console.log('Scanner reset called - may not have direct effect on hook');
-                // Hook might re-initialize based on prop changes anyway
-            },
-            // Example: Exposing torch controls
-            // turnTorchOn: torch.on,
-            // turnTorchOff: torch.off,
-            // isTorchOn: () => torch.isOn,
-            // isTorchAvailable: () => torch.isAvailable,
-        }));
+    const handleError = (error: string | DOMException) => {
+        console.error("Camera error:", error);
+        // Optionally handle differently based on type
+        if (typeof error === "string") {
+            toast({ title: "Camera Error", description: error, variant: "destructive" });
+        } else {
+            toast({ title: "Camera Error", description: error.message, variant: "destructive" });
+        }
+    };
 
 
-        return (
-            <div className={cn("w-full space-y-4", className)}>
-                {/* Optional Camera Selection Dropdown */}
-                {videoDevices.length > 1 && (
-                    <div className="space-y-1.5">
-                        <Label htmlFor="camera-select-hook">Select Camera</Label>
-                        <Select
-                            value={selectedDeviceId}
-                            onValueChange={setSelectedDeviceId} // Update local state, hook will react
-                            disabled={paused} // Disable selection if paused
-                        >
-                            <SelectTrigger id="camera-select-hook">
-                                <SelectValue placeholder="Select a camera" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {videoDevices.map((device) => (
-                                    <SelectItem key={device.deviceId} value={device.deviceId}>
-                                        {device.label || `Camera ${device.deviceId.substring(0, 6)}`}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+    return (
+        <div className={cn("w-full space-y-4", className)}>
+            {/* --- REMOVE Camera Selection Dropdown --- */}
+
+            {/* Video Element Area */}
+            <div className="relative aspect-video bg-muted rounded-md overflow-hidden border border-dashed flex items-center justify-center">
+                {/* Show device error if present */}
+                {deviceError ? (
+                    <Alert variant="destructive" className="m-4 w-auto">
+                        <Camera className="h-4 w-4" />
+                        <AlertTitle>Camera Error</AlertTitle>
+                        <AlertDescription>
+                            {deviceError.name === 'NotAllowedError'
+                                ? "Camera permission denied. Please grant access."
+                                : deviceError.message || "Could not access camera."}
+                        </AlertDescription>
+                    </Alert>
+                ) : paused ? (
+                    // Show paused state
+                    <p className="text-muted-foreground">Scanner paused</p>
+                ) : (
+                    // Render the Scanner component if no error and not paused
+                    <>
+                        <RqrbScanner
+                            onUpdate={handleUpdate}
+                            onError={handleError} // Use the specific onError for device issues
+                            delay={timeBetweenDecodingAttempts}
+                            facingMode={facingMode}
+                            stopStream={stopStream} // Pass through stopStream
+                            // Using width/height props instead of absolute positioning the video
+                            width={width}
+                            height={height}
+                            // Add constraints if needed, e.g., for aspect ratio, but width/height often suffice
+                            videoConstraints={{
+                                // Example: force a specific aspect ratio if needed
+                                // aspectRatio: 16 / 9,
+                                // Ensure the facingMode is passed within constraints if preferred
+                                facingMode: facingMode
+                            }}
+                        />
+                        {/* Visual cue for scanning area (optional) - place it over the scanner */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <ScanLine className="w-2/3 h-auto text-primary/50 animate-pulse" strokeWidth={1} />
+                        </div>
+                    </>
                 )}
 
-                {/* Video Element Area */}
-                <div className="relative aspect-video bg-muted rounded-md overflow-hidden border border-dashed flex items-center justify-center">
-                    {/* Render placeholder based on permission state */}
-                    {hasPermission === null && (
-                        <p className="text-muted-foreground text-sm flex items-center gap-1"><Loader2 className="h-4 w-4 animate-spin" /> Checking permissions...</p>
-                    )}
-                    {hasPermission === false && (
-                        <Alert variant="destructive" className="m-4">
-                            <Camera className="h-4 w-4" />
-                            <AlertTitle>Camera Access Denied</AlertTitle>
-                            <AlertDescription>Please grant camera permission.</AlertDescription>
-                        </Alert>
-                    )}
-                    {/* Render video element only when ready */}
-                    {hasPermission && (
-                        <>
-                            <video
-                                ref={zxingRef} // Assign the ref from the hook to the video element
-                                className={cn(
-                                    "absolute top-0 left-0 w-full h-full object-cover",
-                                    { 'hidden': paused } // Hide video if paused
-                                )}
-                            />
-                            {/* Show placeholder if paused */}
-                            {paused && <p className="text-muted-foreground">Scanner paused</p>}
-                            {/* Visual cue for scanning area (optional) */}
-                            {!paused && (
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <ScanLine className="w-2/3 h-auto text-primary/50 animate-pulse" strokeWidth={1} />
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-
-                {/* Optional Torch Button (Example) */}
-                {/* {torch.isAvailable && hasPermission && (
-                     <Button onClick={() => torch.isOn ? torch.off() : torch.on()} variant="outline" size="sm">
-                         {torch.isOn ? 'Turn Off' : 'Turn On'} Torch
-                     </Button>
-                 )} */}
+                {/* Initial Loading - Can be basic as the component handles camera init */}
+                {/* This might flash briefly before the camera starts or an error occurs */}
+                {!deviceError && !paused && !stopStream && (
+                    // Simple placeholder while camera initializes (often very fast)
+                    // Or you could add a more sophisticated loading state if needed
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted -z-10">
+                        {/* <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> */}
+                        {/* Keep it clean, scanner component might show video quickly */}
+                    </div>
+                )}
             </div>
-        );
-    }
-);
-BarcodeScanner.displayName = 'BarcodeScanner';
+
+            {/* --- REMOVE Torch Button Example using useZxing --- */}
+            {/* Torch control would need state management if added back */}
+            {/* Example (requires adding state like `[torchOn, setTorchOn] = useState(false);`):
+                <button onClick={() => setTorchOn(prev => !prev)}>Toggle Torch</button>
+                <RqrbScanner ... torch={torchOn} ... />
+                Note the documentation's advice about toggling torch *after* mount.
+            */}
+        </div>
+    );
+};
+
+BarcodeScanner.displayName = 'BarcodeScanner'; // Keep display name if used in dev tools

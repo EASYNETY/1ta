@@ -101,9 +101,6 @@ importers:
       '@stripe/stripe-js':
         specifier: ^7.2.0
         version: 7.2.0
-      '@zxing/library':
-        specifier: ^0.21.3
-        version: 0.21.3
       axios:
         specifier: ^1.8.4
         version: 1.8.4
@@ -164,15 +161,15 @@ importers:
       react-paystack:
         specifier: ^6.0.0
         version: 6.0.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-qr-barcode-scanner:
+        specifier: ^2.1.1
+        version: 2.1.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-redux:
         specifier: ^9.2.0
         version: 9.2.0(@types/react@19.1.2)(react@18.2.0)(redux@5.0.1)
       react-resizable-panels:
         specifier: ^2.1.8
         version: 2.1.8(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      react-zxing:
-        specifier: ^2.1.0
-        version: 2.1.0(react@18.2.0)
       recharts:
         specifier: ^2.15.3
         version: 2.15.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1829,10 +1826,6 @@ packages:
     resolution: {integrity: sha512-n33drkd84G5Mu2BkUGawZXmm+IFPuRv7GpODfwEBs/CzZq2+BIZyAZmb03H9IgNbd7xaohZbtZ4/9Gb0xo5ssw==}
     cpu: [x64]
     os: [win32]
-
-  '@zxing/library@0.20.0':
-    resolution: {integrity: sha512-6Ev6rcqVjMakZFIDvbUf0dtpPGeZMTfyxYg4HkVWioWeN7cRcnUWT3bU6sdohc82O1nPXcjq6WiGfXX2Pnit6A==}
-    engines: {node: '>= 10.4.0'}
 
   '@zxing/library@0.21.3':
     resolution: {integrity: sha512-hZHqFe2JyH/ZxviJZosZjV+2s6EDSY0O24R+FQmlWZBZXP9IqMo7S3nb3+2LBWxodJQkSurdQGnqE7KXqrYgow==}
@@ -4072,6 +4065,12 @@ packages:
       react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
       react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
 
+  react-qr-barcode-scanner@2.1.1:
+    resolution: {integrity: sha512-HfiUt1ZldDX9RkIZFVQLNYUyrsh24z0XMLRhy9udavinp7dEQcNt9itq9dnDNgyBQof6R/YHjLMO8xxuBkNYWg==}
+    peerDependencies:
+      react: ^19.1.0
+      react-dom: ^19.1.0
+
   react-redux@9.2.0:
     resolution: {integrity: sha512-ROY9fvHhwOD9ySfrF0wmvu//bKCQ6AeZZq1nJNtbDC+kk5DuSuNX/n6YWYF/SYy7bSba4D4FSz8DJeKY/S/r+g==}
     peerDependencies:
@@ -4132,11 +4131,11 @@ packages:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
 
-  react-zxing@2.1.0:
-    resolution: {integrity: sha512-iFZ8KPfZl+biiT5/bluuMGaSLQAwnE0ialQHbJioHFuwqhCo1WmjQmAtI4WN8BmiKYFVkHGgwHSl+pgwpwtQEg==}
-    engines: {node: ^18 || ^20 || ^22, yarn: ^1.22}
+  react-webcam@7.2.0:
+    resolution: {integrity: sha512-xkrzYPqa1ag2DP+2Q/kLKBmCIfEx49bVdgCCCcZf88oF+0NPEbkwYk3/s/C7Zy0mhM8k+hpdNkBLzxg8H0aWcg==}
     peerDependencies:
-      react: ^16.8.0  || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react: '>=16.2.0'
+      react-dom: '>=16.2.0'
 
   react@18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
@@ -6502,12 +6501,6 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.6.3':
     optional: true
-
-  '@zxing/library@0.20.0':
-    dependencies:
-      ts-custom-error: 3.3.1
-    optionalDependencies:
-      '@zxing/text-encoding': 0.9.0
 
   '@zxing/library@0.21.3':
     dependencies:
@@ -9069,6 +9062,13 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
+  react-qr-barcode-scanner@2.1.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+    dependencies:
+      '@zxing/library': 0.21.3
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      react-webcam: 7.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+
   react-redux@9.2.0(@types/react@19.1.2)(react@18.2.0)(redux@5.0.1):
     dependencies:
       '@types/use-sync-external-store': 0.0.6
@@ -9127,10 +9127,10 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  react-zxing@2.1.0(react@18.2.0):
+  react-webcam@7.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
-      '@zxing/library': 0.20.0
       react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
 
   react@18.2.0:
     dependencies:

@@ -36,11 +36,17 @@ export function Attendance() {
     const courseClassIdForTeacher = "webDevBootcamp"; // Hardcoded
 
     // --- Get Data from Slice ---
+    // --- Get Data from Slice ---
+    // CORRECTED LOGIC: Only fetch student records if the user's role IS 'student'
     const studentRecords = useAppSelector(state =>
-        user?.id != null ? selectStudentAttendanceRecords(state, String(user.id)) : []
+        user?.role === 'student' && user?.id != null
+            ? selectStudentAttendanceRecords(state, String(user.id))
+            : [] // Return empty array for non-students or if ID is missing
     );
 
+    // This selector remains correct - it's intended for the teacher/admin view
     const courseDailyAttendances = useAppSelector(state =>
+        // We fetch this regardless of role, but only *use* it in the non-student view
         selectCourseDailyAttendances(state, courseClassIdForTeacher)
     );
 

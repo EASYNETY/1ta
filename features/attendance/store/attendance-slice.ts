@@ -193,8 +193,24 @@ export const selectCourseDailyAttendances = (
 	state: RootState,
 	courseClassId: string
 ): DailyAttendance[] => {
-	const courseDetails = state.attendanceMarking.courseAttendance[courseClassId];
 	// Return the daily records as an array
+	// --- FIX: Add safety check for courseAttendance itself ---
+	// Use optional chaining to safely access courseAttendance
+	const courseAttendanceMap = state.attendanceMarking?.courseAttendance;
+
+	// If the main courseAttendance map doesn't exist in the state, return empty array
+	if (!courseAttendanceMap) {
+		// Optional: Log a warning for debugging if this happens unexpectedly
+		console.warn(
+			`[selectCourseDailyAttendances] state.attendanceMarking.courseAttendance is undefined.`
+		);
+		return [];
+	}
+
+	// If the map exists, try to get details for the specific courseClassId
+	const courseDetails = courseAttendanceMap[courseClassId];
+
+	// If details for this specific ID exist, return its daily records, otherwise return empty array
 	return courseDetails ? Object.values(courseDetails.dailyRecords) : [];
 };
 
