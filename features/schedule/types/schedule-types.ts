@@ -12,6 +12,7 @@ export interface ScheduleEvent {
 	id: string;
 	title: string; // Event specific title (e.g., "Midterm Exam")
 	courseId?: string; // Link to the course if applicable
+	courseSlug?: string; // Link to the course if applicable
 	courseTitle?: string; // Display name of the course
 	classId?: string; // Link to the specific class instance if applicable
 	startTime: string; // ISO Date string

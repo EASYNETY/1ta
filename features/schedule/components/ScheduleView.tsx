@@ -125,7 +125,51 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
     }, [events, weekDays, currentWeekStart]);
 
     // --- Badge/Icon Helpers --- (Copied from original ScheduleTab)
-    const getEventTypeBadge = (type: string) => { /* ... copy logic ... */ };
+    const getEventTypeBadge = (type: string) => {
+        switch (type) {
+            case "lecture":
+                return (
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700">
+                        <BookOpen className="mr-1 h-3 w-3" />
+                        Lecture
+                    </Badge>
+                );
+            case "lab":
+                return (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+                        <Users className="mr-1 h-3 w-3" />
+                        Lab
+                    </Badge>
+                );
+            case "exam":
+                return (
+                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
+                        <Clock className="mr-1 h-3 w-3" />
+                        Exam
+                    </Badge>
+                );
+            case "office-hours":
+                return (
+                    <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700">
+                        <Users className="mr-1 h-3 w-3" />
+                        Office Hours
+                    </Badge>
+                );
+            case "meeting": // Example for meeting
+                return (
+                    <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700">
+                        <Video className="mr-1 h-3 w-3" />
+                        Meeting
+                    </Badge>
+                );
+            default:
+                return (
+                    <Badge variant="secondary">
+                        {type.charAt(0).toUpperCase() + type.slice(1)} {/* Capitalize unknown type */}
+                    </Badge>
+                );
+        }
+    };
     const getEventTypeIcon = (type: string) => {
         switch (type) {
             case "lecture": return <BookOpen className="h-5 w-5 text-primary" />;
@@ -227,7 +271,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
                                                         <h3 className="font-medium">{event.title}</h3>
                                                         {event.courseTitle && <p className="text-sm text-muted-foreground">{event.courseTitle}</p>}
                                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
-                                                            {/* Badge removed, icon added above */}
+                                                            {getEventTypeBadge(event.type)}
                                                             <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{safeFormatTime(event.startTime)} - {safeFormatTime(event.endTime)}</span>
                                                             {event.location && <span className="flex items-center"><MapPin className="mr-1 h-3 w-3" />{event.location}</span>}
                                                             {event.instructor && <span className="flex items-center"><Users className="mr-1 h-3 w-3" />{event.instructor}</span>}
@@ -240,10 +284,10 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
                                                         <DyraneButton variant="outline" size="sm" className="whitespace-nowrap" asChild>
                                                             <a href={event.meetingLink} target="_blank" rel="noopener noreferrer">Join Meeting</a>
                                                         </DyraneButton>
-                                                    ) : event.courseId ? ( // Link to course if no meeting link
+                                                    ) : event.courseSlug ? ( // Link to course if no meeting link
                                                         <DyraneButton variant="outline" size="sm" className="whitespace-nowrap" asChild>
                                                             {/* TODO: Update link generation based on actual course structure */}
-                                                            <Link href={`/courses/${event.courseId}`}>View Course</Link>
+                                                            <Link href={`/courses/${event.courseSlug}`}>View Course</Link>
                                                         </DyraneButton>
                                                     ) : null}
                                                 </div>
