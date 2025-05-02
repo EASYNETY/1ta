@@ -62,17 +62,17 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
                             const backCamera = videoInputDevices.find(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment'));
                             setSelectedDeviceId(backCamera?.deviceId || videoInputDevices[0]?.deviceId);
                         } else {
-                             setSelectedDeviceId(initialDeviceId); // Use parent's preference
+                            setSelectedDeviceId(initialDeviceId); // Use parent's preference
                         }
                     } else {
                         setHasPermission(false);
                         console.error("No video input devices found.");
-                        if(onDeviceError) onDeviceError(new Error("No video input devices found."));
+                        if (onDeviceError) onDeviceError(new Error("No video input devices found."));
                     }
                 } catch (err) {
                     console.error("Error accessing media devices.", err);
                     setHasPermission(false);
-                    if(onDeviceError) onDeviceError(err instanceof Error ? err : new Error('Unknown camera access error'));
+                    if (onDeviceError) onDeviceError(err instanceof Error ? err : new Error('Unknown camera access error'));
                 } finally {
                     if (stream) stream.getTracks().forEach(track => track.stop());
                 }
@@ -93,16 +93,16 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
                 onResult(result.getText()); // Call parent's handler with decoded text
             },
             onDecodeError(error) {
-                // Ignore common "NotFoundException" errors which happen frequently between scans
-                if (error && !error.message.includes('NotFoundException')) {
+                if (error?.name !== 'NotFoundException' && !error?.message?.includes('NotFoundException')) {
                     console.error('Decode Error:', error);
                     if (onError) onError(error);
                 }
-            },
+            }
+            ,
             onError(error: any) { // Catches other errors like camera stream issues
-                 console.error('Hook Error:', error);
-                 if (onDeviceError) onDeviceError(error); // Treat as device error
-                 setHasPermission(false); // Assume permission/access issue on hook error
+                console.error('Hook Error:', error);
+                if (onDeviceError) onDeviceError(error); // Treat as device error
+                setHasPermission(false); // Assume permission/access issue on hook error
             },
             timeBetweenDecodingAttempts,
         });
@@ -131,7 +131,7 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
                             value={selectedDeviceId}
                             onValueChange={setSelectedDeviceId} // Update local state, hook will react
                             disabled={paused} // Disable selection if paused
-                            >
+                        >
                             <SelectTrigger id="camera-select-hook">
                                 <SelectValue placeholder="Select a camera" />
                             </SelectTrigger>
@@ -148,7 +148,7 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
 
                 {/* Video Element Area */}
                 <div className="relative aspect-video bg-muted rounded-md overflow-hidden border border-dashed flex items-center justify-center">
-                     {/* Render placeholder based on permission state */}
+                    {/* Render placeholder based on permission state */}
                     {hasPermission === null && (
                         <p className="text-muted-foreground text-sm flex items-center gap-1"><Loader2 className="h-4 w-4 animate-spin" /> Checking permissions...</p>
                     )}
@@ -168,21 +168,21 @@ export const BarcodeScanner = forwardRef<BarcodeScannerHandle, BarcodeScannerPro
                                     "absolute top-0 left-0 w-full h-full object-cover",
                                     { 'hidden': paused } // Hide video if paused
                                 )}
-                                />
+                            />
                             {/* Show placeholder if paused */}
                             {paused && <p className="text-muted-foreground">Scanner paused</p>}
                             {/* Visual cue for scanning area (optional) */}
-                             {!paused && (
-                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                     <ScanLine className="w-2/3 h-auto text-primary/50 animate-pulse" strokeWidth={1} />
-                                 </div>
-                             )}
+                            {!paused && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <ScanLine className="w-2/3 h-auto text-primary/50 animate-pulse" strokeWidth={1} />
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
 
-                 {/* Optional Torch Button (Example) */}
-                 {/* {torch.isAvailable && hasPermission && (
+                {/* Optional Torch Button (Example) */}
+                {/* {torch.isAvailable && hasPermission && (
                      <Button onClick={() => torch.isOn ? torch.off() : torch.on()} variant="outline" size="sm">
                          {torch.isOn ? 'Turn Off' : 'Turn On'} Torch
                      </Button>
