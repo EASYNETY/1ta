@@ -203,7 +203,7 @@ const ScanPage: FC = () => {
 
     // --- Render ---
     return (
-        <div className="container mx-auto py-8 space-y-6">
+        <div className="mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center gap-2 mb-4">
                 <Button variant="outline" size="icon" onClick={() => router.back()}>
