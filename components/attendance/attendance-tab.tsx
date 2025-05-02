@@ -295,7 +295,7 @@ export function Attendance() {
                                     </div>
 
                                     <div className="grid grid-cols-7 gap-1 text-center">
-                                        {["M", "T", "W", "T", "F", "S", "S"].map((day) => (
+                                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
                                             <div key={day} className="text-xs font-medium py-1">
                                                 {day}
                                             </div>
@@ -318,7 +318,7 @@ export function Attendance() {
 
                                                     className={cn(
                                                         "h-8 w-8 rounded-full text-xs flex items-center justify-center transition-colors cursor-pointer",
-                                                        isSelected && "bg-primary text-white",
+                                                        isSelected && "bg-primary text-black",
                                                         hasAttendance && !isSelected && "bg-primary/10 text-primary",
                                                         !hasAttendance && "text-muted-foreground hover:bg-accent"
                                                     )}

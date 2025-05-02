@@ -20,6 +20,9 @@ import cartReducer from "@/features/cart/store/cart-slice";
 import publicCourseReducer from "@/features/public-course/store/public-course-slice";
 import authCourseReducer from "@/features/auth-course/store/auth-course-slice";
 import pricingReducer from "@/features/pricing/store/pricing-slice";
+import attendanceMarkingReducer from "@/features/attendance/store/attendance-slice";
+import classSessionReducer from '@/features/classes/store/classSessionSlice';
+
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -52,7 +55,15 @@ const persistConfig = {
 	key: "1techacademy-root",
 	storage: storage,
 	version: 1,
-	whitelist: ["auth", "cart", "pricing", "public_courses", "auth_courses"],
+	whitelist: [
+		"auth",
+		"cart",
+		"pricing",
+		"public_courses",
+		"auth_courses",
+		"attendanceMarking",
+		"classSession",
+	],
 };
 
 // --- Root Reducer ---
@@ -63,6 +74,8 @@ const rootReducer = combineReducers({
 	public_courses: publicCourseReducer,
 	auth_courses: authCourseReducer,
 	pricing: pricingReducer,
+	attendanceMarking: attendanceMarkingReducer,
+	classSession: classSessionReducer,
 });
 
 // --- Persisted Reducer ---
