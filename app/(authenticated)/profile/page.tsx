@@ -27,6 +27,7 @@ import { useRouter } from "next/navigation"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { GraduationCap } from "phosphor-react"
+import Link from "next/link"
 
 // Define the schema for profile completion
 const profileSchema = z.object({
@@ -269,14 +270,21 @@ export default function ProfilePage() {
                     <AlertDescription>Please complete your profile to access all features of the platform.</AlertDescription>
                 </Alert>
             )}
-
             {hasItemsInCart && (
                 <Alert className="mb-6 bg-primary/10 border-primary/20">
                     <GraduationCap className="h-4 w-4 text-primary" />
                     <AlertTitle>Course Selected</AlertTitle>
                     <AlertDescription>
-                        You have {cart.items.length} course{cart.items.length > 1 ? "s" : ""} in your cart. Complete your profile to
-                        proceed to pricing and payment.
+                        You have {cart.items.length} course{cart.items.length > 1 ? "s" : ""} in your cart.{" "}
+                        <span className="inline">
+                            <Link
+                                href="/checkout"
+                                className="underline underline-offset-4 text-primary font-medium hover:opacity-90 transition"
+                            >
+                                Go to checkout
+                            </Link>
+                        </span>{" "}
+                        to complete your enrollment.
                     </AlertDescription>
                 </Alert>
             )}

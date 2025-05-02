@@ -88,21 +88,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       router.push("/profile")
       return
     }
-
-    // If profile is complete and there are items in the cart, redirect to pricing
-    // unless already on the pricing page or payment page or user has skipped pricing
-    if (
-      user &&
-      isProfileComplete(user) &&
-      cart.items.length > 0 &&
-      !skipCheckout &&
-      !pathname.startsWith("/checkout") &&
-      !pathname.startsWith("/payment") &&
-      !pathname.startsWith("/cart")
-    ) {
-      router.push("/checkout")
-    }
-    console.log("AuthProvider: Route check complete, no redirect needed.");
   }, [
     isAuthenticated,
     isInitialized,
