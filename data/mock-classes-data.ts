@@ -11,10 +11,7 @@ export const getMockEnrolledClasses = async (
 	console.log(`MOCK: Fetching enrolled classes for student ${studentId}`);
 	await new Promise((res) => setTimeout(res, 450));
 	// Simulate enrollment - return the first course for student_123, maybe none for others
-	if (studentId === "student_123") {
-		return mockAuthCourseData.slice(0, 1); // Example: Return only PMP course
-	}
-	return [];
+	return mockAuthCourseData; // Example: Return only PMP course
 };
 
 export const getMockTaughtClasses = async (
@@ -24,15 +21,7 @@ export const getMockTaughtClasses = async (
 	await new Promise((res) => setTimeout(res, 350));
 	// Simulate - return courses matching teacherId (add instructorId to your AuthCourse mock)
 	// Example: Assuming teacher_1 teaches PMP (courseId '1')
-	if (teacherId === "teacher_1") {
-		return mockAuthCourseData.filter((c) => c.id === "1");
-	}
-	// Example: Assuming teacher_789 teaches Web Dev (courseId 'webdev_101' - need to add this course)
-	if (teacherId === "teacher_789") {
-		// return mockAuthCourseData.filter(c => c.id === 'webdev_101'); // Add webdev course to mock data first
-		return []; // Placeholder
-	}
-	return [];
+	return mockAuthCourseData;
 };
 
 export const getMockAllClassesAdmin = async (
