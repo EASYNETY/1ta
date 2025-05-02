@@ -43,6 +43,13 @@ import {
 	UpdateSubscriptionData,
 	UserSubscription,
 } from "@/features/pricing/types/pricing-types";
+import {
+	mockFetchPaymentMethods,
+	mockAddPaymentMethod,
+	mockSetDefaultPaymentMethod,
+	mockDeletePaymentMethod,
+} from "@/data/mock-payment-data";
+import type { PaymentMethod } from "@/features/payment/types/payment-types";
 
 // --- Config ---
 const API_BASE_URL =
@@ -269,6 +276,45 @@ async function handleMockRequest<T>(
 		return mockTogglePlanActive(planId) as unknown as T;
 	}
 
+	// --- Payment Method Mocks ---
+	const paymentMethodsMatch = endpoint.match(/^\/users\/me\/payment-methods$/);
+	if (paymentMethodsMatch && method === "get") {
+		// Assume userId comes from auth context in real API, mock uses hardcoded for now
+		// In real thunk, you'd get userId from state
+		const userId = "user_123"; // Replace with dynamic user ID if needed for mock testing
+		return mockFetchPaymentMethods(userId) as unknown as T;
+	}
+	if (paymentMethodsMatch && method === "post") {
+		const userId = "user_123"; // Get dynamically if possible for mock
+		// Body should contain { paystackReference: {...} } based on AddPaymentMethodPayload
+		if (!body?.paystackReference)
+			throw new Error(
+				"Mock Error: Missing paystackReference in add payment method"
+			);
+		return mockAddPaymentMethod({
+			userId,
+			paystackReference: body.paystackReference,
+		}) as unknown as T;
+	}
+
+	const setDefaultMatch = endpoint.match(
+		/^\/users\/me\/payment-methods\/(.+)\/default$/
+	);
+	if (setDefaultMatch && method === "put") {
+		const methodId = setDefaultMatch[1];
+		const userId = "user_123"; // Get dynamically if possible for mock
+		return mockSetDefaultPaymentMethod({ userId, methodId }) as unknown as T;
+	}
+
+	const deleteMethodMatch = endpoint.match(
+		/^\/users\/me\/payment-methods\/(.+)$/
+	);
+	if (deleteMethodMatch && method === "delete") {
+		const methodId = deleteMethodMatch[1];
+		const userId = "user_123"; // Get dynamically if possible for mock
+		return mockDeletePaymentMethod({ userId, methodId }) as unknown as T;
+	}
+	// --- Fallback ---
 	console.error(
 		`Mock API: Endpoint "${endpoint}" (Method: ${method}) not implemented`
 	);
@@ -383,6 +429,12 @@ export const togglePlanActive = async (
 ): Promise<PricingPlan> => {
 	// Assuming the API returns the full updated plan object
 	return post<PricingPlan>(`/plans/${planId}/toggle-active`, {});
+};
+
+export const getMyPaymentMethods = async (
+	options?: FetchOptions
+): Promise<PaymentMethod[]> => {
+	return get<PaymentMethod[]>("/users/me/payment-methods", options);
 };
 
 // --- Export ---

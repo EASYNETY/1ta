@@ -21,8 +21,8 @@ import publicCourseReducer from "@/features/public-course/store/public-course-sl
 import authCourseReducer from "@/features/auth-course/store/auth-course-slice";
 import pricingReducer from "@/features/pricing/store/pricing-slice";
 import attendanceMarkingReducer from "@/features/attendance/store/attendance-slice";
-import classSessionReducer from '@/features/classes/store/classSessionSlice';
-
+import classSessionReducer from "@/features/classes/store/classSessionSlice";
+import paymentMethodsReducer from "@/features/payment/store/payment-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -63,6 +63,7 @@ const persistConfig = {
 		"auth_courses",
 		"attendanceMarking",
 		"classSession",
+		"paymentMethods",
 	],
 };
 
@@ -76,6 +77,7 @@ const rootReducer = combineReducers({
 	pricing: pricingReducer,
 	attendanceMarking: attendanceMarkingReducer,
 	classSession: classSessionReducer,
+	paymentMethods: paymentMethodsReducer,
 });
 
 // --- Persisted Reducer ---
