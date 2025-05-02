@@ -1,30 +1,55 @@
-// features/attendance/store/attendance-slice.ts (Example Structure)
+// features/attendance/store/attendance-slice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "@/store"; // Adjust path if needed
-import { apiClient, post } from "@/lib/api-client"; // Adjust path
+import type { RootState } from "@/store";
+import { apiClient, post } from "@/lib/api-client";
+// Import the mock data structures and the actual mock data
+import {
+	StudentAttendance, // Interface for student details within a day
+	StudentAttendanceRecord, // Interface for student's own records {date, status}
+	TeacherAttendanceResponse, // Structure of mockClassAttendance
+	DailyAttendance, // Structure for one day's attendance in Teacher view
+	mockStudentAttendance as initialMockStudentData, // Rename for clarity
+	mockClassAttendance as initialMockClassData, // Rename for clarity
+} from "@/data/mock-attendance-data";
 
-// Define state shape
+// --- Adjusted State Shape ---
+
+// Represents the attendance details for a specific course, organized by date
+interface CourseAttendanceDetails {
+	courseClassId: string;
+	courseTitle: string;
+	totalStudents: number;
+	// Store daily records keyed by date string ('yyyy-MM-dd') for efficient lookup
+	dailyRecords: Record<string, DailyAttendance>; // Use DailyAttendance from mock data
+}
+
+// State shape
 interface AttendanceMarkingState {
 	isLoading: boolean;
 	error: string | null;
 	lastMarkedStatus: "success" | "error" | "idle";
 	markedStudentId: string | null;
+	// Keep studentAttendance keyed by studentId, value is array of their records
+	studentAttendance: Record<string, StudentAttendanceRecord[]>;
+	// Store course attendance details keyed by courseClassId
+	courseAttendance: Record<string, CourseAttendanceDetails>;
 }
 
-// Define argument structure for the thunk
+// Mark Attendance Payload (Keep as is)
 export interface MarkAttendancePayload {
 	studentId: string;
-	classInstanceId: string; // Or courseId, scheduleId - how you identify the session
-	markedByUserId: string; // ID of the admin/teacher scanning
-	timestamp: string; // ISO timestamp
+	classInstanceId: string;
+	markedByUserId: string;
+	timestamp: string;
 }
 
-// Define thunk
+// Mark Attendance Thunk (Keep as is)
 export const markStudentAttendance = createAsyncThunk<
-	{ success: boolean; studentId: string; message?: string }, // Return type on success
-	MarkAttendancePayload, // Input type
-	{ state: RootState; rejectValue: string } // ThunkAPI config
+	{ success: boolean; studentId: string; message?: string },
+	MarkAttendancePayload,
+	{ state: RootState; rejectValue: string }
 >("attendance/markStudent", async (payload, { getState, rejectWithValue }) => {
+	// ... (implementation remains the same)
 	const { auth } = getState();
 	const token = auth.token;
 	if (!token) {
@@ -32,22 +57,23 @@ export const markStudentAttendance = createAsyncThunk<
 	}
 
 	try {
-		// Replace '/attendance/mark' with your actual API endpoint
+		// Replace with your actual API endpoint
 		const response = await post<{ success: boolean; message?: string }>(
-			"/attendance/mark",
+			"/attendance/mark", // Make sure API client mocks this if needed
 			payload,
 			{ headers: { Authorization: `Bearer ${token}` } }
 		);
 		if (response.success) {
+			// TODO: Ideally, the API response should include the updated attendance record
+			// so we can update the state here instead of just setting status flags.
+			// For now, we just indicate success/failure.
 			return { ...response, studentId: payload.studentId };
 		} else {
-			// Use message from response if available, otherwise provide default
 			return rejectWithValue(
 				response.message || "Failed to mark attendance on server."
 			);
 		}
 	} catch (error: any) {
-		console.error("Mark attendance error:", error);
 		const message =
 			error?.response?.data?.message ||
 			error?.message ||
@@ -56,13 +82,40 @@ export const markStudentAttendance = createAsyncThunk<
 	}
 });
 
+// --- Pre-process Mock Data for Initial State ---
+// Transform mockClassAttendance into the desired CourseAttendanceDetails structure
+const processedCourseAttendance: Record<string, CourseAttendanceDetails> =
+	initialMockClassData.reduce(
+		(acc, course) => {
+			if (!acc[course.courseClassId]) {
+				acc[course.courseClassId] = {
+					courseClassId: course.courseClassId,
+					courseTitle: course.courseTitle,
+					totalStudents: course.totalStudents,
+					dailyRecords: {},
+				};
+			}
+			// Add daily records, keyed by date
+			course.dailyAttendances.forEach((daily) => {
+				acc[course.courseClassId].dailyRecords[daily.date] = daily;
+			});
+			return acc;
+		},
+		{} as Record<string, CourseAttendanceDetails>
+	);
+
+// --- Initial State ---
 const initialState: AttendanceMarkingState = {
 	isLoading: false,
 	error: null,
 	lastMarkedStatus: "idle",
 	markedStudentId: null,
+	// Initialize with mock data (in real app, this would be empty/fetched)
+	studentAttendance: initialMockStudentData,
+	courseAttendance: processedCourseAttendance,
 };
 
+// --- Slice Definition ---
 const attendanceMarkingSlice = createSlice({
 	name: "attendanceMarking",
 	initialState,
@@ -72,6 +125,15 @@ const attendanceMarkingSlice = createSlice({
 			state.error = null;
 			state.markedStudentId = null;
 		},
+		// Example: Add a reducer to load data (if fetching)
+		// loadStudentAttendance: (state, action: PayloadAction<Record<string, StudentAttendanceRecord[]>>) => {
+		//     state.studentAttendance = action.payload;
+		// },
+		// loadCourseAttendance: (state, action: PayloadAction<Record<string, CourseAttendanceDetails>>) => {
+		//     state.courseAttendance = action.payload;
+		// },
+		// You might need more specific reducers if the markStudentAttendance thunk
+		// is supposed to update the state directly upon success.
 	},
 	extraReducers: (builder) => {
 		builder
@@ -86,20 +148,30 @@ const attendanceMarkingSlice = createSlice({
 				state.lastMarkedStatus = "success";
 				state.markedStudentId = action.payload.studentId;
 				state.error = null;
-				// Optional: log success message action.payload.message
+				// TODO: Update the actual attendance state here based on action.payload
+				// This requires knowing the date, status etc., which aren't in the current payload.
+				// Example: If payload included { studentId, date, status, courseClassId }
+				// const { studentId, date, status, courseClassId } = action.meta.arg; // Get input args
+				// if (state.studentAttendance[studentId]) {
+				//      // update or add record
+				// }
+				// if (state.courseAttendance[courseClassId]?.dailyRecords[date]) {
+				//      // find student and update status
+				// }
 			})
 			.addCase(markStudentAttendance.rejected, (state, action) => {
 				state.isLoading = false;
 				state.lastMarkedStatus = "error";
-				state.error = action.payload ?? "Failed to mark attendance."; // Use rejected value as error
-				state.markedStudentId = null; // Or keep the ID trying to be marked? Depends on desired behavior.
+				state.error = action.payload ?? "Failed to mark attendance.";
+				state.markedStudentId = null;
 			});
 	},
 });
 
-export const { resetMarkingStatus } = attendanceMarkingSlice.actions;
+// export const { resetMarkingStatus, loadStudentAttendance, loadCourseAttendance } = attendanceMarkingSlice.actions;
+export const { resetMarkingStatus } = attendanceMarkingSlice.actions; // Only export used reducers
 
-// Selectors
+// --- Selectors ---
 export const selectAttendanceMarkingLoading = (state: RootState) =>
 	state.attendanceMarking.isLoading;
 export const selectAttendanceMarkingError = (state: RootState) =>
@@ -109,5 +181,32 @@ export const selectAttendanceMarkingStatus = (state: RootState) =>
 export const selectLastMarkedStudentId = (state: RootState) =>
 	state.attendanceMarking.markedStudentId;
 
-// Add this reducer to your main store configuration
+// Selects all attendance records for a specific student
+export const selectStudentAttendanceRecords = (
+	state: RootState,
+	studentId: string
+): StudentAttendanceRecord[] =>
+	state.attendanceMarking.studentAttendance[studentId] || [];
+
+// Selects all daily attendance records for a specific course class
+export const selectCourseDailyAttendances = (
+	state: RootState,
+	courseClassId: string
+): DailyAttendance[] => {
+	const courseDetails = state.attendanceMarking.courseAttendance[courseClassId];
+	// Return the daily records as an array
+	return courseDetails ? Object.values(courseDetails.dailyRecords) : [];
+};
+
+// Selects a specific day's attendance record for a course class
+export const selectCourseAttendanceForDate = (
+	state: RootState,
+	courseClassId: string,
+	date: string
+): DailyAttendance | null => {
+	const courseDetails = state.attendanceMarking.courseAttendance[courseClassId];
+	return courseDetails?.dailyRecords[date] || null;
+};
+
+// --- Reducer ---
 export default attendanceMarkingSlice.reducer;

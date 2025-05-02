@@ -9,6 +9,14 @@ import {
 } from "@/data/mock-course-data";
 
 import {
+	StudentAttendanceResponse,
+	TeacherAttendanceResponse,
+	TeacherAttendanceRecord,
+	mockStudentAttendance,
+	mockClassAttendance,
+} from "@/data/mock-attendance-data";
+
+import {
 	login as mockLogin,
 	register as mockRegister,
 	forgotPassword as mockForgotPassword,
@@ -56,6 +64,12 @@ import {
 	getMockEnrolledClasses,
 	getMockTaughtClasses,
 } from "@/data/mock-classes-data";
+import {
+	createMockChatMessage,
+	getMockChatMessages,
+	getMockChatRooms,
+} from "@/data/mock-chat-data";
+import { MarkAttendancePayload } from "@/features/attendance/store/attendance-slice";
 
 // --- Config ---
 const API_BASE_URL =
@@ -350,6 +364,96 @@ async function handleMockRequest<T>(
 		const limit = parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
 		return getMockAllClassesAdmin(page, limit, search) as unknown as T;
+	}
+
+	// --- Attendance Mock Data ---
+	const studentAttendanceMatch = endpoint.match(
+		/^\/students\/(.+)\/attendance$/
+	);
+	if (studentAttendanceMatch && method === "get") {
+		const studentId = studentAttendanceMatch[1];
+		const studentAttendance = mockStudentAttendance[studentId];
+		if (studentAttendance) {
+			return {
+				studentId,
+				attendances: studentAttendance,
+			} as StudentAttendanceResponse as unknown as T;
+		}
+		throw new Error(
+			`Mock API: No attendance found for student with ID "${studentId}"`
+		);
+	}
+
+	const teacherAttendanceMatch = endpoint.match(
+		/^\/courses\/(.+)\/attendance$/
+	);
+	if (teacherAttendanceMatch && method === "get") {
+		const courseClassId = teacherAttendanceMatch[1];
+		const classAttendance = mockClassAttendance.find(
+			(attendance: any) => attendance.courseClassId === courseClassId
+		);
+		if (classAttendance) {
+			return classAttendance as TeacherAttendanceResponse as unknown as T;
+		}
+		throw new Error(
+			`Mock API: No attendance found for course with ID "${courseClassId}"`
+		);
+	}
+
+	// --- Mock for Marking Attendance ---
+	if (endpoint === "/attendance/mark" && method === "post") {
+		const payload = body as MarkAttendancePayload;
+		console.log("Mock API: Marking attendance for:", payload);
+		// Simulate success or failure
+		const succeed = Math.random() > 0.1; // 90% success rate
+		if (succeed) {
+			// In a real mock, you might update the mock data store here
+			// For now, just return success
+			return { success: true, studentId: payload.studentId } as unknown as T;
+		} else {
+			console.error("Mock API: Simulated failure marking attendance");
+			// Simulate returning an error structure your thunk expects
+			throw {
+				response: {
+					data: { message: "Mock Error: Failed to save attendance on server." },
+					status: 500,
+				},
+			};
+			// Or return rejectValue structure if preferred:
+			// return { success: false, message: "Mock Error: Failed to save attendance." } as unknown as T;
+		}
+	}
+
+	// --- Chat Mocks ---
+	const chatRoomsForStudentMatch = endpoint.match(
+		/^\/chat\/rooms\/student\/(.+)$/
+	);
+	if (chatRoomsForStudentMatch && method === "get") {
+		const userId = chatRoomsForStudentMatch[1];
+		return getMockChatRooms(userId) as unknown as T;
+	}
+
+	if (endpoint === "/chat/messages" && method === "get") {
+		// Extract query params for roomId, page, limit
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const roomId = urlParams.get("roomId");
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "30", 10);
+		if (!roomId)
+			throw new Error("Mock Error: roomId is required for fetching messages");
+		return getMockChatMessages(roomId, page, limit) as unknown as T;
+	}
+
+	if (endpoint === "/chat/messages" && method === "post") {
+		// Assuming body contains { roomId, content } and senderId comes from auth context
+		if (!body?.roomId || !body?.content)
+			throw new Error("Mock Error: roomId and content are required");
+		const mockSenderId = "student_123"; // Simulate logged-in user
+		return createMockChatMessage(
+			body.roomId,
+			mockSenderId,
+			body.content
+		) as unknown as T;
 	}
 
 	// --- Fallback ---

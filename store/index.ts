@@ -25,6 +25,7 @@ import scheduleReducer from "@/features/schedule/store/schedule-slice";
 import classesReducer from "@/features/classes/store/classes-slice";
 import classSessionReducer from "@/features/classes/store/classSessionSlice";
 import paymentMethodsReducer from "@/features/payment/store/payment-slice";
+import chatReducer from "@/features/chat/store/chatSlice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -68,6 +69,7 @@ const persistConfig = {
 		"paymentMethods",
 		"schedule",
 		"classes",
+		"chat",
 	],
 };
 
@@ -84,6 +86,7 @@ const rootReducer = combineReducers({
 	paymentMethods: paymentMethodsReducer,
 	schedule: scheduleReducer,
 	classes: classesReducer,
+	chat: chatReducer,
 });
 
 // --- Persisted Reducer ---
