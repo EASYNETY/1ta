@@ -22,7 +22,7 @@ interface BarcodeDialogProps {
 
 export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
     userId,
-    lineColor = '#000000',
+    lineColor = '#C99700',
     triggerLabel = 'Click to enlarge',
 }) => {
     const barcodeRef = useRef<HTMLDivElement>(null);
