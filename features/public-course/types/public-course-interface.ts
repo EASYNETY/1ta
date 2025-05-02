@@ -1,6 +1,5 @@
 // features/public-course/types/public-course-interface.ts
 
-
 export interface PublicCourse {
 	id: string;
 	slug: string;
@@ -19,6 +18,16 @@ export interface PublicCourse {
 	// --- Pricing needed for cart functionality ---
 	priceUSD: number; // Default to 0 if not provided by partner
 	discountPriceUSD?: number; // Optional
+	priceIndividualUSD?: number; // Default to 0 if not provided by partner
+	pricing?: {
+		corporate?: {
+			[corporateId: string]: number; // Corporate pricing per corporate ID
+		};
+		individual?: number; // Individual pricing
+	};
+	discountPriceCorporateUSD?: number; // Optional discount for corporate pricing
+	discountPriceIndividualUSD?: number; // Optional discount for individual pricing
+
 	// --- End Pricing ---
 	learningOutcomes?: string[]; // Parsed from partner data
 	prerequisites?: string[]; // Parsed from partner data

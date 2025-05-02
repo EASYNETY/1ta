@@ -28,6 +28,7 @@ import paymentMethodsReducer from "@/features/payment/store/payment-slice";
 import chatReducer from "@/features/chat/store/chatSlice";
 import settingsReducer from "@/features/settings/store/settingsSlice";
 import supportReducer from "@/features/support/store/supportSlice";
+import checkoutReducer from "@/features/checkout/store/checkoutSlice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -64,6 +65,7 @@ const persistConfig = {
 		"auth",
 		"cart",
 		"pricing",
+		"checkout",
 		"public_courses",
 		"auth_courses",
 		"attendanceMarking",
@@ -85,6 +87,7 @@ const rootReducer = combineReducers({
 	public_courses: publicCourseReducer,
 	auth_courses: authCourseReducer,
 	pricing: pricingReducer,
+	checkout: checkoutReducer,
 	attendanceMarking: attendanceMarkingReducer,
 	classSession: classSessionReducer,
 	paymentMethods: paymentMethodsReducer,

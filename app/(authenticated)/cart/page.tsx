@@ -50,8 +50,8 @@ export default function CartPage() {
             router.push("/profile")
             return
         }
-        // If profile is complete, redirect to pricing
-        router.push("/pricing")
+        // If profile is complete, redirect to checkout page
+        router.push("/checkout")
     }
 
     // Define proper motion variants
@@ -72,7 +72,7 @@ export default function CartPage() {
 
     if (!hasItems) {
         return (
-            <div className="container mx-auto py-8 max-w-4xl">
+            <div className="mx-auto">
                 <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
                 <Card className="p-8 text-center">
                     <div className="flex flex-col items-center justify-center py-12">
@@ -89,7 +89,7 @@ export default function CartPage() {
     }
 
     return (
-        <div className="container mx-auto py-8 max-w-4xl">
+        <div className="mx-auto">
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
             {!profileComplete &&  !skipOnboarding && (

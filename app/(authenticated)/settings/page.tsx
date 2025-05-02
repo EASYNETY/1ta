@@ -33,9 +33,9 @@ const settingSections: SettingNavItem[] = [
     // Settings Components rendered within this page
     { id: 'security', label: 'Security', icon: Lock, component: SettingsSecurity, roles: ['admin', 'teacher', 'student'] },
     { id: 'notifications', label: 'Notifications', icon: Bell, component: SettingsNotifications, roles: ['admin', 'teacher', 'student'] },
-    { id: 'appearance', label: 'Appearance', icon: Palette, component: SettingsAppearance, roles: ['admin', 'teacher', 'student'] },
+    // { id: 'appearance', label: 'Appearance', icon: Palette, component: SettingsAppearance, roles: ['admin', 'teacher', 'student'] },
     // Role Specific (Subscription link & placeholders)
-    { id: 'subscription', label: 'Subscription', icon: LinkIcon, component: SettingsStudentExtras, roles: ['student'] },
+    // { id: 'subscription', label: 'Subscription', icon: LinkIcon, component: SettingsStudentExtras, roles: ['student'] },
     { id: 'teaching', label: 'Teaching', icon: BookOpen, component: SettingsTeacherExtras, roles: ['teacher'] },
     { id: 'system', label: 'System', icon: AdminSettingsIcon, component: SettingsAdmin, roles: ['admin'] },
 ];

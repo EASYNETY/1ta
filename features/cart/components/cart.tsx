@@ -11,6 +11,7 @@ import { ShoppingCart, X, Trash2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { GraduationCap } from "phosphor-react"
 
 interface CartProps {
     onClose?: () => void
@@ -39,7 +40,7 @@ export function Cart({ onClose }: CartProps) {
         return (
             <DyraneCard className="w-full">
                 <CardContent className="flex flex-col items-center justify-center py-12">
-                    <GraduationCapclassName="h-12 w-12 text-muted-foreground mb-4" />
+                    <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-lg font-medium mb-2">Your cart is empty</p>
                     <p className="text-muted-foreground mb-6">Add courses to your cart to get started</p>
                     <DyraneButton asChild>

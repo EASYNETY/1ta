@@ -52,5 +52,23 @@ export const cartSlice = createSlice({
 });
 
 export const { addItem, removeItem, clearCart } = cartSlice.actions;
+export const selectCartItems = (state: { cart: CartState }) => state.cart.items;
+export const selectCartTotal = (state: { cart: CartState }) => state.cart.total;
+export const selectCartItemCount = (state: { cart: CartState }) =>
+	state.cart.items.length;
+export const selectCartItemById = (state: { cart: CartState }, id: string) =>
+	state.cart.items.find((item) => item.courseId === id);
+export const selectCartItemByCourseId = (
+	state: { cart: CartState },
+	courseId: string
+) => state.cart.items.find((item) => item.courseId === courseId);
+export const selectCartItemByTitle = (
+	state: { cart: CartState },
+	title: string
+) => state.cart.items.find((item) => item.title === title);
+export const selectCartItemByInstructor = (
+	state: { cart: CartState },
+	instructor: string
+) => state.cart.items.find((item) => item.instructor === instructor);
 
 export default cartSlice.reducer;

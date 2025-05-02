@@ -8,7 +8,8 @@ import { useRouter, usePathname } from "next/navigation";
 // Only need useAppSelector to READ the state
 import { useAppSelector } from "@/store/hooks";
 import { isProfileComplete } from "../utils/profile-completeness";
-import { selectSkipPricing } from "@/features/pricing/store/pricing-slice";
+import { selectSkipCheckout } from "@/features/checkout/store/checkoutSlice";
+
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -22,7 +23,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const cart = useAppSelector((state) => state.cart)
-  const skipPricing = useAppSelector(selectSkipPricing)
+  const skipCheckout = useAppSelector(selectSkipCheckout)
 
   // State to track whether component has mounted (client-side only)
   const [isMounted, setIsMounted] = useState(false);
@@ -78,13 +79,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     // If authenticated but profile is incomplete and not skipped, redirect to profile page
-    // unless already on the profile page or pricing page
     if (
       user &&
       !isProfileComplete(user) &&
       !skipOnboarding &&
-      pathname !== "/profile" &&
-      !pathname.startsWith("/pricing")
+      pathname !== "/profile"
     ) {
       router.push("/profile")
       return
@@ -96,12 +95,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user &&
       isProfileComplete(user) &&
       cart.items.length > 0 &&
-      !skipPricing &&
-      !pathname.startsWith("/pricing") &&
+      !skipCheckout &&
+      !pathname.startsWith("/checkout") &&
       !pathname.startsWith("/payment") &&
       !pathname.startsWith("/cart")
     ) {
-      router.push("/pricing")
+      router.push("/checkout")
     }
     console.log("AuthProvider: Route check complete, no redirect needed.");
   }, [
@@ -112,7 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     isMounted,
     cart.items.length,
-    skipPricing,
+    skipCheckout,
     skipOnboarding,
   ]);
 
