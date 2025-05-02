@@ -8,7 +8,7 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Calendar, CreditCard, AlertCircle, ArrowLeft } from "lucide-react"
-import { format } from "date-fns"
+import { format, isValid, parseISO } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -31,6 +31,30 @@ import {
 } from "@/features/pricing/store/pricing-slice"
 import Link from "next/link"
 
+// Helper function to safely format dates
+const safeFormatDate = (dateString: string | undefined | null, formatString: string = "PPP"): string => {
+    if (!dateString) return "N/A"; // Handle null/undefined/empty string
+    try {
+        // Use parseISO for reliable parsing of ISO strings
+        const date = parseISO(dateString);
+        if (isValid(date)) { // Check if the parsed date is valid
+            return format(date, formatString);
+        } else {
+            // Optional: Try new Date() as a fallback for less standard formats, but less reliable
+            const fallbackDate = new Date(dateString);
+            if (isValid(fallbackDate)) {
+                return format(fallbackDate, formatString);
+            }
+            console.warn(`safeFormatDate: Invalid date string received: ${dateString}`);
+            return "Invalid Date"; // Fallback for invalid dates
+        }
+    } catch (error) {
+        console.error(`safeFormatDate Error formatting date: ${dateString}`, error);
+        return "Error"; // Fallback on unexpected error
+    }
+};
+
+
 export default function ManageSubscriptionPage() {
     const router = useRouter()
     const dispatch = useAppDispatch()
@@ -39,6 +63,7 @@ export default function ManageSubscriptionPage() {
     const isLoading = useAppSelector(selectPricingLoading)
     const [autoRenew, setAutoRenew] = useState(userSubscription?.autoRenew || false)
     const [showCancelDialog, setShowCancelDialog] = useState(false)
+
 
     useEffect(() => {
         if (userSubscription) {
@@ -104,10 +129,12 @@ export default function ManageSubscriptionPage() {
         }
     }
 
+    const expiryDateFormatted = safeFormatDate(userSubscription.expiryDate, "PPP");
     const renewalDate = userSubscription.autoRenew && userSubscription.status === 'active'
-        ? format(new Date(userSubscription.expiryDate), "PPP")
+        ? expiryDateFormatted // Already formatted or 'Invalid Date'/'N/A'
         : userSubscription.status === 'canceled'
-            ? `Access ends ${format(new Date(userSubscription.expiryDate), "PPP")}`
+            // Corrected template literal syntax and use formatted date
+            ? `Access ends ${expiryDateFormatted}`
             : "Not set to renew";
 
     return (
@@ -138,11 +165,11 @@ export default function ManageSubscriptionPage() {
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Start Date</span>
-                                    <span>{format(new Date(userSubscription.startDate), "PPP")}</span>
+                                    <span>{safeFormatDate(userSubscription.startDate)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-muted-foreground">Expiry Date</span>
-                                    <span>{format(new Date(userSubscription.expiryDate), "PPP")}</span>
+                                    <span>{expiryDateFormatted}</span>
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between items-center">
@@ -151,8 +178,10 @@ export default function ManageSubscriptionPage() {
                                             Auto-Renewal
                                         </Label>
                                         <p className="text-sm text-muted-foreground">
-                                            Your subscription will {autoRenew ? "automatically renew on" : "expire on"}{" "}
-                                            {format(new Date(userSubscription.expiryDate), "PPP")}
+                                            {/* Use formatted date variable */}
+                                            {userSubscription.status === 'active' ?
+                                                `Your subscription will ${autoRenew ? "automatically renew on" : "expire on"} ${expiryDateFormatted}`
+                                                : `Subscription is ${userSubscription.status}.`}
                                         </p>
                                     </div>
                                     <Switch
@@ -219,7 +248,7 @@ export default function ManageSubscriptionPage() {
                 </div>
 
                 <div className="space-y-6">
-                    <DyraneCard>
+                    {userSubscription.paymentHistory && <DyraneCard>
                         <div className="p-6">
                             <h2 className="text-xl font-semibold mb-4">Subscription Summary</h2>
                             <div className="space-y-4">
@@ -235,13 +264,13 @@ export default function ManageSubscriptionPage() {
                                     <div>
                                         <p className="text-sm text-muted-foreground">Amount</p>
                                         <p className="font-medium">
-                                            ₦{userSubscription.paymentHistory[0]?.amount.toLocaleString() || "N/A"}
+                                            ₦{userSubscription?.paymentHistory[0]?.amount?.toLocaleString() || "N/A"}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </DyraneCard>
+                    </DyraneCard>}
 
                     <Alert>
                         <AlertCircle className="h-4 w-4" />
@@ -264,7 +293,9 @@ export default function ManageSubscriptionPage() {
                         <DialogTitle>Cancel Subscription</DialogTitle>
                         <DialogDescription>
                             Are you sure you want to cancel your subscription? You will lose access to premium features after your
-                            current billing period ends on {format(new Date(userSubscription.expiryDate), "PPP")}.
+                            current billing period ends on {
+                                expiryDateFormatted
+                            }.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
