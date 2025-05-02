@@ -2,51 +2,38 @@
 
 "use client";
 
-import { useMemo, useState, useEffect } from "react"; // Added useEffect
+import { useMemo, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
 import { CardHeader, CardTitle, CardContent, Card } from "@/components/ui/card";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
-// Import hooks and selectors from Redux
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import {
     selectStudentAttendanceRecords,
     selectCourseDailyAttendances,
-    selectCourseAttendanceForDate,
-    // If you add fetching thunks: import { fetchStudentAttendance, fetchCourseAttendance } from "@/features/attendance/store/attendance-slice";
+    // selectCourseAttendanceForDate, // We get this from courseDailyAttendances now
 } from "@/features/attendance/store/attendance-slice";
-import { CalendarIcon, Check, X, AlertCircle, Clock, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWeekend, addMonths, subMonths, parseISO } from "date-fns";
+import { CalendarIcon, Check, X, Clock, Search, ChevronLeft, ChevronRight, Info } from 'lucide-react'; // Added Info icon
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWeekend, addMonths, subMonths, parseISO, isToday, compareDesc } from "date-fns"; // Added isToday, compareDesc
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
-// Removed unused Tabs imports for now
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { StudentAttendanceRecord } from "@/data/mock-attendance-data"; // Import type if needed
+import { StudentAttendanceRecord, DailyAttendance, AttendanceStatus } from "@/data/mock-attendance-data"; // Import DailyAttendance
 
 
 export function Attendance() {
-    const dispatch = useAppDispatch(); // If needed for fetching
+    const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedDate, setSelectedDate] = useState<Date | null>(new Date()); // Keep selected date as Date object
-    const [showModal, setShowModal] = useState(false);
+    // Start with null, will be set by useEffect for teacher
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    // Controls the visibility of the details panel/modal area
+    const [showDetailsPanel, setShowDetailsPanel] = useState(false);
 
-    // --- TODO: Determine Course Class ID ---
-    // This should ideally come from props, context, or route
-    const courseClassIdForTeacher = "webDevBootcamp"; // Hardcoded based on mock data
-
-    // --- Fetch Data (Example - uncomment if you implement fetching thunks) ---
-    // useEffect(() => {
-    //     if (user?.role === 'student' && user.id) {
-    //         // dispatch(fetchStudentAttendance(user.id));
-    //     } else if (user?.role === 'teacher' && courseClassIdForTeacher) {
-    //         // dispatch(fetchCourseAttendance(courseClassIdForTeacher));
-    //     }
-    // }, [dispatch, user, courseClassIdForTeacher]);
+    const courseClassIdForTeacher = "webDevBootcamp"; // Hardcoded
 
     // --- Get Data from Slice ---
     const studentRecords = useAppSelector(state =>
@@ -58,7 +45,7 @@ export function Attendance() {
     );
 
     // --- Component Logic ---
-    if (!user) return null;
+    if (!user) return null; // Or a loading state
 
     const daysInMonth = eachDayOfInterval({
         start: startOfMonth(currentMonth),
@@ -68,238 +55,289 @@ export function Attendance() {
     const goToPreviousMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
     const goToNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
     const goToToday = () => {
-        setCurrentMonth(new Date());
-        setSelectedDate(new Date()); // Optionally reset selected date too
-    }
+        const today = new Date();
+        setCurrentMonth(today);
+        // For teacher, also try to select today's data if available
+        if (user.role !== 'student') {
+            const formattedToday = format(today, "yyyy-MM-dd");
+            const todayHasData = courseDailyAttendances.some(a => a.date === formattedToday);
+            if (todayHasData) {
+                setSelectedDate(today);
+                setShowDetailsPanel(true);
+            } else {
+                // If today has no data, maybe select the most recent day?
+                selectMostRecentDateWithData();
+            }
+        }
+    };
+
+    // --- Teacher: Select most recent day with data ---
+    const selectMostRecentDateWithData = () => {
+        const sortedDates = [...courseDailyAttendances]
+            .map(att => parseISO(att.date))
+            .sort(compareDesc); // Sort descending (most recent first)
+
+        if (sortedDates.length > 0) {
+            setSelectedDate(sortedDates[0]);
+            setShowDetailsPanel(true);
+        } else {
+            setSelectedDate(null);
+            setShowDetailsPanel(false);
+        }
+    };
+
+
+    // --- Teacher: Initial Load Logic ---
+    useEffect(() => {
+        if (user?.role !== 'student' && courseDailyAttendances.length > 0 && !selectedDate) {
+            // On initial load for teacher, select today if it has data, otherwise the most recent day
+            const today = new Date();
+            const formattedToday = format(today, "yyyy-MM-dd");
+            const todayHasData = courseDailyAttendances.some(a => a.date === formattedToday);
+
+            if (todayHasData) {
+                setSelectedDate(today);
+                setShowDetailsPanel(true);
+            } else {
+                selectMostRecentDateWithData();
+            }
+        }
+        // Only run once on mount or when role/data changes significantly
+    }, [user?.role, courseDailyAttendances]);
 
 
     // --- Student View Logic ---
-
-    // Get attendance status for a specific date for the student
     const getStudentAttendanceStatusForDate = (date: Date): StudentAttendanceRecord['status'] | null => {
         const formattedDate = format(date, "yyyy-MM-dd");
-        // Search in the records fetched from the slice
         const attendance = studentRecords.find(a => a.date === formattedDate);
         return attendance?.status || null;
     };
 
-    // Calculate student attendance statistics using data from the slice
     const studentAttendanceStats = useMemo(() => {
+        // ... (calculation logic remains the same)
         const total = studentRecords.length;
-        if (total === 0) {
-            return { total: 0, present: 0, absent: 0, late: 0, presentPercentage: 0, absentPercentage: 0, latePercentage: 0 };
-        }
+        if (total === 0) return { total: 0, present: 0, absent: 0, late: 0, presentPercentage: 0, absentPercentage: 0, latePercentage: 0 };
         const present = studentRecords.filter(a => a.status === "present").length;
         const absent = studentRecords.filter(a => a.status === "absent").length;
         const late = studentRecords.filter(a => a.status === "late").length;
-
-        // Prevent division by zero
         const presentPercentage = total > 0 ? (present / total) * 100 : 0;
         const absentPercentage = total > 0 ? (absent / total) * 100 : 0;
         const latePercentage = total > 0 ? (late / total) * 100 : 0;
-
         return { total, present, absent, late, presentPercentage, absentPercentage, latePercentage };
-    }, [studentRecords]); // Recalculate when studentRecords change
+    }, [studentRecords]);
 
 
-    // --- Shared Helper Functions (Status Styling) ---
-    // Get status color
-    const getStatusColor = (status: string | null) => {
+    // --- Shared Helper Function (Status Icon) ---
+    const getStatusIcon = (status: AttendanceStatus | null) => {
         switch (status) {
-            case "present":
-                return "bg-green-100 text-green-800 border-green-300"
-            case "absent":
-                return "bg-red-100 text-red-800 border-red-300"
-            case "late":
-                return "bg-yellow-100 text-yellow-800 border-yellow-300"
-            default:
-                return "bg-gray-100 text-gray-800 border-gray-300"
+            case "present": return <Check className="h-4 w-4 text-[var(--attendance-present-fg)]" />;
+            case "absent": return <X className="h-4 w-4 text-[var(--attendance-absent-fg)]" />;
+            case "late": return <Clock className="h-4 w-4 text-[var(--attendance-late-fg)]" />;
+            default: return null;
         }
-    }
+    };
 
-    // Get status icon
-    const getStatusIcon = (status: string | null) => {
+    // --- Shared Helper Function (Status Classes for Badges/Backgrounds) ---
+    const getStatusClasses = (status: AttendanceStatus | null): string => {
         switch (status) {
-            case "present":
-                return <Check className="h-4 w-4 text-green-600" />
-            case "absent":
-                return <X className="h-4 w-4 text-red-600" />
-            case "late":
-                return <Clock className="h-4 w-4 text-yellow-600" />
-            default:
-                return null
+            case "present": return "bg-[var(--attendance-present-bg)] text-[var(--attendance-present-fg)] border-[var(--attendance-present-border)]";
+            case "absent": return "bg-[var(--attendance-absent-bg)] text-[var(--attendance-absent-fg)] border-[var(--attendance-absent-border)]";
+            case "late": return "bg-[var(--attendance-late-bg)] text-[var(--attendance-late-fg)] border-[var(--attendance-late-border)]";
+            default: return "bg-muted/50 text-muted-foreground border-border"; // Default subtle style
         }
-    }
-
-    const getStatusStyle = (status: any) => {
-        switch (status) {
-            case "present": return "bg-green-100 text-green-800 border-green-300"
-            case "absent": return "bg-red-100 text-red-800 border-red-300"
-            case "late": return "bg-yellow-100 text-yellow-800 border-yellow-300"
-            default: return ""
-        }
-    }
+    };
 
 
     // --- Teacher View Logic ---
-
-    // Get the specific day's attendance details using data from the slice
-    const selectedDayAttendanceDetails = useMemo(() => {
+    const selectedDayAttendanceDetails: DailyAttendance | null = useMemo(() => {
         if (!selectedDate || !courseDailyAttendances) return null;
         const formattedDate = format(selectedDate, "yyyy-MM-dd");
-        // Find the record for the selected date in the slice data
         return courseDailyAttendances.find(a => a.date === formattedDate) || null;
-    }, [selectedDate, courseDailyAttendances]); // Recalculate when date or data changes
+    }, [selectedDate, courseDailyAttendances]);
 
-    // Filter students for the modal based on search query and selected day's data
     const filteredStudentsForModal = useMemo(() => {
         if (!selectedDayAttendanceDetails) return [];
-        // Access the students array from the selected day's record
         const studentsOnSelectedDay = selectedDayAttendanceDetails.attendances || [];
-        if (!searchQuery) return studentsOnSelectedDay; // Return all if no query
+        if (!searchQuery) return studentsOnSelectedDay;
         return studentsOnSelectedDay.filter(student =>
             student.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [selectedDayAttendanceDetails, searchQuery]); // Recalculate on selection or query change
+    }, [selectedDayAttendanceDetails, searchQuery]);
 
 
-    // --- Render Logic ---
+    // --- RENDER ---
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 md:space-y-8">
             {user.role === "student" ? (
                 <>
-                    {/* Student Attendance View - Uses studentAttendanceStats */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Student: Stats Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         {[
-                            { label: "Present", value: studentAttendanceStats.present, color: "green", percent: studentAttendanceStats.presentPercentage },
-                            { label: "Absent", value: studentAttendanceStats.absent, color: "red", percent: studentAttendanceStats.absentPercentage },
-                            { label: "Late", value: studentAttendanceStats.late, color: "yellow", percent: studentAttendanceStats.latePercentage },
-                        ].map(({ label, value, color, percent }) => (
-                            <DyraneCard key={label}>
-                                <CardHeader className="pb-2">
+                            { label: "Present", value: studentAttendanceStats.present, colorVar: "--chart-1", percent: studentAttendanceStats.presentPercentage },
+                            { label: "Absent", value: studentAttendanceStats.absent, colorVar: "--chart-4", percent: studentAttendanceStats.absentPercentage }, // Use different chart colors
+                            { label: "Late", value: studentAttendanceStats.late, colorVar: "--chart-2", percent: studentAttendanceStats.latePercentage },
+                        ].map(({ label, value, colorVar, percent }) => (
+                            <DyraneCard key={label} className="shadow-sm">
+                                <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                                     <CardTitle className="text-sm font-medium">{label}</CardTitle>
+                                    {/* Optional: Add subtle icon */}
+                                    {label === 'Present' && <Check className="h-4 w-4 text-muted-foreground" />}
+                                    {label === 'Absent' && <X className="h-4 w-4 text-muted-foreground" />}
+                                    {label === 'Late' && <Clock className="h-4 w-4 text-muted-foreground" />}
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">{value} days</div>
-                                    {/* Ensure Progress receives a number */}
-                                    <Progress value={percent ?? 0} className={`h-2 mt-2 bg-${color}-100`} />
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        {/* Handle potential NaN */}
+                                    <p className="text-xs text-muted-foreground mt-1 mb-2">
                                         {(percent ?? 0).toFixed(1)}% of recorded days
                                     </p>
+                                    <Progress
+                                        value={percent ?? 0}
+                                        className="h-2"
+                                    />
                                 </CardContent>
                             </DyraneCard>
                         ))}
                     </div>
 
-                    {/* Student Calendar Controls */}
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-medium">{format(currentMonth, "MMMM yyyy")}</h2>
-                        <div className="flex gap-2">
-                            <DyraneButton variant="outline" size="sm" onClick={goToPreviousMonth}>Previous</DyraneButton>
-                            <DyraneButton variant="outline" size="sm" onClick={goToToday}>Today</DyraneButton>
-                            <DyraneButton variant="outline" size="sm" onClick={goToNextMonth}>Next</DyraneButton>
-                        </div>
-                    </div>
-
-                    {/* Student Calendar Grid - Uses getStudentAttendanceStatusForDate */}
-                    <div className="grid grid-cols-7 gap-2">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                            <div key={day} className="text-center font-medium text-sm py-2">{day}</div>
-                        ))}
-
-                        {daysInMonth.map((day, i) => {
-                            // Get status for this day from slice data
-                            const status = getStudentAttendanceStatusForDate(day);
-                            return (
-                                <div
-                                    key={i}
-                                    className={cn(
-                                        "h-14 p-2 border rounded-md flex flex-col items-center justify-center text-sm text-foreground",
-                                        isWeekend(day) ? "bg-muted/50" : "bg-accent/50",
-                                        // Apply status style if status exists
-                                        status ? getStatusStyle(status) : "bg-background/50 text-gray-800 border" // Default style
-                                    )}
-                                >
-                                    {format(day, "d")}
-                                    {/* Render icon if status exists */}
-                                    {status && <span className="mt-1">{getStatusIcon(status)}</span>}
+                    {/* Student: Calendar */}
+                    <DyraneCard>
+                        <CardHeader>
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                                <CardTitle className="text-lg font-semibold">Attendance Calendar</CardTitle>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-lg font-medium text-center sm:text-right">
+                                        {format(currentMonth, "MMMM yyyy")}
+                                    </h2>
+                                    <div className="flex gap-1">
+                                        <DyraneButton variant="outline" size="icon" className="h-8 w-8" onClick={goToPreviousMonth}><ChevronLeft className="h-4 w-4" /></DyraneButton>
+                                        <DyraneButton variant="outline" size="icon" className="h-8 w-8" onClick={goToToday}><CalendarIcon className="h-4 w-4" /></DyraneButton>
+                                        <DyraneButton variant="outline" size="icon" className="h-8 w-8" onClick={goToNextMonth}><ChevronRight className="h-4 w-4" /></DyraneButton>
+                                    </div>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                                    <div key={day} className="text-xs font-semibold text-muted-foreground">{day}</div>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-7 gap-2">
+                                {daysInMonth.map((day, i) => {
+                                    const status = getStudentAttendanceStatusForDate(day);
+                                    const isDayToday = isToday(day);
 
-                    {/* Student Barcode */}
-                    <Card className="w-full max-w-md mx-auto border border-muted shadow-md rounded-2xl">
+                                    return (
+                                        <div
+                                            key={i}
+                                            className={cn(
+                                                "aspect-square p-2 border rounded-md flex flex-col items-center justify-center text-sm relative transition-colors",
+                                                // Base styles
+                                                isWeekend(day) ? "bg-muted/30 text-muted-foreground" : "bg-background",
+                                                // Status override
+                                                status ? getStatusClasses(status) : "",
+                                                // Today indicator
+                                                isDayToday && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                            )}
+                                            title={status ? `Status: ${status}` : undefined} // Tooltip for status
+                                        >
+                                            <span className={cn(
+                                                "font-medium",
+                                                status ? "font-semibold" : "" // Make date bolder if status exists
+                                            )}>
+                                                {format(day, "d")}
+                                            </span>
+                                            {status && (
+                                                <span className="mt-1 absolute bottom-1 right-1">
+                                                    {getStatusIcon(status)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    </DyraneCard>
+
+                    {/* Student: Barcode */}
+                    <DyraneCard className="w-full max-w-md mx-auto shadow-sm">
                         <CardHeader className="text-center">
                             <CardTitle className="text-lg font-semibold text-foreground">
                                 Student Barcode
                             </CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col items-center gap-4">
-                            <p className="text-muted-foreground text-sm">
-                                Show this to scan your attendance
+                            <p className="text-muted-foreground text-sm pt-1">
+                                Show this barcode to the administrator to scan your attendance.
                             </p>
-                            {/* Ensure user.id is passed */}
-                            {user.id && <BarcodeDialog userId={user.id} lineColor="gold" />}
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center gap-4 pb-6">
+                            {user.id && <BarcodeDialog userId={String(user.id)} lineColor="var(--primary)" />}
                         </CardContent>
-                    </Card>
+                    </DyraneCard>
                 </>
             ) : (
                 <>
-                    {/* Teacher Attendance View */}
-                    <div className="flex flex-col md:flex-row gap-6">
-                        {/* Teacher Calendar Card */}
-                        <div className="w-full md:w-1/3"> {/* Adjust width as needed */}
-                            <DyraneCard>
+                    {/* Teacher: Main Layout */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        {/* Teacher: Calendar Card (Left Column) */}
+                        <div className="md:col-span-1">
+                            <DyraneCard className="shadow-sm">
                                 <CardHeader>
-                                    <CardTitle>Attendance Calendar</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-sm font-medium">
-                                            {format(currentMonth, "MMMM yyyy")}
-                                        </h3>
-                                        <div className="flex gap-1">
-                                            <DyraneButton variant="ghost" size="icon" onClick={goToPreviousMonth}><ChevronLeft className="h-4 w-4" /></DyraneButton>
-                                            <DyraneButton variant="ghost" size="icon" onClick={goToToday}><CalendarIcon className="h-4 w-4" /></DyraneButton>
-                                            <DyraneButton variant="ghost" size="icon" onClick={goToNextMonth}><ChevronRight className="h-4 w-4" /></DyraneButton>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <CardTitle className="text-base font-semibold">Select Date</CardTitle>
+                                        <div className="flex items-center gap-1">
+                                            <h3 className="text-sm font-medium">
+                                                {format(currentMonth, "MMMM yyyy")}
+                                            </h3>
+                                            <DyraneButton variant="ghost" size="icon" className="h-7 w-7" onClick={goToPreviousMonth}><ChevronLeft className="h-4 w-4" /></DyraneButton>
+                                            <DyraneButton variant="ghost" size="icon" className="h-7 w-7" onClick={goToToday}><CalendarIcon className="h-4 w-4" /></DyraneButton>
+                                            <DyraneButton variant="ghost" size="icon" className="h-7 w-7" onClick={goToNextMonth}><ChevronRight className="h-4 w-4" /></DyraneButton>
                                         </div>
                                     </div>
-
-                                    {/* Teacher Calendar Grid - Checks against courseDailyAttendances */}
-                                    <div className="grid grid-cols-7 gap-1 text-center">
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-7 gap-1 text-center mb-2">
                                         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                                            <div key={day} className="text-xs font-medium py-1">{day}</div>
+                                            <div key={day} className="text-xs font-semibold text-muted-foreground">{day}</div>
                                         ))}
-
+                                    </div>
+                                    <div className="grid grid-cols-7 gap-1">
                                         {daysInMonth.map((day, i) => {
                                             const isSelected = selectedDate && isSameDay(day, selectedDate);
                                             const formattedDayString = format(day, "yyyy-MM-dd");
-                                            // Check if attendance data exists for this day in the slice data
                                             const hasAttendance = courseDailyAttendances.some(a => a.date === formattedDayString);
+                                            const isDayToday = isToday(day);
 
                                             return (
                                                 <button
                                                     key={i}
                                                     onClick={() => {
-                                                        // Only allow selection if attendance exists for the day
                                                         if (hasAttendance) {
-                                                            setSelectedDate(day); // Set the selected date (Date object)
-                                                            setShowModal(true); // Show the modal
+                                                            setSelectedDate(day);
+                                                            setShowDetailsPanel(true);
+                                                            setSearchQuery(""); // Reset search on new date select
                                                         } else {
-                                                            setSelectedDate(null); // Deselect if no data
-                                                            setShowModal(false); // Hide modal
+                                                            // Optionally provide feedback for non-clickable days
                                                         }
                                                     }}
-                                                    disabled={isWeekend(day)} // Optionally disable weekends
+                                                    disabled={isWeekend(day) || !hasAttendance}
                                                     className={cn(
-                                                        "h-8 w-8 rounded-full text-xs flex items-center justify-center transition-colors",
-                                                        isWeekend(day) ? "text-muted-foreground cursor-not-allowed" : "cursor-pointer",
-                                                        isSelected && hasAttendance && "bg-primary text-primary-foreground font-semibold", // Selected style
-                                                        hasAttendance && !isSelected && !isWeekend(day) && "bg-primary/10 text-primary hover:bg-primary/20", // Has data style
-                                                        !hasAttendance && !isWeekend(day) && "text-muted-foreground hover:bg-accent" // No data style
+                                                        "h-8 w-8 rounded-md text-xs flex items-center justify-center transition-all duration-150 relative",
+                                                        // Base styles
+                                                        "border border-transparent", // Base border
+                                                        isWeekend(day) ? "text-muted-foreground/60 cursor-not-allowed bg-muted/30" : "",
+                                                        // Today indicator (subtle)
+                                                        isDayToday && !isSelected && "bg-accent",
+                                                        // Has Attendance indicator & interaction
+                                                        hasAttendance && !isWeekend(day) && "text-foreground hover:bg-accent focus-visible:bg-accent focus-visible:ring-1 focus-visible:ring-ring cursor-pointer",
+                                                        // Selected state
+                                                        isSelected && hasAttendance && "bg-primary text-primary-foreground font-semibold shadow hover:bg-primary/90",
+                                                        // No Attendance
+                                                        !hasAttendance && !isWeekend(day) && "text-muted-foreground cursor-default",
+                                                        // Dot indicator for attendance
+                                                        hasAttendance && !isWeekend(day) && !isSelected && "after:content-[''] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-primary/80"
                                                     )}
+                                                    aria-label={`Select date ${format(day, "PPP")}${hasAttendance ? '' : ' (No data)'}`}
                                                 >
                                                     {format(day, "d")}
                                                 </button>
@@ -310,53 +348,58 @@ export function Attendance() {
                             </DyraneCard>
                         </div>
 
-                        {/* Attendance Details Modal Area */}
-                        {/* Wrap modal display logic */}
-                        <div className="w-full md:w-2/3"> {/* Adjust width as needed */}
-                            {showModal && selectedDayAttendanceDetails && (
-                                <motion.div
-                                    key={selectedDayAttendanceDetails.date} // Add key for animation reset on date change
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="mt-0 md:mt-0" // Adjust margin as needed
-                                >
-                                    <DyraneCard className="shadow-lg border border-muted bg-card">
+                        {/* Teacher: Attendance Details Panel (Right Column) */}
+                        <div className="md:col-span-2">
+                            {/* Use Framer Motion for appearance */}
+                            <motion.div
+                                key={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : 'empty'} // Animate when date changes or becomes empty
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {selectedDayAttendanceDetails && showDetailsPanel ? (
+                                    <DyraneCard className="shadow-sm h-full"> {/* Ensure card takes height */}
                                         <CardHeader>
-                                            <div className="flex justify-between items-center">
-                                                <CardTitle className="text-lg">
-                                                    {/* Use parseISO to handle YYYY-MM-DD */}
-                                                    Attendance for {format(parseISO(selectedDayAttendanceDetails.date), "PPP")}
-                                                </CardTitle>
-                                                <DyraneButton variant="ghost" size="icon" onClick={() => setShowModal(false)}>
-                                                    <X className="h-5 w-5" />
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div>
+                                                    <CardTitle className="text-lg mb-1">
+                                                        Attendance for {format(selectedDate!, "PPP")}
+                                                    </CardTitle>
+                                                    {/* You could add stats here too: */}
+                                                    {/* <p className="text-sm text-muted-foreground">
+                                                        {selectedDayAttendanceDetails.attendances.filter(s => s.status === 'present').length} Present,{' '}
+                                                        {selectedDayAttendanceDetails.attendances.filter(s => s.status === 'absent').length} Absent,{' '}
+                                                        {selectedDayAttendanceDetails.attendances.filter(s => s.status === 'late').length} Late
+                                                    </p> */}
+                                                </div>
+                                                <DyraneButton variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => setShowDetailsPanel(false)}>
+                                                    <X className="h-4 w-4" />
                                                 </DyraneButton>
                                             </div>
-
-                                            <div className="relative mt-2">
-                                                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                            <div className="relative pt-2">
+                                                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                                                 <Input
                                                     placeholder="Search students..."
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                                    className="pl-8" // Add padding for icon
+                                                    className="pl-8 h-9" // Consistent height
                                                 />
                                             </div>
                                         </CardHeader>
-                                        <CardContent className="max-h-[400px] overflow-y-auto space-y-3 pr-3">
-                                            {/* Use filteredStudentsForModal */}
+                                        <CardContent className="max-h-[calc(100vh-250px)] overflow-y-auto space-y-1 pr-3 pt-0"> {/* Adjust max-h as needed */}
                                             {filteredStudentsForModal.length > 0 ? (
                                                 filteredStudentsForModal.map((student) => (
-                                                    <div key={student.studentId} className="flex items-center justify-between p-2 rounded hover:bg-muted/50">
-                                                        <span className="text-sm">{student.name}</span>
+                                                    <div
+                                                        key={student.studentId}
+                                                        className="flex items-center justify-between p-2 -mx-2 rounded hover:bg-accent transition-colors" // Use accent for hover
+                                                    >
+                                                        <span className="text-sm font-medium">{student.name}</span>
                                                         <Badge
                                                             variant="outline"
                                                             className={cn(
-                                                                "capitalize text-xs px-2 py-0.5", // Adjusted padding
-                                                                student.status === "present" && "border-green-400 bg-green-100 text-green-800",
-                                                                student.status === "late" && "border-yellow-400 bg-yellow-100 text-yellow-800",
-                                                                student.status === "absent" && "border-red-400 bg-red-100 text-red-800"
+                                                                "capitalize text-xs px-2 py-0.5 font-semibold border",
+                                                                getStatusClasses(student.status) // Use helper for classes
                                                             )}
                                                         >
                                                             {student.status}
@@ -364,20 +407,23 @@ export function Attendance() {
                                                     </div>
                                                 ))
                                             ) : (
-                                                <p className="text-sm text-muted-foreground text-center py-4">
-                                                    {searchQuery ? "No students found matching your search." : "No attendance data found for this day."}
+                                                <p className="text-sm text-muted-foreground text-center py-8">
+                                                    {searchQuery ? "No students found matching search." : "No attendance records found for this day."}
                                                 </p>
                                             )}
                                         </CardContent>
                                     </DyraneCard>
-                                </motion.div>
-                            )}
-                            {/* Show placeholder if no date is selected or no data */}
-                            {!showModal && (
-                                <div className="flex items-center justify-center h-full min-h-[200px] text-muted-foreground text-center p-6 bg-muted/30 rounded-lg border border-dashed">
-                                    <p>Select a date from the calendar with attendance data to view details.</p>
-                                </div>
-                            )}
+                                ) : (
+                                    /* Placeholder when no date is selected or details panel is hidden */
+                                    <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
+                                        <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                                        <h3 className="text-lg font-semibold mb-1">Select a Date</h3>
+                                        <p className="text-sm text-muted-foreground max-w-xs">
+                                            Choose a date from the calendar with recorded attendance (indicated by a dot) to view the student list.
+                                        </p>
+                                    </div>
+                                )}
+                            </motion.div>
                         </div>
                     </div>
                 </>
