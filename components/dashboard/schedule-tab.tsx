@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react"; // Import React and useMemo
+import React, { useState, useEffect, useMemo, useRef } from "react"; // Import React and useMemo
 import { motion } from "framer-motion";
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
 import { CardContent } from "@/components/ui/card";
@@ -19,7 +19,8 @@ import {
     isToday,
     parseISO, // Import parseISO
     isValid,   // Import isValid
-    formatISO
+    formatISO,
+    endOfWeek
 } from "date-fns";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -60,6 +61,11 @@ export function ScheduleTab() {
     const status = useAppSelector(selectScheduleStatus);
     const error = useAppSelector(selectScheduleError);
     const viewStartDateStr = useAppSelector(selectScheduleViewStartDate); // YYYY-MM-DD string
+    // --- NEW: State for selected day ---
+    // Store the selected date object, or null if none selected
+    const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+    // Ref to map day sections for scrolling
+    const daySectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     // Use state for the start of the week being viewed, controlled by Redux action
     const currentWeekStart = useMemo(() => {
@@ -71,27 +77,31 @@ export function ScheduleTab() {
         }
     }, [viewStartDateStr]);
 
-
-    // Fetch schedule data when the component mounts or dependencies change
-    useEffect(() => {
-        if (user?.id && user.role && status === 'idle') { // Fetch only if idle and user details available
-            console.log("Dashboard ScheduleTab: Fetching schedule...");
-            dispatch(fetchSchedule({ role: user.role, userId: user.id }));
-        }
-        // Clear error on mount
-        dispatch(clearScheduleError());
-    }, [dispatch, user?.id, user?.role, status]); // Dependencies for initial fetch
+    const currentWeekEnd = useMemo(() => endOfWeek(currentWeekStart, { weekStartsOn: 1 }), [currentWeekStart])
 
 
-    // Refetch when viewStartDateStr changes (week navigation)
+    // Fetch schedule data when view date or user changes
     useEffect(() => {
         if (user?.id && user.role) {
-            console.log("Dashboard ScheduleTab: Refetching schedule for new week...");
-            // Always refetch when week changes for simplicity, or add logic to check if data for that week exists
-            dispatch(fetchSchedule({ role: user.role, userId: user.id }));
+            const startDateISO = formatISO(currentWeekStart, { representation: 'date' });
+            const endDateISO = formatISO(currentWeekEnd, { representation: 'date' });
+            console.log(`Dashboard ScheduleTab: Fetching schedule for ${startDateISO} to ${endDateISO}`);
+            dispatch(fetchSchedule({
+                role: user.role,
+                userId: user.id,
+                startDate: startDateISO,
+                endDate: endDateISO, // Pass the date range
+            }));
         }
-    }, [viewStartDateStr, dispatch, user?.id, user?.role]);
+        // Clear error on mount/change if needed, or rely on pending state
+        // dispatch(clearScheduleError());
+    }, [dispatch, user?.id, user?.role, viewStartDateStr]); // Fetch when viewStartDateStr changes
 
+    // --- Reset selected day when week changes ---
+    useEffect(() => {
+        setSelectedDay(null); // Clear selection when the week changes
+        daySectionRefs.current = {}; // Clear refs too
+    }, [viewStartDateStr]);
 
     if (!user) return null; // Or a login prompt
 
@@ -113,25 +123,17 @@ export function ScheduleTab() {
     const weekDays = useMemo(() => Array.from({ length: 7 }).map((_, index) => addDays(currentWeekStart, index)), [currentWeekStart]);
 
     const eventsByDay = useMemo(() => {
-        const weekEnd = addDays(currentWeekStart, 7);
-        // Filter events based on the current view window (derived from currentWeekStart)
-        const weekEvents = events.filter(event => {
-            try {
-                const eventDate = parseISO(event.startTime);
-                return isValid(eventDate) && eventDate >= currentWeekStart && eventDate < weekEnd;
-            } catch { return false; }
-        });
-
         return weekDays.map(day => ({
             date: day,
-            events: weekEvents.filter(event => {
+            // Filter the already fetched 'events' (which are for the current week)
+            events: events.filter(event => {
                 try {
                     const eventDate = parseISO(event.startTime);
                     return isValid(eventDate) && isSameDay(eventDate, day);
                 } catch { return false; }
             }).sort((a, b) => parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime())
         }));
-    }, [events, weekDays, currentWeekStart]);
+    }, [events, weekDays]); // Depend on events from store and weekDays
 
 
     // --- START: Badge/Icon Helper Functions ---
@@ -193,6 +195,22 @@ export function ScheduleTab() {
     };
     // --- END: Badge/Icon Helper Functions ---
 
+    // --- NEW: Click Handler for Day Headers ---
+    const handleDayClick = (day: Date) => {
+        console.log("Clicked day:", day);
+        setSelectedDay(day); // Update selected day state
+
+        // Scroll to the corresponding day section
+        const dayKey = formatISO(day, { representation: 'date' });
+        const element = daySectionRefs.current[dayKey];
+        if (element) {
+            console.log("Scrolling to:", dayKey, element);
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            console.log("No ref found for:", dayKey);
+        }
+    };
+
     // --- Render ---
     return (
         <div className="space-y-6">
@@ -233,15 +251,34 @@ export function ScheduleTab() {
                 </div>
             )}
 
-            {/* Weekly Calendar Day Headers (only show when not loading) */}
+            {/* Weekly Calendar Day Headers (Modified) */}
             {status !== 'loading' && (
-                <div className="grid grid-cols-7 gap-2">
-                    {weekDays.map((day, index) => (
-                        <div key={index} className={cn("text-center p-2 rounded-md", isToday(day) ? "bg-primary/10" : "")}>
-                            <div className="text-sm font-medium">{format(day, "EEE")}</div>
-                            <div className={cn("text-2xl", isToday(day) ? "text-primary font-bold" : "")}>{format(day, "d")}</div>
-                        </div>
-                    ))}
+                <div className="grid grid-cols-7 gap-2 bg-muted/50 p-2 rounded-md">
+                    {weekDays.map((day, index) => {
+                        const isSelected = selectedDay && isSameDay(day, selectedDay);
+                        return (
+                            // Use a button for semantic correctness and accessibility
+                            <div
+                                key={index}
+                                onClick={() => handleDayClick(day)}
+                                className={cn(
+                                    "flex flex-col cursor-pointer text-center p-1 rounded-md transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                                    "hover:bg-accent hover:text-accent-foreground", // Hover effect
+                                    isToday(day) ? "bg-primary/10 font-medium" : "bg-transparent", // Today style
+                                    isSelected ? "bg-primary/50 ring-1 ring-primary ring-offset-1" : "", // Selected style
+                                )}
+                            >
+                                <div className="text-sm font-medium">{format(day, "EEE")}</div>
+                                <div className={cn(
+                                    "text-lg",
+                                    isToday(day) && !isSelected ? "text-primary font-bold" : "", // Today but not selected
+                                    isSelected ? "font-bold" : "" // Selected font weight
+                                )}>
+                                    {format(day, "d")}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 
@@ -254,60 +291,72 @@ export function ScheduleTab() {
                 </div>
             )}
 
-            {/* Events List (only show when succeeded) */}
+            {/* Events List (Modified) */}
             {status === 'succeeded' && (
                 <div className="space-y-6">
-                    {eventsByDay.map(({ date, events: dailyEvents }, index) => (
-                        (dailyEvents.length > 0 || isToday(date)) && ( // Render day section if events exist or it's today
-                            <div key={index}>
-                                <h3 className="text-md font-medium mb-3 sticky top-0 bg-background/95 py-2 z-10 border-b">
-                                    {format(date, "EEEE, MMMM d")}
-                                    {isToday(date) && <span className="ml-2 text-primary font-semibold">(Today)</span>}
-                                </h3>
-                                {dailyEvents.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {dailyEvents.map(event => (
-                                            <motion.div
-                                                key={event.id}
-                                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
-                                            >
-                                                {/* --- Event Details Rendering (same as ScheduleView) --- */}
-                                                <div className="flex items-start gap-3 mb-3 sm:mb-0 flex-grow">
-                                                    <div className="bg-primary/10 p-2 rounded-md mt-1">{getEventTypeIcon(event.type)}</div>
-                                                    <div className="flex-grow">
-                                                        <h3 className="font-medium">{event.title}</h3>
-                                                        {event.courseTitle && <p className="text-sm text-muted-foreground">{event.courseTitle}</p>}
-                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
-                                                            {getEventTypeBadge(event.type)}
-                                                            <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{safeFormatTime(event.startTime)} - {safeFormatTime(event.endTime)}</span>
-                                                            {event.location && <span className="flex items-center"><MapPin className="mr-1 h-3 w-3" />{event.location}</span>}
-                                                            {event.instructor && <span className="flex items-center"><Users className="mr-1 h-3 w-3" />{event.instructor}</span>}
+                    {eventsByDay.map(({ date, events: dailyEvents }, index) => {
+                        // Only render if there are events OR if it's today (to show empty message)
+                        // OR if it's the selected day
+                        const shouldRenderDay = dailyEvents.length > 0 || isToday(date) || (selectedDay && isSameDay(date, selectedDay));
+                        const dayKey = formatISO(date, { representation: 'date' }); // Unique key for ref
+
+                        return (
+                            shouldRenderDay && (
+                                // Assign ref to the wrapping div for each day's section
+                                <div
+                                    key={dayKey} // Use date string as key
+                                    ref={el => { daySectionRefs.current[dayKey] = el; }} // Assign ref dynamically
+                                    className="scroll-mt-4" // Add margin top for scrolling target
+                                >
+                                    <h3 className="text-md font-medium mb-3 sticky top-0 bg-background/95 py-2 z-10 border-b">
+                                        {format(date, "EEEE, MMMM d")}
+                                        {isToday(date) && <span className="ml-2 text-primary font-semibold">(Today)</span>}
+                                    </h3>
+                                    {dailyEvents.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {dailyEvents.map(event => (
+                                                <motion.div
+                                                    key={event.id}
+                                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                                                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
+                                                >
+                                                    {/* --- Event Details Rendering (same as ScheduleView) --- */}
+                                                    <div className="flex items-start gap-3 mb-3 sm:mb-0 flex-grow">
+                                                        <div className="bg-primary/10 p-2 rounded-md mt-1">{getEventTypeIcon(event.type)}</div>
+                                                        <div className="flex-grow">
+                                                            <h3 className="font-medium">{event.title}</h3>
+                                                            {event.courseTitle && <p className="text-sm text-muted-foreground">{event.courseTitle}</p>}
+                                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-muted-foreground">
+                                                                {getEventTypeBadge(event.type)}
+                                                                <span className="flex items-center"><Clock className="mr-1 h-3 w-3" />{safeFormatTime(event.startTime)} - {safeFormatTime(event.endTime)}</span>
+                                                                {event.location && <span className="flex items-center"><MapPin className="mr-1 h-3 w-3" />{event.location}</span>}
+                                                                {event.instructor && <span className="flex items-center"><Users className="mr-1 h-3 w-3" />{event.instructor}</span>}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex-shrink-0 self-end sm:self-center">
-                                                    {event.meetingLink ? (
-                                                        <DyraneButton variant="outline" size="sm" className="whitespace-nowrap" asChild>
-                                                            <a href={event.meetingLink} target="_blank" rel="noopener noreferrer">Join Meeting</a>
-                                                        </DyraneButton>
-                                                    ) : event.courseSlug ? (
-                                                        <DyraneButton variant="outline" size="sm" className="whitespace-nowrap" asChild>
-                                                            {/* TODO: Link to specific course page */}
-                                                            <Link href={`/courses/${event.courseSlug}`}>View Course</Link>
-                                                        </DyraneButton>
-                                                    ) : null}
-                                                </div>
+                                                    <div className="flex-shrink-0 self-end sm:self-center">
+                                                        {event.meetingLink ? (
+                                                            <DyraneButton variant="outline" size="sm" className="whitespace-nowrap" asChild>
+                                                                <a href={event.meetingLink} target="_blank" rel="noopener noreferrer">Join Meeting</a>
+                                                            </DyraneButton>
+                                                        ) : event.courseSlug ? (
+                                                            <DyraneButton variant="outline" size="sm" className="whitespace-nowrap" asChild>
+                                                                {/* TODO: Link to specific course page */}
+                                                                <Link href={`/courses/${event.courseSlug}`}>View Course</Link>
+                                                            </DyraneButton>
+                                                        ) : null}
+                                                    </div>
 
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-sm text-muted-foreground py-4 italic">No events scheduled for {isToday(date) ? 'today' : 'this day'}.</p>
-                                )}
-                            </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground py-4 italic">No events scheduled for {isToday(date) ? 'today' : 'this day'}.</p>
+                                    )}
+                                </div>
+                            )
                         )
-                    ))}
+                    })}
                     {/* Message if no events in the whole week */}
                     {events.length === 0 && (
                         <DyraneCard>
