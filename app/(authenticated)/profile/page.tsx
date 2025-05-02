@@ -400,7 +400,7 @@ export default function ProfilePage() {
                                                         </FormItem>
                                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                                             <FormControl>
-                                                                <RadioGroupItem value="corporate" />
+                                                                <RadioGroupItem value="institutional" />
                                                             </FormControl>
                                                             <FormLabel className="font-normal">Corporate - For teams and organizations</FormLabel>
                                                         </FormItem>
