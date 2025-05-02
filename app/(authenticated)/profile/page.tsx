@@ -37,7 +37,7 @@ const profileSchema = z.object({
     classId: z.string({
         required_error: "Please select a class",
     }),
-    accountType: z.enum(["individual", "corporate"], {
+    accountType: z.enum(["individual", "institutional"], {
         required_error: "Please select an account type",
     }),
     bio: z.string().optional(),
@@ -153,6 +153,7 @@ export default function ProfilePage() {
             }
 
             // Dispatch the update profile thunk
+
             await dispatch(updateUserProfileThunk(formattedData)).unwrap()
 
             toast({

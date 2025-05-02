@@ -70,6 +70,10 @@ import {
 	getMockChatRooms,
 } from "@/data/mock-chat-data";
 import { MarkAttendancePayload } from "@/features/attendance/store/attendance-slice";
+import {
+	mockGetNotificationPreferences,
+	mockUpdateNotificationPreferences,
+} from "@/data/mock-settings-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -454,6 +458,18 @@ async function handleMockRequest<T>(
 			mockSenderId,
 			body.content
 		) as unknown as T;
+	}
+
+	// --- Settings Mocks ---
+	const notificationPrefsMatch = endpoint.match(/^\/users\/me\/notifications$/);
+	if (notificationPrefsMatch && method === "get") {
+		const userId = "user_123"; // Simulate logged-in user ID
+		return mockGetNotificationPreferences(userId) as unknown as T;
+	}
+	if (notificationPrefsMatch && method === "put") {
+		const userId = "user_123";
+		if (!body) throw new Error("Mock Error: Missing preferences data in body");
+		return mockUpdateNotificationPreferences(userId, body) as unknown as T;
 	}
 
 	// --- Fallback ---

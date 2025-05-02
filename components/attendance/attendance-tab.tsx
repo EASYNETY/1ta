@@ -50,7 +50,7 @@ export function Attendance() {
 
     // --- Get Data from Slice ---
     const studentRecords = useAppSelector(state =>
-        user?.id ? selectStudentAttendanceRecords(state, user.id) : []
+        user?.id != null ? selectStudentAttendanceRecords(state, String(user.id)) : []
     );
 
     const courseDailyAttendances = useAppSelector(state =>
@@ -215,10 +215,10 @@ export function Attendance() {
                                 <div
                                     key={i}
                                     className={cn(
-                                        "h-14 p-2 border rounded-md flex flex-col items-center justify-center text-sm",
-                                        isWeekend(day) ? "bg-muted/50" : "",
+                                        "h-14 p-2 border rounded-md flex flex-col items-center justify-center text-sm text-foreground",
+                                        isWeekend(day) ? "bg-muted/50" : "bg-accent/50",
                                         // Apply status style if status exists
-                                        status ? getStatusStyle(status) : "bg-gray-100 text-gray-800 border-gray-300" // Default style
+                                        status ? getStatusStyle(status) : "bg-background/50 text-gray-800 border" // Default style
                                     )}
                                 >
                                     {format(day, "d")}

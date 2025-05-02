@@ -184,7 +184,7 @@ export function resetPassword(payload: { token: string; password: string }): {
 export function mockGetMyProfile(): User {
 	// In a real implementation, this would use the token to identify the user
 	// For mock purposes, we'll just return the first user
-	const user = users[2]; // Using the incomplete profile user for testing
+	const user = users[3]; // Using the incomplete profile user for testing
 	const { password, ...userWithoutPassword } = user;
 	return userWithoutPassword as User;
 }

@@ -43,8 +43,8 @@ export interface StudentAttendanceResponse {
 
 export interface TeacherAttendanceResponse {
 	courseClassId: string;
-    courseTitle: string;
-    totalStudents: number;
+	courseTitle: string;
+	totalStudents: number;
 	dailyAttendances: DailyAttendance[];
 }
 
@@ -56,41 +56,43 @@ export interface AdminAttendanceResponse {
 }
 
 // Mock attendance data for students (per student)
-export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> = {
-	stu1: [
-		{ date: "2023-12-01", status: "present" },
-		{ date: "2023-12-02", status: "present" },
-		{ date: "2023-12-05", status: "present" },
-		{ date: "2023-12-06", status: "present" },
-		{ date: "2023-12-07", status: "present" },
-		{ date: "2023-12-08", status: "late" },
-		{ date: "2023-12-09", status: "present" },
-		{ date: "2023-12-12", status: "absent" },
-		{ date: "2023-12-13", status: "present" },
-		{ date: "2023-12-14", status: "present" },
-		{ date: "2023-12-15", status: "present" },
-		{ date: "2023-12-16", status: "present" },
-		{ date: "2023-12-19", status: "present" },
-		{ date: "2023-12-20", status: "present" },
-	],
-	stu2: [
-		{ date: "2023-12-01", status: "absent" },
-		{ date: "2023-12-02", status: "late" },
-		{ date: "2023-12-05", status: "present" },
-		{ date: "2023-12-06", status: "absent" },
-		{ date: "2023-12-07", status: "late" },
-		{ date: "2023-12-08", status: "present" },
-		{ date: "2023-12-09", status: "absent" },
-		{ date: "2023-12-12", status: "present" },
-		{ date: "2023-12-13", status: "late" },
-		{ date: "2023-12-14", status: "present" },
-		{ date: "2023-12-15", status: "present" },
-		{ date: "2023-12-16", status: "present" },
-		{ date: "2023-12-19", status: "present" },
-		{ date: "2023-12-20", status: "present" },
-	],
-};
-
+export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
+	{
+		"3": [
+			// <--- KEY IS NOW STRING "3"
+			{ date: "2023-12-01", status: "present" },
+			{ date: "2023-12-02", status: "present" },
+			{ date: "2023-12-05", status: "present" },
+			{ date: "2023-12-06", status: "present" },
+			{ date: "2023-12-07", status: "present" },
+			{ date: "2023-12-08", status: "late" },
+			{ date: "2023-12-09", status: "present" },
+			{ date: "2023-12-12", status: "absent" },
+			{ date: "2023-12-13", status: "present" },
+			{ date: "2023-12-14", status: "present" },
+			{ date: "2023-12-15", status: "present" },
+			{ date: "2023-12-16", status: "present" },
+			{ date: "2023-12-19", status: "present" },
+			{ date: "2023-12-20", status: "present" },
+		],
+		"4": [
+			// <--- KEY IS NOW STRING "4"
+			{ date: "2023-12-01", status: "absent" },
+			{ date: "2023-12-02", status: "late" },
+			{ date: "2023-12-05", status: "present" },
+			{ date: "2023-12-06", status: "absent" },
+			{ date: "2023-12-07", status: "late" },
+			{ date: "2023-12-08", status: "present" },
+			{ date: "2023-12-09", status: "absent" },
+			{ date: "2023-12-12", status: "present" },
+			{ date: "2023-12-13", status: "late" },
+			{ date: "2023-12-14", status: "present" },
+			{ date: "2023-12-15", status: "present" },
+			{ date: "2023-12-16", status: "present" },
+			{ date: "2023-12-19", status: "present" },
+			{ date: "2023-12-20", status: "present" },
+		],
+	};
 // Mock attendance data for teacher's class
 export const mockClassAttendance: TeacherAttendanceResponse[] = [
 	{
