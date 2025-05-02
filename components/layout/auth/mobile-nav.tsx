@@ -26,6 +26,9 @@ import { is } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Barcode from "react-barcode";
 
+// --- Import Redux Selectors ---
+import { selectChatUnreadCount } from "@/features/chat/store/chatSlice"; // Example path
+
 // Interface definitions
 export interface MobileNavItem {
     title: string;
@@ -54,98 +57,79 @@ interface FabAction {
     href: string;
     ariaLabel: string;
     show: boolean; // Should the FAB be shown on this page/role?
-    actionType?: 'navigate' | 'showStudentBarcode' | 'scanBarcode' | 'showStudentDetails' | 'showCourseDetails' | 'showEventDetails';
+    actionType?: 'navigate' | 'showStudentBarcode' | 'scanBarcode' | 'createChat' | 'createTicket' | 'createClass' | 'createStudent' | 'createCourse' | 'createEvent';
 }
 
 function getFabAction(role: "admin" | "teacher" | "student", pathname: string): FabAction {
-    // Default actions (shown on dashboard or unrecognized paths)
-    let action: FabAction = { href: "/", ariaLabel: "Primary Action", show: false }; // Default hidden
+    let action: FabAction = { href: "/", ariaLabel: "Action", show: false, actionType: 'navigate' }; // Default hidden
 
-    // --- ATTENDANCE PAGE LOGIC ---
-    if (pathname.startsWith("/attendance")) {
-        switch (role) {
-            case "admin":
-            case "teacher":
-                action = {
-                    href: "/attendance/scan", // Link to your scanning page/component
-                    ariaLabel: "Scan Attendance Barcode",
-                    show: true,
-                    actionType: 'scanBarcode' // Or 'navigate' if /attendance/scan is a page
-                };
-                break;
-            case "student":
-                action = {
-                    href: "#", // Not a navigation link, handled by onClick
-                    ariaLabel: "Show My Attendance Barcode",
-                    show: true,
-                    actionType: 'showStudentBarcode' // Custom type for onClick handler
-                };
-                break;
-            default:
-                // Hide for any other roles on attendance page
-                action = { href: "/", ariaLabel: "Action", show: false, actionType: 'navigate' };
-                break;
-        }
-    }
-    else if (pathname.startsWith("/dashboard")) {
-        switch (role) {
-            case "admin":
-                action = { href: "/students/create", ariaLabel: "Add New Student", show: true }; // Changed from students/create for consistency
-                break;
-            case "teacher":
-                action = { href: "/courses/create", ariaLabel: "Add New Class", show: true }; // Example teacher path
-                break;
-            case "student":
-                action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true }; // Keep support ticket for student
-                break;
-        }
-    } else if (pathname.startsWith("/courses")) {
-        switch (role) {
-            case "admin":
-                action = { href: "/courses/create", ariaLabel: "Add New Course Template", show: true }; // Add Course Template
-                break;
-            case "teacher":
-                action = { href: "/courses/create", ariaLabel: "Add New Class Instance", show: true }; // Add Class Instance
-                break;
-            case "student":
-                action = { href: "/courses", ariaLabel: "Browse Courses", show: true };
-                break;
-        }
-    } else if (pathname.startsWith("/chat")) {
-        // All roles can potentially start a new chat (maybe filtered later by permissions)
-        action = { href: "/chat/create", ariaLabel: "Start New Chat", show: true };
-    } else if (pathname.startsWith("/timetable")) {
-        // Example: Add event for teacher/admin? Hide for student.
-        switch (role) {
-            case "admin":
-            case "teacher":
-                action = { href: "/timetable/create-event", ariaLabel: "Add Timetable Event", show: true };
-                break;
-            default:
-                action = { href: "/", ariaLabel: "Action", show: false }; // Hide for student
-                break;
-        }
-    } else if (pathname.startsWith("/students")) {
-        if (role === 'admin') action = { href: "/students/create", ariaLabel: "Add New Student", show: true };
-        else action = { href: "/", ariaLabel: "Action", show: false };
-    } else if (pathname.startsWith("/courses")) {
-        if (role === 'admin') action = { href: "/courses/create", ariaLabel: "Add New Class Instance", show: true };
-        else action = { href: "/", ariaLabel: "Action", show: false };
-    }
-    // Add more rules for /analytics, /payments, /support-tickets etc.
-    // Hide by default on settings/profile
-    else if (pathname.startsWith("/settings") || pathname.startsWith("/profile")) {
-        action = { href: "/", ariaLabel: "Action", show: false };
-    }
-    // Default fallback if needed (could be the dashboard action)
-    else {
-        switch (role) {
-            case "admin": action = { href: "/students/create", ariaLabel: "Add New Student", show: true }; break;
-            case "teacher": action = { href: "/courses/create", ariaLabel: "Add New Class", show: true }; break;
-            case "student": action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true }; break;
-        }
-    }
+    // --- Specific Page Logic ---
 
+    // **Hide on Scan Page**
+    if (pathname === "/attendance/scan") {
+        action = { ...action, show: false };
+    }
+    // **Attendance List Page**
+    else if (pathname === "/attendance") { // Use === for exact match
+        switch (role) {
+            case "admin": case "teacher":
+                action = { href: "/attendance/scan", ariaLabel: "Scan Attendance", show: true, actionType: 'navigate' }; break; // Navigate to scan page
+            case "student":
+                action = { href: "#", ariaLabel: "Show My Barcode", show: true, actionType: 'showStudentBarcode' }; break;
+        }
+    }
+    // **Chat Page** (Root chat or specific room)
+    else if (pathname.startsWith("/chat")) {
+        action = { href: "/chat/create", ariaLabel: "Start New Chat", show: true, actionType: 'createChat' }; // Assumes /chat/create exists or triggers modal
+    }
+    // **Courses Page**
+    else if (pathname.startsWith("/courses")) {
+        switch (role) {
+            case "admin":
+                action = { href: "/courses/create", ariaLabel: "Create Course Template", show: true, actionType: 'createCourse' }; break; // Needs implementation
+            case "teacher":
+                action = { href: "/classes/create", ariaLabel: "Create New Class", show: true, actionType: 'createClass' }; break; // Needs implementation
+            // No FAB for student on general courses page
+            case "student": action = { ...action, show: false }; break;
+        }
+    }
+    // **Timetable Page**
+    else if (pathname.startsWith("/timetable")) {
+        switch (role) {
+            case "admin": case "teacher":
+                action = { href: "/classes/create", ariaLabel: "Add Class", show: true, actionType: 'createEvent' }; break; // Needs implementation
+            case "student": action = { ...action, show: false }; break;
+        }
+    }
+    // **Support Page** (List or Create)
+    else if (pathname.startsWith("/support")) {
+        if (role === 'student' && pathname !== '/support/create') { // Show only if not already on create page
+            action = { href: "/support/create", ariaLabel: "Create Support Ticket", show: true, actionType: 'navigate' };
+        } else {
+            action = { ...action, show: false }; // Hide on create page or for other roles
+        }
+    }
+    // **Admin - Students List Page**
+    else if (pathname === "/admin/students" || pathname.startsWith("/users?tab=students")) { // Check both possible paths
+        if (role === 'admin') {
+            action = { href: "/users/create", ariaLabel: "Add New User", show: true, actionType: 'createStudent' }; // Needs implementation
+        } else {
+            action = { ...action, show: false };
+        }
+    }
+    // **Settings / Profile / Subscription**
+    else if (pathname.startsWith("/settings") || pathname.startsWith("/profile") || pathname.startsWith("/subscription")) {
+        action = { ...action, show: false };
+    }
+    // **Dashboard (Default Fallback)**
+    else if (pathname.startsWith("/dashboard") || pathname === "/") {
+        switch (role) {
+            case "admin": action = { href: "/admin/students/create", ariaLabel: "Add Student", show: true, actionType: 'createStudent' }; break;
+            case "teacher": action = { href: "/teacher/classes/create", ariaLabel: "Create Class", show: true, actionType: 'createClass' }; break;
+            case "student": action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true, actionType: 'navigate' }; break; // Navigate for student default
+        }
+    }
+    // Add more specific page rules if needed (e.g., /payments, /admin/pricing)
 
     return action;
 }
@@ -158,7 +142,7 @@ export function MobileNav() {
     const cart = useAppSelector((state) => state.cart); // Keep cart if badge is needed
     const isMobile = useMobile();
     const scrollDirection = useScrollDirection();
-
+    const chatUnreadCount = useAppSelector(selectChatUnreadCount);
     const isVisible = scrollDirection === "up" || scrollDirection === "none";
     // --- State for Student Barcode Modal ---
     const [showStudentBarcodeModal, setShowStudentBarcodeModal] = React.useState(false);
@@ -166,7 +150,8 @@ export function MobileNav() {
     // --- Badge Counts (Example) ---
     const badgeCounts: MobileNavBadges = {
         // cart: cart.items?.length || 0, // Example if cart badge needed
-        messages: 5, // Example static count
+        messages: chatUnreadCount
+        ,
     };
 
     // Filter nav items

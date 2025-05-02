@@ -268,7 +268,7 @@ export default function CoursesPage() {
               <CardContent className="p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <h2 className="text-xl font-semibold">Course Management</h2>
-                  <DyraneButton asChild>
+                  <DyraneButton asChild size="sm" className='hidden sm:flex'>
                     <Link href="/courses/create">
                       <Plus className="mr-2 h-4 w-4" />
                       Create Course

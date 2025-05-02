@@ -34,7 +34,7 @@ export default function MySupportTicketsPage() {
                     <LifeBuoy className="h-6 w-6 text-primary" />
                     <h1 className="text-3xl font-bold">My Support Tickets</h1>
                 </div>
-                <DyraneButton asChild size="sm">
+                <DyraneButton asChild size="sm" className='hidden sm:flex'>
                     <Link href="/support/create"> <PlusCircle className="mr-2 h-4 w-4" /> Create New Ticket</Link>
                 </DyraneButton>
             </div>

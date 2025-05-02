@@ -1,5 +1,10 @@
 // features/chat/store/chatSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+	createSlice,
+	createAsyncThunk,
+	PayloadAction,
+	createSelector,
+} from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type { ChatState, ChatRoom, ChatMessage } from "../types/chat-types";
 
@@ -204,5 +209,15 @@ export const selectMessageStatusForRoom = (
 export const selectSendMessageStatus = (state: RootState) =>
 	state.chat.sendMessageStatus;
 export const selectChatError = (state: RootState) => state.chat.error;
+// --- Add Selector for Unread Chat Count ---
+// This selector uses createSelector for memoization, which is good practice
+export const selectChatUnreadCount = createSelector(
+	[selectChatRooms], // Input selector(s)
+	(rooms): number => {
+		// Result function
+		// Calculate the total unread count by summing up unreadCount from each room
+		return rooms.reduce((total, room) => total + (room.unreadCount || 0), 0);
+	}
+); // <-- ADD THIS SELECTOR
 
 export default chatSlice.reducer;
