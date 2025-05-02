@@ -74,6 +74,19 @@ import {
 	mockGetNotificationPreferences,
 	mockUpdateNotificationPreferences,
 } from "@/data/mock-settings-data";
+import {
+	mockAddTicketResponse,
+	mockCreateTicket,
+	mockFetchAllFeedback,
+	mockFetchAllTickets,
+	mockFetchMyTickets,
+	mockFetchTicketById,
+	mockSubmitFeedback,
+} from "@/data/mock-support-data";
+import {
+	FeedbackType,
+	TicketStatus,
+} from "@/features/support/types/support-types";
 
 // --- Config ---
 const API_BASE_URL =
@@ -470,6 +483,86 @@ async function handleMockRequest<T>(
 		const userId = "user_123";
 		if (!body) throw new Error("Mock Error: Missing preferences data in body");
 		return mockUpdateNotificationPreferences(userId, body) as unknown as T;
+	}
+
+	// --- Support Mocks ---
+	if (endpoint === "/support/my-tickets" && method === "get") {
+		const userId = "student_123"; // Simulate logged-in user
+		// Extract pagination from options.url query params
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		return mockFetchMyTickets(userId, page, limit) as unknown as T;
+	}
+	if (endpoint === "/support/ticket" && method === "post") {
+		const userId = "student_123";
+		if (!body?.subject || !body?.description || !body?.priority)
+			throw new Error("Mock Error: Missing required ticket fields");
+		return mockCreateTicket(userId, body) as unknown as T;
+	}
+	if (endpoint === "/support/feedback" && method === "post") {
+		const userId = "student_123";
+		if (body?.rating === undefined || !body?.comment || !body?.type)
+			throw new Error("Mock Error: Missing required feedback fields");
+		return mockSubmitFeedback(userId, body) as unknown as T;
+	}
+
+	// Mock for getting single ticket (example path)
+	const ticketDetailMatch = endpoint.match(/^\/support\/my-tickets\/(.+)$/);
+	if (ticketDetailMatch && method === "get") {
+		const ticketId = ticketDetailMatch[1];
+		const userId = "student_123"; // Simulate user context
+		const role = "student";
+		return mockFetchTicketById(ticketId, userId, role) as unknown as T;
+	}
+
+	// Mock for adding response (example path)
+	const addResponseMatch = endpoint.match(
+		/^\/support\/my-tickets\/(.+)\/responses$/
+	);
+	if (addResponseMatch && method === "post") {
+		const ticketId = addResponseMatch[1];
+		if (!body?.message)
+			throw new Error("Mock Error: Missing message for response");
+		const senderId = "student_123"; // Simulate sender
+		const senderRole = "student";
+		return mockAddTicketResponse(
+			{ ticketId, message: body.message },
+			senderId,
+			senderRole
+		) as unknown as T;
+	}
+
+	// --- Admin Support Mocks ---
+	if (endpoint === "/admin/support-tickets" && method === "get") {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const status = urlParams.get("status") as TicketStatus | undefined; // Add type cast if needed
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		return mockFetchAllTickets(status, page, limit) as unknown as T;
+	}
+	if (endpoint === "/admin/feedback" && method === "get") {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const type = urlParams.get("type") as FeedbackType | undefined; // Add type cast if needed
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		return mockFetchAllFeedback(type, page, limit) as unknown as T;
+	}
+	// Mock for admin adding response (example path)
+	const adminAddResponseMatch = endpoint.match(
+		/^\/admin\/support-tickets\/(.+)\/responses$/
+	);
+	if (adminAddResponseMatch && method === "post") {
+		const ticketId = adminAddResponseMatch[1];
+		if (!body?.message)
+			throw new Error("Mock Error: Missing message for response");
+		const senderId = "admin_001"; // Simulate admin sender
+		const senderRole = "admin";
+		return mockAddTicketResponse(
+			{ ticketId, message: body.message },
+			senderId,
+			senderRole
+		) as unknown as T;
 	}
 
 	// --- Fallback ---
