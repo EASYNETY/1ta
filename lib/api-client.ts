@@ -50,6 +50,12 @@ import {
 	mockDeletePaymentMethod,
 } from "@/data/mock-payment-data";
 import type { PaymentMethod } from "@/features/payment/types/payment-types";
+import { getMockSchedule } from "@/data/mock-schedule-data";
+import {
+	getMockAllClassesAdmin,
+	getMockEnrolledClasses,
+	getMockTaughtClasses,
+} from "@/data/mock-classes-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -64,6 +70,7 @@ console.log(
 // --- Types ---
 interface FetchOptions extends RequestInit {
 	requiresAuth?: boolean;
+	url?: string;
 }
 
 // --- Main API Client ---
@@ -314,6 +321,37 @@ async function handleMockRequest<T>(
 		const userId = "user_123"; // Get dynamically if possible for mock
 		return mockDeletePaymentMethod({ userId, methodId }) as unknown as T;
 	}
+
+	// --- Schedule Mock ---
+	if (endpoint === "/schedule" && method === "get") {
+		// Note: In real API, role/userId would come from token/query params
+		// We might need to simulate getting the user ID here if the thunk doesn't pass it
+		const mockRole = "student"; // Or teacher/admin based on test case
+		const mockUserId = "student_123"; // Or teacher ID
+		return getMockSchedule(mockRole, mockUserId) as unknown as T;
+	}
+
+	// --- Classes Mocks ---
+	// Example: Student getting their courses
+	if (endpoint === "/users/me/courses" && method === "get") {
+		const mockUserId = "student_123"; // Simulate logged-in user
+		return getMockEnrolledClasses(mockUserId) as unknown as T;
+	}
+	// Example: Teacher getting their courses
+	if (endpoint === "/teachers/me/courses" && method === "get") {
+		const mockTeacherId = "teacher_1"; // Simulate logged-in user
+		return getMockTaughtClasses(mockTeacherId) as unknown as T;
+	}
+	// Example: Admin getting all classes
+	if (endpoint === "/admin/classes" && method === "get") {
+		// Extract pagination/search from options.url query params if passed
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const search = urlParams.get("search") || undefined;
+		return getMockAllClassesAdmin(page, limit, search) as unknown as T;
+	}
+
 	// --- Fallback ---
 	console.error(
 		`Mock API: Endpoint "${endpoint}" (Method: ${method}) not implemented`

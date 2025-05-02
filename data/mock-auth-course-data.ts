@@ -138,6 +138,7 @@ export interface AuthLesson {
 export interface AuthModule {
 	id: string;
 	title: string;
+	order: number; // Order of the module in the course
 	description?: string; // Added description
 	duration: string; // Original duration string (e.g., "X lessons")
 	lessons: AuthLesson[];
@@ -747,6 +748,7 @@ export const mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
 						return {
 							id: lessonId,
 							title: publicLesson.title,
+							order: lessonIndex + 1,
 							type: lessonType,
 							duration: publicLesson.duration, // Keep original duration string
 							isPreview: publicLesson.isPreview || false,
@@ -759,6 +761,7 @@ export const mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
 					id: moduleId,
 					title: publicModule.title,
 					// Add a generic description or pull from source if available
+					order: moduleIndex + 1,
 					description: `Content for ${publicModule.title}.`,
 					duration: publicModule.duration, // Keep original module duration string
 					lessons: authLessons,

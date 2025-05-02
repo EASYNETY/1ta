@@ -21,6 +21,8 @@ import publicCourseReducer from "@/features/public-course/store/public-course-sl
 import authCourseReducer from "@/features/auth-course/store/auth-course-slice";
 import pricingReducer from "@/features/pricing/store/pricing-slice";
 import attendanceMarkingReducer from "@/features/attendance/store/attendance-slice";
+import scheduleReducer from "@/features/schedule/store/schedule-slice";
+import classesReducer from "@/features/classes/store/classes-slice";
 import classSessionReducer from "@/features/classes/store/classSessionSlice";
 import paymentMethodsReducer from "@/features/payment/store/payment-slice";
 
@@ -64,6 +66,8 @@ const persistConfig = {
 		"attendanceMarking",
 		"classSession",
 		"paymentMethods",
+		"schedule",
+		"classes",
 	],
 };
 
@@ -78,6 +82,8 @@ const rootReducer = combineReducers({
 	attendanceMarking: attendanceMarkingReducer,
 	classSession: classSessionReducer,
 	paymentMethods: paymentMethodsReducer,
+	schedule: scheduleReducer,
+	classes: classesReducer,
 });
 
 // --- Persisted Reducer ---
