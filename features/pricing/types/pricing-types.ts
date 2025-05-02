@@ -20,9 +20,16 @@ export interface PaymentDetails {
 	currency: string;
 	status: "pending" | "processing" | "completed" | "failed";
 	transactionId?: string;
-	paymentMethod?: string;
+	paymentMethod?: "card" | "bank" | string; // Can be more specific than just string
 	paymentDate?: string;
-	expiryDate?: string;
+	// expiryDate?: string; // This usually relates to subscription, not payment record
+
+	// --- New Optional Fields for Mocking Card ---
+	cardType?: "visa" | "mastercard" | "verve" | string; // Examples
+	last4?: string; // e.g., "4081"
+	expiryMonth?: string; // e.g., "12"
+	expiryYear?: string; // e.g., "25" (Just the last two digits usually)
+	// --- End New Fields ---
 }
 
 export interface UserSubscription {

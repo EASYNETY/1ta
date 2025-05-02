@@ -1,5 +1,7 @@
 // data/mock-pricing-data.ts
 
+import { PaymentDetails } from "@/features/pricing/types/pricing-types";
+
 // Define individual plans
 export const individualPlans = [
 	{
@@ -137,31 +139,57 @@ export const allPlans = [...individualPlans, ...corporatePlans];
 export const getUserSubscription = async (userId: string) => {
 	try {
 		// Mock implementation
+		const mockPaymentHistory: PaymentDetails[] = [
+			// Use the type
+			{
+				planId: "pro-individual",
+				planName: "Pro",
+				amount: 45000,
+				currency: "NGN",
+				status: "completed",
+				transactionId: "mock_tx_123456", // Added mock_ prefix
+				paymentMethod: "card",
+				paymentDate: new Date(
+					Date.now() - 30 * 24 * 60 * 60 * 1000
+				).toISOString(),
+				// --- Add Mock Card Details ---
+				cardType: "visa",
+				last4: "4081",
+				expiryMonth: "12",
+				expiryYear: "25",
+				// --- End Mock Card Details ---
+			},
+			// Optional: Add another older payment?
+			{
+				planId: "basic-individual", // Example older payment
+				planName: "Basic",
+				amount: 25000,
+				currency: "NGN",
+				status: "completed",
+				transactionId: "mock_tx_009988",
+				paymentMethod: "card",
+				paymentDate: new Date(
+					Date.now() - 395 * 24 * 60 * 60 * 1000 // ~13 months ago
+				).toISOString(),
+				cardType: "mastercard",
+				last4: "5555",
+				expiryMonth: "06",
+				expiryYear: "24",
+			},
+		];
+
 		return {
 			id: "sub_123456",
 			userId,
 			planId: "pro-individual",
 			planName: "Pro",
-			startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+			startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
 			expiryDate: new Date(
 				Date.now() + 335 * 24 * 60 * 60 * 1000
-			).toISOString(), // 335 days from now
+			).toISOString(),
 			autoRenew: true,
 			status: "active",
-			paymentHistory: [
-				{
-					planId: "pro-individual",
-					planName: "Pro",
-					amount: 45000,
-					currency: "NGN",
-					status: "completed",
-					transactionId: "tx_123456",
-					paymentMethod: "card",
-					paymentDate: new Date(
-						Date.now() - 30 * 24 * 60 * 60 * 1000
-					).toISOString(),
-				},
-			],
+			paymentHistory: mockPaymentHistory, // Use the defined history
 		};
 	} catch (error) {
 		console.error("Error fetching user subscription:", error);
@@ -178,6 +206,23 @@ export const createSubscription = async (userId: string, planId: string) => {
 		);
 		if (!plan) throw new Error("Plan not found");
 
+		// --- Create Mock Payment Detail ---
+		const newPaymentDetail: PaymentDetails = {
+			planId,
+			planName: plan.name,
+			amount: plan.priceValue || 0,
+			currency: "NGN",
+			status: "completed",
+			transactionId: `mock_tx_${Date.now()}`,
+			paymentMethod: "card", // Assume card for mock
+			paymentDate: new Date().toISOString(),
+			cardType: "visa", // Default mock card
+			last4: "1234", // Default mock card
+			expiryMonth: "01", // Default mock card
+			expiryYear: "28", // Default mock card
+		};
+		// --- End Mock Payment Detail ---
+
 		return {
 			id: `sub_${Date.now()}`,
 			userId,
@@ -186,21 +231,10 @@ export const createSubscription = async (userId: string, planId: string) => {
 			startDate: new Date().toISOString(),
 			expiryDate: new Date(
 				Date.now() + 365 * 24 * 60 * 60 * 1000
-			).toISOString(), // 1 year from now
+			).toISOString(),
 			autoRenew: true,
 			status: "active",
-			paymentHistory: [
-				{
-					planId,
-					planName: plan.name,
-					amount: plan.priceValue || 0,
-					currency: "NGN",
-					status: "completed",
-					transactionId: `tx_${Date.now()}`,
-					paymentMethod: "card",
-					paymentDate: new Date().toISOString(),
-				},
-			],
+			paymentHistory: [newPaymentDetail], // Start history with this payment
 		};
 	} catch (error) {
 		console.error("Error creating subscription:", error);

@@ -29,6 +29,7 @@ import {
     cancelUserSubscription,
     selectPricingLoading,
 } from "@/features/pricing/store/pricing-slice"
+import Link from "next/link"
 
 export default function ManageSubscriptionPage() {
     const router = useRouter()
@@ -46,9 +47,20 @@ export default function ManageSubscriptionPage() {
     }, [userSubscription])
 
     if (!userSubscription) {
+        toast({
+            title: "No Subscription Found",
+            description: "You do not have an active subscription. Please subscribe to access this page.",
+            variant: "destructive",
+        })
         router.push("/pricing")
         return null
     }
+
+    // --- Find Last Used Card Payment Method ---
+    const lastCardPayment = userSubscription?.paymentHistory
+        ?.slice() // Create a shallow copy to avoid mutating original state
+        .sort((a, b) => new Date(b.paymentDate || 0).getTime() - new Date(a.paymentDate || 0).getTime()) // Sort by date descending
+        .find(p => p.paymentMethod === 'card'); // Find the latest card payment
 
     const handleAutoRenewToggle = async (checked: boolean) => {
         try {
@@ -59,7 +71,6 @@ export default function ManageSubscriptionPage() {
                 }),
             ).unwrap()
 
-            setAutoRenew(checked)
             toast({
                 title: "Subscription Updated",
                 description: `Auto-renewal has been ${checked ? "enabled" : "disabled"}.`,
@@ -84,7 +95,6 @@ export default function ManageSubscriptionPage() {
                 variant: "success",
             })
             setShowCancelDialog(false)
-            router.push("/pricing")
         } catch (error) {
             toast({
                 title: "Cancellation Failed",
@@ -94,9 +104,11 @@ export default function ManageSubscriptionPage() {
         }
     }
 
-    const renewalDate = userSubscription.autoRenew
+    const renewalDate = userSubscription.autoRenew && userSubscription.status === 'active'
         ? format(new Date(userSubscription.expiryDate), "PPP")
-        : "Not set to renew"
+        : userSubscription.status === 'canceled'
+            ? `Access ends ${format(new Date(userSubscription.expiryDate), "PPP")}`
+            : "Not set to renew";
 
     return (
         <div className="mx-auto">
@@ -109,6 +121,7 @@ export default function ManageSubscriptionPage() {
 
             <div className="grid gap-8 md:grid-cols-3">
                 <div className="md:col-span-2 space-y-6">
+                    {/* --- Subscription Details Card --- */}
                     <DyraneCard>
                         <div className="p-6">
                             <h2 className="text-xl font-semibold mb-4">Subscription Details</h2>
@@ -156,31 +169,53 @@ export default function ManageSubscriptionPage() {
                     <DyraneCard>
                         <div className="p-6">
                             <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
-                            <div className="flex items-center gap-4 p-4 border rounded-md">
-                                <CreditCard className="h-8 w-8 text-muted-foreground" />
-                                <div>
-                                    <p className="font-medium">Card ending in ****4081</p>
-                                    <p className="text-sm text-muted-foreground">Expires 12/25</p>
-                                </div>
-                            </div>
-                            <div className="mt-4">
-                                <DyraneButton variant="outline">Update Payment Method</DyraneButton>
-                            </div>
+                            {lastCardPayment ? (
+                                <>
+                                    <div className="flex items-center gap-4 p-4 border rounded-md bg-secondary/30">
+                                        <CreditCard className="h-8 w-8 text-muted-foreground" />
+                                        <div>
+                                            {/* Display mock data */}
+                                            <p className="font-medium">
+                                                {lastCardPayment.cardType ? `${lastCardPayment.cardType.charAt(0).toUpperCase() + lastCardPayment.cardType.slice(1)}` : 'Card'} ending in ****{lastCardPayment.last4 || '????'}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Expires {lastCardPayment.expiryMonth || '??'}/{lastCardPayment.expiryYear || '??'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4">
+                                        {/* Link to the new management page */}
+                                        <DyraneButton variant="outline" asChild>
+                                            <Link href="/subscription/payment-methods">Manage Payment Methods</Link>
+                                        </DyraneButton>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-muted-foreground mb-4">No primary payment method found. Add one to ensure uninterrupted service.</p>
+                                    <DyraneButton variant="default" asChild>
+                                        <Link href="/subscription/payment-methods">Add Payment Method</Link>
+                                    </DyraneButton>
+                                </>
+                            )}
                         </div>
                     </DyraneCard>
 
-                    <DyraneCard className="border-destructive/50">
-                        <div className="p-6">
-                            <h2 className="text-xl font-semibold mb-4 text-destructive">Cancel Subscription</h2>
-                            <p className="text-muted-foreground mb-4">
-                                Cancelling your subscription will allow you to use the service until the end of your current billing
-                                period on {format(new Date(userSubscription.expiryDate), "PPP")}.
-                            </p>
-                            <DyraneButton variant="destructive" onClick={() => setShowCancelDialog(true)} disabled={isLoading}>
-                                Cancel Subscription
-                            </DyraneButton>
-                        </div>
-                    </DyraneCard>
+                    {/* --- Cancel Subscription Card (Show only if active) --- */}
+                    {userSubscription.status === 'active' && (
+                        <DyraneCard className="border-destructive/50">
+                            <div className="p-6">
+                                <h2 className="text-xl font-semibold mb-4 text-destructive">Cancel Subscription</h2>
+                                <p className="text-muted-foreground mb-4">
+                                    Cancelling your subscription will allow you to use the service until the end of your current billing
+                                    period on {format(new Date(userSubscription.expiryDate), "PPP")}.
+                                </p>
+                                <DyraneButton variant="destructive" onClick={() => setShowCancelDialog(true)} disabled={isLoading}>
+                                    Cancel Subscription
+                                </DyraneButton>
+                            </div>
+                        </DyraneCard>
+                    )}
                 </div>
 
                 <div className="space-y-6">
