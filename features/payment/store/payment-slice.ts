@@ -1,216 +1,143 @@
-// features/payment/store/payment-slice.ts
-
+// features/payment/store/paymentHistorySlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import {
-	PaymentMethod,
-	PaymentMethodsState,
-	AddPaymentMethodPayload,
-	SetDefaultPaymentMethodPayload,
-	DeletePaymentMethodPayload,
-} from "../types/payment-types";
+import type {
+	PaymentHistoryState,
+	PaymentRecord,
+} from "../types/payment-types"; // Use correct types
 
-// Import mock functions - conditionally or via api-client
-// For simplicity here, we import directly. In api-client, you'd route based on IS_LIVE_API
+// Import mocks (Replace with API client later)
 import {
-	mockFetchPaymentMethods,
-	mockAddPaymentMethod,
-	mockSetDefaultPaymentMethod,
-	mockDeletePaymentMethod,
+	mockFetchMyPaymentHistory,
+	mockFetchAllPaymentsAdmin,
 } from "@/data/mock-payment-data"; // Adjust path
 
-// --- Async Thunks ---
-
-export const fetchPaymentMethods = createAsyncThunk<
-	PaymentMethod[], // Return type
-	string, // Argument type: userId
-	{ state: RootState; rejectValue: string }
->("paymentMethods/fetch", async (userId, { rejectWithValue }) => {
-	try {
-		// TODO: Replace with real API call via api-client when IS_LIVE_API is true
-		const methods = await mockFetchPaymentMethods(userId);
-		return methods;
-	} catch (error: any) {
-		return rejectWithValue(error.message || "Failed to fetch payment methods");
+// --- Thunks ---
+interface FetchMyHistoryParams {
+	userId: string;
+	page?: number;
+	limit?: number;
+}
+export const fetchMyPaymentHistory = createAsyncThunk<
+	{ payments: PaymentRecord[]; total: number },
+	FetchMyHistoryParams,
+	{ rejectValue: string }
+>(
+	"paymentHistory/fetchMy",
+	async ({ userId, page, limit }, { rejectWithValue }) => {
+		try {
+			// TODO: Replace with real API call: await get(`/payments/history?userId=${userId}&page=${page}&limit=${limit}`)
+			return await mockFetchMyPaymentHistory(userId, page, limit);
+		} catch (e: any) {
+			return rejectWithValue(e.message || "Failed to fetch payment history");
+		}
 	}
-});
+);
 
-export const addPaymentMethod = createAsyncThunk<
-	PaymentMethod, // Return type: the newly added method
-	AddPaymentMethodPayload,
-	{ state: RootState; rejectValue: string }
->("paymentMethods/add", async (payload, { rejectWithValue }) => {
-	try {
-		// TODO: Replace with real API call via api-client
-		const newMethod = await mockAddPaymentMethod(payload);
-		return newMethod;
-	} catch (error: any) {
-		return rejectWithValue(error.message || "Failed to add payment method");
+interface FetchAllHistoryParams {
+	status?: PaymentRecord["status"];
+	page?: number;
+	limit?: number;
+	search?: string;
+}
+export const fetchAllPaymentsAdmin = createAsyncThunk<
+	{ payments: PaymentRecord[]; total: number },
+	FetchAllHistoryParams,
+	{ rejectValue: string }
+>(
+	"paymentHistory/fetchAllAdmin",
+	async ({ status, page, limit, search }, { rejectWithValue }) => {
+		try {
+			// TODO: Replace with real API call: await get(`/admin/payments?status=${status}&page=${page}&limit=${limit}&search=${search}`)
+			return await mockFetchAllPaymentsAdmin(status, page, limit, search);
+		} catch (e: any) {
+			return rejectWithValue(e.message || "Failed to fetch all payments");
+		}
 	}
-});
-
-export const setDefaultPaymentMethod = createAsyncThunk<
-	{ success: boolean; defaultMethodId: string }, // Return type
-	SetDefaultPaymentMethodPayload,
-	{ state: RootState; rejectValue: string }
->("paymentMethods/setDefault", async (payload, { rejectWithValue }) => {
-	try {
-		// TODO: Replace with real API call via api-client
-		const response = await mockSetDefaultPaymentMethod(payload);
-		return response;
-	} catch (error: any) {
-		return rejectWithValue(
-			error.message || "Failed to set default payment method"
-		);
-	}
-});
-
-export const deletePaymentMethod = createAsyncThunk<
-	{ success: boolean; deletedMethodId: string }, // Return type
-	DeletePaymentMethodPayload,
-	{ state: RootState; rejectValue: string }
->("paymentMethods/delete", async (payload, { rejectWithValue }) => {
-	try {
-		// TODO: Replace with real API call via api-client
-		const response = await mockDeletePaymentMethod(payload);
-		return response;
-	} catch (error: any) {
-		return rejectWithValue(error.message || "Failed to delete payment method");
-	}
-});
+);
 
 // --- Initial State ---
-const initialState: PaymentMethodsState = {
-	methods: [],
-	defaultMethodId: null,
-	isLoading: false,
-	isAdding: false,
+const initialState: PaymentHistoryState = {
+	myPayments: [],
+	allPayments: [],
+	status: "idle",
 	error: null,
-	showAddModal: false,
+	adminPagination: null,
+	myPaymentsPagination: null, // Initialize if using
 };
 
-// --- Slice Definition ---
-const paymentMethodsSlice = createSlice({
-	name: "paymentMethods",
+// --- Slice ---
+const paymentHistorySlice = createSlice({
+	name: "paymentHistory",
 	initialState,
 	reducers: {
-		setShowAddModal: (state, action: PayloadAction<boolean>) => {
-			state.showAddModal = action.payload;
-			if (action.payload) {
-				// Clear errors when opening modal
-				state.error = null;
-			}
-		},
-		clearPaymentMethodsError: (state) => {
+		clearPaymentHistoryError: (state) => {
 			state.error = null;
 		},
 	},
 	extraReducers: (builder) => {
-		// Fetch
+		// Fetch My History
 		builder
-			.addCase(fetchPaymentMethods.pending, (state) => {
-				state.isLoading = true;
+			.addCase(fetchMyPaymentHistory.pending, (state) => {
+				state.status = "loading";
 				state.error = null;
 			})
-			.addCase(fetchPaymentMethods.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.methods = action.payload;
-				state.defaultMethodId =
-					action.payload.find((m) => m.isDefault)?.id || null;
+			.addCase(fetchMyPaymentHistory.fulfilled, (state, action) => {
+				state.status = "succeeded";
+				state.myPayments = action.payload.payments;
+				// Update my pagination state
+				const limit = action.meta.arg.limit || 10;
+				state.myPaymentsPagination = {
+					totalItems: action.payload.total,
+					limit: limit,
+					currentPage: action.meta.arg.page || 1,
+					totalPages: Math.ceil(action.payload.total / limit),
+				};
 			})
-			.addCase(fetchPaymentMethods.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload ?? "Failed to load methods";
+			.addCase(fetchMyPaymentHistory.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Error fetching payments";
 			});
 
-		// Add
+		// Fetch All Admin History
 		builder
-			.addCase(addPaymentMethod.pending, (state) => {
-				state.isAdding = true;
-				state.error = null; // Clear previous errors
-			})
-			.addCase(addPaymentMethod.fulfilled, (state, action) => {
-				state.isAdding = false;
-				state.showAddModal = false; // Close modal on success
-				// If the new one is default, update others
-				if (action.payload.isDefault) {
-					state.methods = state.methods.map((m) => ({
-						...m,
-						isDefault: false,
-					}));
-					state.defaultMethodId = action.payload.id;
-				}
-				state.methods.push(action.payload); // Add the new method
-				// Ensure default ID is set if it was the first card
-				if (!state.defaultMethodId && action.payload.isDefault) {
-					state.defaultMethodId = action.payload.id;
-				}
-			})
-			.addCase(addPaymentMethod.rejected, (state, action) => {
-				state.isAdding = false;
-				state.error = action.payload ?? "Failed to add card";
-				// Keep modal open on error? Or close? User decision.
-				// state.showAddModal = false;
-			});
-
-		// Set Default
-		builder
-			.addCase(setDefaultPaymentMethod.pending, (state) => {
-				state.isLoading = true; // Use general loading indicator
+			.addCase(fetchAllPaymentsAdmin.pending, (state) => {
+				state.status = "loading";
 				state.error = null;
 			})
-			.addCase(setDefaultPaymentMethod.fulfilled, (state, action) => {
-				state.isLoading = false;
-				state.defaultMethodId = action.payload.defaultMethodId;
-				state.methods = state.methods.map((m) => ({
-					...m,
-					isDefault: m.id === action.payload.defaultMethodId,
-				}));
+			.addCase(fetchAllPaymentsAdmin.fulfilled, (state, action) => {
+				state.status = "succeeded";
+				state.allPayments = action.payload.payments;
+				// Update admin pagination state
+				const limit = action.meta.arg.limit || 10;
+				state.adminPagination = {
+					totalItems: action.payload.total,
+					limit: limit,
+					currentPage: action.meta.arg.page || 1,
+					totalPages: Math.ceil(action.payload.total / limit),
+				};
 			})
-			.addCase(setDefaultPaymentMethod.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload ?? "Failed to set default";
-			});
-
-		// Delete
-		builder
-			.addCase(deletePaymentMethod.pending, (state, action) => {
-				// Optional: Mark the specific method as deleting? Or just use general isLoading
-				state.isLoading = true;
-				state.error = null;
-			})
-			.addCase(deletePaymentMethod.fulfilled, (state, action) => {
-				state.isLoading = false;
-				const deletedId = action.payload.deletedMethodId;
-				state.methods = state.methods.filter((m) => m.id !== deletedId);
-				// If the deleted one was default, update the default ID (mock logic handles setting new default)
-				if (state.defaultMethodId === deletedId) {
-					state.defaultMethodId =
-						state.methods.find((m) => m.isDefault)?.id || null;
-				}
-			})
-			.addCase(deletePaymentMethod.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.payload ?? "Failed to delete card";
+			.addCase(fetchAllPaymentsAdmin.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Error fetching all payments";
 			});
 	},
 });
 
-// --- Actions and Selectors ---
-export const { setShowAddModal, clearPaymentMethodsError } =
-	paymentMethodsSlice.actions;
+// --- Actions & Selectors ---
+export const { clearPaymentHistoryError } = paymentHistorySlice.actions;
 
-export const selectAllPaymentMethods = (state: RootState) =>
-	state.paymentMethods.methods;
-export const selectDefaultPaymentMethodId = (state: RootState) =>
-	state.paymentMethods.defaultMethodId;
-export const selectPaymentMethodsLoading = (state: RootState) =>
-	state.paymentMethods.isLoading;
-export const selectPaymentMethodsAdding = (state: RootState) =>
-	state.paymentMethods.isAdding;
-export const selectPaymentMethodsError = (state: RootState) =>
-	state.paymentMethods.error;
-export const selectShowAddPaymentModal = (state: RootState) =>
-	state.paymentMethods.showAddModal;
+export const selectMyPayments = (state: RootState) =>
+	state.paymentHistory.myPayments;
+export const selectAllAdminPayments = (state: RootState) =>
+	state.paymentHistory.allPayments;
+export const selectPaymentHistoryStatus = (state: RootState) =>
+	state.paymentHistory.status;
+export const selectPaymentHistoryError = (state: RootState) =>
+	state.paymentHistory.error;
+export const selectAdminPaymentsPagination = (state: RootState) =>
+	state.paymentHistory.adminPagination;
+export const selectMyPaymentsPagination = (state: RootState) =>
+	state.paymentHistory.myPaymentsPagination;
 
-export default paymentMethodsSlice.reducer;
+export default paymentHistorySlice.reducer;

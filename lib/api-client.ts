@@ -51,13 +51,7 @@ import {
 	UpdateSubscriptionData,
 	UserSubscription,
 } from "@/features/pricing/types/pricing-types";
-import {
-	mockFetchPaymentMethods,
-	mockAddPaymentMethod,
-	mockSetDefaultPaymentMethod,
-	mockDeletePaymentMethod,
-} from "@/data/mock-payment-data";
-import type { PaymentMethod } from "@/features/payment/types/payment-types";
+import type { PaymentRecord } from "@/features/payment/types/payment-types";
 import { getMockSchedule } from "@/data/mock-schedule-data";
 import {
 	getMockAllClassesAdmin,
@@ -87,6 +81,7 @@ import {
 	FeedbackType,
 	TicketStatus,
 } from "@/features/support/types/support-types";
+import { mockFetchAllPaymentsAdmin, mockFetchMyPaymentHistory } from "@/data/mock-payment-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -314,43 +309,30 @@ async function handleMockRequest<T>(
 		return mockTogglePlanActive(planId) as unknown as T;
 	}
 
-	// --- Payment Method Mocks ---
-	const paymentMethodsMatch = endpoint.match(/^\/users\/me\/payment-methods$/);
-	if (paymentMethodsMatch && method === "get") {
-		// Assume userId comes from auth context in real API, mock uses hardcoded for now
-		// In real thunk, you'd get userId from state
-		const userId = "user_123"; // Replace with dynamic user ID if needed for mock testing
-		return mockFetchPaymentMethods(userId) as unknown as T;
-	}
-	if (paymentMethodsMatch && method === "post") {
-		const userId = "user_123"; // Get dynamically if possible for mock
-		// Body should contain { paystackReference: {...} } based on AddPaymentMethodPayload
-		if (!body?.paystackReference)
-			throw new Error(
-				"Mock Error: Missing paystackReference in add payment method"
-			);
-		return mockAddPaymentMethod({
-			userId,
-			paystackReference: body.paystackReference,
-		}) as unknown as T;
+	// --- Payment History Mocks ---
+	if (endpoint === "/payments/history" && method === "get") {
+		const userId = "student_123"; // Simulate logged-in user
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		return mockFetchMyPaymentHistory(userId, page, limit) as unknown as T;
 	}
 
-	const setDefaultMatch = endpoint.match(
-		/^\/users\/me\/payment-methods\/(.+)\/default$/
-	);
-	if (setDefaultMatch && method === "put") {
-		const methodId = setDefaultMatch[1];
-		const userId = "user_123"; // Get dynamically if possible for mock
-		return mockSetDefaultPaymentMethod({ userId, methodId }) as unknown as T;
-	}
-
-	const deleteMethodMatch = endpoint.match(
-		/^\/users\/me\/payment-methods\/(.+)$/
-	);
-	if (deleteMethodMatch && method === "delete") {
-		const methodId = deleteMethodMatch[1];
-		const userId = "user_123"; // Get dynamically if possible for mock
-		return mockDeletePaymentMethod({ userId, methodId }) as unknown as T;
+	if (endpoint === "/admin/payments" && method === "get") {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const status = urlParams.get("status") as
+			| PaymentRecord["status"]
+			| undefined;
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const search = urlParams.get("search") || undefined;
+		// Ensure you return the object { payments: [], total: X } from the mock
+		return mockFetchAllPaymentsAdmin(
+			status,
+			page,
+			limit,
+			search
+		) as unknown as T;
 	}
 
 	// --- Schedule Mock ---
@@ -680,12 +662,6 @@ export const togglePlanActive = async (
 ): Promise<PricingPlan> => {
 	// Assuming the API returns the full updated plan object
 	return post<PricingPlan>(`/plans/${planId}/toggle-active`, {});
-};
-
-export const getMyPaymentMethods = async (
-	options?: FetchOptions
-): Promise<PaymentMethod[]> => {
-	return get<PaymentMethod[]>("/users/me/payment-methods", options);
 };
 
 // --- Export ---

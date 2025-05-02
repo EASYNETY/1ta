@@ -4,7 +4,7 @@ import { User } from "@/features/auth/store/auth-thunks";
 import type { AuthResponse } from "@/features/auth/types/auth-types";
 
 // Define a type for the mock user with password
-type MockUser = {
+export type MockUser = {
 	id: string;
 	name: string;
 	email: string;
@@ -18,7 +18,7 @@ type MockUser = {
 };
 
 // Mock user database
-const users: MockUser[] = [
+export const users: MockUser[] = [
 	{
 		id: "1",
 		name: "Admin User",

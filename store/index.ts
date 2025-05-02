@@ -24,11 +24,11 @@ import attendanceMarkingReducer from "@/features/attendance/store/attendance-sli
 import scheduleReducer from "@/features/schedule/store/schedule-slice";
 import classesReducer from "@/features/classes/store/classes-slice";
 import classSessionReducer from "@/features/classes/store/classSessionSlice";
-import paymentMethodsReducer from "@/features/payment/store/payment-slice";
 import chatReducer from "@/features/chat/store/chatSlice";
 import settingsReducer from "@/features/settings/store/settingsSlice";
 import supportReducer from "@/features/support/store/supportSlice";
 import checkoutReducer from "@/features/checkout/store/checkoutSlice";
+import paymentHistoryReducer from "@/features/payment/store/payment-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -70,7 +70,7 @@ const persistConfig = {
 		"auth_courses",
 		"attendanceMarking",
 		"classSession",
-		"paymentMethods",
+		"paymentHistory",
 		"schedule",
 		"classes",
 		"chat",
@@ -90,7 +90,7 @@ const rootReducer = combineReducers({
 	checkout: checkoutReducer,
 	attendanceMarking: attendanceMarkingReducer,
 	classSession: classSessionReducer,
-	paymentMethods: paymentMethodsReducer,
+	paymentHistory: paymentHistoryReducer,
 	schedule: scheduleReducer,
 	classes: classesReducer,
 	chat: chatReducer,
