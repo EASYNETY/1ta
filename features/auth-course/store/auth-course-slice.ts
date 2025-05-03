@@ -5,7 +5,7 @@ import {
 	createAsyncThunk,
 	type PayloadAction,
 } from "@reduxjs/toolkit";
-import { get, post } from "@/lib/api-client";
+import { del, get, post } from "@/lib/api-client";
 import type { RootState } from "@/store";
 import type { AuthCourse } from "../types/auth-course-interface";
 
@@ -15,6 +15,8 @@ export interface AuthCoursesState {
 	coursesByCategory: Record<string, AuthCourse[]>;
 	categories: string[];
 	status: "idle" | "loading" | "succeeded" | "failed";
+	deleteStatus?: "idle" | "loading" | "succeeded" | "failed";
+	deleteError?: string | null;
 	error: string | null;
 	currentCourse: AuthCourse | null;
 	currentModuleId: string | null;
@@ -27,6 +29,8 @@ const initialState: AuthCoursesState = {
 	coursesByCategory: {},
 	categories: [],
 	status: "idle",
+	deleteStatus: "idle",
+	deleteError: null,
 	error: null,
 	currentCourse: null,
 	currentModuleId: null,
@@ -118,6 +122,25 @@ export const markLessonComplete = createAsyncThunk<
 	}
 );
 
+export const deleteAuthCourse = createAsyncThunk<
+	string, // Return the ID of the deleted course on success
+	string, // Expect the course ID as argument
+	{ rejectValue: string }
+>("auth_courses/deleteAuthCourse", async (courseId, { rejectWithValue }) => {
+	try {
+		console.log(`Dispatching deleteAuthCourse: ${courseId}`);
+		// Assuming your API endpoint for deleting is /auth_courses/{courseId}
+		// The 'del' function likely doesn't return the full course, adjust if needed
+		await del<void>(`/auth_courses/${courseId}`);
+		return courseId; // Return the ID to identify which course to remove from state
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Failed to delete course";
+		console.error("deleteAuthCourse Thunk Error:", message);
+		return rejectWithValue(message);
+	}
+});
+
 // --- Slice Definition ---
 export const authCourseSlice = createSlice({
 	name: "auth_courses",
@@ -169,6 +192,33 @@ export const authCourseSlice = createSlice({
 			.addCase(fetchCourseBySlug.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Error fetching course by slug";
+			})
+			.addCase(deleteAuthCourse.pending, (state) => {
+				state.deleteStatus = "loading";
+				state.deleteError = null;
+			})
+			.addCase(deleteAuthCourse.fulfilled, (state, action) => {
+				state.deleteStatus = "succeeded";
+				const deletedCourseId = action.payload;
+				// Remove the course from the main list
+				state.courses = state.courses.filter(
+					(course) => course.id !== deletedCourseId
+				);
+				// Optionally, update coursesByCategory and categories if needed (more complex)
+				// For simplicity, we might just rely on a full refetch later or accept temporary inconsistency
+				state.coursesByCategory = state.courses.reduce(
+					(acc, course) => {
+						const category = course.category;
+						(acc[category] = acc[category] || []).push(course);
+						return acc;
+					},
+					{} as Record<string, AuthCourse[]>
+				);
+				state.categories = Object.keys(state.coursesByCategory).sort();
+			})
+			.addCase(deleteAuthCourse.rejected, (state, action) => {
+				state.deleteStatus = "failed";
+				state.deleteError = action.payload ?? "Unknown error deleting course";
 			});
 	},
 });

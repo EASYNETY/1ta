@@ -716,7 +716,7 @@ export const publicMockCourseData: PublicCourse[] = [
 
 // --- Authenticated Mock Course Data Generation ---
 
-export const mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
+export let mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
 	(publicCourse, courseIndex) => {
 		// Generate detailed modules and lessons for the authenticated view
 		const authModules: AuthModule[] =
@@ -848,6 +848,14 @@ export const getAuthMockCourses = async (): Promise<AuthCourse[]> => {
 		setTimeout(resolve, 300 + Math.random() * 350)
 	); // Simulate delay
 	return JSON.parse(JSON.stringify(mockAuthCourseData)); // Return a deep copy
+};
+
+export const deleteAuthMockCourse = async (courseId: string): Promise<boolean> => {
+    const initialLength = mockAuthCourseData.length;
+    // Filter out the course with the matching ID
+    mockAuthCourseData = mockAuthCourseData.filter(course => course.id !== courseId);
+    // Return true if an item was removed, false otherwise
+    return mockAuthCourseData.length < initialLength;
 };
 
 export const getAuthMockCourseBySlug = async (

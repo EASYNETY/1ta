@@ -29,6 +29,7 @@ import {
 	getAuthMockCourseBySlug,
 	getAuthMockCourses,
 	markLessonCompleteMock,
+	deleteAuthMockCourse,
 } from "@/data/mock-auth-course-data";
 import {
 	getUserSubscription as mockGetUserSubscription,
@@ -81,7 +82,10 @@ import {
 	FeedbackType,
 	TicketStatus,
 } from "@/features/support/types/support-types";
-import { mockFetchAllPaymentsAdmin, mockFetchMyPaymentHistory } from "@/data/mock-payment-data";
+import {
+	mockFetchAllPaymentsAdmin,
+	mockFetchMyPaymentHistory,
+} from "@/data/mock-payment-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -219,6 +223,31 @@ async function handleMockRequest<T>(
 
 	if (endpoint === "/payments/create-checkout-session" && method === "post") {
 		return (await createMockCheckoutSession(body)) as unknown as T;
+	}
+
+	// --- NEW: Mock Handler for DELETE Course ---
+	const deleteAuthCourseMatch = endpoint.match(/^\/auth_courses\/([\w-]+)$/);
+	if (deleteAuthCourseMatch && method === "delete") {
+		const courseId = deleteAuthCourseMatch[1];
+		console.log(
+			`%cAPI Client MOCK: Deleting course ${courseId}`,
+			"color: orange;"
+		);
+		const success = await deleteAuthMockCourse(courseId); // Call helper to modify mock data
+		if (success) {
+			return { success: true, id: courseId } as unknown as T; // Return success indicator
+		} else {
+			console.error(
+				`Mock API Error: Course with ID ${courseId} not found for deletion.`
+			);
+			// Simulate a 404 or other error
+			throw {
+				response: {
+					data: { message: `Mock Error: Course ${courseId} not found.` },
+					status: 404,
+				},
+			};
+		}
 	}
 
 	// --- Auth
