@@ -127,10 +127,10 @@ export default function DashboardPage() {
                 return (
                     <div className="flex gap-2">
                         <DyraneButton asChild>
-                            <Link href="/admin/users/new">Add User</Link>
+                            <Link href="/users/create">Add User</Link>
                         </DyraneButton>
                         <DyraneButton asChild variant="outline">
-                            <Link href="/admin/settings">Settings</Link>
+                            <Link href="/settings">Settings</Link>
                         </DyraneButton>
                     </div>
                 )
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                 return (
                     <div className="flex gap-2">
                         <DyraneButton asChild>
-                            <Link href="/teacher/assignments/new">Create Assignment</Link>
+                            <Link href="/assignments/create">Create Assignment</Link>
                         </DyraneButton>
                         <DyraneButton asChild variant="outline">
                             <Link href="/courses">Browse Courses</Link>

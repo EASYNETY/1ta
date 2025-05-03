@@ -1,4 +1,4 @@
-// features/classes/components/AdminClassesTab.tsx
+// features/classes/componentsClassesTab.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -53,7 +53,7 @@ const AdminClassesTab: React.FC = () => {
                     <CardTitle>All Classes</CardTitle>
                     <DyraneButton size="sm" asChild>
                         {/* TODO: Link to admin class creation page */}
-                        <Link href="/admin/classes/create"><Plus className="mr-2 h-4 w-4" /> Create Class</Link>
+                        <Link href="/classes/create"><Plus className="mr-2 h-4 w-4" /> Create Class</Link>
                     </DyraneButton>
                 </div>
                 <div className="flex items-center gap-2 pt-4">
@@ -119,10 +119,10 @@ const AdminClassesTab: React.FC = () => {
                                             <div className="flex gap-1">
                                                 {/* TODO: Add real links */}
                                                 <DyraneButton variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                    <Link href={`/admin/classes/${cls.id}`} title="View"><Eye className="h-4 w-4" /></Link>
+                                                    <Link href={`/classes/${cls.id}`} title="View"><Eye className="h-4 w-4" /></Link>
                                                 </DyraneButton>
                                                 <DyraneButton variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                    <Link href={`/admin/classes/${cls.id}/edit`} title="Edit"><Edit className="h-4 w-4" /></Link>
+                                                    <Link href={`/classes/${cls.id}/edit`} title="Edit"><Edit className="h-4 w-4" /></Link>
                                                 </DyraneButton>
                                                 <DyraneButton variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Delete">
                                                     <Trash2 className="h-4 w-4" />

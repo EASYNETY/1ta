@@ -110,7 +110,7 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
         }
     }
     // **Admin - Students List Page**
-    else if (pathname === "/admin/students" || pathname.startsWith("/users?tab=students")) { // Check both possible paths
+    else if (pathname.startsWith("/users")) {
         if (role === 'admin') {
             action = { href: "/users/create", ariaLabel: "Add New User", show: true, actionType: 'createStudent' }; // Needs implementation
         } else {
@@ -124,8 +124,8 @@ function getFabAction(role: "admin" | "teacher" | "student", pathname: string): 
     // **Dashboard (Default Fallback)**
     else if (pathname.startsWith("/dashboard") || pathname === "/") {
         switch (role) {
-            case "admin": action = { href: "/admin/students/create", ariaLabel: "Add Student", show: true, actionType: 'createStudent' }; break;
-            case "teacher": action = { href: "/teacher/classes/create", ariaLabel: "Create Class", show: true, actionType: 'createClass' }; break;
+            case "admin": action = { href: "/users/create", ariaLabel: "Add Student", show: true, actionType: 'createStudent' }; break;
+            case "teacher": action = { href: "/classes/create", ariaLabel: "Create Class", show: true, actionType: 'createClass' }; break;
             case "student": action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true, actionType: 'navigate' }; break; // Navigate for student default
         }
     }
