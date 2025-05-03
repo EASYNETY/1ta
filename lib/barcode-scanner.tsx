@@ -5,7 +5,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import BarcodeScannerComponent from "react-qr-barcode-scanner"
-import { QrCode, Maximize, Focus } from "lucide-react"
+import { Maximize, Focus, Barcode } from "lucide-react"
 
 interface BarcodeScannerProps {
     onDetected: (code: string) => void
@@ -83,18 +83,19 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
                     <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-primary"></div>
                     <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary"></div>
 
-                    {/* Center target */}
+                    {/* Rectangular barcode target area - optimized for linear barcodes */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div
-                            className={`w-32 h-32 border-2 border-dashed ${isFocused ? "border-green-500" : "border-primary/50"} rounded-md flex items-center justify-center transition-colors duration-300`}
+                            className={`w-64 h-24 border-2 border-dashed ${isFocused ? "border-green-500" : "border-primary/50"
+                                } flex items-center justify-center transition-colors duration-300`}
                         >
-                            <QrCode className={`h-8 w-8 ${isFocused ? "text-green-500" : "text-primary/30"}`} />
+                            <Barcode className={`h-8 w-12 ${isFocused ? "text-green-500" : "text-primary/30"}`} />
                         </div>
                     </div>
 
-                    {/* Scanning animation */}
+                    {/* Horizontal scanning line - better for linear barcodes */}
                     <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2">
-                        <div className="h-0.5 bg-primary/50 animate-pulse w-full"></div>
+                        <div className="h-1 bg-red-500/70 animate-pulse w-full"></div>
                     </div>
 
                     {/* Focus animation */}
@@ -105,7 +106,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
             {/* Scanning instructions */}
             <div className="mt-2 text-sm text-center text-muted-foreground flex items-center justify-center gap-2">
                 <Maximize className="h-4 w-4" />
-                <span>Position barcode within the frame</span>
+                <span>Position barcode horizontally within the frame</span>
                 {cooldown && <span className="ml-2 font-medium text-primary animate-pulse">Processing scan...</span>}
             </div>
 

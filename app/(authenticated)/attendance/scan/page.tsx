@@ -48,7 +48,7 @@ const fetchStudentInfo = async (studentId: string): Promise<StudentInfo | null> 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 800))
 
-    // Mock student data
+    // Mock student data - ensure we have exact matches for the barcodes
     const mockStudents: Record<string, StudentInfo> = {
         "STUDENT-123": {
             id: "3",
@@ -65,7 +65,44 @@ const fetchStudentInfo = async (studentId: string): Promise<StudentInfo | null> 
             email: "newstudent@example.com",
             barcodeId: "TEMP-123",
         },
+        // Add more test data for common IDs
+        "1": {
+            id: "1",
+            name: "John Doe",
+            email: "john@example.com",
+            dateOfBirth: "1999-05-15",
+            classId: "2",
+            className: "Physics 101",
+            barcodeId: "1",
+        },
+        "2": {
+            id: "2",
+            name: "Jane Smith",
+            email: "jane@example.com",
+            dateOfBirth: "2000-08-22",
+            classId: "3",
+            className: "Chemistry 101",
+            barcodeId: "2",
+        },
+        "3": {
+            id: "3",
+            name: "Student User",
+            email: "student@example.com",
+            dateOfBirth: "2000-01-01",
+            classId: "1",
+            className: "Computer Science 101",
+            barcodeId: "3",
+        },
+        "4": {
+            id: "4",
+            name: "New Student",
+            email: "newstudent@example.com",
+            barcodeId: "4",
+        },
     }
+
+    // Log the scanned ID for debugging
+    console.log("Fetching student with ID:", studentId)
 
     return mockStudents[studentId] || null
 }
@@ -157,8 +194,9 @@ export default function ScanPage() {
     const handleBarcodeDetected = async (studentId: string) => {
         if (!selectedClass?.id || isLoading || !isScanning) return
 
-        // Ensure studentId is a string
+        // Ensure studentId is a string and trim any whitespace
         const barcodeId = String(studentId).trim()
+        console.log("Detected barcode:", barcodeId)
 
         // Immediately pause scanning and open modal
         setIsScanning(false)
@@ -170,6 +208,7 @@ export default function ScanPage() {
         setFetchingStudent(true)
         try {
             const info = await fetchStudentInfo(barcodeId)
+            console.log("Fetched student info:", info)
             setStudentInfo(info)
         } catch (error) {
             console.error("Error fetching student info:", error)
@@ -336,7 +375,7 @@ export default function ScanPage() {
                                     <BarcodeScanner
                                         onDetected={handleBarcodeDetected}
                                         width={400}
-                                        height={400}
+                                        height={300} // Adjusted for better barcode scanning ratio
                                         isActive={isScanning && !isLoading && !isModalOpen}
                                     />
                                 </div>
