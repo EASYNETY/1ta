@@ -64,7 +64,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
     }
 
     return (
-        <div className="flex flex-col items-center max-h-[400px]">
+        <div className="flex flex-col items-center h-[300px]">
             {/* Scanner with visual guides */}
             <div className="relative" ref={scannerRef} onClick={handleFocus}>
                 <BarcodeScannerComponent
