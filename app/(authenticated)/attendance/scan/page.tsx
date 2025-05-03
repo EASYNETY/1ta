@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import BarcodeScanner from "@/lib/barcode-scanner"
+import { StudentInfoModal } from "@/components/students/student-info-modal"
 
 // Redux imports
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -28,27 +29,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import {
-    ArrowLeft,
-    CheckCircle,
-    XCircle,
-    Loader2,
-    UserCheck,
-    Power,
-    PowerOff,
-    AlertTriangle,
-    User,
-    Calendar,
-    School,
-    BookOpen,
-    QrCode,
-} from "lucide-react"
+import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
 
 // Mock student data for demonstration
 interface StudentInfo {
-    id: string
+    id: string | number
     name: string
     email: string
     dateOfBirth?: string
@@ -103,6 +89,7 @@ export default function ScanPage() {
     const [lastScannedId, setLastScannedId] = useState<string | null>(null)
     const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null)
     const [fetchingStudent, setFetchingStudent] = useState(false)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     // Set isScanning to false on mount and check authorization
     useEffect(() => {
@@ -170,16 +157,19 @@ export default function ScanPage() {
     const handleBarcodeDetected = async (studentId: string) => {
         if (!selectedClass?.id || isLoading || !isScanning) return
 
-        setLastScannedId(studentId)
-        dispatch(resetMarkingStatus())
+        // Ensure studentId is a string
+        const barcodeId = String(studentId).trim()
 
-        // Temporarily pause scanning
+        // Immediately pause scanning and open modal
         setIsScanning(false)
+        setIsModalOpen(true)
+        setLastScannedId(barcodeId)
+        dispatch(resetMarkingStatus())
 
         // Fetch student info
         setFetchingStudent(true)
         try {
-            const info = await fetchStudentInfo(studentId)
+            const info = await fetchStudentInfo(barcodeId)
             setStudentInfo(info)
         } catch (error) {
             console.error("Error fetching student info:", error)
@@ -188,7 +178,7 @@ export default function ScanPage() {
         }
 
         const payload = {
-            studentId: studentId,
+            studentId: barcodeId,
             classInstanceId: selectedClass.id,
             markedByUserId: user!.id,
             timestamp: new Date().toISOString(),
@@ -202,25 +192,37 @@ export default function ScanPage() {
                     title: "Attendance Marked",
                     description: `Student: ${response.studentId} marked. ${response.message || ""}`,
                 })
-
-                // Resume scanning after delay
-                setTimeout(() => {
-                    if (selectedClass?.id) setIsScanning(true)
-                }, 1500)
+                // Note: We don't auto-resume scanning here
+                // The user must close the modal to resume scanning
             })
             .catch((error) => {
                 const errorMsg = typeof error === "string" ? error : "An unknown error occurred."
                 toast({
                     variant: "destructive",
                     title: "Marking Failed",
-                    description: `${errorMsg}. ID: ${studentId}`,
+                    description: `${errorMsg}. ID: ${barcodeId}`,
                 })
-
-                // Resume scanning after longer delay for errors
-                setTimeout(() => {
-                    if (selectedClass?.id) setIsScanning(true)
-                }, 2500)
+                // Note: We don't auto-resume scanning here
+                // The user must close the modal to resume scanning
             })
+    }
+
+    // Handle modal close
+    const handleModalClose = () => {
+        setIsModalOpen(false)
+    }
+
+    // Resume scanning (called after modal is closed)
+    const handleResumeScan = () => {
+        if (selectedClass?.id) {
+            // Reset states
+            setLastScannedId(null)
+            setStudentInfo(null)
+            dispatch(resetMarkingStatus())
+
+            // Resume scanning
+            setIsScanning(true)
+        }
     }
 
     // Toggle scanner
@@ -264,93 +266,7 @@ export default function ScanPage() {
         }
     }
 
-    // Render student info card
-    const renderStudentInfo = () => {
-        if (fetchingStudent) {
-            return (
-                <div className="mt-4 p-4 border rounded-lg bg-card/50">
-                    <div className="flex items-center space-x-4">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-[250px]" />
-                            <Skeleton className="h-4 w-[200px]" />
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-
-        if (!studentInfo && lastScannedId) {
-            return (
-                <Alert variant="destructive" className="mt-4">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Student Not Found</AlertTitle>
-                    <AlertDescription>No student found with ID: {lastScannedId}</AlertDescription>
-                </Alert>
-            )
-        }
-
-        if (studentInfo) {
-            return (
-                <div className="mt-4 p-4 border rounded-lg bg-card/50 backdrop-blur-sm">
-                    <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                            <h3 className="font-medium">{studentInfo.name}</h3>
-                            <p className="text-sm text-muted-foreground">{studentInfo.email}</p>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="flex items-center gap-2 text-sm">
-                            <Badge variant="outline" className="gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {studentInfo.dateOfBirth || "No DOB"}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                            <Badge variant="outline" className="gap-1">
-                                <School className="h-3 w-3" />
-                                {studentInfo.className || "No Class"}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                            <Badge variant="outline" className="gap-1">
-                                <BookOpen className="h-3 w-3" />
-                                ID: {studentInfo.id}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                            <Badge variant="outline" className="gap-1">
-                                <QrCode className="h-3 w-3" />
-                                Barcode: {studentInfo.barcodeId}
-                            </Badge>
-                        </div>
-                    </div>
-
-                    {apiStatus === "success" && (
-                        <div className="mt-4 p-2 bg-green-50 text-green-700 rounded-md text-sm flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4" />
-                            Attendance marked successfully
-                        </div>
-                    )}
-
-                    {apiStatus === "error" && (
-                        <div className="mt-4 p-2 bg-red-50 text-red-700 rounded-md text-sm flex items-center gap-2">
-                            <XCircle className="h-4 w-4" />
-                            {apiError}
-                        </div>
-                    )}
-                </div>
-            )
-        }
-
-        return null
-    }
-
-    if (isLoading && !studentInfo) {
+    if (isLoading && !studentInfo && !isModalOpen) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <Loader2 className="h-10 w-10 animate-spin" />
@@ -359,88 +275,99 @@ export default function ScanPage() {
     }
 
     return (
-        <Card className="mx-auto bg-card/5 backdrop-blur-sm border border-card/30 backdrop-saturate-150 shadow-md">
-            <CardContent className="p-6 space-y-6">
-                {/* Header */}
-                <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={() => router.back()}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <h1 className="text-2xl font-bold">Scan Attendance</h1>
-                </div>
+        <>
+            <Card className="mx-auto bg-card/5 backdrop-blur-sm border border-card/30 backdrop-saturate-150 shadow-md">
+                <CardContent className="p-6 space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" onClick={() => router.back()}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <h1 className="text-2xl font-bold">Scan Attendance</h1>
+                    </div>
 
-                {/* Class Selection */}
-                <div className="space-y-1.5">
-                    <Label htmlFor="courseClassSelect">Select Class/Session</Label>
-                    <Select value={selectedClass?.id || ""} onValueChange={handleClassChange} disabled={isLoading}>
-                        <SelectTrigger id="courseClassSelect" className="w-full md:w-1/2">
-                            <SelectValue placeholder="Select a class to start scanning..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="select-a-class">-- Select a Class --</SelectItem>
-                            {classOptions.length === 0 && (
-                                <SelectItem value="loading" disabled>
-                                    Loading classes...
-                                </SelectItem>
-                            )}
-                            {classOptions.map((option) => (
-                                <SelectItem key={option.id} value={option.id}>
-                                    {option.courseName} - {option.sessionName}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    {!selectedClass?.id && (
-                        <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning.</p>
-                    )}
-                </div>
+                    {/* Class Selection */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="courseClassSelect">Select Class/Session</Label>
+                        <Select value={selectedClass?.id || ""} onValueChange={handleClassChange} disabled={isLoading}>
+                            <SelectTrigger id="courseClassSelect" className="w-full md:w-1/2">
+                                <SelectValue placeholder="Select a class to start scanning..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="select-a-class">-- Select a Class --</SelectItem>
+                                {classOptions.length === 0 && (
+                                    <SelectItem value="loading" disabled>
+                                        Loading classes...
+                                    </SelectItem>
+                                )}
+                                {classOptions.map((option) => (
+                                    <SelectItem key={option.id} value={option.id}>
+                                        {option.courseName} - {option.sessionName}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        {!selectedClass?.id && (
+                            <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning.</p>
+                        )}
+                    </div>
 
-                {/* Scanner Section */}
-                <div className="space-y-4">
-                    {selectedClass?.id ? (
-                        <>
-                            <div className="flex justify-between items-center">
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <UserCheck className="h-4 w-4" /> Scanning for:
-                                    <span className="font-medium">
-                                        {selectedClass.courseName} - {selectedClass.sessionName}
-                                    </span>
-                                </p>
+                    {/* Scanner Section */}
+                    <div className="space-y-4">
+                        {selectedClass?.id ? (
+                            <>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <UserCheck className="h-4 w-4" /> Scanning for:
+                                        <span className="font-medium">
+                                            {selectedClass.courseName} - {selectedClass.sessionName}
+                                        </span>
+                                    </p>
 
-                                {/* Manual Pause/Resume Button */}
-                                <Button variant="outline" size="sm" onClick={toggleScanner} disabled={isLoading || !selectedClass.id}>
-                                    {isScanning ? <PowerOff className="mr-2 h-4 w-4" /> : <Power className="mr-2 h-4 w-4" />}
-                                    {isScanning ? "Pause Scanner" : "Resume Scanner"}
-                                </Button>
-                            </div>
+                                    {/* Manual Pause/Resume Button */}
+                                    <Button variant="outline" size="sm" onClick={toggleScanner} disabled={isLoading || !selectedClass.id}>
+                                        {isScanning ? <PowerOff className="mr-2 h-4 w-4" /> : <Power className="mr-2 h-4 w-4" />}
+                                        {isScanning ? "Pause Scanner" : "Resume Scanner"}
+                                    </Button>
+                                </div>
 
-                            {/* Barcode Scanner */}
-                            <div className="flex justify-center">
-                                <BarcodeScanner
-                                    onDetected={handleBarcodeDetected}
-                                    width={400}
-                                    height={400}
-                                    isActive={isScanning && !isLoading}
-                                />
-                            </div>
+                                {/* Barcode Scanner */}
+                                <div className="flex justify-center">
+                                    <BarcodeScanner
+                                        onDetected={handleBarcodeDetected}
+                                        width={400}
+                                        height={400}
+                                        isActive={isScanning && !isLoading && !isModalOpen}
+                                    />
+                                </div>
+                            </>
+                        ) : (
+                            <Alert variant="default" className="mt-6">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Select a Class</AlertTitle>
+                                <AlertDescription>
+                                    Please choose a class or session from the dropdown above to begin scanning attendance.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                    </div>
 
-                            {/* Student Info Display */}
-                            {renderStudentInfo()}
-                        </>
-                    ) : (
-                        <Alert variant="default" className="mt-6">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Select a Class</AlertTitle>
-                            <AlertDescription>
-                                Please choose a class or session from the dropdown above to begin scanning attendance.
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                </div>
+                    {/* Status Feedback Area */}
+                    <div className="text-center pt-2 min-h-[2.5rem]">{renderStatusBadge()}</div>
+                </CardContent>
+            </Card>
 
-                {/* Status Feedback Area */}
-                <div className="text-center pt-2 min-h-[2.5rem]">{renderStatusBadge()}</div>
-            </CardContent>
-        </Card>
+            {/* Student Info Modal */}
+            <StudentInfoModal
+                isOpen={isModalOpen}
+                onClose={handleModalClose}
+                studentInfo={studentInfo}
+                isLoading={fetchingStudent}
+                scannedId={lastScannedId}
+                apiStatus={apiStatus}
+                apiError={apiError}
+                onResumeScan={handleResumeScan}
+            />
+        </>
     )
 }

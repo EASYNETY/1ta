@@ -1,9 +1,11 @@
+// lib/barcode-scanner.tsx
+
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import BarcodeScannerComponent from "react-qr-barcode-scanner"
-import { ScanLine, QrCode, Maximize } from 'lucide-react'
+import { QrCode, Maximize, Focus } from "lucide-react"
 
 interface BarcodeScannerProps {
     onDetected: (code: string) => void
@@ -14,22 +16,42 @@ interface BarcodeScannerProps {
 
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500, height = 500, isActive = true }) => {
     const [cooldown, setCooldown] = useState(false)
+    const scannerRef = useRef<HTMLDivElement>(null)
+    const [isFocused, setIsFocused] = useState(false)
+
+    // Simulate camera focus effect
+    useEffect(() => {
+        if (isActive && !cooldown) {
+            // Simulate periodic auto-focus
+            const focusInterval = setInterval(() => {
+                setIsFocused(true)
+                setTimeout(() => setIsFocused(false), 500)
+            }, 5000)
+
+            return () => clearInterval(focusInterval)
+        }
+    }, [isActive, cooldown])
+
+    // Handle manual focus
+    const handleFocus = () => {
+        if (isActive && !cooldown) {
+            setIsFocused(true)
+            setTimeout(() => setIsFocused(false), 500)
+        }
+    }
 
     // Handle successful scan with cooldown
     const handleScan = (result: any) => {
         if (!isActive || cooldown || !result) return
 
-        // Extract the barcode text
-        const code = result?.text ?? result
+        // Extract the barcode text and ensure it's a string
+        const code = String(result?.text ?? result)
 
         // Set cooldown to prevent multiple rapid scans
         setCooldown(true)
 
         // Call the callback with the detected code
         onDetected(code)
-
-        // Reset cooldown after delay
-        setTimeout(() => setCooldown(false), 1500)
     }
 
     // Only render scanner when active
@@ -44,7 +66,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
     return (
         <div className="flex flex-col items-center">
             {/* Scanner with visual guides */}
-            <div className="relative">
+            <div className="relative" ref={scannerRef} onClick={handleFocus}>
                 <BarcodeScannerComponent
                     width={width}
                     height={height}
@@ -63,8 +85,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
 
                     {/* Center target */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-32 h-32 border-2 border-dashed border-primary/50 rounded-md flex items-center justify-center">
-                            <QrCode className="h-8 w-8 text-primary/30" />
+                        <div
+                            className={`w-32 h-32 border-2 border-dashed ${isFocused ? "border-green-500" : "border-primary/50"} rounded-md flex items-center justify-center transition-colors duration-300`}
+                        >
+                            <QrCode className={`h-8 w-8 ${isFocused ? "text-green-500" : "text-primary/30"}`} />
                         </div>
                     </div>
 
@@ -72,6 +96,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
                     <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2">
                         <div className="h-0.5 bg-primary/50 animate-pulse w-full"></div>
                     </div>
+
+                    {/* Focus animation */}
+                    {isFocused && <div className="absolute inset-0 border-2 border-green-500 animate-pulse opacity-50"></div>}
                 </div>
             </div>
 
@@ -81,6 +108,16 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onDetected, width = 500
                 <span>Position barcode within the frame</span>
                 {cooldown && <span className="ml-2 font-medium text-primary animate-pulse">Processing scan...</span>}
             </div>
+
+            {/* Focus instruction */}
+            <button
+                onClick={handleFocus}
+                className="mt-1 text-xs text-primary flex items-center justify-center gap-1 hover:underline"
+                disabled={!isActive || cooldown}
+            >
+                <Focus className="h-3 w-3" />
+                <span>Tap to focus</span>
+            </button>
         </div>
     )
 }
