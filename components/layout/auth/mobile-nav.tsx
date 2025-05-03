@@ -14,22 +14,22 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import {
     HouseSimple,
     CalendarBlank,
-    ChatCircleDots,
-    Plus,
+    ChatCircleDots, // Keep original icon for nav item if different
     GraduationCap,
-    EnvelopeSimple,
+    EnvelopeSimple, // Use Envelope for Chat Nav Item
     CheckCircle,
-    Barcode as BarcodeIcon,
-    QrCode,
+    // FAB Icons are now sourced from fab-config.ts via the hook
 } from "phosphor-react";
-import { is } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Barcode from "react-barcode";
 
 // --- Import Redux Selectors ---
 import { selectChatUnreadCount } from "@/features/chat/store/chatSlice"; // Example path
 
-// Interface definitions
+// --- Import FAB Hook & Config ---
+import { useFabAction } from "@/hooks/useFabAction"; // Adjusted path
+
+// Interface definitions (MobileNavItems) - Keep as is
 export interface MobileNavItem {
     title: string;
     href: string;
@@ -39,162 +39,64 @@ export interface MobileNavItem {
 }
 export interface MobileNavBadges {
     messages?: number;
-    cart?: number;
+    // cart?: number; // Keep if needed
     notifications?: number;
 }
 
-// Final Mobile Navigation Items Definition (Using Phosphor for example)
+// Final Mobile Navigation Items Definition - Keep as is
 export const mobileNavItems: MobileNavItem[] = [
     { title: "Home", href: "/dashboard", icon: HouseSimple, roles: ["admin", "teacher", "student"] },
-    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["admin", "teacher", "student"] }, // Using GraduationCap
+    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["admin", "teacher", "student"] },
     { title: "Timetable", href: "/timetable", icon: CalendarBlank, roles: ["teacher", "student", "admin"] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
-    { title: "Chat", href: "/chat", icon: EnvelopeSimple, roles: ["teacher", "student", "admin"], badgeKey: "messages" },
+    { title: "Chat", href: "/chat", icon: EnvelopeSimple, roles: ["teacher", "student", "admin"], badgeKey: "messages" }, // Use EnvelopeSimple for nav
 ];
-
-// --- Contextual FAB Action Logic ---
-interface FabAction {
-    href: string;
-    ariaLabel: string;
-    show: boolean; // Should the FAB be shown on this page/role?
-    actionType?: 'navigate' | 'showStudentBarcode' | 'scanBarcode' | 'createChat' | 'createTicket' | 'createClass' | 'createStudent' | 'createCourse' | 'createEvent';
-}
-
-function getFabAction(role: "admin" | "teacher" | "student", pathname: string): FabAction {
-    let action: FabAction = { href: "/", ariaLabel: "Action", show: false, actionType: 'navigate' }; // Default hidden
-
-    // --- Specific Page Logic ---
-
-    // **Hide on Scan Page**
-    if (pathname === "/attendance/scan") {
-        action = { ...action, show: false };
-    }
-    // **Attendance List Page**
-    else if (pathname === "/attendance") { // Use === for exact match
-        switch (role) {
-            case "admin": case "teacher":
-                action = { href: "/attendance/scan", ariaLabel: "Scan Attendance", show: true, actionType: 'navigate' }; break; // Navigate to scan page
-            case "student":
-                action = { href: "#", ariaLabel: "Show My Barcode", show: true, actionType: 'showStudentBarcode' }; break;
-        }
-    }
-    // **Chat Page** (Root chat or specific room)
-    else if (pathname.startsWith("/chat")) {
-        action = { href: "/chat/create", ariaLabel: "Start New Chat", show: true, actionType: 'createChat' }; // Assumes /chat/create exists or triggers modal
-    }
-    // **Courses Page**
-    else if (pathname.startsWith("/courses")) {
-        switch (role) {
-            case "admin":
-                action = { href: "/courses/create", ariaLabel: "Create Course Template", show: true, actionType: 'createCourse' }; break; // Needs implementation
-            case "teacher":
-                action = { href: "/classes/create", ariaLabel: "Create New Class", show: true, actionType: 'createClass' }; break; // Needs implementation
-            // No FAB for student on general courses page
-            case "student": action = { ...action, show: false }; break;
-        }
-    }
-    // **Timetable Page**
-    else if (pathname.startsWith("/timetable")) {
-        switch (role) {
-            case "admin": case "teacher":
-                action = { href: "/classes/create", ariaLabel: "Add Class", show: true, actionType: 'createEvent' }; break; // Needs implementation
-            case "student": action = { ...action, show: false }; break;
-        }
-    }
-    // **Support Page** (List or Create)
-    else if (pathname.startsWith("/support")) {
-        if (role === 'student' && pathname !== '/support/create') { // Show only if not already on create page
-            action = { href: "/support/create", ariaLabel: "Create Support Ticket", show: true, actionType: 'navigate' };
-        } else {
-            action = { ...action, show: false }; // Hide on create page or for other roles
-        }
-    }
-    // **Admin - Students List Page**
-    else if (pathname.startsWith("/users")) {
-        if (role === 'admin') {
-            action = { href: "/users/create", ariaLabel: "Add New User", show: true, actionType: 'createStudent' }; // Needs implementation
-        } else {
-            action = { ...action, show: false };
-        }
-    }
-    // **Settings / Profile / Subscription**
-    else if (pathname.startsWith("/settings") || pathname.startsWith("/profile") || pathname.startsWith("/subscription")) {
-        action = { ...action, show: false };
-    }
-    // **Dashboard (Default Fallback)**
-    else if (pathname.startsWith("/dashboard") || pathname === "/") {
-        switch (role) {
-            case "admin": action = { href: "/users/create", ariaLabel: "Add Student", show: true, actionType: 'createStudent' }; break;
-            case "teacher": action = { href: "/classes/create", ariaLabel: "Create Class", show: true, actionType: 'createClass' }; break;
-            case "student": action = { href: "/support/create", ariaLabel: "New Support Ticket", show: true, actionType: 'navigate' }; break; // Navigate for student default
-        }
-    }
-    // Add more specific page rules if needed (e.g., /payments, /admin/pricing)
-
-    return action;
-}
-
 
 // --- MobileNav Component ---
 export function MobileNav() {
     const pathname = usePathname();
     const { user } = useAppSelector((state) => state.auth);
-    const cart = useAppSelector((state) => state.cart); // Keep cart if badge is needed
+    // const cart = useAppSelector((state) => state.cart); // Keep if cart badge is needed
     const isMobile = useMobile();
     const scrollDirection = useScrollDirection();
     const chatUnreadCount = useAppSelector(selectChatUnreadCount);
-    const isVisible = scrollDirection === "up" || scrollDirection === "none";
-    // --- State for Student Barcode Modal ---
+    const isNavVisible = scrollDirection === "up" || scrollDirection === "none"; // Renamed for clarity
+
+    // --- State for Modals ---
     const [showStudentBarcodeModal, setShowStudentBarcodeModal] = React.useState(false);
+    // Add state for other modals if needed (e.g., scan modal, create chat modal)
+    // const [showScanModal, setShowScanModal] = React.useState(false);
+    // const [showCreateChatModal, setShowCreateChatModal] = React.useState(false);
+
+    // --- Use the FAB Action Hook ---
+    const fabProps = useFabAction({
+        // Pass down the state setters (or functions that call them)
+        onShowStudentBarcode: () => setShowStudentBarcodeModal(true),
+        // onOpenScanModal: () => setShowScanModal(true),
+        // onOpenCreateChatModal: () => setShowCreateChatModal(true), // Example
+        // Add other necessary handlers here
+    });
 
     // --- Badge Counts (Example) ---
     const badgeCounts: MobileNavBadges = {
-        // cart: cart.items?.length || 0, // Example if cart badge needed
-        messages: chatUnreadCount
-        ,
+        messages: chatUnreadCount,
     };
 
     // Filter nav items
     const filteredNavItems = mobileNavItems.filter(
         (item) => user && item.roles.includes(user.role)
-    ).slice(0, 5); // Ensure max 5 items
-
-    // --- Determine FAB action & Icon ---
-    const fabAction = user ? getFabAction(user.role, pathname) : { href: "/", ariaLabel: "", show: false, actionType: 'navigate' };
-    const isAttendancePage = pathname.startsWith("/attendance");
-
-    let FabIcon = Plus; // Default icon
-    if (isAttendancePage) {
-        if (user?.role === 'student') {
-            FabIcon = BarcodeIcon; // Icon for showing barcode
-        } else if (user?.role === 'admin' || user?.role === 'teacher') {
-            FabIcon = QrCode; // Icon for scanning
-        }
-    }
+    ).slice(0, 5);
 
     if (!isMobile || !user) return null; // Don't render if not mobile or no user
 
-    // --- FAB Click Handler ---
-    const handleFabClick = (e: React.MouseEvent) => {
-        // Prevent navigation if actionType is not 'navigate'
-        if (fabAction.actionType === 'showStudentBarcode') {
-            e.preventDefault(); // Prevent default link behavior for '#' href
-            setShowStudentBarcodeModal(true);
-        }
-        // Add future logic for other actionTypes like 'scanBarcode' if triggering a modal directly
-        // else if (fabAction.actionType === 'scanBarcode') {
-        //   e.preventDefault();
-        //   // openScanModal();
-        // }
-        // Otherwise, allow default navigation via Link component
-    };
+    // --- Destructure FAB props ---
+    const { isVisible: isFabVisible, icon: FabIcon, ariaLabel, onClick: handleFabClick } = fabProps;
 
     return (
         <>
             {/* Floating Action Button */}
-            {/* Show FAB only if visible and action specifies show=true */}
             <AnimatePresence>
-                {isVisible && fabAction.show && (
+                {isNavVisible && isFabVisible && ( // Show FAB only if nav is visible AND fab action exists
                     <motion.div
                         key="fab"
                         initial={{ scale: 0, opacity: 0 }}
@@ -203,51 +105,51 @@ export function MobileNav() {
                         transition={{ type: "spring", stiffness: 350, damping: 25, delay: 0.1 }}
                         className="fixed bottom-20 right-8 z-50" // Position above bottom bar
                     >
-                        {fabAction.actionType === 'navigate' || fabAction.actionType === 'scanBarcode' ? (
-                            <DyraneButton
-                                size="icon"
-                                className="rounded-full shadow-lg h-12 w-12"
-                                asChild // Use asChild for Link wrapper
-                                aria-label={fabAction.ariaLabel}
-                            >
-                                <Link href={fabAction.href} onClick={handleFabClick}>
-                                    <FabIcon size={24} weight="bold" />
-                                </Link>
-                            </DyraneButton>
-                        ) : (
-                            <DyraneButton
-                                size="icon"
-                                className="rounded-full shadow-lg h-12 w-12"
-                                aria-label={fabAction.ariaLabel}
-                                onClick={handleFabClick} // Use direct onClick for student barcode
-                            >
-                                <FabIcon size={24} weight="bold" />
-                            </DyraneButton>
-                        )}
+                        {/* Render a single button, the onClick handles the action */}
+                        <DyraneButton
+                            size="icon"
+                            className="rounded-full shadow-lg h-12 w-12"
+                            aria-label={ariaLabel}
+                            onClick={handleFabClick} // Use the onClick from the hook
+                        >
+                            {/* Render the icon provided by the hook */}
+                            <FabIcon size={24} weight="bold" />
+                        </DyraneButton>
                     </motion.div>
                 )}
             </AnimatePresence>
 
+            {/* Student Barcode Modal */}
             <Dialog open={showStudentBarcodeModal} onOpenChange={setShowStudentBarcodeModal}>
                 <DialogContent className="sm:max-w-[300px] flex flex-col items-center">
                     <DialogHeader>
                         <DialogTitle>Your Attendance Barcode</DialogTitle>
                     </DialogHeader>
-                    {/* Render the barcode directly if user exists */}
                     {user && (
                         <div className="p-4 bg-white rounded-md border shadow-inner mt-4">
                             <Barcode
-                                value={user.id} // The value to encode
-                                height={80}     // Height of the barcode
-                                width={2}       // Width of the narrowest bar
-                                displayValue={false} // Set true to show text below
-                                background="#ffffff" // Background color
-                                lineColor="#000000" // Bar color
+                                value={user.id}
+                                height={80}
+                                width={2}
+                                displayValue={false}
+                                background="#ffffff"
+                                lineColor="#000000"
                             />
                         </div>
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Add other modals here if needed */}
+            {/* Example:
+            <Dialog open={showCreateChatModal} onOpenChange={setShowCreateChatModal}>
+                <DialogContent>
+                    <DialogHeader><DialogTitle>Start New Chat</DialogTitle></DialogHeader>
+                    {/* Chat creation form/component * /}
+                </DialogContent>
+            </Dialog>
+            */}
+
 
             {/* Bottom Navigation Bar */}
             <motion.div
@@ -255,7 +157,7 @@ export function MobileNav() {
                     "fixed bottom-0 left-0 right-0 z-40 h-16 border-t border-border/30",
                     "bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 rounded-t-2xl"
                 )}
-                animate={{ y: isVisible ? 0 : 80 }}
+                animate={{ y: isNavVisible ? 0 : 80 }} // Use isNavVisible
                 initial={{ y: 0 }}
                 transition={{ type: "tween", duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             >
@@ -270,7 +172,7 @@ export function MobileNav() {
                                 key={item.href}
                                 href={item.href}
                                 className={cn(
-                                    "relative flex flex-1 flex-col items-center justify-center pt-2 pb-1", // Adjusted padding
+                                    "relative flex flex-1 flex-col items-center justify-center pt-2 pb-1",
                                     "transition-colors duration-200 ease-[cubic-bezier(0.77, 0, 0.175, 1)] outline-none",
                                     "focus-visible:bg-primary/10 rounded-md",
                                     'hover:text-primary',
@@ -281,9 +183,7 @@ export function MobileNav() {
                                 <div className={cn(
                                     "relative mb-1 py-0.5",
                                     isActive && "bg-primary/10 rounded-full px-4 transition-colors duration-200 ease-in-out",
-                                )
-                                }>
-                                    {/* Use weight prop for Phosphor icons */}
+                                )}>
                                     <Icon size={22} weight={isActive ? "fill" : "regular"} />
                                     {badgeValue > 0 && (
                                         <Badge
