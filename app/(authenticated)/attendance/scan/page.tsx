@@ -7,6 +7,21 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import BarcodeScanner from "@/lib/barcode-scanner"
 
+// Redux imports
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import {
+    markStudentAttendance,
+    resetMarkingStatus,
+    selectAttendanceMarkingLoading,
+    selectAttendanceMarkingError,
+    selectAttendanceMarkingStatus,
+    selectLastMarkedStudentId,
+} from "@/features/attendance/store/attendance-slice"
+
+// Class options hook
+import { useCourseClassOptions } from "@/features/classes/hooks/useCourseClassOptions"
+import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice"
+
 // UI Components
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -16,95 +31,133 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 
-// Mock data for demonstration
-const MOCK_CLASSES = [
-    { id: "class1", courseName: "Mathematics", sessionName: "Morning Session" },
-    { id: "class2", courseName: "Physics", sessionName: "Afternoon Session" },
-    { id: "class3", courseName: "Computer Science", sessionName: "Evening Session" },
-]
-
 export default function ScanPage() {
     const router = useRouter()
     const { toast } = useToast()
+    const dispatch = useAppDispatch()
 
-    // State
-    const [selectedClass, setSelectedClass] = useState<any>(null)
+    // Redux state
+    const { user } = useAppSelector((state) => state.auth)
+    const selectedClass = useAppSelector(selectCourseClass)
+    const isLoading = useAppSelector(selectAttendanceMarkingLoading)
+    const apiError = useAppSelector(selectAttendanceMarkingError)
+    const apiStatus = useAppSelector(selectAttendanceMarkingStatus)
+    const lastMarkedStudentId = useAppSelector(selectLastMarkedStudentId)
+
+    // Local state
+    const classOptions = useCourseClassOptions()
     const [isScanning, setIsScanning] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
-    const [scanStatus, setScanStatus] = useState<"idle" | "success" | "error">("idle")
     const [lastScannedId, setLastScannedId] = useState<string | null>(null)
-    const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-    // Set isScanning to false on mount
+    // Set isScanning to false on mount and check authorization
     useEffect(() => {
         setIsScanning(false)
 
+        // Check if user is authorized
+        if (!user || (user.role !== "admin" && user.role !== "teacher")) {
+            toast({
+                variant: "destructive",
+                title: "Unauthorized",
+                description: "Access denied.",
+            })
+            router.replace("/dashboard")
+            return
+        }
+
+        // Reset marking status on mount
+        dispatch(resetMarkingStatus())
+
         // Cleanup function
         return () => {
-            // Reset states when component unmounts
             setIsScanning(false)
-            setScanStatus("idle")
+            dispatch(resetMarkingStatus())
         }
-    }, [])
+    }, [user, router, toast, dispatch])
 
     // Activate scanner when class is selected
     useEffect(() => {
-        if (selectedClass) {
+        if (selectedClass?.id) {
             setIsScanning(true)
-            setScanStatus("idle")
+            toast({
+                variant: "default",
+                title: "Scanner Activated",
+                description: `Scanning for ${selectedClass.courseName} - ${selectedClass.sessionName}`,
+            })
+            dispatch(resetMarkingStatus())
             setLastScannedId(null)
-            setErrorMessage(null)
         } else {
             setIsScanning(false)
         }
-    }, [selectedClass])
+    }, [selectedClass, dispatch, isScanning, toast])
 
     // Handle class selection
     const handleClassChange = (value: string) => {
         if (value === "select-a-class") {
-            setSelectedClass(null)
+            dispatch(
+                setCourseClass({
+                    id: "",
+                    courseName: "",
+                    sessionName: "",
+                }),
+            )
             return
         }
 
-        const selected = MOCK_CLASSES.find((c) => c.id === value)
-        setSelectedClass(selected || null)
+        const selected = classOptions.find((option) => option.id === value)
+        if (selected) {
+            dispatch(setCourseClass(selected))
+            console.log("Selected Class:", selected)
+        }
     }
 
     // Handle barcode detection
-    const handleBarcodeDetected = async (studentId: string) => {
-        if (!selectedClass || isLoading) return
+    const handleBarcodeDetected = (studentId: string) => {
+        if (!selectedClass?.id || isLoading || !isScanning) return
 
-        setIsLoading(true)
         setLastScannedId(studentId)
-        setScanStatus("idle")
-        setErrorMessage(null)
+        dispatch(resetMarkingStatus())
 
-        try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+        // Temporarily pause scanning
+        setIsScanning(false)
 
-            // 80% success rate for demo purposes
-            if (Math.random() > 0.2) {
-                setScanStatus("success")
+        const payload = {
+            studentId: studentId,
+            classInstanceId: selectedClass.id,
+            markedByUserId: user!.id,
+            timestamp: new Date().toISOString(),
+        }
+
+        dispatch(markStudentAttendance(payload))
+            .unwrap()
+            .then((response) => {
                 toast({
                     variant: "success",
                     title: "Attendance Marked",
-                    description: `Student: ${studentId} marked successfully.`,
+                    description: `Student: ${response.studentId} marked. ${response.message || ""}`,
                 })
-            } else {
-                throw new Error("Student not found in this class")
-            }
-        } catch (error: any) {
-            setScanStatus("error")
-            setErrorMessage(error.message)
-            toast({
-                variant: "destructive",
-                title: "Marking Failed",
-                description: `${error.message}. ID: ${studentId}`,
+
+                // Resume scanning after delay
+                setTimeout(() => {
+                    setLastScannedId(null)
+                    dispatch(resetMarkingStatus())
+                    if (selectedClass?.id) setIsScanning(true)
+                }, 1500)
             })
-        } finally {
-            setIsLoading(false)
-        }
+            .catch((error) => {
+                const errorMsg = typeof error === "string" ? error : "An unknown error occurred."
+                toast({
+                    variant: "destructive",
+                    title: "Marking Failed",
+                    description: `${errorMsg}. ID: ${studentId}`,
+                })
+
+                // Resume scanning after longer delay for errors
+                setTimeout(() => {
+                    setLastScannedId(null)
+                    dispatch(resetMarkingStatus())
+                    if (selectedClass?.id) setIsScanning(true)
+                }, 2500)
+            })
     }
 
     // Toggle scanner
@@ -122,24 +175,24 @@ export default function ScanPage() {
             )
         }
 
-        switch (scanStatus) {
+        switch (apiStatus) {
             case "success":
                 return (
                     <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                        <CheckCircle className="mr-1 h-3 w-3" /> Success: {lastScannedId}
+                        <CheckCircle className="mr-1 h-3 w-3" /> Success: {lastMarkedStudentId}
                     </Badge>
                 )
             case "error":
                 return (
                     <Badge variant="destructive">
-                        <XCircle className="mr-1 h-3 w-3" /> Error: {errorMessage} (ID: {lastScannedId})
+                        <XCircle className="mr-1 h-3 w-3" /> Error: {apiError} (ID: {lastScannedId})
                     </Badge>
                 )
             case "idle":
-                if (isScanning && selectedClass) {
+                if (isScanning && selectedClass?.id) {
                     return <Badge variant="outline">Ready to scan</Badge>
                 }
-                if (!selectedClass) {
+                if (!selectedClass?.id) {
                     return <Badge variant="secondary">Select a class to start</Badge>
                 }
                 return <Badge variant="secondary">Scanner paused</Badge>
@@ -148,9 +201,17 @@ export default function ScanPage() {
         }
     }
 
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Loader2 className="h-10 w-10 animate-spin" />
+            </div>
+        )
+    }
+
     return (
         <Card className="mx-auto bg-card/5 backdrop-blur-sm border border-card/30 backdrop-saturate-150 shadow-md">
-            <CardContent className="space-y-6">
+            <CardContent className="p-6 space-y-6">
                 {/* Header */}
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" onClick={() => router.back()}>
@@ -168,21 +229,26 @@ export default function ScanPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="select-a-class">-- Select a Class --</SelectItem>
-                            {MOCK_CLASSES.map((option) => (
+                            {classOptions.length === 0 && (
+                                <SelectItem value="loading" disabled>
+                                    Loading classes...
+                                </SelectItem>
+                            )}
+                            {classOptions.map((option) => (
                                 <SelectItem key={option.id} value={option.id}>
                                     {option.courseName} - {option.sessionName}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                    {!selectedClass && (
+                    {!selectedClass?.id && (
                         <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning.</p>
                     )}
                 </div>
 
                 {/* Scanner Section */}
                 <div className="space-y-4">
-                    {selectedClass ? (
+                    {selectedClass?.id ? (
                         <>
                             <div className="flex justify-between items-center">
                                 <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -193,7 +259,7 @@ export default function ScanPage() {
                                 </p>
 
                                 {/* Manual Pause/Resume Button */}
-                                <Button variant="outline" size="sm" onClick={toggleScanner} disabled={isLoading || !selectedClass}>
+                                <Button variant="outline" size="sm" onClick={toggleScanner} disabled={isLoading || !selectedClass.id}>
                                     {isScanning ? <PowerOff className="mr-2 h-4 w-4" /> : <Power className="mr-2 h-4 w-4" />}
                                     {isScanning ? "Pause Scanner" : "Resume Scanner"}
                                 </Button>
