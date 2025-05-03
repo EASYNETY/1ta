@@ -125,7 +125,7 @@ export function StudentInfoModal({
                                 <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.id} isCode />
                                 <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth} />
                                 <InfoItem icon={School} label="Class" value={studentInfo.className} />
-                                <InfoItem icon={Money} label="Paid" value={studentInfo.paidStatus} />
+                                <InfoItem icon={Money} label="Fees" value={studentInfo.paidStatus} />
                             </div>
 
                             {/* API Status Feedback */}
