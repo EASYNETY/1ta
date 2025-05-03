@@ -224,3 +224,21 @@
 	scrollbar-width: thin;
 	scrollbar-color: var(--primary) transparent;
 }
+
+@keyframes scanLine {
+	0% {
+		transform: translateY(-50px);
+		opacity: 0.5;
+	}
+	50% {
+		transform: translateY(50px);
+		opacity: 1;
+	}
+	100% {
+		transform: translateY(-50px);
+		opacity: 0.5;
+	}
+}
+.animate-scan-line {
+	animation: scanLine 2.5s ease-in-out infinite;
+}

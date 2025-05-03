@@ -1,385 +1,401 @@
 // app/(authenticated)/attendance/scan/page.tsx
 
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useToast } from "@/hooks/use-toast"
-import BarcodeScanner from "@/lib/barcode-scanner"
-import { StudentInfoModal } from "@/components/students/student-info-modal"
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+import BarcodeScanner from "@/lib/barcode-scanner";
+import { StudentInfoModal } from "@/components/students/student-info-modal";
 
 // Redux imports
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
     markStudentAttendance,
     resetMarkingStatus,
-    selectAttendanceMarkingLoading,
+    selectAttendanceMarkingLoading, // This is for the API call itself
     selectAttendanceMarkingError,
     selectAttendanceMarkingStatus,
-    selectLastMarkedStudentId,
-} from "@/features/attendance/store/attendance-slice"
+    selectLastMarkedStudentId, // You might not need this if modal shows info
+} from "@/features/attendance/store/attendance-slice";
 
 // Class options hook
-import { useCourseClassOptions } from "@/features/classes/hooks/useCourseClassOptions"
-import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice"
+import { useCourseClassOptions } from "@/features/classes/hooks/useCourseClassOptions";
+import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice";
 
 // UI Components
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle, ScanLine } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Using CardHeader
 
-// Mock student data for demonstration
+
+// Mock student data (KEEP THIS EXACTLY AS IS FOR TESTING)
 interface StudentInfo {
-    id: string | number
-    name: string
-    email: string
-    dateOfBirth?: string
-    classId?: string
-    className?: string
-    barcodeId: string
+    id: string | number; // Use the actual student DB ID here
+    name: string;
+    email: string;
+    dateOfBirth?: string;
+    classId?: string; // May not be needed if fetched based on classInstance
+    className?: string;
+    barcodeId: string; // The ID scanned from the barcode
 }
 
-// Mock function to fetch student info
-const fetchStudentInfo = async (studentId: string): Promise<StudentInfo | null> => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800))
+const fetchStudentInfo = async (scannedBarcodeId: string): Promise<StudentInfo | null> => {
+    console.log(`fetchStudentInfo called with: "${scannedBarcodeId}" (Type: ${typeof scannedBarcodeId})`);
+    // Simulate API call delay
+    await new Promise((resolve) => setTimeout(resolve, 600));
 
-    // Mock student data - ensure we have exact matches for the barcodes
     const mockStudents: Record<string, StudentInfo> = {
-        "STUDENT-123": {
-            id: "3",
-            name: "Student User",
-            email: "student@example.com",
-            dateOfBirth: "2000-01-01",
-            classId: "1",
-            className: "Computer Science 101",
-            barcodeId: "STUDENT-123",
-        },
-        "TEMP-123": {
-            id: "4",
-            name: "New Student",
-            email: "newstudent@example.com",
-            barcodeId: "TEMP-123",
-        },
-        // Add more test data for common IDs
-        "1": {
-            id: "1",
-            name: "John Doe",
-            email: "john@example.com",
-            dateOfBirth: "1999-05-15",
-            classId: "2",
-            className: "Physics 101",
-            barcodeId: "1",
-        },
-        "2": {
-            id: "2",
-            name: "Jane Smith",
-            email: "jane@example.com",
-            dateOfBirth: "2000-08-22",
-            classId: "3",
-            className: "Chemistry 101",
-            barcodeId: "2",
-        },
-        "3": {
-            id: "3",
-            name: "Student User",
-            email: "student@example.com",
-            dateOfBirth: "2000-01-01",
-            classId: "1",
-            className: "Computer Science 101",
-            barcodeId: "3",
-        },
-        "4": {
-            id: "4",
-            name: "New Student",
-            email: "newstudent@example.com",
-            barcodeId: "4",
-        },
-    }
+        "STUDENT-123": { id: "S1", name: "Alice Wonderland", email: "alice@example.com", dateOfBirth: "2001-03-10", classId: "1", className: "CS 101", barcodeId: "STUDENT-123" },
+        "TEMP-123": { id: "S2", name: "Bob The Builder", email: "bob@example.com", barcodeId: "TEMP-123", className: "Temporary Pass" },
+        "1": { id: "101", name: "Charlie Chaplin", email: "charlie@example.com", dateOfBirth: "1999-05-15", classId: "2", className: "Physics 101", barcodeId: "1" },
+        "2": { id: "102", name: "Diana Prince", email: "diana@example.com", dateOfBirth: "2000-08-22", classId: "3", className: "Chemistry 101", barcodeId: "2" },
+        "3": { id: "103", name: "Ethan Hunt", email: "ethan@example.com", dateOfBirth: "2000-01-01", classId: "1", className: "CS 101", barcodeId: "3" },
+        "4": { id: "104", name: "Fiona Shrek", email: "fiona@example.com", barcodeId: "4", className: "Arts 101" },
+        // Add a student with a barcode containing special chars if needed for testing
+        "CODE/128#EXTRA": { id: "S5", name: "Special Code User", email: "special@example.com", barcodeId: "CODE/128#EXTRA", className: "Advanced Topics" },
+    };
 
-    // Log the scanned ID for debugging
-    console.log("Fetching student with ID:", studentId)
+    // Log available keys for easier debugging
+    // console.log("Available mock keys:", Object.keys(mockStudents));
 
-    return mockStudents[studentId] || null
-}
+    const foundStudent = mockStudents[scannedBarcodeId] || null;
+    console.log(`fetchStudentInfo returning for "${scannedBarcodeId}":`, foundStudent);
+    return foundStudent;
+};
+
 
 export default function ScanPage() {
-    const router = useRouter()
-    const { toast } = useToast()
-    const dispatch = useAppDispatch()
+    const router = useRouter();
+    const { toast } = useToast();
+    const dispatch = useAppDispatch();
 
     // Redux state
-    const { user } = useAppSelector((state) => state.auth)
-    const selectedClass = useAppSelector(selectCourseClass)
-    const isLoading = useAppSelector(selectAttendanceMarkingLoading)
-    const apiError = useAppSelector(selectAttendanceMarkingError)
-    const apiStatus = useAppSelector(selectAttendanceMarkingStatus)
-    const lastMarkedStudentId = useAppSelector(selectLastMarkedStudentId)
+    const { user } = useAppSelector((state) => state.auth);
+    const selectedClass = useAppSelector(selectCourseClass);
+    const markingLoading = useAppSelector(selectAttendanceMarkingLoading); // Loading state for the attendance marking API call
+    const apiError = useAppSelector(selectAttendanceMarkingError);
+    const apiStatus = useAppSelector(selectAttendanceMarkingStatus); // success | error | idle (for marking API)
 
     // Local state
-    const classOptions = useCourseClassOptions()
-    const [isScanning, setIsScanning] = useState(false)
-    const [lastScannedId, setLastScannedId] = useState<string | null>(null)
-    const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null)
-    const [fetchingStudent, setFetchingStudent] = useState(false)
-    const [isModalOpen, setIsModalOpen] = useState(false)
+    const { options: classOptions, isLoading: classOptionsLoading } = useCourseClassOptions();
+    const [isScannerActive, setIsScannerActive] = useState(false); // Controls if the scanner *component* should be trying to scan
+    const [lastScannedId, setLastScannedId] = useState<string | null>(null);
+    const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
+    const [fetchingStudentInfo, setFetchingStudentInfo] = useState(false); // Loading state specifically for fetchStudentInfo
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Set isScanning to false on mount and check authorization
+    // Authorization and Initial Setup
     useEffect(() => {
-        setIsScanning(false)
-
-        // Check if user is authorized
+        // Check user role
         if (!user || (user.role !== "admin" && user.role !== "teacher")) {
-            toast({
-                variant: "destructive",
-                title: "Unauthorized",
-                description: "Access denied.",
-            })
-            router.replace("/dashboard")
-            return
+            toast({ variant: "destructive", title: "Unauthorized", description: "Access denied." });
+            router.replace("/dashboard");
         }
-
-        // Reset marking status on mount
-        dispatch(resetMarkingStatus())
-
-        // Cleanup function
+        // Reset Redux status on mount/unmount
+        dispatch(resetMarkingStatus());
         return () => {
-            setIsScanning(false)
-            dispatch(resetMarkingStatus())
-        }
-    }, [user, router, toast, dispatch])
+            dispatch(resetMarkingStatus());
+            setIsScannerActive(false); // Ensure scanner is off on unmount
+        };
+    }, [user, router, toast, dispatch, isScannerActive]);
 
-    // Activate scanner when class is selected
+    // Control Scanner Activation based on Class Selection & Modal State
     useEffect(() => {
-        if (selectedClass?.id) {
-            setIsScanning(true)
-            toast({
-                variant: "default",
-                title: "Scanner Activated",
-                description: `Scanning for ${selectedClass.courseName} - ${selectedClass.sessionName}`,
-            })
-            dispatch(resetMarkingStatus())
-            setLastScannedId(null)
-            setStudentInfo(null)
-        } else {
-            setIsScanning(false)
-        }
-    }, [selectedClass, dispatch, toast])
+        // Activate scanner only if a class is selected AND the modal is closed
+        const shouldScan = !!selectedClass?.id && !isModalOpen;
+        setIsScannerActive(shouldScan);
 
-    // Handle class selection
-    const handleClassChange = (value: string) => {
+        if (shouldScan) {
+            console.log("Scanner Activated for class:", selectedClass.id);
+            // Optional: Toast notification when scanning resumes
+            // toast({ title: "Scanner Active", description: `Ready to scan for ${selectedClass.courseName}` });
+        } else if (!selectedClass?.id) {
+            console.log("Scanner Paused: No class selected.");
+        } else if (isModalOpen) {
+            console.log("Scanner Paused: Modal is open.");
+        }
+
+    }, [selectedClass, isModalOpen, isScannerActive]);
+
+
+    // Handle Class Selection
+    const handleClassChange = useCallback((value: string) => {
+        dispatch(resetMarkingStatus()); // Reset API status when class changes
+        setLastScannedId(null);
+        setStudentInfo(null);
+        setIsModalOpen(false); // Close modal if open
+
         if (value === "select-a-class") {
-            dispatch(
-                setCourseClass({
-                    id: "",
+            dispatch(setCourseClass(
+                {
+                    id: '',
                     courseName: "",
                     sessionName: "",
-                }),
-            )
-            return
+                }
+            )); // Use null or specific empty state object
+            setIsScannerActive(false);
+        } else {
+            const selected = classOptions.find((option) => option.id === value);
+            if (selected) {
+                dispatch(setCourseClass(selected));
+                console.log("Selected Class:", selected);
+                // Scanner activation is handled by the useEffect watching selectedClass and isModalOpen
+                toast({ title: "Class Selected", description: `Scanner ready for ${selected.courseName} - ${selected.sessionName}` });
+            }
+        }
+    }, [dispatch, classOptions, toast]);
+
+
+    // Handle Barcode Detection - The core logic loop
+    const handleBarcodeDetected = useCallback(async (scannedData: any) => {
+        console.log("--- Scan Detected ---");
+        console.log("Raw scanner data:", scannedData);
+
+        // Immediately stop scanner and show modal with loading state
+        setIsScannerActive(false); // Stop the scanner component
+        setIsModalOpen(true);
+        setFetchingStudentInfo(true); // Indicate student lookup started
+        dispatch(resetMarkingStatus()); // Reset previous API result
+
+        const potentialId = typeof scannedData === 'object' && scannedData !== null && scannedData.text
+            ? scannedData.text
+            : scannedData;
+        const barcodeId = String(potentialId ?? '').trim();
+        setLastScannedId(barcodeId); // Store the processed ID for display
+        console.log(`Processed Barcode ID: "${barcodeId}"`);
+
+        if (!barcodeId) {
+            console.error("Scan resulted in empty barcode ID.");
+            setStudentInfo(null);
+            setFetchingStudentInfo(false);
+            // Optionally show an error in the modal or a toast
+            toast({ variant: "destructive", title: "Scan Error", description: "Detected an empty barcode." });
+            // Keep modal open to show error or close it? Decide UX.
+            // setIsModalOpen(false); // Maybe close immediately for empty scan?
+            // handleResumeScan(); // And resume?
+            return; // Exit early
         }
 
-        const selected = classOptions.find((option) => option.id === value)
-        if (selected) {
-            dispatch(setCourseClass(selected))
-            console.log("Selected Class:", selected)
-        }
-    }
-
-    // Handle barcode detection
-    const handleBarcodeDetected = async (studentId: string) => {
-        if (!selectedClass?.id || isLoading || !isScanning) return
-
-        // Ensure studentId is a string and trim any whitespace
-        const barcodeId = String(studentId).trim()
-        console.log("Detected barcode:", barcodeId)
-
-        // Immediately pause scanning and open modal
-        setIsScanning(false)
-        setIsModalOpen(true)
-        setLastScannedId(barcodeId)
-        dispatch(resetMarkingStatus())
-
-        // Fetch student info
-        setFetchingStudent(true)
+        // --- 1. Fetch Student Information ---
+        let fetchedInfo: StudentInfo | null = null;
         try {
-            const info = await fetchStudentInfo(barcodeId)
-            console.log("Fetched student info:", info)
-            setStudentInfo(info)
+            fetchedInfo = await fetchStudentInfo(barcodeId);
+            setStudentInfo(fetchedInfo); // Update state with fetched info (or null)
         } catch (error) {
-            console.error("Error fetching student info:", error)
+            console.error("Error fetching student info:", error);
+            setStudentInfo(null);
+            toast({ variant: "destructive", title: "Lookup Error", description: "Could not fetch student details." });
+            // Error handled, modal will show "Not Found" or a generic error
         } finally {
-            setFetchingStudent(false)
+            setFetchingStudentInfo(false); // Student lookup finished
         }
 
-        const payload = {
-            studentId: barcodeId,
-            classInstanceId: selectedClass.id,
-            markedByUserId: user!.id,
-            timestamp: new Date().toISOString(),
+        // --- 2. Mark Attendance (if student found) ---
+        if (fetchedInfo && selectedClass?.id && user?.id) {
+            const payload = {
+                studentId: String(fetchedInfo.id), // Use the ID from the fetched student data
+                classInstanceId: selectedClass.id,
+                markedByUserId: user.id,
+                timestamp: new Date().toISOString(),
+                scannedBarcode: barcodeId, // Optionally send the scanned barcode too
+            };
+            console.log("Dispatching markStudentAttendance with payload:", payload);
+
+            try {
+                await dispatch(markStudentAttendance(payload)).unwrap();
+                // Success is handled by apiStatus change in the modal
+                console.log("Attendance marked successfully via Redux.");
+                // toast({ variant: "success", title: "Attendance Marked" }); // Modal gives feedback
+            } catch (error: any) {
+                // Error is handled by apiStatus/apiError change in the modal
+                console.error("Attendance marking failed via Redux:", error);
+                // toast({ variant: "destructive", title: "Marking Failed", description: error?.message || String(error) }); // Modal gives feedback
+            }
+        } else if (!fetchedInfo) {
+            // If student not found, do nothing further here, modal shows the "Not Found" state.
+            console.log("Student not found, attendance not marked.");
+        } else {
+            console.error("Missing data for marking attendance:", { fetchedInfo, selectedClass, user });
+            // Handle this case if needed - maybe show an error in the modal?
         }
 
-        dispatch(markStudentAttendance(payload))
-            .unwrap()
-            .then((response) => {
-                toast({
-                    variant: "success",
-                    title: "Attendance Marked",
-                    description: `Student: ${response.studentId} marked. ${response.message || ""}`,
-                })
-                // Note: We don't auto-resume scanning here
-                // The user must close the modal to resume scanning
-            })
-            .catch((error) => {
-                const errorMsg = typeof error === "string" ? error : "An unknown error occurred."
-                toast({
-                    variant: "destructive",
-                    title: "Marking Failed",
-                    description: `${errorMsg}. ID: ${barcodeId}`,
-                })
-                // Note: We don't auto-resume scanning here
-                // The user must close the modal to resume scanning
-            })
-    }
+    }, [selectedClass, user, dispatch, toast]); // Dependencies for the callback
 
-    // Handle modal close
-    const handleModalClose = () => {
-        setIsModalOpen(false)
-    }
 
-    // Resume scanning (called after modal is closed)
-    const handleResumeScan = () => {
+    // Handle Modal Close -> This just closes the modal visually
+    const handleModalClose = useCallback(() => {
+        setIsModalOpen(false);
+    }, []);
+
+    // Resume Scanning -> Called by Modal's onResumeScan prop after it closes
+    const handleResumeScan = useCallback(() => {
+        console.log("--- Resuming Scan ---");
+        setLastScannedId(null);
+        setStudentInfo(null);
+        dispatch(resetMarkingStatus()); // Clear API status
+        setFetchingStudentInfo(false);
+        // Activation is handled by the useEffect watching selectedClass and isModalOpen
+        // Explicitly setting true here might be needed if useEffect doesn't trigger fast enough,
+        // but rely on the effect first.
         if (selectedClass?.id) {
-            // Reset states
-            setLastScannedId(null)
-            setStudentInfo(null)
-            dispatch(resetMarkingStatus())
-
-            // Resume scanning
-            setIsScanning(true)
+            setIsScannerActive(true);
         }
-    }
+    }, [dispatch, selectedClass]);
 
-    // Toggle scanner
-    const toggleScanner = () => {
-        setIsScanning((prev) => !prev)
-    }
+    // Toggle scanner manually
+    const toggleScanner = useCallback(() => {
+        if (!selectedClass?.id) {
+            toast({ title: "Select a Class", description: "Please select a class first." });
+            return;
+        }
+        dispatch(setCourseClass(
+            {
+                id: '',
+                courseName: "",
+                sessionName: "",
+            }
+        )); // Use null or specific empty state object
+        setIsScannerActive((prev) => !prev);
+        toast({ title: `Scanner ${!isScannerActive ? "Resumed" : "Paused"}` });
+    }, [selectedClass, isScannerActive, toast]);
 
-    // Render status badge
+
+    // Render Status Badge Logic (Improved)
     const renderStatusBadge = () => {
-        if (isLoading) {
-            return (
-                <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Processing...
-                </Badge>
-            )
+        // Priority to modal/API states when modal was last open
+        if (isModalOpen) {
+            if (fetchingStudentInfo) return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Fetching Info...</Badge>;
+            if (markingLoading) return <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Marking...</Badge>;
+            // Modal handles detailed status, so maybe show nothing here or just 'Processing'
+            return <Badge variant="outline">Processing Scan...</Badge>
         }
 
-        switch (apiStatus) {
-            case "success":
-                return (
-                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                        <CheckCircle className="mr-1 h-3 w-3" /> Success: {lastMarkedStudentId}
-                    </Badge>
-                )
-            case "error":
-                return (
-                    <Badge variant="destructive">
-                        <XCircle className="mr-1 h-3 w-3" /> Error: {apiError} (ID: {lastScannedId})
-                    </Badge>
-                )
-            case "idle":
-                if (isScanning && selectedClass?.id) {
-                    return <Badge variant="outline">Ready to scan</Badge>
+        // Status when scanner is supposed to be active or paused
+        if (selectedClass?.id) {
+            if (isScannerActive) {
+                // Show last successful scan briefly?
+                if (apiStatus === 'success' && lastScannedId) {
+                    return (
+                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 animate-fade-out">
+                            <CheckCircle className="mr-1 h-3 w-3" /> Success: {lastScannedId}
+                        </Badge>
+                    )
                 }
-                if (!selectedClass?.id) {
-                    return <Badge variant="secondary">Select a class to start</Badge>
+                return <Badge variant="secondary" className="border-green-500"><ScanLine className="mr-1 h-3 w-3" /> Ready to Scan</Badge>;
+            } else {
+                // Show last error briefly?
+                if (apiStatus === 'error' && lastScannedId) {
+                    return (
+                        <Badge variant="destructive" className="animate-fade-out">
+                            <XCircle className="mr-1 h-3 w-3" /> Error: {lastScannedId}
+                        </Badge>
+                    )
                 }
-                return <Badge variant="secondary">Scanner paused</Badge>
-            default:
-                return null
+                return <Badge variant="secondary"><PowerOff className="mr-1 h-3 w-3" /> Scanner Paused</Badge>;
+            }
         }
-    }
 
-    if (isLoading && !studentInfo && !isModalOpen) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Loader2 className="h-10 w-10 animate-spin" />
-            </div>
-        )
-    }
+        // Default state - no class selected
+        return <Badge variant="secondary">Select a class to start</Badge>;
+    };
+
 
     return (
         <>
-            <Card className="mx-auto bg-card/5 backdrop-blur-sm border border-card/30 backdrop-saturate-150 shadow-md">
-                <CardContent className="p-6 space-y-6">
-                    {/* Header */}
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => router.back()}>
-                            <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                        <h1 className="text-2xl font-bold">Scan Attendance</h1>
+            <Card className="w-full  mx-auto bg-card/5 backdrop-blur-sm border border-card/30 shadow-lg">
+                <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Button variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                            <CardTitle className="text-2xl font-bold">Scan Attendance</CardTitle>
+                        </div>
+                        {/* Status Badge Area in Header */}
+                        <div className="min-h-[24px]">{renderStatusBadge()}</div>
                     </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
 
                     {/* Class Selection */}
                     <div className="space-y-1.5">
                         <Label htmlFor="courseClassSelect">Select Class/Session</Label>
-                        <Select value={selectedClass?.id || ""} onValueChange={handleClassChange} disabled={isLoading}>
-                            <SelectTrigger id="courseClassSelect" className="w-full md:w-1/2">
-                                <SelectValue placeholder="Select a class to start scanning..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="select-a-class">-- Select a Class --</SelectItem>
-                                {classOptions.length === 0 && (
-                                    <SelectItem value="loading" disabled>
-                                        Loading classes...
-                                    </SelectItem>
-                                )}
-                                {classOptions.map((option) => (
-                                    <SelectItem key={option.id} value={option.id}>
-                                        {option.courseName} - {option.sessionName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {!selectedClass?.id && (
-                            <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning.</p>
+                        <div className="flex flex-col sm:flex-row gap-4 items-start">
+                            <Select
+                                value={selectedClass?.id || ""}
+                                onValueChange={handleClassChange}
+                                disabled={classOptionsLoading || markingLoading || fetchingStudentInfo} // Disable while loading anything critical
+                            >
+                                <SelectTrigger id="courseClassSelect" className="w-full sm:w-auto sm:min-w-[300px] flex-grow">
+                                    <SelectValue placeholder="Select a class to start scanning..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="select-a-class">-- Select a Class --</SelectItem>
+                                    {classOptionsLoading && (
+                                        <SelectItem value="loading" disabled>Loading classes...</SelectItem>
+                                    )}
+                                    {classOptions.map((option) => (
+                                        <SelectItem key={option.id} value={option.id}>
+                                            {option.courseName} - {option.sessionName}
+                                        </SelectItem>
+                                    ))}
+                                    {!classOptionsLoading && classOptions.length === 0 && (
+                                        <SelectItem value="no-classes" disabled>No classes available</SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+
+                            {/* Manual Pause/Resume Button */}
+                            {selectedClass?.id && (
+                                <Button
+                                    variant="outline"
+                                    size="default" // Make it standard size
+                                    onClick={toggleScanner}
+                                    disabled={!selectedClass?.id || markingLoading || fetchingStudentInfo} // Disable if busy
+                                    className="w-full sm:w-auto flex-shrink-0"
+                                >
+                                    {isScannerActive ? <PowerOff className="mr-2 h-4 w-4" /> : <Power className="mr-2 h-4 w-4" />}
+                                    {isScannerActive ? "Pause Scanner" : "Resume Scanner"}
+                                </Button>
+                            )}
+                        </div>
+                        {!selectedClass?.id && !classOptionsLoading && (
+                            <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning can begin.</p>
+                        )}
+                        {selectedClass?.id && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 pt-2">
+                                <UserCheck className="h-4 w-4" /> Scanning for:
+                                <span className="font-medium text-primary">
+                                    {selectedClass.courseName} - {selectedClass.sessionName}
+                                </span>
+                            </p>
                         )}
                     </div>
 
+
                     {/* Scanner Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 pt-4">
                         {selectedClass?.id ? (
-                            <>
-                                <div className="flex justify-between items-center">
-                                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                        <UserCheck className="h-4 w-4" /> Scanning for:
-                                        <span className="font-medium">
-                                            {selectedClass.courseName} - {selectedClass.sessionName}
-                                        </span>
-                                    </p>
-
-                                    {/* Manual Pause/Resume Button */}
-                                    <Button variant="outline" size="sm" onClick={toggleScanner} disabled={isLoading || !selectedClass.id}>
-                                        {isScanning ? <PowerOff className="mr-2 h-4 w-4" /> : <Power className="mr-2 h-4 w-4" />}
-                                        {isScanning ? "Pause Scanner" : "Resume Scanner"}
-                                    </Button>
-                                </div>
-
-                                {/* Barcode Scanner */}
-                                <div className="flex justify-center">
+                            <div className="flex justify-center items-center w-full h-[350px]"> {/* Fixed height container */}
+                                {/* Barcode Scanner Component */}
+                                {/* Use max-width to control size on larger screens */}
+                                <div className="w-full max-w-md">
                                     <BarcodeScanner
+                                        // Using 100% width makes it responsive within its container
+                                        width="100%"
+                                        height={300} // Fixed height, adjust as needed
                                         onDetected={handleBarcodeDetected}
-                                        width={400}
-                                        height={300} // Adjusted for better barcode scanning ratio
-                                        isActive={isScanning && !isLoading && !isModalOpen}
+                                        // Pass the active state, controlled by class selection AND modal state
+                                        isActive={isScannerActive}
+                                        scanDelay={750} // Increase delay slightly
                                     />
                                 </div>
-                            </>
+                            </div>
                         ) : (
                             <Alert variant="default" className="mt-6">
                                 <AlertTriangle className="h-4 w-4" />
@@ -391,22 +407,36 @@ export default function ScanPage() {
                         )}
                     </div>
 
-                    {/* Status Feedback Area */}
-                    <div className="text-center pt-2 min-h-[2.5rem]">{renderStatusBadge()}</div>
+                    {/* Status Feedback Area (alternative position) */}
+                    {/* <div className="text-center pt-2 min-h-[2.5rem]">{renderStatusBadge()}</div> */}
+
                 </CardContent>
             </Card>
 
-            {/* Student Info Modal */}
+            {/* Student Info Modal - Pass necessary props */}
             <StudentInfoModal
                 isOpen={isModalOpen}
-                onClose={handleModalClose}
+                onClose={handleModalClose} // Only closes modal
+                onResumeScan={handleResumeScan} // Closes modal AND resets/resumes scan
                 studentInfo={studentInfo}
-                isLoading={fetchingStudent}
+                isLoading={fetchingStudentInfo} // Pass student fetching status
                 scannedId={lastScannedId}
-                apiStatus={apiStatus}
+                // Pass attendance marking status/error
+                apiStatus={markingLoading ? 'loading' : apiStatus}
                 apiError={apiError}
-                onResumeScan={handleResumeScan}
             />
+
+            {/* CSS for fade-out animation */}
+            <style jsx global>{`
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+                .animate-fade-out {
+                    animation: fadeOut 1.5s ease-out forwards;
+                    /* Adjust duration as needed */
+                }
+             `}</style>
         </>
-    )
+    );
 }
