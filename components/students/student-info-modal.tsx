@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Calendar, School, BookOpen, User, CheckCircle, XCircle, Loader2, Barcode, AlertTriangle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Money } from "phosphor-react"
 
 interface StudentInfo {
     id: string | number
@@ -23,6 +24,7 @@ interface StudentInfo {
     classId?: string
     className?: string
     barcodeId: string // Ensure this matches the scanned ID type/format if needed
+    paidStatus?: boolean
 }
 
 interface StudentInfoModalProps {
@@ -66,7 +68,7 @@ export function StudentInfoModal({
         if (apiStatus === 'loading') return "Processing attendance..."
         if (studentInfo && apiStatus === 'success') return `Attendance marked for ${studentInfo.name}.`;
         if (studentInfo && apiStatus === 'error') return `Failed to mark attendance for ${studentInfo.name}.`;
-        if (studentInfo) return `Details for barcode: ${scannedId}`;
+        if (studentInfo) return `Details for student with id: ${scannedId}`;
         if (scannedId && !studentInfo && !isLoading) return `No student record found for barcode: ${scannedId}.`;
         return "Ready to display scan results.";
     }
@@ -120,10 +122,10 @@ export function StudentInfoModal({
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 pt-2">
-                                <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.id} />
-                                <InfoItem icon={Barcode} label="Barcode ID" value={studentInfo.barcodeId} isCode />
+                                <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.id} isCode />
                                 <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth} />
                                 <InfoItem icon={School} label="Class" value={studentInfo.className} />
+                                <InfoItem icon={Money} label="Paid" value={studentInfo.paidStatus} />
                             </div>
 
                             {/* API Status Feedback */}
@@ -176,13 +178,26 @@ export function StudentInfoModal({
 }
 
 // Helper component for displaying info items
-const InfoItem: React.FC<{ icon: React.ElementType, label: string, value?: string | number | null, isCode?: boolean }> = ({ icon: Icon, label, value, isCode = false }) => {
+const InfoItem: React.FC<{ icon: React.ElementType, label: string, value?: string | number | null | boolean, isCode?: boolean, }> = ({ icon: Icon, label, value, isCode = false }) => {
     if (!value) return null; // Don't render if value is missing
 
     return (
         <div className="flex items-center gap-2 text-sm py-1">
             <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <span className="text-muted-foreground">{label}:</span>
+            {/* handle paid status */}
+            {typeof value === "boolean" ? (
+                value ? (
+                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                        Paid
+                    </Badge>
+                ) : (
+                    <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
+                        Unpaid
+                    </Badge>
+                )
+            ) : null}
+            {/* handle code or text */}
             {isCode ? (
                 <code className="font-mono text-xs bg-secondary px-1 py-0.5 rounded">{value}</code>
             ) : (

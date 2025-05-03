@@ -42,6 +42,7 @@ interface StudentInfo {
     classId?: string; // May not be needed if fetched based on classInstance
     className?: string;
     barcodeId: string; // The ID scanned from the barcode
+    paidStatus?: boolean; // Optional, if you want to show payment status
 }
 
 const fetchStudentInfo = async (scannedBarcodeId: string): Promise<StudentInfo | null> => {
@@ -50,14 +51,14 @@ const fetchStudentInfo = async (scannedBarcodeId: string): Promise<StudentInfo |
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     const mockStudents: Record<string, StudentInfo> = {
-        "STUDENT-123": { id: "S1", name: "Alice Wonderland", email: "alice@example.com", dateOfBirth: "2001-03-10", classId: "1", className: "CS 101", barcodeId: "STUDENT-123" },
-        "TEMP-123": { id: "S2", name: "Bob The Builder", email: "bob@example.com", barcodeId: "TEMP-123", className: "Temporary Pass" },
-        "1": { id: "101", name: "Charlie Chaplin", email: "charlie@example.com", dateOfBirth: "1999-05-15", classId: "2", className: "Physics 101", barcodeId: "1" },
-        "2": { id: "102", name: "Diana Prince", email: "diana@example.com", dateOfBirth: "2000-08-22", classId: "3", className: "Chemistry 101", barcodeId: "2" },
-        "3": { id: "103", name: "Ethan Hunt", email: "ethan@example.com", dateOfBirth: "2000-01-01", classId: "1", className: "CS 101", barcodeId: "3" },
-        "4": { id: "104", name: "Fiona Shrek", email: "fiona@example.com", barcodeId: "4", className: "Arts 101" },
+        "STUDENT-123": { id: "S1", name: "Alice Wonderland", email: "alice@example.com", dateOfBirth: "2001-03-10", classId: "1", className: "CS 101", barcodeId: "STUDENT-123", paidStatus: true },
+        "TEMP-123": { id: "S2", name: "Bob The Builder", email: "bob@example.com", barcodeId: "TEMP-123", className: "Temporary Pass", paidStatus: false },
+        "1": { id: "1", name: "Charlie Chaplin", email: "charlie@example.com", dateOfBirth: "1999-05-15", classId: "2", className: "Physics 101", barcodeId: "1", paidStatus: true },
+        "2": { id: "2", name: "Diana Prince", email: "diana@example.com", dateOfBirth: "2000-08-22", classId: "3", className: "Chemistry 101", barcodeId: "2", paidStatus: false },
+        "3": { id: "2", name: "Ethan Hunt", email: "ethan@example.com", dateOfBirth: "2000-01-01", classId: "1", className: "CS 101", barcodeId: "3", paidStatus: true },
+        "4": { id: "4", name: "Fiona Shrek", email: "fiona@example.com", dateOfBirth: "2000-01-01", classId: "3", barcodeId: "4", className: "Arts 101", paidStatus: false },
         // Add a student with a barcode containing special chars if needed for testing
-        "CODE/128#EXTRA": { id: "S5", name: "Special Code User", email: "special@example.com", barcodeId: "CODE/128#EXTRA", className: "Advanced Topics" },
+        "CODE/128#EXTRA": { id: "S5", name: "Special Code User", email: "special@example.com", barcodeId: "CODE/128#EXTRA", className: "Advanced Topics", paidStatus: true },
     };
 
     // Log available keys for easier debugging
