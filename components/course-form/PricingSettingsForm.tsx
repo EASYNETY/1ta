@@ -5,8 +5,8 @@ import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Keep Select import if CourseSettingsPlaceholder uses it
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"; // Keep Button if CourseSettingsPlaceholder uses it
 import { FormNavigation } from "./FormNavigation";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
 
@@ -17,24 +17,8 @@ interface PricingSettingsFormProps {
     submitLabel: string;
 }
 
-// Placeholders for complex sections
-const PaymentIntegrationPlaceholder: React.FC = () => (
-    <div className="border rounded-lg p-4 mt-6">
-        <h3 className="text-lg font-medium mb-4">Payment Integration (Placeholder)</h3>
-        <div className="space-y-4">
-            {["Paystack", "Stripe", "PayPal"].map((provider) => (
-                <div key={provider} className="flex items-center p-3 border rounded-md">
-                    <div className="flex-1">
-                        <h4 className="font-medium">{provider}</h4>
-                        <p className="text-sm text-muted-foreground">Accept payments via {provider}</p>
-                    </div>
-                    <DyraneButton type="button" variant="outline" size="sm" disabled>Configure</DyraneButton>
-                </div>
-            ))}
-        </div>
-    </div>
-);
-
+// Placeholder for Course Settings - Kept as requested
+// (Ensure imports for Select/Input/Button are kept if this component uses them)
 const CourseSettingsPlaceholder: React.FC = () => (
     <div className="border rounded-lg p-4 mt-6">
         <h3 className="text-lg font-medium mb-4">Course Settings (Placeholder)</h3>
@@ -63,56 +47,78 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
                 <CardTitle>Pricing & Settings</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-                {/* Price & Discount Price */}
+                {/* Price & Discount Price in NGN */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                         control={control}
-                        name="price"
+                        name="price" // This should correspond to the field name in your schema
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Price (USD) *</FormLabel>
-                                <FormControl><Input type="number" min="0" step="0.01" {...field} placeholder="e.g., 49.99 or 0 for free" /></FormControl>
-                                <FormDescription>Set the regular price (0 for free).</FormDescription>
+                                {/* UPDATE Label */}
+                                <FormLabel>Price (NGN) *</FormLabel>
+                                <FormControl>
+                                    {/* RHF handles number conversion for type="number" */}
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        // Adjust step if needed for NGN (e.g., no decimals step="1")
+                                        step="1"
+                                        {...field}
+                                        // Pass value directly, RHF manages state
+                                        // value={field.value} // RHF handles this via {...field}
+                                        placeholder="e.g., 15000 or 0 for free"
+                                    />
+                                </FormControl>
+                                {/* UPDATE Description */}
+                                <FormDescription>Set the regular price in Naira (0 for free).</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
                     <FormField
                         control={control}
-                        name="discountPrice"
+                        name="discountPrice" // This should correspond to the field name in your schema
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Discount Price (USD)</FormLabel>
+                                {/* UPDATE Label */}
+                                <FormLabel>Discount Price (NGN)</FormLabel>
                                 <FormControl>
-                                    {/* Important: Keep type="number" but handle potential empty string */}
                                     <Input
                                         type="number"
                                         min="0"
-                                        step="0.01"
-                                        placeholder="e.g., 39.99"
-                                        {...field}
-                                        value={field.value ?? ""} // Ensure value is never null/undefined for input
+                                        // Adjust step if needed for NGN
+                                        step="1"
+                                        placeholder="e.g., 12500"
+                                        {...field} // Spread first
+                                        // Explicitly handle undefined for value prop compatibility
+                                        value={field.value ?? ""}
+                                        // Let RHF and schema transform handle conversion
                                         onChange={(e) => {
-                                            // Allow empty string or convert to number
                                             const value = e.target.value;
-                                            field.onChange(value === "" ? "" : parseFloat(value));
+                                            // Pass undefined if empty, otherwise parse as float/int
+                                            field.onChange(value === "" ? undefined : parseFloat(value));
                                         }}
+                                        // Re-apply other needed props
+                                        onBlur={field.onBlur}
+                                        name={field.name}
+                                        ref={field.ref}
                                     />
                                 </FormControl>
-                                <FormDescription>Set a promotional price (optional).</FormDescription>
+                                {/* UPDATE Description */}
+                                <FormDescription>Set a promotional price in Naira (optional).</FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
                 </div>
 
-                {/* Payment Integration Placeholder */}
-                <PaymentIntegrationPlaceholder />
+                {/* REMOVED Payment Integration Placeholder */}
 
-                {/* Course Settings Placeholder */}
+                {/* Course Settings Placeholder - Kept */}
                 <CourseSettingsPlaceholder />
 
             </CardContent>
+            {/* FormNavigation remains the same */}
             <FormNavigation onBack={onBack} isSubmitting={isSubmitting} submitLabel={submitLabel} isLastStep={true} />
         </DyraneCard>
     );
