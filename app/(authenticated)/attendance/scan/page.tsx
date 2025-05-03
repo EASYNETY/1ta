@@ -28,8 +28,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle } from "lucide-react"
+import {
+    ArrowLeft,
+    CheckCircle,
+    XCircle,
+    Loader2,
+    UserCheck,
+    Power,
+    PowerOff,
+    AlertTriangle,
+    User,
+    Calendar,
+    School,
+    BookOpen,
+    QrCode,
+} from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+
+// Mock student data for demonstration
+interface StudentInfo {
+    id: string
+    name: string
+    email: string
+    dateOfBirth?: string
+    classId?: string
+    className?: string
+    barcodeId: string
+}
+
+// Mock function to fetch student info
+const fetchStudentInfo = async (studentId: string): Promise<StudentInfo | null> => {
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    // Mock student data
+    const mockStudents: Record<string, StudentInfo> = {
+        "STUDENT-123": {
+            id: "3",
+            name: "Student User",
+            email: "student@example.com",
+            dateOfBirth: "2000-01-01",
+            classId: "1",
+            className: "Computer Science 101",
+            barcodeId: "STUDENT-123",
+        },
+        "TEMP-123": {
+            id: "4",
+            name: "New Student",
+            email: "newstudent@example.com",
+            barcodeId: "TEMP-123",
+        },
+    }
+
+    return mockStudents[studentId] || null
+}
 
 export default function ScanPage() {
     const router = useRouter()
@@ -48,6 +101,8 @@ export default function ScanPage() {
     const classOptions = useCourseClassOptions()
     const [isScanning, setIsScanning] = useState(false)
     const [lastScannedId, setLastScannedId] = useState<string | null>(null)
+    const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null)
+    const [fetchingStudent, setFetchingStudent] = useState(false)
 
     // Set isScanning to false on mount and check authorization
     useEffect(() => {
@@ -85,10 +140,11 @@ export default function ScanPage() {
             })
             dispatch(resetMarkingStatus())
             setLastScannedId(null)
+            setStudentInfo(null)
         } else {
             setIsScanning(false)
         }
-    }, [selectedClass, dispatch, isScanning, toast])
+    }, [selectedClass, dispatch, toast])
 
     // Handle class selection
     const handleClassChange = (value: string) => {
@@ -111,7 +167,7 @@ export default function ScanPage() {
     }
 
     // Handle barcode detection
-    const handleBarcodeDetected = (studentId: string) => {
+    const handleBarcodeDetected = async (studentId: string) => {
         if (!selectedClass?.id || isLoading || !isScanning) return
 
         setLastScannedId(studentId)
@@ -119,6 +175,17 @@ export default function ScanPage() {
 
         // Temporarily pause scanning
         setIsScanning(false)
+
+        // Fetch student info
+        setFetchingStudent(true)
+        try {
+            const info = await fetchStudentInfo(studentId)
+            setStudentInfo(info)
+        } catch (error) {
+            console.error("Error fetching student info:", error)
+        } finally {
+            setFetchingStudent(false)
+        }
 
         const payload = {
             studentId: studentId,
@@ -138,8 +205,6 @@ export default function ScanPage() {
 
                 // Resume scanning after delay
                 setTimeout(() => {
-                    setLastScannedId(null)
-                    dispatch(resetMarkingStatus())
                     if (selectedClass?.id) setIsScanning(true)
                 }, 1500)
             })
@@ -153,8 +218,6 @@ export default function ScanPage() {
 
                 // Resume scanning after longer delay for errors
                 setTimeout(() => {
-                    setLastScannedId(null)
-                    dispatch(resetMarkingStatus())
                     if (selectedClass?.id) setIsScanning(true)
                 }, 2500)
             })
@@ -201,7 +264,93 @@ export default function ScanPage() {
         }
     }
 
-    if (isLoading) {
+    // Render student info card
+    const renderStudentInfo = () => {
+        if (fetchingStudent) {
+            return (
+                <div className="mt-4 p-4 border rounded-lg bg-card/50">
+                    <div className="flex items-center space-x-4">
+                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-[250px]" />
+                            <Skeleton className="h-4 w-[200px]" />
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        if (!studentInfo && lastScannedId) {
+            return (
+                <Alert variant="destructive" className="mt-4">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Student Not Found</AlertTitle>
+                    <AlertDescription>No student found with ID: {lastScannedId}</AlertDescription>
+                </Alert>
+            )
+        }
+
+        if (studentInfo) {
+            return (
+                <div className="mt-4 p-4 border rounded-lg bg-card/50 backdrop-blur-sm">
+                    <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="font-medium">{studentInfo.name}</h3>
+                            <p className="text-sm text-muted-foreground">{studentInfo.email}</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {studentInfo.dateOfBirth || "No DOB"}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="gap-1">
+                                <School className="h-3 w-3" />
+                                {studentInfo.className || "No Class"}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="gap-1">
+                                <BookOpen className="h-3 w-3" />
+                                ID: {studentInfo.id}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                            <Badge variant="outline" className="gap-1">
+                                <QrCode className="h-3 w-3" />
+                                Barcode: {studentInfo.barcodeId}
+                            </Badge>
+                        </div>
+                    </div>
+
+                    {apiStatus === "success" && (
+                        <div className="mt-4 p-2 bg-green-50 text-green-700 rounded-md text-sm flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4" />
+                            Attendance marked successfully
+                        </div>
+                    )}
+
+                    {apiStatus === "error" && (
+                        <div className="mt-4 p-2 bg-red-50 text-red-700 rounded-md text-sm flex items-center gap-2">
+                            <XCircle className="h-4 w-4" />
+                            {apiError}
+                        </div>
+                    )}
+                </div>
+            )
+        }
+
+        return null
+    }
+
+    if (isLoading && !studentInfo) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <Loader2 className="h-10 w-10 animate-spin" />
@@ -274,6 +423,9 @@ export default function ScanPage() {
                                     isActive={isScanning && !isLoading}
                                 />
                             </div>
+
+                            {/* Student Info Display */}
+                            {renderStudentInfo()}
                         </>
                     ) : (
                         <Alert variant="default" className="mt-6">
