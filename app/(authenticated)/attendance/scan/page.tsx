@@ -151,7 +151,7 @@ export default function ScanPage() {
             setIsScanning(false)
             dispatch(resetMarkingStatus())
         }
-    }, [user, router, toast, dispatch])
+    }, [user, router, toast, dispatch, isModalOpen])
 
     // Activate scanner when class is selected
     useEffect(() => {
@@ -168,7 +168,7 @@ export default function ScanPage() {
         } else {
             setIsScanning(false)
         }
-    }, [selectedClass, dispatch, toast])
+    }, [selectedClass, dispatch, toast, isModalOpen])
 
     // Handle class selection
     const handleClassChange = (value: string) => {
