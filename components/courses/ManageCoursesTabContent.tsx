@@ -55,6 +55,7 @@ export function ManageCoursesTabContent({ status, courses }: ManageCoursesTabCon
                             <col className="w-[150px] md:w-1/6" />
                             <col className="w-[100px]" />
                             <col className="w-[100px]" />
+                            <col className="w-[100px]" />
                             <col className="min-w-[160px]" />
                         </colgroup>
                         <thead>
@@ -65,6 +66,7 @@ export function ManageCoursesTabContent({ status, courses }: ManageCoursesTabCon
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Instructor</th>
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Students</th>
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                                <th className="text-left py-3 px-4 font-medium text-muted-foreground">Price</th>
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
@@ -83,13 +85,13 @@ export function ManageCoursesTabContent({ status, courses }: ManageCoursesTabCon
                                             </div>
                                             {/* Allow text content to truncate */}
                                             <div className="min-w-0"> {/* Added min-w-0 for flex child truncation */}
-                                                <div className="font-medium truncate">{course.title}</div> {/* Apply truncate */}
+                                                <div className="font-medium truncate">{course.title}</div>
                                                 <div className="text-xs text-muted-foreground">{course.level}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="py-3 px-4 align-top">{course.category}</td>
-                                    <td className="py-3 px-4 align-top truncate">{course.instructor.name}</td> {/* Optional truncate */}
+                                    <td className="py-3 px-4 align-top truncate">{course.instructor.name}</td>
                                     <td className="py-3 px-4 align-top">
                                         <div className="flex items-center gap-1">
                                             <Users className="h-4 w-4 text-muted-foreground" />
@@ -103,6 +105,7 @@ export function ManageCoursesTabContent({ status, courses }: ManageCoursesTabCon
                                             Active
                                         </Badge>
                                     </td>
+                                    <td className="py-3 px-4 align-top truncate">₦ {course.priceUSD}</td>
                                     {/* --- Actions Cell with Dropdown --- */}
                                     <td className="py-3 px-4 align-top text-right"> {/* Align content right */}
                                         <DropdownMenu>
