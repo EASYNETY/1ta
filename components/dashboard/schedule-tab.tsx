@@ -256,7 +256,7 @@ export function ScheduleTab() {
                                             {dailyEvents.map((event: ScheduleEvent) => ( // Added type annotation
                                                 <motion.div
                                                     key={event.id}
-                                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:shadow-md transition-shadow duration-150"
+                                                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card/5 backdrop-blur-sm hover:shadow-md transition-shadow duration-150"
                                                     variants={{ // Item animation
                                                         hidden: { opacity: 0, y: 15 },
                                                         visible: { opacity: 1, y: 0 }

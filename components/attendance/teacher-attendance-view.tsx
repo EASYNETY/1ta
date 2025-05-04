@@ -38,7 +38,7 @@ type AttendanceStatusIndicator = "present" | "absent" | "late" | "holiday" | str
 type AttendanceDataForPicker = Record<string, AttendanceStatusIndicator>;
 
 // Define CalendarProps based on react-day-picker types used
-interface CalendarProps extends Omit<DayPickerSingleProps, 'modifiers' | 'classNames' | 'styles'> {
+export interface CalendarProps extends Omit<DayPickerSingleProps, 'modifiers' | 'classNames' | 'styles'> {
     modifiers?: Modifiers; // Use Modifiers type from react-day-picker
     modifiersClassNames?: Record<string, string>; // Matching structure for class names
     classNames?: DayPickerSingleProps['classNames']; // Keep standard classNames prop
