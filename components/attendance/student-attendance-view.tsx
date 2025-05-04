@@ -40,31 +40,32 @@ export function StudentAttendanceView() {
         return { total, present, absent, late, presentPercentage, absentPercentage, latePercentage }
     }, [studentRecords])
 
-    // Helper function to get status icon
-    const getStatusIcon = (status: AttendanceStatus) => {
-        switch (status) {
-            case "present":
-                return <Check className="h-4 w-4 text-green-600" />
-            case "absent":
-                return <X className="h-4 w-4 text-red-600" />
-            case "late":
-                return <Clock className="h-4 w-4 text-amber-600" />
-            default:
-                return null
-        }
-    }
-
     // Helper function to get status classes
     const getStatusClasses = (status: AttendanceStatus): string => {
         switch (status) {
             case "present":
-                return "bg-green-50 text-green-700 border-green-200"
+                return "bg-green-200/30 text-green-800 border-green-300 dark:bg-green-300/10 dark:text-green-400 dark:border-green-400/20";
             case "absent":
-                return "bg-red-50 text-red-700 border-red-200"
+                return "bg-red-200/30 text-red-800 border-red-300 dark:bg-red-300/10 dark:text-red-400 dark:border-red-400/20";
             case "late":
-                return "bg-amber-50 text-amber-700 border-amber-200"
+                return "bg-amber-200/30 text-amber-800 border-amber-300 dark:bg-amber-300/10 dark:text-amber-400 dark:border-amber-400/20";
             default:
-                return "bg-muted/50 text-muted-foreground border-border"
+                return "bg-muted/50 text-muted-foreground border-border dark:bg-muted/10 dark:text-muted-foreground dark:border-muted/30";
+        }
+    };
+
+
+    // Helper function to get status icon
+    const getStatusIcon = (status: AttendanceStatus) => {
+        switch (status) {
+            case "present":
+                return <Check className="h-4 w-4 text-green-600 dark:text-green-300" />
+            case "absent":
+                return <X className="h-4 w-4 text-red-600 dark:text-red-300" />
+            case "late":
+                return <Clock className="h-4 w-4 text-amber-600 dark:text-amber-300" />
+            default:
+                return null
         }
     }
 
