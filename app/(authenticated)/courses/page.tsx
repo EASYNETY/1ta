@@ -10,10 +10,10 @@ import { CoursesPageHeader } from "@/components/courses/CoursesPageHeader";
 import { CourseTabsList } from "@/components/courses/CourseTabsList";
 import { CourseFilters } from "@/components/courses/CourseFilters";
 import { AllCoursesTabContent } from "@/components/courses/AllCoursesTabContent";
-import { MyCoursesTabContent } from "@/components/courses/MyCoursesTabContent";
 import { ManageCoursesTabContent } from "@/components/courses/ManageCoursesTabContent";
 import { CourseRequestsTabContent } from "@/components/courses/CourseRequestsTabContent";
 import { User } from "@/types/user.types";
+import { MyCoursesTabContent } from "@/components/courses/MyCoursesTabContent";
 // Import other potential tab content components: Recommended, Completed, Analytics
 
 export default function CoursesPage() {
