@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { selectStudentAttendanceRecords } from "@/features/attendance/store/attendance-slice"
 import type { StudentAttendanceRecord, AttendanceStatus } from "@/data/mock-attendance-data"
 import { cn } from "@/lib/utils"
+import { isStudent } from "@/types/user.types"
 
 export function StudentAttendanceView() {
     const { user } = useAppSelector((state) => state.auth)
@@ -212,7 +213,9 @@ export function StudentAttendanceView() {
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Class:</span>
-                                    <span className="font-medium">{user.classId || "Not assigned"}</span>
+                                    {isStudent(user) &&
+                                        <span className="font-medium">{user.classId || "Not assigned"}</span>
+                                    }
                                 </div>
                                 {selectedRecord.date && (
                                     <div className="flex justify-between text-sm">

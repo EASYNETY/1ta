@@ -5,24 +5,10 @@ import { post, get, put } from "@/lib/api-client";
 import { setCookie } from "nookies"; // Import setCookie
 import type {
 	AuthResponse,
-	AuthState,
 	ResetPasswordPayload,
 } from "@/features/auth/types/auth-types";
 import { AUTH_ACTIONS } from "./auth-action-types";
-
-// Define User type here to avoid circular imports
-export interface User {
-	id: string;
-	name: string;
-	email: string;
-	role: "admin" | "teacher" | "student";
-	dateOfBirth?: string | null;
-	classId?: string | null;
-	barcodeId?: string | null;
-	guardianId?: string | null;
-	onboardingStatus?: "incomplete" | "complete";
-	accountType?: "individual" | "institutional";
-}
+import type { User, AuthState } from "@/types/user.types";
 
 // Helper function for cookie options (optional, but good practice)
 const getCookieOptions = (maxAgeSeconds?: number) => {

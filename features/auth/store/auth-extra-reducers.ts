@@ -1,12 +1,8 @@
 // features/auth/store/auth-extra-reducers.ts
 
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { AuthState } from "./auth-slice";
-import {
-	type User,
-	fetchUserProfileThunk,
-	updateUserProfileThunk,
-} from "./auth-thunks";
+import type { AuthState, User } from "@/types/user.types";
+import { fetchUserProfileThunk, updateUserProfileThunk } from "./auth-thunks";
 
 export const addAuthExtraReducers = (builder: any) => {
 	// FETCH USER PROFILE
@@ -20,7 +16,13 @@ export const addAuthExtraReducers = (builder: any) => {
 		(state: AuthState, action: PayloadAction<User>) => {
 			state.isLoading = false;
 			if (state.user) {
-				state.user = { ...state.user, ...action.payload };
+				// Preserve the role to ensure type safety
+				const updatedUser = {
+					...state.user,
+					...action.payload,
+					role: state.user.role, // Keep the original role
+				};
+				state.user = updatedUser as User;
 			}
 		}
 	);
@@ -47,7 +49,13 @@ export const addAuthExtraReducers = (builder: any) => {
 		(state: AuthState, action: PayloadAction<User>) => {
 			state.isLoading = false;
 			if (state.user) {
-				state.user = { ...state.user, ...action.payload };
+				// Preserve the role to ensure type safety
+				const updatedUser = {
+					...state.user,
+					...action.payload,
+					role: state.user.role, // Keep the original role
+				};
+				state.user = updatedUser as User;
 			}
 		}
 	);

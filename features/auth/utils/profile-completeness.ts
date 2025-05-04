@@ -1,6 +1,7 @@
 // features/auth/utils/profile-completeness.ts
 
-import type { User } from "../store/auth-slice";
+import type { User } from "@/types/user.types";
+import { isStudent } from "@/types/user.types";
 
 /**
  * Checks if a user's profile is complete based on required fields
@@ -14,16 +15,22 @@ export function isProfileComplete(user: User | null): boolean {
 	if (user.onboardingStatus === "complete") return true;
 	if (user.onboardingStatus === "incomplete") return false;
 
-	// Otherwise check required fields
-	// For students, we require dateOfBirth and classId
-	if (user.role === "student") {
+	// For students, check different requirements based on corporate status
+	if (isStudent(user)) {
+		// Corporate managers need additional fields
+		if (user.isCorporateManager === true) {
+			return Boolean(user.name) && Boolean(user.corporateId);
+		}
+
+		// Corporate students need their corporate ID and assigned course
+		if (user.corporateId) {
+			return Boolean(user.name) && Boolean(user.classId);
+		}
+
+		// Individual students need date of birth and class ID
 		return Boolean(user.dateOfBirth) && Boolean(user.classId);
 	}
 
 	// For teachers and admins, we might have different requirements
-	if (user.role === "teacher" || user.role === "admin") {
-		return true; // For now, assume teachers and admins don't need additional onboarding
-	}
-
-	return false;
+	return true; // For now, assume teachers and admins don't need additional onboarding
 }

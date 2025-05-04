@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import Barcode from 'react-barcode';
+import { ScanBarcode } from 'lucide-react';
 
 import {
     Dialog,
@@ -23,18 +24,14 @@ interface BarcodeDialogProps {
 export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
     userId,
     lineColor = '#C99700',
-    triggerLabel = 'Click to enlarge',
+    triggerLabel = 'View Barcode',
 }) => {
     const barcodeRef = useRef<HTMLDivElement>(null);
 
     const handleDownloadSVG = () => {
-        const svgNode = barcodeRef.current?.querySelector('svg'); // Find the SVG inside the ref'd div
-        if (!svgNode) {
-            console.error("SVG element not found within barcode container.");
-            return;
-        }
+        const svgNode = barcodeRef.current?.querySelector('svg');
+        if (!svgNode) return;
 
-        // Serialize the SVG to a string
         const serializer = new XMLSerializer();
         const svgString = serializer.serializeToString(svgNode);
 
@@ -82,25 +79,15 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
             <Tooltip>
                 <TooltipTrigger asChild>
                     <DialogTrigger asChild>
-                        <div className="flex items-center justify-center p-1 bg-[#00000000] rounded cursor-pointer hover:opacity-80 transition-opacity">
-                            <Barcode
-                                value={userId}
-                                height={20}
-                                width={1.5}
-                                displayValue={false}
-                                margin={0}
-                                lineColor={lineColor}
-                                background="#000000"
-                            />
+                        <div className="p-2 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition cursor-pointer">
+                            <ScanBarcode className="w-5 h-5" />
                         </div>
                     </DialogTrigger>
                 </TooltipTrigger>
-                <TooltipContent side="top">{triggerLabel} | User ID: {userId}</TooltipContent>
+                <TooltipContent>{triggerLabel}</TooltipContent>
             </Tooltip>
 
-            <DialogContent
-                className="sm:max-w-[340px] bg-background/50 backdrop-blur-sm rounded-2xl shadow-xl p-6 flex flex-col items-center justify-center gap-4 transition-all duration-300"
-            >
+            <DialogContent className="bg-background/50 backdrop-blur-sm rounded-2xl shadow-xl px-6 py-4 w-auto w-full flex flex-col items-center justify-center gap-4 transition-all duration-300">
                 <DialogHeader className="mb-2 text-center">
                     <DialogTitle className="text-xl font-semibold">
                         Scan User ID
@@ -121,13 +108,10 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
                     />
                 </div>
 
-                <DyraneButton
-                    onClick={handleDownloadSVG}
-                    variant={'default'}                >
+                <DyraneButton onClick={handleDownloadSVG}>
                     Download Barcode
                 </DyraneButton>
             </DialogContent>
-
         </Dialog>
     );
 };

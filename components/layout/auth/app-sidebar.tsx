@@ -243,7 +243,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                 )}>
                     {/* {mounted && isSidebarOpen && <ThemeToggle />} */}
                     {/* Barcode Section */}
-                    {isAuthenticated && user?.id && isSidebarOpen && (
+                    {isAuthenticated && user?.id && (
                         <BarcodeDialog userId={user.id} lineColor="#C99700" />
                     )}
 

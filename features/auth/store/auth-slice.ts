@@ -3,31 +3,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { destroyCookie } from "nookies"; // Import destroyCookie
 import { addAuthExtraReducers } from "./auth-extra-reducers";
-
-
-// Define User type here to avoid circular imports
-export interface User {
-	id: string;
-	name: string;
-	email: string;
-	role: "admin" | "teacher" | "student";
-	dateOfBirth?: string | null;
-	classId?: string | null;
-	barcodeId?: string | null;
-	guardianId?: string | null;
-	onboardingStatus?: "incomplete" | "complete";
-	accountType?: "individual" | "institutional";
-}
-
-export interface AuthState {
-	user: User | null;
-	token: string | null;
-	isAuthenticated: boolean;
-	isInitialized: boolean;
-	isLoading: boolean;
-	error: string | null;
-	skipOnboarding: boolean;
-}
+import type { User, AuthState } from "@/types/user.types";
 
 const initialState: AuthState = {
 	user: null,
@@ -80,7 +56,14 @@ export const authSlice = createSlice({
 		},
 		updateUser: (state, action: PayloadAction<Partial<User>>) => {
 			if (state.user) {
-				state.user = { ...state.user, ...action.payload };
+				// We need to handle the update based on the user's role
+				const updatedUser = { ...state.user, ...action.payload };
+
+				// Ensure the role doesn't change
+				updatedUser.role = state.user.role;
+
+				// Type-safe assignment
+				state.user = updatedUser as User;
 			}
 		},
 		initializeAuth: (state) => {
@@ -88,10 +71,13 @@ export const authSlice = createSlice({
 		},
 		setOnboardingStatus: (
 			state,
-			action: PayloadAction<"incomplete" | "complete">
+			action: PayloadAction<"incomplete" | "complete" | "pending_verification">
 		) => {
 			if (state.user) {
-				state.user.onboardingStatus = action.payload;
+				state.user = {
+					...state.user,
+					onboardingStatus: action.payload,
+				} as User;
 			}
 		},
 		skipOnboardingProcess: (state) => {

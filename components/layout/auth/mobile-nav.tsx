@@ -121,7 +121,7 @@ export function MobileNav() {
 
             {/* Student Barcode Modal */}
             <Dialog open={showStudentBarcodeModal} onOpenChange={setShowStudentBarcodeModal}>
-                <DialogContent className="sm:max-w-[300px] flex flex-col items-center">
+                <DialogContent className="bg-background/50 backdrop-blur-sm rounded-2xl shadow-xl px-6 py-4 w-auto flex flex-col items-center justify-center gap-4 transition-all duration-300">
                     <DialogHeader>
                         <DialogTitle>Your Attendance Barcode</DialogTitle>
                     </DialogHeader>

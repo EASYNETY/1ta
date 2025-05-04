@@ -3,13 +3,12 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // Import useRef
 import { useRouter, usePathname } from "next/navigation";
-// Only need useAppSelector to READ the state
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { isProfileComplete } from "../utils/profile-completeness";
-import { selectSkipCheckout } from "@/features/checkout/store/checkoutSlice";
-
+import { fetchUserProfileThunk } from "../store/auth-thunks";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -17,128 +16,166 @@ interface AuthProviderProps {
 
 const publicRoutes = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
 
+// Helper to check if path is public
+const isPathPublic = (pathname: string): boolean => {
+  return publicRoutes.some((route) => {
+    if (route === "/") return pathname === "/";
+    // Allow subpaths of public routes? Adjust if needed.
+    // If /reset-password/token should be public, use startsWith.
+    // If only /reset-password exact should be public, use ===.
+    return pathname === route || pathname.startsWith(`${route}/`);
+  });
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
-  // Read state managed by useAuth and reducers
+  const dispatch = useAppDispatch();
   const { isAuthenticated, isInitialized, user, skipOnboarding } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
-  const cart = useAppSelector((state) => state.cart)
-  const skipCheckout = useAppSelector(selectSkipCheckout)
+  const { toast } = useToast();
 
-  // State to track whether component has mounted (client-side only)
   const [isMounted, setIsMounted] = useState(false);
+  const hasFetchedProfile = useRef(false);
 
   useEffect(() => {
-    // Mark component as mounted after first render
     setIsMounted(true);
   }, []);
 
+  // Fetch user profile ONLY ONCE after initial authentication/mount
   useEffect(() => {
-    // --- Critical Check: Wait until useAuth confirms initialization ---
-    if (!isInitialized || !isMounted) {
-      console.log("AuthProvider: Waiting for initialization...");
-      return; // Do nothing until useAuth has finished its job
+    // Ensure it runs only client-side and only if authenticated but fetch hasn't happened
+    if (isMounted && isAuthenticated && !hasFetchedProfile.current) {
+      console.log("AuthProvider: Dispatching fetchUserProfileThunk...");
+      dispatch(fetchUserProfileThunk());
+      hasFetchedProfile.current = true;
     }
-    // --- Initialization is guaranteed complete by useAuth at this point ---
-    console.log("AuthProvider: Initialized. Checking routes...");
+    // Reset fetch flag if user logs out
+    if (isMounted && !isAuthenticated && hasFetchedProfile.current) {
+      hasFetchedProfile.current = false;
+    }
+  }, [isAuthenticated, isMounted, dispatch]);
 
-    const isPublicRoute = publicRoutes.some((route) => {
-      if (route === "/") return pathname === "/";
-      return pathname === route || pathname.startsWith(`${route}/`);
-    });
-
-    // Apply routing rules *after* initialization
-    if (!isAuthenticated && !isPublicRoute) {
-      console.log("AuthProvider: Redirecting to /login");
-      router.push("/login");
+  // Main effect: handles redirects and route access control
+  useEffect(() => {
+    // Wait for mount and initialization
+    if (!isMounted || !isInitialized) {
+      console.log("AuthProvider: Waiting for initialization or mount...");
       return;
     }
+    console.log(`AuthProvider: Running checks. Path: ${pathname}, Auth: ${isAuthenticated}, Initialized: ${isInitialized}`);
+    toast({
+      title: "Initialization Complete",
+      description: `You are now logged in as ${user?.name || "Guest"}.`,
+      variant: "success",
+    })
 
-    // Role-based access control
-    if (isAuthenticated && user) {
-      // Admin-only routes
+    const isPublic = isPathPublic(pathname);
+
+    // --- Scenario 1: Not Authenticated ---
+    if (!isAuthenticated) {
+      if (!isPublic) {
+        console.log("AuthProvider: Not authenticated, private route. Redirecting to /login");
+        // Toast can be shown outside the effect's dependencies
+        toast({
+          title: "Authentication Required",
+          description: "Please log in.",
+          variant: "destructive",
+        });
+        router.push("/login");
+      }
+      // If it IS public, do nothing, let them stay
+      return; // End checks for unauthenticated user
+    }
+
+    // --- Scenario 2: Authenticated ---
+    if (isAuthenticated) {
+      // If user data is needed but not loaded yet, wait (should be handled by isInitialized usually)
+      if (!user) {
+        console.log("AuthProvider: Authenticated but user object not ready yet.");
+        // This case might indicate an issue with initialization logic if it persists
+        toast({
+          title: "User Data Loading",
+          description: "Please wait a moment.",
+          variant: "default",
+        });
+        return;
+      }
+
+      // A) Onboarding Check
+      if (!isProfileComplete(user) && !skipOnboarding && pathname !== "/profile") {
+        console.log("AuthProvider: Authenticated, profile incomplete. Redirecting to /profile");
+        toast({
+          title: "Profile Incomplete",
+          description: "Please complete your profile.",
+          variant: "destructive",
+        });
+        // No need for toast here usually, profile page explains it
+        router.push("/profile");
+        return; // Prioritize profile completion
+      }
+
+      // B) Already Authenticated on Public Route Check
+      if (isPublic) {
+        console.log("AuthProvider: Authenticated on public route. Redirecting to /dashboard");
+        // Optional toast
+        // toast({ title: "Already Logged In", description: "Redirecting...", variant: "success" });
+        router.push("/dashboard");
+        return;
+      }
+
+      // C) Role-Based Access Control for Private Routes (add more as needed)
       if (pathname.startsWith("/admin") && user.role !== "admin") {
-        console.log("AuthProvider: Admin route unauthorized. Redirecting to /dashboard")
-        router.push("/dashboard")
-        return
+        console.log("AuthProvider: Admin route unauthorized. Redirecting...");
+        toast({ title: "Unauthorized Access", variant: "destructive" });
+        router.push("/dashboard");
+        return;
+      }
+      if (pathname.startsWith("/teacher") && !['teacher', 'admin'].includes(user.role)) {
+        console.log("AuthProvider: Teacher route unauthorized. Redirecting...");
+        toast({ title: "Unauthorized Access", variant: "destructive" });
+        router.push("/dashboard");
+        return;
+      }
+      if (pathname.startsWith("/corporate-management") && !(user.role === "student" && user.isCorporateManager === true)) {
+        console.log("AuthProvider: Corporate route unauthorized. Redirecting...");
+        toast({ title: "Unauthorized Access", variant: "destructive" });
+        router.push("/dashboard");
+        return;
       }
 
-      // Teacher-only routes
-      if (pathname.startsWith("/teacher") && user.role !== "teacher" && user.role !== "admin") {
-        console.log("AuthProvider: Teacher route unauthorized. Redirecting to /dashboard")
-        router.push("/dashboard")
-        return
-      }
+      // If none of the above conditions met, user is authenticated, profile complete (or skipped),
+      // and on an appropriate private route - do nothing, allow access.
+      console.log("AuthProvider: Access granted.");
+      // Optional toast
+      // toast({ title: "Access Granted", description: "Welcome back!", variant: "success" });
     }
 
-    if (isAuthenticated && (isPublicRoute
-    )) {
-      console.log("AuthProvider: Redirecting to /dashboard");
-      router.push("/dashboard");
-      return;
-    }
-
-    // If authenticated but profile is incomplete and not skipped, redirect to profile page
-    if (
-      user &&
-      !isProfileComplete(user) &&
-      !skipOnboarding &&
-      pathname !== "/profile"
-    ) {
-      router.push("/profile")
-      return
-    }
   }, [
+    // --- Refined Dependencies ---
     isAuthenticated,
     isInitialized,
-    pathname,
-    router,
-    user,
-    isMounted,
-    cart.items.length,
-    skipCheckout,
-    skipOnboarding,
+    pathname, // Essential for route checks
+    user, // Essential for profile/role checks (use user?.role, user?.id etc. inside if needed)
+    skipOnboarding, // Essential for onboarding check
+    isMounted, // Ensure runs client-side after mount
+    router, // Needed for redirection (stable enough usually)
   ]);
 
-  // Show loading spinner ONLY while waiting for useAuth
+  // --- Loading State ---
+  // Show only while waiting for Redux state initialization AND component mount
   if (!isInitialized || !isMounted) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="text-center">
-          {/* Gold-themed spinner with dimmed right border */}
-          <div
-            style={{
-              border: "4px solid goldenrod",
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              borderTopColor: "#D4AF3733", // Bright gold for the rotating part
-              borderRightColor: "#D4AF37", // Dimmer gold for the right side
-              borderBottomColor: "#D4AF3733", // Keep bright gold for the bottom part
-              animation: "spin 1s ease infinite",
-              margin: "0 auto",
-            }}
-          >
-
-          </div>
-
-          {/* Animation styles */}
-          <style jsx global>{`
-            @keyframes spin {
-              to {
-                transform: rotate(360deg);
-              }
-            }
-          `}</style>
-          {/* Message with a gold-colored text */}
-          <p className="mt-4 text-goldenrod-500">
-            Checking your authentication status...
-          </p>
+          {/* Spinner */}
+          <div style={{ border: "4px solid goldenrod", width: "36px", height: "36px", borderRadius: "50%", borderTopColor: "#D4AF3733", borderRightColor: "#D4AF37", borderBottomColor: "#D4AF3733", animation: "spin 1s ease infinite", margin: "0 auto" }}></div>
+          <style jsx global>{` @keyframes spin { to { transform: rotate(360deg); } } `}</style>
+          <p className="mt-4" style={{ color: "goldenrod" }}>Initializing...</p>
         </div>
       </div>
     );
   }
 
-  // Render children once initialized
+  // Render children once initialization is complete and component is mounted
   return <>{children}</>;
 }

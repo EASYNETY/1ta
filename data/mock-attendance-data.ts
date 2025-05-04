@@ -58,7 +58,7 @@ export interface AdminAttendanceResponse {
 // Mock attendance data for students (per student)
 export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 	{
-		"3": [
+		"student_1": [
 			// <--- KEY IS NOW STRING "3"
 			{ date: "2023-12-01", status: "present" },
 			{ date: "2023-12-02", status: "present" },
@@ -75,7 +75,7 @@ export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 			{ date: "2023-12-19", status: "present" },
 			{ date: "2023-12-20", status: "present" },
 		],
-		"4": [
+		"student_2": [
 			// <--- KEY IS NOW STRING "4"
 			{ date: "2023-12-01", status: "absent" },
 			{ date: "2023-12-02", status: "late" },
