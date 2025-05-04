@@ -20,6 +20,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { UpdateScheduleEventPayload } from '@/features/schedule/store/schedule-slice';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
 export default function EditScheduleEventPage() {
     const params = useParams();
@@ -60,9 +61,9 @@ export default function EditScheduleEventPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles */}
              <div className="mx-auto">
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
+                <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Manage Schedule
-                 </Button>
+                 </DyraneButton>
                  {isLoading && !currentEvent && (
                      <div className="space-y-4 p-4 border rounded-md"> {/* Form Skeleton */}
                          <Skeleton className="h-8 w-1/2" />

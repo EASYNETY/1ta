@@ -8,6 +8,7 @@ import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { MoreHorizontal, Eye, Pencil, Trash2, BookOpen, Users, Clock, Video } from 'lucide-react'; // Use Trash2
 import type { ScheduleEvent, ScheduleEventType } from '../../types/schedule-types';
 import { format, parseISO, isValid } from 'date-fns';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
 interface ScheduleEventTableRowProps {
     event: ScheduleEvent;
@@ -63,10 +64,10 @@ export function ScheduleEventTableRow({ event, onDelete, isDeleting }: ScheduleE
             <TableCell className="text-right">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0" disabled={isDeleting}>
+                        <DyraneButton variant="ghost" size="icon" className="h-8 w-8 p-0" disabled={isDeleting}>
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                        </DyraneButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}

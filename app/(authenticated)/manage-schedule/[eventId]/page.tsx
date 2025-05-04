@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'; // For event type
 import type { ScheduleEvent, ScheduleEventType } from '@/features/schedule/types/schedule-types';
 import { User } from 'phosphor-react';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
 // Helpers
 const formatDate = (dateString?: string) => dateString && isValid(parseISO(dateString)) ? format(parseISO(dateString), "PPPP") : 'N/A'; // e.g., Tuesday, July 16th, 2024
@@ -48,9 +49,9 @@ export default function ViewScheduleEventPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles */}
             <div className="mx-auto">
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
+                <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Manage Schedule
-                </Button>
+                </DyraneButton>
 
                 {isLoading && (
                     <DyraneCard>

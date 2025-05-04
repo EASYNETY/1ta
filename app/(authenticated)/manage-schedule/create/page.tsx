@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import type { CreateScheduleEventPayload } from '@/features/schedule/store/schedule-slice'; // Import payload type
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
 export default function CreateScheduleEventPage() {
     const dispatch = useAppDispatch();
@@ -33,9 +34,9 @@ export default function CreateScheduleEventPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles */}
             <div className="mx-auto">
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
+                <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Manage Schedule
-                </Button>
+                </DyraneButton>
                 <ScheduleEventForm
                     onSubmit={handleCreate as any}
                     isSubmitting={isSubmitting}

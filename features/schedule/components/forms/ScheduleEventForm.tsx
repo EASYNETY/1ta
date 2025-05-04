@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { DyraneCard, DyraneCardContent, DyraneCardFooter, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription } from '@/components/dyrane-ui/dyrane-card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -144,14 +144,14 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
-                <DyraneCard>
-                    <DyraneCardHeader>
-                        <DyraneCardTitle>{mode === 'create' ? 'Create Schedule Event' : 'Edit Schedule Event'}</DyraneCardTitle>
-                        <DyraneCardDescription>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{mode === 'create' ? 'Create Schedule Event' : 'Edit Schedule Event'}</CardTitle>
+                        <CardDescription>
                             {mode === 'create' ? 'Add a new event to the schedule.' : 'Update the event details.'}
-                        </DyraneCardDescription>
-                    </DyraneCardHeader>
-                    <DyraneCardContent className="space-y-4">
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         {/* Title */}
                         <FormField control={form.control} name="title" render={({ field }) => (
                             <FormItem><FormLabel>Event Title</FormLabel><FormControl><Input {...field} placeholder="e.g., Midterm Exam, Week 3 Lecture" /></FormControl><FormMessage /></FormItem>
@@ -226,27 +226,27 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
                         <FormField control={form.control} name="courseId" render={({ field }) => (
                             <FormItem><FormLabel>Link to Course (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="">-- None --</SelectItem>{mockCourses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{mockCourses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="classId" render={({ field }) => (
                             <FormItem><FormLabel>Link to Class Session (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select class session" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="">-- None --</SelectItem>{mockClasses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{mockClasses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="instructorId" render={({ field }) => (
                             <FormItem><FormLabel>Assign Instructor (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select instructor" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="">-- None --</SelectItem>{mockTeachers.map(t => (<SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{mockTeachers.map(t => (<SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                         )} />
 
-                    </DyraneCardContent>
-                    <DyraneCardFooter className="flex justify-end gap-2">
+                    </CardContent>
+                    <CardFooter className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>Cancel</Button>
                         <Button type="submit" disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : (mode === 'create' ? 'Create Event' : 'Save Changes')}
                         </Button>
-                    </DyraneCardFooter>
-                </DyraneCard>
+                    </CardFooter>
+                </Card>
             </form>
         </Form>
     );
