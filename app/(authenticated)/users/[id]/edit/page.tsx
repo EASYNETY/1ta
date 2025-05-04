@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
 
 // --- Mock Data Fetching (Replace with API/Store) ---
@@ -99,9 +100,12 @@ export default function EditUserPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
             <div className="mx-auto">
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                </Button>
+                <div className="flex items-center gap-3 mb-4">
+                    <DyraneButton variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
+                        <ArrowLeft className="h-4 w-4" />
+                    </DyraneButton>
+                    <h1 className="text-2xl font-bold">Edit {initialUserData.name}</h1>
+                </div>
                 {/* UserForm handles its own Card and structure */}
                 <UserForm
                     initialData={initialUserData}

@@ -7,6 +7,9 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
+import Link from 'next/link';
+import { ArrowLeft } from 'phosphor-react';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
 export default function CreateUserPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +35,13 @@ export default function CreateUserPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
             <div className="mx-auto">
-                {/* UserForm handles its own Card and structure */}
+                <div className="flex items-center gap-3 mb-4">
+                    <DyraneButton variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
+                        <ArrowLeft className="h-4 w-4" />
+                    </DyraneButton>
+                    <h1 className="text-2xl font-bold">Create User</h1>
+                </div>
+
                 <UserForm
                     onSubmit={handleCreateUser}
                     isSubmitting={isSubmitting}

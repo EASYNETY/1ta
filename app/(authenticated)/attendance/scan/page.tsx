@@ -31,6 +31,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle, ScanLine } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Using CardHeader
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 
 
 // Mock student data (KEEP THIS EXACTLY AS IS FOR TESTING)
@@ -307,20 +308,18 @@ export default function ScanPage() {
 
 
     return (
-        <>
-            <Card className="w-full  mx-auto bg-card/5 backdrop-blur-sm border border-card/30 shadow-lg">
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Button variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button>
-                            <CardTitle className="text-2xl font-bold">Scan Attendance</CardTitle>
-                        </div>
-                        {/* Status Badge Area in Header */}
-                        <div className="min-h-[24px]">{renderStatusBadge()}</div>
-                    </div>
-                </CardHeader>
+        <div className="w-full mx-auto">
+            <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                    <DyraneButton variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
+                        <ArrowLeft className="h-4 w-4" />
+                    </DyraneButton>
+                    <CardTitle className="text-2xl font-bold">Scan Attendance</CardTitle>
+                </div>
+                {/* Status Badge Area in Header */}
+                <div className="min-h-[24px]">{renderStatusBadge()}</div>
+            </div>
+            <Card className="bg-card/5 backdrop-blur-sm border border-card/30 shadow-lg">
                 <CardContent className="p-6 space-y-6">
 
                     {/* Class Selection */}
@@ -438,6 +437,6 @@ export default function ScanPage() {
                     /* Adjust duration as needed */
                 }
              `}</style>
-        </>
+        </div>
     );
 }

@@ -117,7 +117,7 @@ export function StudentAttendanceView() {
                         color: "bg-amber-600",
                     },
                 ].map(({ label, value, percent, icon, color }) => (
-                    <Card key={label} className="shadow-sm">
+                    <Card key={label} className="shadow-sm bg-card/5 backdrop-blur-sm">
                         <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                             <CardTitle className="text-sm font-medium">{label}</CardTitle>
                             <div className="h-4 w-4 text-muted-foreground">{icon}</div>
@@ -132,7 +132,7 @@ export function StudentAttendanceView() {
             </div>
 
             {/* Attendance Records List */}
-            <Card>
+            <Card className="bg-card/5 backdrop-blur-sm">
                 <CardHeader>
                     <CardTitle className="text-lg font-semibold">Attendance History</CardTitle>
                 </CardHeader>

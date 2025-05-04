@@ -25,6 +25,7 @@ import { BasicInfoForm } from "@/components/course-form/BasicInfoForm";
 import { CourseDetailsForm } from "@/components/course-form/CourseDetailsForm";
 import { CurriculumForm } from "@/components/course-form/CurriculumForm";
 import { PricingSettingsForm } from "@/components/course-form/PricingSettingsForm";
+import { ArrowLeft } from "phosphor-react";
 
 // Define a placeholder User type - replace with your actual User type
 interface User {
@@ -191,7 +192,10 @@ export default function CreateCoursePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex gap-4">
+        <DyraneButton variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
+          <ArrowLeft className="h-4 w-4" />
+        </DyraneButton>
         <h1 className="text-2xl md:text-3xl font-bold">{isTeacher ? "Request New Course" : "Create New Course"}</h1>
       </div>
 
