@@ -53,7 +53,14 @@ import {
 	UserSubscription,
 } from "@/features/pricing/types/pricing-types";
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
-import { getMockSchedule } from "@/data/mock-schedule-data";
+import {
+	createMockScheduleEvent,
+	deleteMockScheduleEvent,
+	getAllMockScheduleEvents,
+	getMockSchedule,
+	getMockScheduleEventById,
+	updateMockScheduleEvent,
+} from "@/data/mock-schedule-data";
 import {
 	createMockClass,
 	deleteMockClass,
@@ -376,6 +383,114 @@ async function handleMockRequest<T>(
 		const mockUserId = "student_123"; // Or teacher ID
 		return getMockSchedule(mockRole, mockUserId) as unknown as T;
 	}
+
+	// --- START: Schedule Event CRUD Mock Handlers ---
+
+	// GET /schedule-events - Fetch All Events (for management table)
+	if (endpoint === "/schedule-events" && method === "get") {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		// Add parsing for filter params here if needed
+		console.log(
+			`%cAPI Client MOCK: GET /schedule-events?page=${page}&limit=${limit}`,
+			"color: orange;"
+		);
+		try {
+			// Pass params to mock function
+			const result = await getAllMockScheduleEvents(
+				page,
+				limit /* Pass filters */
+			);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /schedule-events:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } }; // Simulate server error
+		}
+	}
+
+	// GET /schedule-events/:id - Fetch Single Event
+	const getEventByIdMatch = endpoint.match(/^\/schedule-events\/([\w-]+)$/);
+	if (getEventByIdMatch && method === "get") {
+		const eventId = getEventByIdMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /schedule-events/${eventId}`,
+			"color: orange;"
+		);
+		try {
+			const eventData = await getMockScheduleEventById(eventId);
+			return eventData as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /schedule-events/${eventId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// POST /schedule-events - Create Event
+	if (endpoint === "/schedule-events" && method === "post") {
+		console.log("%cAPI Client MOCK: POST /schedule-events", "color: orange;");
+		if (!body)
+			throw new Error(
+				"Mock API Error: Missing request body for POST /schedule-events"
+			);
+		try {
+			const newEvent = await createMockScheduleEvent(body);
+			return newEvent as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /schedule-events:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// PUT /schedule-events/:id - Update Event
+	const updateEventMatch = endpoint.match(/^\/schedule-events\/([\w-]+)$/);
+	if (updateEventMatch && method === "put") {
+		const eventId = updateEventMatch[1];
+		console.log(
+			`%cAPI Client MOCK: PUT /schedule-events/${eventId}`,
+			"color: orange;"
+		);
+		if (!body)
+			throw new Error(
+				`Mock API Error: Missing request body for PUT /schedule-events/${eventId}`
+			);
+		try {
+			const updatedEvent = await updateMockScheduleEvent(eventId, body);
+			return updatedEvent as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for PUT /schedule-events/${eventId}:`,
+				error.message
+			);
+			const status = error.message.includes("not found") ? 404 : 400;
+			throw { response: { data: { message: error.message }, status } };
+		}
+	}
+
+	// DELETE /schedule-events/:id - Delete Event
+	const deleteEventMatch = endpoint.match(/^\/schedule-events\/([\w-]+)$/);
+	if (deleteEventMatch && method === "delete") {
+		const eventId = deleteEventMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /schedule-events/${eventId}`,
+			"color: orange;"
+		);
+		try {
+			await deleteMockScheduleEvent(eventId);
+			return { success: true, id: eventId } as unknown as T; // Simulate success
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for DELETE /schedule-events/${eventId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// --- END: Schedule Event CRUD Mock Handlers ---
 
 	// --- Classes Mocks ---
 	// Example: Student getting their courses

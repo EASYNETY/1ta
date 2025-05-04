@@ -28,8 +28,55 @@ export interface ScheduleEvent {
 
 // State for the schedule slice
 export interface ScheduleState {
-	events: ScheduleEvent[];
-	status: "idle" | "loading" | "succeeded" | "failed";
+	// Existing state for the calendar/timetable view
+	events: ScheduleEvent[]; // Events for the current view period (e.g., week)
+	status: "idle" | "loading" | "succeeded" | "failed"; // Status for fetching view-specific events
 	error: string | null;
 	viewStartDate: string; // ISO string for the start of the current view (e.g., week start)
+
+	// --- NEW State for CRUD and Management ---
+	/** Holds all events fetched for the management table view */
+	allEvents: ScheduleEvent[];
+	/** Holds the single event being viewed or edited */
+	currentScheduleEvent: ScheduleEvent | null;
+	/** Tracks the status of CUD operations (Create, Update, Delete) */
+	operationStatus: "idle" | "loading" | "succeeded" | "failed";
+	/** Error specific to CUD operations */
+	operationError: string | null; // Use a separate error field for clarity
+	/** Pagination state for the management table (optional) */
+	pagination: {
+		currentPage: number;
+		totalPages: number;
+		totalEvents: number;
+		limit: number;
+	} | null;
+	// --- End NEW State ---
+}
+
+export interface CreateScheduleEventPayload {
+	title: string;
+	courseId?: string;
+	classId?: string;
+	startTime: string; // ISO Date string
+	endTime: string; // ISO Date string
+	type: ScheduleEventType;
+	location?: string; // Physical room or 'Virtual Classroom'
+	instructorId?: string;
+	meetingLink?: string; // Optional link for virtual events
+	description?: string;
+	attendees?: string[]; // Optional list of student/user IDs expected
+}
+export interface UpdateScheduleEventPayload {
+	id: string; // Event ID
+	title?: string;
+	courseId?: string;
+	classId?: string;
+	startTime?: string; // ISO Date string
+	endTime?: string; // ISO Date string
+	type?: ScheduleEventType;
+	location?: string; // Physical room or 'Virtual Classroom'
+	instructorId?: string;
+	meetingLink?: string; // Optional link for virtual events
+	description?: string;
+	attendees?: string[]; // Optional list of student/user IDs expected
 }
