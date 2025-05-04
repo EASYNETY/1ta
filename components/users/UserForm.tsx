@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { DyraneCard, DyraneCardContent, DyraneCardFooter, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription } from '@/components/dyrane-ui/dyrane-card'; // Use your Card
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Use your Card
 import { useRouter } from 'next/navigation';
 
 // Use the same UserData type or a more specific FormData type
@@ -102,14 +102,14 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
 
     return (
         <form onSubmit={handleSubmit}>
-            <DyraneCard>
-                <DyraneCardHeader>
-                    <DyraneCardTitle>{mode === 'create' ? 'Create New User' : 'Edit User'}</DyraneCardTitle>
-                    <DyraneCardDescription>
+            <Card className='bg-card/5 backdrop-blur-sm'>
+                <CardHeader>
+                    <CardTitle>{mode === 'create' ? 'Create New User' : 'Edit User'}</CardTitle>
+                    <CardDescription>
                         {mode === 'create' ? 'Enter the details for the new user.' : 'Update the user details.'}
-                    </DyraneCardDescription>
-                </DyraneCardHeader>
-                <DyraneCardContent className="space-y-4">
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
                     {/* Name Field */}
                     <div className="grid gap-1.5">
                         <Label htmlFor="name">Full Name</Label>
@@ -185,16 +185,16 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
 
                     {/* Add other fields like Phone Number, Password (for create) etc. here */}
 
-                </DyraneCardContent>
-                <DyraneCardFooter className="flex justify-end gap-2">
+                </CardContent>
+                <CardFooter className="flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? 'Saving...' : (mode === 'create' ? 'Create User' : 'Save Changes')}
                     </Button>
-                </DyraneCardFooter>
-            </DyraneCard>
+                </CardFooter>
+            </Card>
         </form>
     );
 }

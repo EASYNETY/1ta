@@ -31,7 +31,7 @@ export default function CreateUserPage() {
 
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
-            <div className="max-w-2xl mx-auto py-6 px-4 md:px-0">
+            <div className="mx-auto">
                 {/* UserForm handles its own Card and structure */}
                 <UserForm
                     onSubmit={handleCreateUser}
