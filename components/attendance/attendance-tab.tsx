@@ -8,11 +8,15 @@ import { StudentAttendanceView } from "./student-attendance-view"
 import { TeacherAttendanceView } from "./teacher-attendance-view"
 import { DyraneButton } from "../dyrane-ui/dyrane-button"
 import Link from "next/link"
-import { ScanBarcode } from "lucide-react"
+import { BarcodeIcon, ScanBarcode } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
+import Barcode from "react-barcode"
 
 export function Attendance() {
     const { user } = useAppSelector((state) => state.auth)
     const [isLoading, setIsLoading] = useState(true)
+    const [showStudentBarcodeModal, setShowStudentBarcodeModal] = useState(false);
+
 
     useEffect(() => {
         // Simulate loading state
@@ -39,6 +43,8 @@ export function Attendance() {
         )
     }
 
+    const isStudent = user.role === "student"
+
     // Render different views based on user role
     return (
         <div className="mx-auto">
@@ -47,19 +53,57 @@ export function Attendance() {
                 <h1 className="text-3xl font-bold mb-6">Attendance Records</h1>
 
                 {/* navigate to attendance barcode scan */}
-                <DyraneButton
-                    variant="default"
-                    className="hidden sm:flex"
-                >
-                    <Link
-                        href={`/attendance/scan`}
-                        className="flex items-center gap-2"
-                    >
-                        <ScanBarcode className="h-4 w-4" />
-                        Scan Attendance
-                    </Link>
-                </DyraneButton>
+                {
+                    !isStudent ? (
+                        <DyraneButton
+                            variant="default"
+                            className="hidden sm:flex"
+                        >
+
+                            <Link
+                                href={`/attendance/scan`}
+                                className="flex items-center gap-2"
+                            >
+                                <ScanBarcode className="h-4 w-4" />
+                                Scan Attendance
+                            </Link>
+                        </DyraneButton>
+                    ) : (
+                        <DyraneButton
+                            variant="default"
+                            className="hidden sm:flex"
+                            onClick={
+                                () => {
+                                    setShowStudentBarcodeModal(true)
+                                }
+                            }
+                        >
+                            <BarcodeIcon className="h-4 w-4" />
+                            Show Barcode
+                        </DyraneButton>
+                    )
+                }
             </div>
+            {/* Student Barcode Modal */}
+            <Dialog open={showStudentBarcodeModal} onOpenChange={setShowStudentBarcodeModal}>
+                <DialogContent className="sm:max-w-[300px] flex flex-col items-center">
+                    <DialogHeader>
+                        <DialogTitle>Your Attendance Barcode</DialogTitle>
+                    </DialogHeader>
+                    {user && (
+                        <div className="p-4 bg-white rounded-md border shadow-inner mt-4">
+                            <Barcode
+                                value={user.id}
+                                height={80}
+                                width={2}
+                                displayValue={false}
+                                background="#ffffff"
+                                lineColor="#000000"
+                            />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             {user.role === "student" ? <StudentAttendanceView /> : <TeacherAttendanceView />}
         </div>
