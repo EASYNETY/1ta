@@ -102,7 +102,7 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                             </span>
                         </>
                     ) : (
-                        <span className="text-xs font-medium">${item.price.toFixed(2)}</span>
+                        <span className="text-xs font-medium">{renderNairaPrice(convert(item.price))}</span>
                     )}
                 </div>}
             </div>
