@@ -135,7 +135,6 @@ export function DatePickerWithYearMonth({
                     classNames={{
                         caption: "hidden",
                         caption_dropdowns: "hidden",
-                        cell: 'rounded-md m-1',
                     }}
                 />
             </PopoverContent>
