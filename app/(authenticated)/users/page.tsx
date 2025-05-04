@@ -81,7 +81,7 @@ export default function UsersPage() {
     return (
         // Wrap with Authorization Guard
         <AuthorizationGuard allowedRoles={['admin']}>
-            <div className="space-y-6 p-4 md:p-6"> {/* Add padding */}
+            <div className="space-y-6">
                 <UsersPageHeader />
 
                 <Tabs defaultValue="all-users" value={activeTab} onValueChange={setActiveTab}>

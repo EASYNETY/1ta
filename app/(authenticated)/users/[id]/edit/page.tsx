@@ -95,7 +95,7 @@ export default function EditUserPage() {
 
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
-            <div className="max-w-2xl mx-auto py-6 px-4 md:px-0">
+            <div className="mx-auto">
                 <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back
                 </Button>
