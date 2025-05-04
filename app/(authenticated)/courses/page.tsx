@@ -1,58 +1,70 @@
 // app/(authenticated)/courses/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { AuthenticationGuard } from "@/components/courses/AuthenticationGuard";
-import { CoursesPageHeader } from "@/components/courses/CoursesPageHeader";
-import { CourseTabsList } from "@/components/courses/CourseTabsList";
-import { CourseFilters } from "@/components/courses/CourseFilters";
-import { AllCoursesTabContent } from "@/components/courses/AllCoursesTabContent";
-import { ManageCoursesTabContent } from "@/components/courses/ManageCoursesTabContent";
-import { CourseRequestsTabContent } from "@/components/courses/CourseRequestsTabContent";
-import { User } from "@/types/user.types";
-import { MyCoursesTabContent } from "@/components/courses/MyCoursesTabContent";
+import { useState, useEffect, useMemo } from "react"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
+import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { AuthenticationGuard } from "@/components/courses/AuthenticationGuard"
+import { CoursesPageHeader } from "@/components/courses/CoursesPageHeader"
+import { CourseTabsList } from "@/components/courses/CourseTabsList"
+import { CourseFilters } from "@/components/courses/CourseFilters"
+import { AllCoursesTabContent } from "@/components/courses/AllCoursesTabContent"
+import { ManageCoursesTabContent } from "@/components/courses/ManageCoursesTabContent"
+import { CourseRequestsTabContent } from "@/components/courses/CourseRequestsTabContent"
+import { type User, isStudent } from "@/types/user.types"
+import { MyCoursesTabContent } from "@/components/courses/MyCoursesTabContent"
+import { CorporateStudentNotice } from "@/components/courses/CorporateStudentNotice"
 // Import other potential tab content components: Recommended, Completed, Analytics
 
 export default function CoursesPage() {
-  const { user } = useAppSelector((state) => state.auth) as { user: User | null };
-  const { courses, categories, status } = useAppSelector((state) => state.auth_courses);
-  const dispatch = useAppDispatch();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState<string | "all">("all");
-  const [levelFilter, setLevelFilter] = useState<string | "all">("all");
-  const [activeTab, setActiveTab] = useState("all-courses");
+  const { user } = useAppSelector((state) => state.auth) as { user: User | null }
+  const { courses, categories, status } = useAppSelector((state) => state.auth_courses)
+  const dispatch = useAppDispatch()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState<string | "all">("all")
+  const [levelFilter, setLevelFilter] = useState<string | "all">("all")
+
+  // Check if user is a corporate student
+  const isCorporateStudent = isStudent(user) && user.corporateId !== undefined && user.corporateId !== null && !user.isCorporateManager;
+
+  // Set default tab to "my-courses" for corporate students
+  const [activeTab, setActiveTab] = useState(isCorporateStudent ? "my-courses" : "all-courses")
 
   // Fetch courses on mount
   useEffect(() => {
     if (user) {
-      dispatch(fetchAuthCourses());
+      dispatch(fetchAuthCourses())
     }
-  }, [dispatch, user]);
+  }, [dispatch, user])
+
+  // If user is a corporate student and somehow tries to access all-courses tab, redirect to my-courses
+  useEffect(() => {
+    if (isCorporateStudent && activeTab === "all-courses") {
+      setActiveTab("my-courses")
+    }
+  }, [activeTab, isCorporateStudent])
 
   // Filter courses based on search query and filters
-  // Use useMemo to avoid recalculating on every render unless dependencies change
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
       const matchesSearch =
         course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (course.tags && course.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())));
+        (course.tags && course.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())))
 
-      const matchesCategory = categoryFilter === "all" || course.category === categoryFilter;
-      const matchesLevel = levelFilter === "all" || course.level === levelFilter;
+      const matchesCategory = categoryFilter === "all" || course.category === categoryFilter
+      const matchesLevel = levelFilter === "all" || course.level === levelFilter
 
-      return matchesSearch && matchesCategory && matchesLevel;
-    });
-  }, [courses, searchQuery, categoryFilter, levelFilter]);
+      return matchesSearch && matchesCategory && matchesLevel
+    })
+  }, [courses, searchQuery, categoryFilter, levelFilter])
 
   const clearFilters = () => {
-    setSearchQuery("");
-    setCategoryFilter("all");
-    setLevelFilter("all");
-  };
+    setSearchQuery("")
+    setCategoryFilter("all")
+    setLevelFilter("all")
+  }
 
   // The AuthenticationGuard handles the case where user is null
   return (
@@ -60,7 +72,14 @@ export default function CoursesPage() {
       <div className="space-y-6">
         <CoursesPageHeader user={user} />
 
-        <Tabs defaultValue="all-courses" value={activeTab} onValueChange={setActiveTab}>
+        {/* Show notice for corporate students */}
+        {isCorporateStudent && <CorporateStudentNotice />}
+
+        <Tabs
+          defaultValue={isCorporateStudent ? "my-courses" : "all-courses"}
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
           <CourseTabsList user={user} />
 
           {/* Conditionally render filters based on the active tab */}
@@ -77,18 +96,16 @@ export default function CoursesPage() {
           )}
 
           <TabsContent value="all-courses">
-            {/*
-                Note: Passing 'filteredCourses' here reflects the original logic.
-                If 'all-courses' should *never* be filtered, pass 'courses' instead.
-                The <CoursesSection/> component itself likely fetches public data,
-                so maybe only the empty/loading states are relevant here based on the *fetch* status.
-                Adjust based on the intended behavior of the "All Courses" tab vs. <CoursesSection />.
-             */}
-            <AllCoursesTabContent
-              status={status}
-              courses={filteredCourses}
-              onClearFilters={clearFilters}
-            />
+            {isCorporateStudent ? (
+              <div className="p-6 text-center bg-muted/20 rounded-lg border">
+                <p className="text-muted-foreground">
+                  As a corporate student, you can only access courses assigned to you by your organization. Please check
+                  the "My Courses" tab to see your assigned courses.
+                </p>
+              </div>
+            ) : (
+              <AllCoursesTabContent status={status} courses={filteredCourses} onClearFilters={clearFilters} />
+            )}
           </TabsContent>
 
           <TabsContent value="my-courses">
@@ -105,8 +122,15 @@ export default function CoursesPage() {
               <ManageCoursesTabContent status={status} courses={filteredCourses} />
             </TabsContent>
           )}
-          {/* Add Admin Analytics Tab Content here */}
-          {/* <TabsContent value="course-analytics"> ... </TabsContent> */}
+
+          {user?.role === "admin" && (
+            <TabsContent value="course-analytics">
+              {/* Add Admin Analytics Tab Content here */}
+              <div className="p-6 text-center bg-muted/20 rounded-lg border">
+                <p className="text-muted-foreground">Course analytics content will be displayed here.</p>
+              </div>
+            </TabsContent>
+          )}
 
           {user?.role === "teacher" && (
             <TabsContent value="course-requests">
@@ -115,12 +139,23 @@ export default function CoursesPage() {
             </TabsContent>
           )}
 
-          {/* Add Student Recommended/Completed Tab Content here */}
-          {/* <TabsContent value="recommended"> ... </TabsContent> */}
-          {/* <TabsContent value="completed"> ... </TabsContent> */}
+          {user?.role === "student" && (
+            <TabsContent value="recommended">
+              <div className="p-6 text-center bg-muted/20 rounded-lg border">
+                <p className="text-muted-foreground">Recommended courses will be displayed here.</p>
+              </div>
+            </TabsContent>
+          )}
 
+          {user?.role === "student" && (
+            <TabsContent value="completed">
+              <div className="p-6 text-center bg-muted/20 rounded-lg border">
+                <p className="text-muted-foreground">Completed courses will be displayed here.</p>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </AuthenticationGuard>
-  );
+  )
 }

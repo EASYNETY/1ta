@@ -18,22 +18,23 @@ export function ProfileAvatarInfo({ user }: ProfileAvatarInfoProps) {
      * - Others: Capitalize native role
      */
     const getRoleLabel = () => {
+        // Check if the user is a student and adjust based on account type and corporate manager status
         if (user.role === "student") {
             if (user.accountType === "corporate") {
                 return user.isCorporateManager ? "Corporate Manager" : "Corporate Student";
             }
             return "Student";
         }
-        return user.role.charAt(0).toUpperCase() + user.role.slice(1); // e.g., "admin" => "Admin"
+
+        // For other roles like admin or teacher
+        return user.role.charAt(0).toUpperCase() + user.role.slice(1); // Capitalizes "admin" => "Admin"
     };
 
-    /**
-     * Style badge differently for corporate roles
-     */
+    // Badge styling logic
     const badgeStyle = clsx(
         "mt-1 px-3 py-1 rounded-full text-sm capitalize font-medium",
         {
-            "bg-primary/10 text-primary": user.role !== "student",
+            "bg-primary/10 text-primary": user.role !== "student", // Default non-student styling
             "bg-yellow-100 text-yellow-800": user.role === "student" && user.accountType === "corporate" && user.isCorporateManager,
             "bg-blue-100 text-blue-800": user.role === "student" && user.accountType === "corporate" && !user.isCorporateManager,
             "bg-green-100 text-green-800": user.role === "student" && user.accountType !== "corporate",

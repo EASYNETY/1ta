@@ -261,7 +261,7 @@ export default function ProfilePage() {
     }
 
     // Determine if the user is a corporate student (has corporateId but is not a manager)
-    const isCorporateStudent = isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager
+    const isCorporateStudent = isStudent(user) && user.corporateId !== undefined && user.corporateId !== null && !user.isCorporateManager;
 
     return (
         <div className="mx-auto space-y-6">
@@ -319,7 +319,7 @@ export default function ProfilePage() {
                                 View Cart ({cartItems.length})
                             </DyraneButton>
                         )}
-                        {isOnboarding && !isCorporateStudent && (
+                        {isOnboarding && (
                             <DyraneButton
                                 variant="outline"
                                 onClick={handleSkipOnboarding}

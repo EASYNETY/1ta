@@ -9,6 +9,8 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { isProfileComplete } from "../utils/profile-completeness";
 import { fetchUserProfileThunk } from "../store/auth-thunks";
 import { useToast } from "@/hooks/use-toast";
+import { isStudent } from "@/types/user.types";
+import { clearCart } from "@/features/cart/store/cart-slice";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -32,7 +34,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticated, isInitialized, user, skipOnboarding } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
 
   const [isMounted, setIsMounted] = useState(false);
   const hasFetchedProfile = useRef(false);
@@ -63,11 +64,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return;
     }
     console.log(`AuthProvider: Running checks. Path: ${pathname}, Auth: ${isAuthenticated}, Initialized: ${isInitialized}`);
-    toast({
-      title: "Initialization Complete",
-      description: `You are now logged in as ${user?.name || "Guest"}.`,
-      variant: "success",
-    })
+
+    // Clear cart for corporate students
+    if (isAuthenticated && user && isStudent(user) && user.corporateId != null && !user.isCorporateManager) {
+      console.log("AuthProvider: Corporate student detected, clearing cart");
+      dispatch(clearCart());
+    }
 
     const isPublic = isPathPublic(pathname);
 
@@ -75,12 +77,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!isAuthenticated) {
       if (!isPublic) {
         console.log("AuthProvider: Not authenticated, private route. Redirecting to /login");
-        // Toast can be shown outside the effect's dependencies
-        toast({
-          title: "Authentication Required",
-          description: "Please log in.",
-          variant: "destructive",
-        });
         router.push("/login");
       }
       // If it IS public, do nothing, let them stay
@@ -92,23 +88,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // If user data is needed but not loaded yet, wait (should be handled by isInitialized usually)
       if (!user) {
         console.log("AuthProvider: Authenticated but user object not ready yet.");
-        // This case might indicate an issue with initialization logic if it persists
-        toast({
-          title: "User Data Loading",
-          description: "Please wait a moment.",
-          variant: "default",
-        });
         return;
       }
 
       // A) Onboarding Check
       if (!isProfileComplete(user) && !skipOnboarding && pathname !== "/profile") {
         console.log("AuthProvider: Authenticated, profile incomplete. Redirecting to /profile");
-        toast({
-          title: "Profile Incomplete",
-          description: "Please complete your profile.",
-          variant: "destructive",
-        });
         // No need for toast here usually, profile page explains it
         router.push("/profile");
         return; // Prioritize profile completion
@@ -117,8 +102,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // B) Already Authenticated on Public Route Check
       if (isPublic) {
         console.log("AuthProvider: Authenticated on public route. Redirecting to /dashboard");
-        // Optional toast
-        // toast({ title: "Already Logged In", description: "Redirecting...", variant: "success" });
         router.push("/dashboard");
         return;
       }
@@ -126,19 +109,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // C) Role-Based Access Control for Private Routes (add more as needed)
       if (pathname.startsWith("/admin") && user.role !== "admin") {
         console.log("AuthProvider: Admin route unauthorized. Redirecting...");
-        toast({ title: "Unauthorized Access", variant: "destructive" });
         router.push("/dashboard");
         return;
       }
       if (pathname.startsWith("/teacher") && !['teacher', 'admin'].includes(user.role)) {
         console.log("AuthProvider: Teacher route unauthorized. Redirecting...");
-        toast({ title: "Unauthorized Access", variant: "destructive" });
         router.push("/dashboard");
         return;
       }
       if (pathname.startsWith("/corporate-management") && !(user.role === "student" && user.isCorporateManager === true)) {
         console.log("AuthProvider: Corporate route unauthorized. Redirecting...");
-        toast({ title: "Unauthorized Access", variant: "destructive" });
         router.push("/dashboard");
         return;
       }
@@ -146,8 +126,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // If none of the above conditions met, user is authenticated, profile complete (or skipped),
       // and on an appropriate private route - do nothing, allow access.
       console.log("AuthProvider: Access granted.");
-      // Optional toast
-      // toast({ title: "Access Granted", description: "Welcome back!", variant: "success" });
     }
 
   }, [
