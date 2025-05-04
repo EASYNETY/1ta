@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { DyraneCard, DyraneCardContent, DyraneCardFooter, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription } from '@/components/dyrane-ui/dyrane-card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -81,14 +81,14 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)}>
-                <DyraneCard>
-                    <DyraneCardHeader>
-                        <DyraneCardTitle>{mode === 'create' ? 'Create New Class' : 'Edit Class'}</DyraneCardTitle>
-                        <DyraneCardDescription>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{mode === 'create' ? 'Create New Class' : 'Edit Class'}</CardTitle>
+                        <CardDescription>
                             {mode === 'create' ? 'Enter the details for the new class session.' : 'Update the class details.'}
-                        </DyraneCardDescription>
-                    </DyraneCardHeader>
-                    <DyraneCardContent className="space-y-4">
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                         {/* Course Title */}
                         <FormField
                             control={form.control}
@@ -185,14 +185,14 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                             )}
                         />
 
-                    </DyraneCardContent>
-                    <DyraneCardFooter className="flex justify-end gap-2">
+                    </CardContent>
+                    <CardFooter className="flex justify-end gap-2">
                         <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>Cancel</Button>
                         <Button type="submit" disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : (mode === 'create' ? 'Create Class' : 'Save Changes')}
                         </Button>
-                    </DyraneCardFooter>
-                </DyraneCard>
+                    </CardFooter>
+                </Card>
             </form>
         </Form>
     );
