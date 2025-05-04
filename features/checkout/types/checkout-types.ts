@@ -8,6 +8,7 @@ export interface CheckoutItem extends CartItem {
 	originalPrice: number; // The base individual price for display comparison
 	isCorporatePrice: boolean;
 	courseDetails?: PublicCourse; // Include full course details if needed for display
+	studentCount?: number; // Number of students for this item (for corporate managers)
 }
 
 // State for the checkout process
@@ -25,7 +26,7 @@ export interface CheckoutState {
 		| "failed";
 	error: string | null;
 	showPaymentModal: boolean; // To control the PaystackCheckout display
-    skipCheckout: boolean; // To skip checkout process
+	skipCheckout: boolean; // To skip checkout process
 }
 
 // Payload for the enrollment thunk after payment success
@@ -35,6 +36,7 @@ export interface EnrollCoursesPayload {
 	paymentReference: any; // The reference object from payment provider
 	totalAmountPaid: number; // The amount confirmed paid
 	isCorporatePurchase: boolean; // Flag if corporate pricing was applied
+	corporateStudentCount?: number; // Number of students for corporate managers
 }
 
 // Response type from backend enrollment endpoint

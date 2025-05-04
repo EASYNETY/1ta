@@ -1,17 +1,21 @@
 // features/checkout/store/checkoutSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
 	CheckoutState,
-	CheckoutItem,
 	EnrollCoursesPayload,
 	EnrollCoursesResponse,
 } from "../types/checkout-types";
 import type { User } from "@/types/user.types"; // Import user type
+import { isStudent } from "@/types/user.types"; // Import type guard
 import type { PublicCourse } from "@/features/public-course/types/public-course-interface";
 // Assume an API client function exists or will be created for enrollment
 import { post } from "@/lib/api-client";
-import { CartItem } from "@/features/cart/store/cart-slice";
+import type { CartItem } from "@/features/cart/store/cart-slice";
 // Import a way to get course details, maybe from another slice or direct fetch
 // For simplicity, assume we pass course data when preparing checkout
 // import { selectPublicCourseById } from '@/features/public-course/store/public-course-slice';
@@ -31,7 +35,9 @@ export const enrollCoursesAfterPayment = createAsyncThunk<
 		const response = await post<EnrollCoursesResponse>(
 			"/enrollments/purchase",
 			payload,
-			{ headers: { Authorization: `Bearer ${auth.token}` } }
+			{
+				headers: { Authorization: `Bearer ${auth.token}` },
+			}
 		);
 		if (!response.success) {
 			throw new Error(response.message || "Enrollment failed on server.");
@@ -65,6 +71,7 @@ const checkoutSlice = createSlice({
 				cartItems: CartItem[];
 				coursesData: PublicCourse[];
 				user: User | null;
+				corporateStudentCount?: number; // Add student count for corporate managers
 			}>
 		) => {
 			state.status = "preparing";
@@ -74,33 +81,65 @@ const checkoutSlice = createSlice({
 			state.paymentReference = null;
 			state.skipCheckout = false;
 
-			const { cartItems, coursesData, user } = action.payload;
-			const isCorporate = user?.role === "student" && !!user.corporateId;
+			const {
+				cartItems,
+				coursesData,
+				user,
+				corporateStudentCount = 1,
+			} = action.payload;
+
+			// Check if user is a corporate student (should be redirected away from checkout)
+			if (
+				user &&
+				isStudent(user) &&
+				user.corporateId &&
+				!user.isCorporateManager
+			) {
+				state.status = "failed";
+				state.error = "Corporate students cannot make direct purchases.";
+				return;
+			}
+
+			// Check if user is a corporate manager
+			const isCorporateManager =
+				user && isStudent(user) && !!user.isCorporateManager;
 
 			cartItems.forEach((cartItem) => {
 				const course = coursesData.find((c) => c.id === cartItem.courseId);
 				if (course) {
-					let priceToPay = course.priceIndividualUSD ?? 0; // Default to individual price if not corporate
-					let originalPrice = course.priceIndividualUSD ?? 0; // Original price for display
+					let priceToPay = course.priceIndividualUSD ?? 0; // Default to individual price
+					const originalPrice = course.priceIndividualUSD ?? 0; // Original price for display
 					let corporatePriceApplied = false;
 
-					if (isCorporate) {
-						// Use specific corporate price if available, otherwise maybe individual? Or error?
-						// For now, assume corporate users get the corporate price if defined, else individual.
+					// Handle corporate pricing
+					if (isCorporateManager) {
+						// Use corporate price if available
+						// if (course.priceCorporateUSD !== undefined) {
+						// 	priceToPay = course.priceCorporateUSD;
+						// 	corporatePriceApplied = true;
+						// }
+						if (course.priceUSD !== undefined) {
+							priceToPay = course.priceUSD;
+							corporatePriceApplied = true;
+						}
+
+						// For corporate managers, multiply by student count
+						priceToPay = priceToPay * corporateStudentCount;
+					} else if (user && isStudent(user) && user.corporateId) {
+						// Use specific corporate price if available for this corporate ID
 						const corporatePrice =
-							course?.pricing?.corporate?.[user.corporateId as string];
+							course?.pricing?.corporate?.[user.corporateId];
 						if (typeof corporatePrice === "number") {
 							priceToPay = corporatePrice;
 							corporatePriceApplied = true;
 						}
-						// Decide fallback: use individual or throw error if specific corp price missing?
-						// else { priceToPay = course.priceIndividualUSD; }
 					}
 
 					// Handle discounts (apply AFTER selecting individual/corporate base)
 					if (
 						corporatePriceApplied &&
-						course.discountPriceCorporateUSD !== undefined
+						course.discountPriceCorporateUSD !== undefined &&
+						!isCorporateManager // Don't apply discount twice for managers
 					) {
 						priceToPay = course.discountPriceCorporateUSD;
 					} else if (
@@ -108,6 +147,11 @@ const checkoutSlice = createSlice({
 						course.discountPriceIndividualUSD !== undefined
 					) {
 						priceToPay = course.discountPriceIndividualUSD;
+
+						// For corporate managers, multiply discounted price by student count
+						if (isCorporateManager) {
+							priceToPay = priceToPay * corporateStudentCount;
+						}
 					}
 
 					state.items.push({
@@ -116,6 +160,7 @@ const checkoutSlice = createSlice({
 						originalPrice: originalPrice as number, // Original price for display
 						isCorporatePrice: corporatePriceApplied,
 						courseDetails: course, // Include full course details
+						studentCount: isCorporateManager ? corporateStudentCount : 1, // Add student count
 					});
 					state.totalAmount += priceToPay as number; // Add to total amount
 				} else {

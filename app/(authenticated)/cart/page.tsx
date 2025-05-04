@@ -2,23 +2,23 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { removeItem } from "@/features/cart/store/cart-slice"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
-import { Trash2, GraduationCap, ArrowRight } from "lucide-react"
+import { isStudent } from "@/types/user.types" // Import type guard
+import { Trash2, GraduationCap, ArrowRight, AlertTriangle } from "lucide-react"
 import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 
-
 export default function CartPage() {
-    const { user ,skipOnboarding } = useAppSelector((state) => state.auth)
+    const { user, skipOnboarding } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
     const dispatch = useAppDispatch()
     const router = useRouter()
@@ -28,13 +28,31 @@ export default function CartPage() {
     const profileComplete = user ? isProfileComplete(user) : false
     const hasItems = cart.items.length > 0
 
+    // Check if user is a corporate student (has corporateId but is not a manager)
+    const isCorporateStudent = user && isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager
+
+    // Check if user is a corporate manager
+    const isCorporateManager = user && isStudent(user) && Boolean(user.isCorporateManager)
+
+    // Redirect corporate students away from cart
+    useEffect(() => {
+        if (isCorporateStudent) {
+            toast({
+                title: "Access Restricted",
+                description: "Corporate students don't need to make purchases. Your courses are managed by your organization.",
+                variant: "destructive",
+            })
+            router.push("/dashboard")
+        }
+    }, [isCorporateStudent, router, toast])
+
     const handleRemoveItem = (courseId: string) => {
         dispatch(removeItem(courseId))
         toast({
             title: "Item Removed",
             description: "The item has been removed from your cart.",
             variant: "default",
-          })
+        })
     }
 
     const handleCheckout = () => {
@@ -70,6 +88,20 @@ export default function CartPage() {
         show: { opacity: 1, y: 0 },
     }
 
+    // If user is a corporate student, they shouldn't be here - handled by useEffect redirect
+    if (isCorporateStudent) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+                <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Access Restricted</h2>
+                <p className="text-muted-foreground mb-6">Corporate students don't need to make purchases.</p>
+                <DyraneButton asChild>
+                    <a href="/dashboard">Go to Dashboard</a>
+                </DyraneButton>
+            </div>
+        )
+    }
+
     if (!hasItems) {
         return (
             <div className="mx-auto">
@@ -92,10 +124,21 @@ export default function CartPage() {
         <div className="mx-auto">
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
-            {!profileComplete &&  !skipOnboarding && (
+            {!profileComplete && !skipOnboarding && (
                 <Alert variant="default" className="mb-6 bg-primary/5 border-primary/20">
                     <AlertTitle>Complete Your Profile</AlertTitle>
                     <AlertDescription>Please complete your profile before proceeding to checkout.</AlertDescription>
+                </Alert>
+            )}
+
+            {/* Corporate Manager Info Banner */}
+            {isCorporateManager && (
+                <Alert variant="default" className="mb-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <AlertTitle>Corporate Purchase</AlertTitle>
+                    <AlertDescription>
+                        As a corporate manager, you'll be purchasing these courses for all students in your organization. The final
+                        price will be calculated at checkout based on your student count.
+                    </AlertDescription>
                 </Alert>
             )}
 
@@ -119,6 +162,11 @@ export default function CartPage() {
                                             <h3 className="font-medium">{item.title}</h3>
                                             {item.instructor && (
                                                 <p className="text-sm text-muted-foreground">Instructor: {item.instructor}</p>
+                                            )}
+                                            {isCorporateManager && (
+                                                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                                    Corporate pricing will be applied at checkout
+                                                </p>
                                             )}
                                         </div>
                                         <div className="flex flex-col items-end justify-between">
@@ -164,6 +212,12 @@ export default function CartPage() {
                                 <span>Total</span>
                                 <span>₦{cart.total}</span>
                             </div>
+
+                            {isCorporateManager && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    * Final price will be calculated at checkout based on your student count
+                                </p>
+                            )}
                         </div>
                         <DyraneButton className="w-full mt-4" onClick={handleCheckout} disabled={isProcessing}>
                             {isProcessing ? (

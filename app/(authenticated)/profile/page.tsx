@@ -313,7 +313,7 @@ export default function ProfilePage() {
                 </CardContent>
                 <CardFooter className="flex flex-col sm:flex-row gap-4 sm:justify-between pt-6">
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                        {hasItemsInCart && !isOnboarding && (
+                        {hasItemsInCart && !isOnboarding && !isCorporateStudent &&(
                             <DyraneButton variant="outline" onClick={() => router.push("/checkout")} className="w-full sm:w-auto">
                                 <GraduationCap className="mr-2 h-4 w-4" />
                                 View Cart ({cartItems.length})

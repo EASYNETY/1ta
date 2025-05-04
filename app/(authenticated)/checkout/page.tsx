@@ -1,21 +1,21 @@
 // app/(authenticated)/checkout/page.tsx
-"use client";
+"use client"
 
-import React, { useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { useToast } from '@/hooks/use-toast';
-import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
-import { DyraneCard } from '@/components/dyrane-ui/dyrane-card';
-import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Card } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, ShoppingCart, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
-import { PaystackCheckout } from '@/components/payment/paystack-checkout'; // Real or Mock handler inside
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden'; // Keep for Dialog title
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"; // Keep Dialog
-import { clearCart, selectCartItems } from '@/features/cart/store/cart-slice';
+import { useEffect, useMemo } from "react"
+import { useRouter } from "next/navigation"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
+import { useToast } from "@/hooks/use-toast"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
+import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter, Card } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Loader2, ShoppingCart, AlertTriangle, ArrowLeft, Users } from "lucide-react"
+import { PaystackCheckout } from "@/components/payment/paystack-checkout" // Real or Mock handler inside
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden" // Keep for Dialog title
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog" // Keep Dialog
+import { clearCart, selectCartItems } from "@/features/cart/store/cart-slice"
 import {
     prepareCheckout,
     enrollCoursesAfterPayment,
@@ -29,155 +29,219 @@ import {
     setPaymentReference,
     setCheckoutError,
     setSkipCheckout,
-} from '@/features/checkout/store/checkoutSlice';
-import type { User } from '@/types/user.types';
-import { isStudent } from '@/types/user.types'; // Import type guard
-import { EnrollCoursesPayload } from '@/features/checkout/types/checkout-types';
-import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
-import { fetchCourses } from '@/features/public-course/store/public-course-slice';
-
+} from "@/features/checkout/store/checkoutSlice"
+import type { User } from "@/types/user.types"
+import { isStudent } from "@/types/user.types" // Import type guard
+import type { EnrollCoursesPayload } from "@/features/checkout/types/checkout-types"
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import { fetchCourses } from "@/features/public-course/store/public-course-slice"
 
 export default function CheckoutPage() {
-    const dispatch = useAppDispatch();
-    const router = useRouter();
-    const { toast } = useToast();
+    const dispatch = useAppDispatch()
+    const router = useRouter()
+    const { toast } = useToast()
 
     // Selectors
-    const { user } = useAppSelector(state => state.auth);
-    const cartItems = useAppSelector(selectCartItems);
+    const { user } = useAppSelector((state) => state.auth)
+    const cartItems = useAppSelector(selectCartItems)
     // Fetch public courses to get pricing info
-    const { allCourses: publicCourses, status: courseStatus } = useAppSelector(state => state.public_courses);
-    const checkoutItems = useAppSelector(selectCheckoutItems);
-    const totalAmount = useAppSelector(selectCheckoutTotalAmount);
-    const checkoutStatus = useAppSelector(selectCheckoutStatus);
-    const checkoutError = useAppSelector(selectCheckoutError);
-    const showPaymentModal = useAppSelector(selectCheckoutShowPaymentModal);
+    const { allCourses: publicCourses, status: courseStatus } = useAppSelector((state) => state.public_courses)
+    const checkoutItems = useAppSelector(selectCheckoutItems)
+    const totalAmount = useAppSelector(selectCheckoutTotalAmount)
+    const checkoutStatus = useAppSelector(selectCheckoutStatus)
+    const checkoutError = useAppSelector(selectCheckoutError)
+    const showPaymentModal = useAppSelector(selectCheckoutShowPaymentModal)
 
-    const isLoading = checkoutStatus === 'idle' || checkoutStatus === 'preparing' || courseStatus === 'loading';
-    const isEnrolling = checkoutStatus === 'processing_enrollment';
-    const isPaymentProcessing = checkoutStatus === 'processing_payment'; // Maybe add this status later
+    const isLoading = checkoutStatus === "idle" || checkoutStatus === "preparing" || courseStatus === "loading"
+    const isEnrolling = checkoutStatus === "processing_enrollment"
+    const isPaymentProcessing = checkoutStatus === "processing_payment" // Maybe add this status later
+
+    // Check if user is a corporate student (has corporateId but is not a manager)
+    const isCorporateStudent = user && isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager
+
+    // Check if user is a corporate manager
+    const isCorporateManager = user && isStudent(user) && Boolean(user.isCorporateManager)
+
+    // Calculate student count for corporate managers
+    const corporateStudentCount = useMemo(() => {
+        // This would ideally come from an API call or state
+        // For now, we'll use a placeholder value or extract from form data
+        return isCorporateManager ? 5 : 0 // Example: 5 students under this manager
+    }, [isCorporateManager])
+
+    // Redirect corporate students away from checkout
+    useEffect(() => {
+        if (isCorporateStudent) {
+            toast({
+                title: "Access Restricted",
+                description: "Corporate students don't need to make payments. Your courses are managed by your organization.",
+                variant: "destructive",
+            })
+            router.push("/dashboard")
+        }
+    }, [isCorporateStudent, router, toast])
 
     // Fetch public courses if not already loaded
     useEffect(() => {
-        if (courseStatus === 'idle') {
-            dispatch(fetchCourses());
+        if (courseStatus === "idle") {
+            dispatch(fetchCourses())
         }
-    }, [courseStatus, dispatch]);
+    }, [courseStatus, dispatch])
 
     // Prepare checkout items when cart, user, or courses change
     useEffect(() => {
         // Ensure courses are loaded before preparing
-        if (user && cartItems.length > 0 && courseStatus === 'succeeded' && publicCourses.length > 0) {
-            console.log("Preparing checkout...");
-            dispatch(prepareCheckout({
-                cartItems,
-                coursesData: publicCourses,
-                user: user as User | null // Pass user, casting if needed based on definition
-            }));
-        } else if (cartItems.length === 0 && checkoutStatus !== 'idle' && checkoutStatus !== 'succeeded') {
+        if (user && cartItems.length > 0 && courseStatus === "succeeded" && publicCourses.length > 0) {
+            console.log("Preparing checkout...")
+            dispatch(
+                prepareCheckout({
+                    cartItems,
+                    coursesData: publicCourses,
+                    user: user as User | null, // Pass user, casting if needed based on definition
+                    corporateStudentCount: isCorporateManager ? corporateStudentCount : undefined, // Pass student count for corporate managers
+                }),
+            )
+        } else if (cartItems.length === 0 && checkoutStatus !== "idle" && checkoutStatus !== "succeeded") {
             // If cart becomes empty, reset checkout unless already succeeded
-            dispatch(resetCheckout());
+            dispatch(resetCheckout())
         }
-    }, [cartItems, user, dispatch, publicCourses, courseStatus, checkoutStatus]);
+    }, [
+        cartItems,
+        user,
+        dispatch,
+        publicCourses,
+        courseStatus,
+        checkoutStatus,
+        isCorporateManager,
+        corporateStudentCount,
+    ])
 
     // Cleanup checkout state on unmount
     useEffect(() => {
-        return () => { dispatch(resetCheckout()); };
-    }, [dispatch]);
+        return () => {
+            dispatch(resetCheckout())
+        }
+    }, [dispatch])
 
     // Handler after successful payment via PaystackCheckout
     const handlePaymentSuccess = (paystackReference: any) => {
         if (!user || checkoutItems.length === 0 || totalAmount <= 0) {
-            dispatch(setCheckoutError("Missing required information for enrollment."));
-            dispatch(setShowPaymentModal(false)); // Close payment modal
-            return;
+            dispatch(setCheckoutError("Missing required information for enrollment."))
+            dispatch(setShowPaymentModal(false)) // Close payment modal
+            return
         }
 
-        dispatch(setPaymentReference(paystackReference?.reference || null)); // Store reference
-        dispatch(setShowPaymentModal(false)); // Close Paystack modal
+        dispatch(setPaymentReference(paystackReference?.reference || null)) // Store reference
+        dispatch(setShowPaymentModal(false)) // Close Paystack modal
 
         const payload: EnrollCoursesPayload = {
             userId: user.id,
-            courseIds: checkoutItems.map(item => item.courseId),
+            courseIds: checkoutItems.map((item) => item.courseId),
             paymentReference: paystackReference, // Pass full reference object
             totalAmountPaid: totalAmount, // Pass calculated total
             // Determine if corporate pricing was applied to *any* item
-            isCorporatePurchase: checkoutItems.some(item => item.isCorporatePrice),
-        };
+            isCorporatePurchase: isCorporateManager || checkoutItems.some((item) => item.isCorporatePrice),
+            corporateStudentCount: isCorporateManager ? corporateStudentCount : undefined,
+        }
 
         // Dispatch enrollment thunk
         dispatch(enrollCoursesAfterPayment(payload))
             .unwrap()
             .then((response) => {
-                toast({ variant: 'success', title: 'Enrollment Successful!', description: response.message || `You are now enrolled in ${response.enrolledCourseIds.length} course(s).` });
-                dispatch(clearCart()); // Clear the cart
-                router.push('/dashboard'); // Redirect to dashboard
+                const successMessage = isCorporateManager
+                    ? `Successfully enrolled ${corporateStudentCount} students in ${response.enrolledCourseIds.length} course(s).`
+                    : `You are now enrolled in ${response.enrolledCourseIds.length} course(s).`
+
+                toast({
+                    variant: "success",
+                    title: "Enrollment Successful!",
+                    description: response.message || successMessage,
+                })
+                dispatch(clearCart()) // Clear the cart
+                router.push("/dashboard") // Redirect to dashboard
             })
             .catch((errorMsg) => {
                 // Error state is set by the rejected case in the slice
-                toast({ variant: 'destructive', title: 'Enrollment Failed', description: errorMsg || 'Could not complete enrollment after payment.' });
+                toast({
+                    variant: "destructive",
+                    title: "Enrollment Failed",
+                    description: errorMsg || "Could not complete enrollment after payment.",
+                })
                 // Keep user on checkout page to see error?
-            });
-    };
+            })
+    }
 
     const handlePaymentCancel = () => {
-        dispatch(setShowPaymentModal(false));
-        toast({ title: "Payment Cancelled", variant: 'default' });
-    };
+        dispatch(setShowPaymentModal(false))
+        toast({ title: "Payment Cancelled", variant: "default" })
+    }
 
     // Function to initiate payment
     const initiatePayment = () => {
-        if (checkoutStatus !== 'ready') {
+        if (checkoutStatus !== "ready") {
             toast({
-                variant: 'default',
-                title: 'Checkout Not Ready',
-                description: 'Please ensure your cart is ready before proceeding.',
-            });
-            return;
+                variant: "default",
+                title: "Checkout Not Ready",
+                description: "Please ensure your cart is ready before proceeding.",
+            })
+            return
         }
 
         if (totalAmount <= 0) {
             toast({
-                variant: 'default',
-                title: 'Invalid Total Amount',
-                description: 'Total amount must be greater than 0 to proceed with payment.',
-            });
-            return;
+                variant: "default",
+                title: "Invalid Total Amount",
+                description: "Total amount must be greater than 0 to proceed with payment.",
+            })
+            return
         }
 
         if (!user?.email) {
             toast({
-                variant: 'default',
-                title: 'Email Missing',
-                description: 'Please ensure your email is available before continuing.',
-            });
-            return;
+                variant: "default",
+                title: "Email Missing",
+                description: "Please ensure your email is available before continuing.",
+            })
+            return
         }
 
-        dispatch(setShowPaymentModal(true)); // Open the Paystack modal
-    };
+        dispatch(setShowPaymentModal(true)) // Open the Paystack modal
+    }
 
     const handleSkipCheckoutAndBrowse = () => {
-        dispatch(setSkipCheckout(true)); // Set the flag
+        dispatch(setSkipCheckout(true)) // Set the flag
         toast({
             title: "Checkout Postponed",
             description: "Your items are saved in the cart.",
             variant: "default", // Use info variant
-        });
+        })
         // Reset checkout state *before* navigating away if desired
         // dispatch(resetCheckout()); // Optional: Clear checkout items/total immediately
-        router.push('/dashboard'); // Navigate to courses page (or dashboard)
-    };
+        router.push("/dashboard") // Navigate to courses page (or dashboard)
+    }
 
+    // If user is a corporate student, they shouldn't be here - handled by useEffect redirect
+    if (isCorporateStudent) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground">Redirecting to dashboard...</p>
+            </div>
+        )
+    }
 
     // --- Render Logic ---
 
-    if (courseStatus === 'loading' && checkoutStatus === 'idle') {
-        return <div className='p-6'><Skeleton className="h-40 w-full" /></div> // Basic loading for courses
+    if (courseStatus === "loading" && checkoutStatus === "idle") {
+        return (
+            <div className="p-6">
+                <Skeleton className="h-40 w-full" />
+            </div>
+        ) // Basic loading for courses
     }
 
-    if (cartItems.length === 0 && checkoutStatus !== 'succeeded') {
+    if (cartItems.length === 0 && checkoutStatus !== "succeeded") {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
                 <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
@@ -187,16 +251,16 @@ export default function CheckoutPage() {
                     <Link href="/courses">Browse Courses</Link>
                 </DyraneButton>
             </div>
-        );
+        )
     }
 
-    if (checkoutStatus === 'preparing') {
+    if (checkoutStatus === "preparing") {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
                 <p className="text-muted-foreground">Preparing your checkout...</p>
             </div>
-        );
+        )
     }
 
     return (
@@ -212,12 +276,11 @@ export default function CheckoutPage() {
                     className="w-full ml-auto"
                     disabled={isLoading} // Disable while processing
                 >
-                    {/* <LogOut className="mr-2 h-4 w-4" /> */}
                     Skip Checkout
                 </DyraneButton>
             </div>
 
-            {checkoutError && checkoutStatus === 'failed' && (
+            {checkoutError && checkoutStatus === "failed" && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Checkout Error</AlertTitle>
@@ -225,23 +288,59 @@ export default function CheckoutPage() {
                 </Alert>
             )}
 
+            {/* Corporate Manager Info Banner */}
+            {isCorporateManager && (
+                <Alert variant="default" className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                    <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <AlertTitle>Corporate Purchase</AlertTitle>
+                    <AlertDescription>
+                        You are purchasing courses for {corporateStudentCount} students in your organization. The total reflects the
+                        cost for all students.
+                    </AlertDescription>
+                </Alert>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Order Summary */}
                 <div className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-semibold">Order Summary</h2>
-                    {checkoutItems.map(item => (
+                    {checkoutItems.map((item) => (
                         <Card key={item.courseId} className="flex items-start gap-4 p-4 bg-card/15 backdrop-blur-sm">
-                            {item.image && <img src={item.image} alt={item.title} className="w-20 h-20 object-cover rounded-md flex-shrink-0" />}
+                            {item.image && (
+                                <img
+                                    src={item.image || "/placeholder.svg"}
+                                    alt={item.title}
+                                    className="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                                />
+                            )}
                             {!item.image && <div className="w-20 h-20 bg-muted rounded-md flex-shrink-0"></div>}
                             <div className="flex-grow">
                                 <h3 className="font-medium">{item.title}</h3>
                                 {item.instructor && <p className="text-xs text-muted-foreground">Instructor: {item.instructor}</p>}
-                                {item.isCorporatePrice && <Badge variant="outline" className="text-xs mt-1 bg-sky-100 text-sky-700 border-sky-300">Corporate Price</Badge>}
+                                {item.isCorporatePrice && (
+                                    <Badge variant="outline" className="text-xs mt-1 bg-sky-100 text-sky-700 border-sky-300">
+                                        Corporate Price
+                                    </Badge>
+                                )}
+
+                                {/* Show student count for corporate managers */}
+                                {isCorporateManager && (
+                                    <div className="mt-2 text-sm">
+                                        <span className="font-medium">Students:</span> {corporateStudentCount}
+                                    </div>
+                                )}
                             </div>
                             <div className="text-right flex-shrink-0">
                                 <p className="font-semibold">₦{item.priceToPay.toLocaleString()}</p>
                                 {item.priceToPay < item.originalPrice && (
                                     <p className="text-xs text-muted-foreground line-through">₦{item.originalPrice.toLocaleString()}</p>
+                                )}
+
+                                {/* Show per-student price for corporate managers */}
+                                {isCorporateManager && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        ₦{(item.priceToPay / corporateStudentCount).toLocaleString()} per student
+                                    </p>
                                 )}
                             </div>
                         </Card>
@@ -250,16 +349,27 @@ export default function CheckoutPage() {
 
                 {/* Checkout Actions */}
                 <div className="lg:col-span-1">
-                    <DyraneCard className="sticky top-20"> {/* Make summary sticky */}
+                    <DyraneCard className="sticky top-20">
+                        {" "}
+                        {/* Make summary sticky */}
                         <CardHeader>
                             <CardTitle>Total</CardTitle>
+                            {isCorporateManager && <CardDescription>For {corporateStudentCount} students</CardDescription>}
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
                                 <span>₦{totalAmount.toLocaleString()}</span>
                             </div>
-                            {/* Add Discount/Tax lines if needed later */}
+
+                            {/* Corporate Manager breakdown */}
+                            {isCorporateManager && (
+                                <div className="flex justify-between text-sm text-muted-foreground">
+                                    <span>Per Student</span>
+                                    <span>₦{(totalAmount / corporateStudentCount).toLocaleString()}</span>
+                                </div>
+                            )}
+
                             <Separator />
                             <div className="flex justify-between font-bold text-lg">
                                 <span>Order Total</span>
@@ -270,29 +380,42 @@ export default function CheckoutPage() {
                             <DyraneButton
                                 onClick={initiatePayment}
                                 className="w-full"
-                                disabled={isLoading || isEnrolling || checkoutStatus !== 'ready'}
+                                disabled={isLoading || isEnrolling || checkoutStatus !== "ready"}
                                 size="lg"
                             >
                                 {(isLoading || isEnrolling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isEnrolling ? 'Processing Enrollment...' : 'Proceed to Payment'}
+                                {isEnrolling ? "Processing Enrollment..." : "Proceed to Payment"}
                             </DyraneButton>
-                            <p className="text-xs text-muted-foreground text-center">You will be redirected to our secure payment gateway.</p>
+                            <p className="text-xs text-muted-foreground text-center">
+                                {isCorporateManager
+                                    ? `You will be charged for ${corporateStudentCount} students.`
+                                    : "You will be redirected to our secure payment gateway."}
+                            </p>
                         </CardFooter>
                     </DyraneCard>
                 </div>
             </div>
 
             {/* Payment Modal (Uses PaystackCheckout internally) */}
-            <Dialog open={showPaymentModal} onOpenChange={(open) => !isLoading && !isEnrolling && dispatch(setShowPaymentModal(open))}>
+            <Dialog
+                open={showPaymentModal}
+                onOpenChange={(open) => !isLoading && !isEnrolling && dispatch(setShowPaymentModal(open))}
+            >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle><VisuallyHidden>Complete Your Payment</VisuallyHidden></DialogTitle>
+                        <DialogTitle>
+                            <VisuallyHidden>Complete Your Payment</VisuallyHidden>
+                        </DialogTitle>
                     </DialogHeader>
                     <div className="py-2">
-                        {user?.email && checkoutStatus === 'ready' && (
+                        {user?.email && checkoutStatus === "ready" && (
                             <PaystackCheckout
                                 courseId={`cart_checkout_${user.id}`} // Unique identifier for this checkout type
-                                courseTitle={`Course Purchase (${checkoutItems.length} items)`}
+                                courseTitle={
+                                    isCorporateManager
+                                        ? `Corporate Purchase (${checkoutItems.length} courses for ${corporateStudentCount} students)`
+                                        : `Course Purchase (${checkoutItems.length} items)`
+                                }
                                 amount={totalAmount} // Pass the calculated total
                                 email={user.email}
                                 userId={user.id}
@@ -301,13 +424,14 @@ export default function CheckoutPage() {
                             />
                         )}
                         {/* Handle cases where modal shouldn't show content */}
-                        {(!user?.email || checkoutStatus !== 'ready') && (
-                            <p className='text-center text-sm text-muted-foreground py-4'>Payment details cannot be loaded currently.</p>
+                        {(!user?.email || checkoutStatus !== "ready") && (
+                            <p className="text-center text-sm text-muted-foreground py-4">
+                                Payment details cannot be loaded currently.
+                            </p>
                         )}
                     </div>
                 </DialogContent>
             </Dialog>
-
         </div>
-    );
+    )
 }
