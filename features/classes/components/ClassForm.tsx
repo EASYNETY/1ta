@@ -114,7 +114,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                             <SelectTrigger><SelectValue placeholder="Select a teacher" /></SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="">-- No Teacher --</SelectItem>
+                                            <SelectItem value="No-teacher">-- No Teacher --</SelectItem>
                                             {mockTeachers.map(teacher => (
                                                 <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                                             ))}
