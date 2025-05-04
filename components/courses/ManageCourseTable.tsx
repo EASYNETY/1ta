@@ -11,18 +11,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
     return (
         // Add styling similar to UserTable if desired (bg, backdrop-blur)
         <div className="overflow-x-auto relative w-full border rounded-md bg-background/5 backdrop-blur-sm">
-            <table className="w-full border-collapse table-fixed">
-                {/* Define column widths */}
-                <colgroup>
-                    <col className="w-2/5 md:w-1/3 lg:w-2/5" /> {/* Course */}
-                    <col className="w-[150px]" />               {/* Category */}
-                    <col className="w-[150px]" />               {/* Instructor */}
-                    <col className="w-[100px]" />               {/* Students */}
-                    <col className="w-[100px]" />               {/* Status */}
-                    <col className="w-[100px]" />               {/* Price */}
-                    <col className="w-[60px]" />                {/* Actions */}
-                </colgroup>
-
+            <table className="w-full border-collapse">
                 <thead>
                     <tr className="border-b text-sm bg-muted">
                         <th className="text-left py-3 px-4 font-medium text-muted-foreground">Course</th>

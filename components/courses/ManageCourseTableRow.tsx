@@ -10,7 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"; // Use the reusable dialog
-import { MoreVertical, Users, Eye, Pencil, Trash } from "lucide-react";
+import { MoreVertical, Users, Eye, Pencil, Trash, MoreHorizontal } from "lucide-react";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 
 interface ManageCourseTableRowProps {
@@ -30,9 +30,9 @@ export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowP
     return (
         <tr className="border-b hover:bg-muted/50">
             {/* Course Cell */}
-            <td className="py-3 px-4 align-top overflow-hidden">
+            <td className="py-3 px-4 align-top ">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-muted rounded overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 bg-muted rounded  flex-shrink-0">
                         <img
                             src={course.image || "/placeholder.svg"}
                             alt={course.title}
@@ -47,12 +47,12 @@ export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowP
             </td>
 
             {/* Category Cell */}
-            <td className="py-3 px-4 align-top text-sm text-muted-foreground truncate overflow-hidden">
+            <td className="py-3 px-4 align-top text-sm text-muted-foreground truncate ">
                 {course.category || "Uncategorized"}
             </td>
 
             {/* Instructor Cell */}
-            <td className="py-3 px-4 align-top truncate overflow-hidden">
+            <td className="py-3 px-4 align-top truncate ">
                 {course.instructor.name}
             </td>
 
@@ -85,7 +85,7 @@ export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowP
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">Open menu</span>
-                            <MoreVertical className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
