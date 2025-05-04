@@ -12,10 +12,13 @@ import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 
 
 // --- Mock Data Fetching (Replace with API/Store) ---
-const mockUsers: UserData[] = [
+const mockUsers: UserData[] = [ // Use UserData type
     { id: "user-1", name: "John Smith", email: "john.smith@example.com", role: "student", status: "active", joinDate: "2023-10-15" },
     { id: "user-2", name: "Sarah Johnson", email: "sarah.johnson@example.com", role: "teacher", status: "active", joinDate: "2023-09-05" },
-    // ... add other mock users if needed
+    { id: "user-3", name: "Michael Chen", email: "michael.chen@example.com", role: "teacher", status: "active", joinDate: "2023-08-20" },
+    { id: "user-4", name: "Emily Williams", email: "emily.williams@example.com", role: "student", status: "inactive", joinDate: "2023-11-10" },
+    { id: "user-5", name: "David Brown", email: "david.brown@example.com", role: "student", status: "active", joinDate: "2023-10-25" },
+    { id: "user-6", name: "Jennifer Moore", email: "jennifer.moore@example.com", role: "admin", status: "active", joinDate: "2023-07-15" },
 ];
 
 const fetchMockUserById = async (id: string): Promise<UserData | null> => {
