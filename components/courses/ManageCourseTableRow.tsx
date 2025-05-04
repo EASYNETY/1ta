@@ -99,7 +99,7 @@ export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowP
                         {/* Edit Action */}
                         <DropdownMenuItem asChild className="cursor-pointer">
                             {/* Make sure edit link is correct */}
-                            <Link href={`/admin/courses/${course.slug}/edit`} className="flex items-center">
+                            <Link href={`/courses/${course.slug}/edit`} className="flex items-center">
                                 <Pencil className="mr-2 h-4 w-4" />
                                 <span>Edit</span>
                             </Link>
