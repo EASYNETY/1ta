@@ -13,8 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Plus, Search, AlertTriangle, Users, Eye, Edit, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { fetchAllClassesAdmin, selectAllAdminClasses, selectAdminPagination, selectClassesStatus, selectClassesError } from '../store/classes-slice'; // Adjust path
+import { fetchAllClassesAdmin, selectAllAdminClasses, selectAdminPagination, selectClassesStatus, selectClassesError, deleteClass, resetOperationStatus } from '../store/classes-slice'; // Adjust path
 import type { AdminClassView } from '../types/classes-types';
+import { useToast } from '@/hooks/use-toast';
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 
 
 const AdminClassesTab: React.FC = () => {
@@ -24,6 +26,7 @@ const AdminClassesTab: React.FC = () => {
     const status = useAppSelector(selectClassesStatus);
     const error = useAppSelector(selectClassesError);
     const [searchTerm, setSearchTerm] = useState('');
+    const { toast } = useToast();
     // TODO: Add state for page and limit if implementing pagination controls
 
     useEffect(() => {
@@ -34,6 +37,31 @@ const AdminClassesTab: React.FC = () => {
     // Optional: Debounce search or fetch on button click
     const handleSearch = () => {
         dispatch(fetchAllClassesAdmin({ search: searchTerm, page: 1 })); // Reset to page 1 on search
+    };
+
+    // --- Delete Handler ---
+    const handleDeleteClass = async (classId: string, classTitle: string) => {
+        try {
+            await dispatch(deleteClass(classId)).unwrap();
+            toast({
+                title: "Class Deleted",
+                description: `Class "${classTitle}" has been deleted.`,
+                variant: "destructive",
+            });
+            // Optionally refetch classes if not using RTK Query
+            // dispatch(fetchAllClassesAdmin({ search: searchTerm })); 
+            // Or just rely on the slice to handle it
+            // dispatch(fetchAllClassesAdmin({ page: pagination.currentPage, limit: pagination.pageSize }));
+            // No need to refetch manually if slice removes it
+            dispatch(resetOperationStatus()); // Reset status
+        } catch (error: any) {
+            toast({
+                title: "Error Deleting Class",
+                description: error.message || 'Failed to delete class.',
+                variant: "destructive",
+            });
+            dispatch(resetOperationStatus());
+        }
     };
 
     const getStatusBadgeVariant = (status: AdminClassView['status']): "default" | "secondary" | "outline" | "destructive" => {
@@ -124,9 +152,19 @@ const AdminClassesTab: React.FC = () => {
                                                 <DyraneButton variant="ghost" size="icon" className="h-7 w-7" asChild>
                                                     <Link href={`/classes/${cls.id}/edit`} title="Edit"><Edit className="h-4 w-4" /></Link>
                                                 </DyraneButton>
-                                                <DyraneButton variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Delete">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </DyraneButton>
+                                                {/* Delete Button with Confirmation */}
+                                                <ConfirmationDialog
+                                                    title="Delete Class?"
+                                                    description={<>This action cannot be undone. This will permanently delete the class <strong>{cls.courseTitle}</strong>.</>}
+                                                    confirmText="Delete"
+                                                    variant="destructive"
+                                                    onConfirm={() => handleDeleteClass(cls.id, cls.courseTitle)}
+                                                    trigger={
+                                                        <DyraneButton variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Delete">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </DyraneButton>
+                                                    }
+                                                />
                                             </div>
                                         </TableCell>
                                     </TableRow>

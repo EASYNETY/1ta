@@ -55,9 +55,13 @@ import {
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
 import { getMockSchedule } from "@/data/mock-schedule-data";
 import {
+	createMockClass,
+	deleteMockClass,
 	getMockAllClassesAdmin,
+	getMockClassById,
 	getMockEnrolledClasses,
 	getMockTaughtClasses,
+	updateMockClass,
 } from "@/data/mock-classes-data";
 import {
 	createMockChatMessage,
@@ -392,6 +396,82 @@ async function handleMockRequest<T>(
 		const limit = parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
 		return getMockAllClassesAdmin(page, limit, search) as unknown as T;
+	}
+
+	// --- START: Class CRUD Mock Handlers ---
+
+	// GET /classes/:id - Fetch Single Class
+	const getClassByIdMatch = endpoint.match(/^\/classes\/([\w-]+)$/);
+	if (getClassByIdMatch && method === "get") {
+		const classId = getClassByIdMatch[1];
+		console.log(`%cAPI Client MOCK: GET /classes/${classId}`, "color: orange;");
+		try {
+			const classData = await getMockClassById(classId); // Call mock function
+			return classData as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /classes/${classId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } }; // Simulate 404
+		}
+	}
+
+	// POST /classes - Create Class
+	if (endpoint === "/classes" && method === "post") {
+		console.log("%cAPI Client MOCK: POST /classes", "color: orange;");
+		if (!body)
+			throw new Error("Mock API Error: Missing request body for POST /classes");
+		try {
+			const newClass = await createMockClass(body); // Call mock function
+			return newClass as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /classes:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } }; // Simulate 400 Bad Request
+		}
+	}
+
+	// PUT /classes/:id - Update Class
+	const updateClassMatch = endpoint.match(/^\/classes\/([\w-]+)$/);
+	if (updateClassMatch && method === "put") {
+		const classId = updateClassMatch[1];
+		console.log(`%cAPI Client MOCK: PUT /classes/${classId}`, "color: orange;");
+		if (!body)
+			throw new Error(
+				`Mock API Error: Missing request body for PUT /classes/${classId}`
+			);
+		try {
+			const updatedClass = await updateMockClass(classId, body); // Call mock function
+			return updatedClass as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for PUT /classes/${classId}:`,
+				error.message
+			);
+			// Simulate 404 if not found, 400 otherwise
+			const status = error.message.includes("not found") ? 404 : 400;
+			throw { response: { data: { message: error.message }, status } };
+		}
+	}
+
+	// DELETE /classes/:id - Delete Class
+	const deleteClassMatch = endpoint.match(/^\/classes\/([\w-]+)$/);
+	if (deleteClassMatch && method === "delete") {
+		const classId = deleteClassMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /classes/${classId}`,
+			"color: orange;"
+		);
+		try {
+			await deleteMockClass(classId); // Call mock function
+			return { success: true, id: classId } as unknown as T; // Or just return undefined for 204 No Content simulation
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for DELETE /classes/${classId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } }; // Simulate 404
+		}
 	}
 
 	// --- Attendance Mock Data ---

@@ -1,29 +1,30 @@
-// features/classes/types/classes-types.ts
-import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface"; // Reuse if possible
-
-// You might need a specific view model for the admin table
+// features/classes/types/classes-types.ts (Example - Ensure it has needed fields)
 export interface AdminClassView {
-	id: string; // Class ID (not course ID)
+	id: string;
 	courseTitle: string;
+	courseId?: string; // Add if needed to link back
 	teacherName?: string;
-	teacherId?: string;
+	teacherId?: string; // Important for assignment
 	studentCount: number;
-	status: "active" | "inactive" | "upcoming" | "archived"; // Example statuses
+	status: "active" | "upcoming" | "inactive" | "archived" | string; // Make status flexible
 	startDate?: string; // ISO String
 	endDate?: string; // ISO String
-	// Add other relevant fields for the admin table
+	description?: string; // Add description if needed
+	// Add any other fields managed for a class
 }
 
 export interface ClassesState {
-	myClasses: AuthCourse[]; // For student/teacher (reuse AuthCourse?)
-	allClasses: AdminClassView[]; // For admin view
+	myClasses: any[]; // Use a specific type e.g., StudentClassView[]
+	allClasses: AdminClassView[];
+	currentClass: AdminClassView | null; // Add state for viewing/editing a single class
 	status: "idle" | "loading" | "succeeded" | "failed";
+	operationStatus: "idle" | "loading" | "succeeded" | "failed"; // For CUD operations
 	error: string | null;
-	// Add pagination state for admin if needed
 	adminPagination: {
+		// Keep pagination
 		currentPage: number;
-		totalPages: number;
-		totalClasses: number;
 		limit: number;
+		totalClasses: number;
+		totalPages: number;
 	} | null;
 }
