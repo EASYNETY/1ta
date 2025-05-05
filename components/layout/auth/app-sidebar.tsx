@@ -43,6 +43,7 @@ import { ThemeToggle } from "@/providers/theme-provider";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { RootState } from "@/store";
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
+import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems";
 
 // --- Define Nav Item Type ---
 export interface NavItem {
@@ -72,19 +73,6 @@ export const adminNavItems: NavItem[] = [
     { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["admin"] },
 ];
 
-// Secondary/Bottom Items
-export const secondaryNavItems: NavItem[] = [
-    { title: "Profile", href: "/profile", icon: User, roles: ["admin", "teacher", "student"] },
-    { title: "Settings", href: "/settings", icon: Settings, roles: ["admin", "teacher", "student"] },
-    { title: "Support", href: "/support", icon: LifeBuoy, roles: ["admin", "teacher", "student"] },
-    // chechout page
-    { title: "Checkout", href: "/checkout", icon: ShoppingCart, roles: ["student"] },
-    // payment history
-    { title: "Payment History", href: "/payments", icon: BarChart3, roles: ["student"] },
-    // pricing page
-    // { title: 'Pricing', href: '/pricing', icon: Money, roles: ['student'] },
-    // { title: 'Subscription', href: '/subscription/manage', icon: RefreshCcw, roles: ['student'] }
-];
 
 // --- AppSidebar Component ---
 // Add collapsible prop type if needed, based on your Sidebar component's definition
@@ -121,6 +109,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         visiblePrimaryItems.filter(item => item.roles.includes('admin')), // Filter primary for admin first
         filterItems(adminNavItems)
     );
+    const secondaryNavItems = useFilteredSecondaryNavItems(user);
     const visibleSecondaryItems = filterItems(secondaryNavItems);
 
 

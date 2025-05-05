@@ -15,13 +15,15 @@ export const addAuthExtraReducers = (builder: any) => {
 		fetchUserProfileThunk.fulfilled,
 		(state: AuthState, action: PayloadAction<User>) => {
 			state.isLoading = false;
+			// Now update the user in state, preserving the fetched role
 			if (state.user) {
-				// Preserve the role to ensure type safety
 				const updatedUser = {
 					...state.user,
 					...action.payload,
-					role: state.user.role, // Keep the original role
+					// Preserve the role from the fetched data
+					role: action.payload.role, // Set role from the payload instead of state.user.role
 				};
+
 				state.user = updatedUser as User;
 			}
 		}

@@ -56,14 +56,13 @@ export const authSlice = createSlice({
 		},
 		updateUser: (state, action: PayloadAction<Partial<User>>) => {
 			if (state.user) {
-				// We need to handle the update based on the user's role
-				const updatedUser = { ...state.user, ...action.payload };
+				const { role: _, ...rest } = action.payload; // Exclude role if present
 
-				// Ensure the role doesn't change
-				updatedUser.role = state.user.role;
-
-				// Type-safe assignment
-				state.user = updatedUser as User;
+				state.user = {
+					...state.user,
+					...rest,
+					role: state.user.role, // Ensure role stays the same
+				} as User;
 			}
 		},
 		initializeAuth: (state) => {

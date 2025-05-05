@@ -179,28 +179,33 @@ export const users: MockUser[] = [
 function convertToUserType(mockUser: MockUser): User {
 	const { password, ...baseUser } = mockUser;
 
-	if (mockUser.role === "admin") {
-		return {
-			...baseUser,
-			role: "admin",
-			permissions: mockUser.permissions || [],
-		} as AdminUser;
-	} else if (mockUser.role === "teacher") {
-		return {
-			...baseUser,
-			role: "teacher",
-			subjects: mockUser.subjects || [],
-			officeHours: mockUser.officeHours || "",
-		} as TeacherUser;
-	} else {
-		// Student
-		return {
-			...baseUser,
-			role: "student",
-			dateOfBirth: mockUser.dateOfBirth,
-			barcodeId: mockUser.barcodeId,
-			isCorporateManager: mockUser.isCorporateManager || false,
-		} as StudentUser;
+	switch (mockUser.role) {
+		case "admin":
+			return {
+				...baseUser,
+				role: "admin",
+				permissions: mockUser.permissions || [],
+			} as AdminUser;
+
+		case "teacher":
+			return {
+				...baseUser,
+				role: "teacher",
+				subjects: mockUser.subjects || [],
+				officeHours: mockUser.officeHours || "",
+			} as TeacherUser;
+
+		case "student":
+			return {
+				...baseUser,
+				role: "student",
+				dateOfBirth: mockUser.dateOfBirth,
+				barcodeId: mockUser.barcodeId,
+				isCorporateManager: mockUser.isCorporateManager || false,
+			} as StudentUser;
+
+		default:
+			throw new Error(`Unhandled role: ${mockUser.role}`);
 	}
 }
 
@@ -327,7 +332,7 @@ export function resetPassword(payload: { token: string; password: string }): {
 export function mockGetMyProfile(): User {
 	// For testing purposes, return a specific user
 	// In a real implementation, this would use the token to identify the user
-	const mockUserId = "student_2"; // Using the incomplete profile user for testing
+	const mockUserId = "corp_student_1"; // Using the incomplete profile user for testing
 	const user = users.find((u) => u.id === mockUserId);
 
 	if (!user) {
