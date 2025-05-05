@@ -58,8 +58,20 @@ export function useFabAction({
 					: rule.pathPattern.test(pathname); // Regex match
 
 			const roleMatches = rule.roles.includes(user.role);
-
-			if (pathMatches && roleMatches) {
+			// --- NEW Flag Checks ---
+			let flagsMatch = true;
+			if (rule.requiredFlags) {
+				flagsMatch =
+					flagsMatch &&
+					rule.requiredFlags.every((flag) => (user as any)[flag] === true);
+			}
+			if (rule.excludeFlags) {
+				flagsMatch =
+					flagsMatch &&
+					rule.excludeFlags.every((flag) => (user as any)[flag] !== true);
+			}
+			// --- End Flag Checks ---
+			if (pathMatches && roleMatches && flagsMatch) {
 				return rule;
 			}
 		}

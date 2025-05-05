@@ -12,11 +12,8 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import {
-    HouseSimple,
     CalendarBlank,
-    ChatCircleDots, // Keep original icon for nav item if different
     GraduationCap,
-    EnvelopeSimple, // Use Envelope for Chat Nav Item
     CheckCircle,
     UsersThree,
     // FAB Icons are now sourced from fab-config.ts via the hook
@@ -29,6 +26,8 @@ import { selectChatUnreadCount } from "@/features/chat/store/chatSlice"; // Exam
 
 // --- Import FAB Hook & Config ---
 import { useFabAction } from "@/hooks/useFabAction"; // Adjusted path
+import { isStudent, User } from "@/types/user.types";
+import { Building, LayoutDashboard } from "lucide-react";
 
 // Interface definitions (MobileNavItems) - Keep as is
 export interface MobileNavItem {
@@ -37,6 +36,8 @@ export interface MobileNavItem {
     icon: React.ElementType;
     roles: Array<"admin" | "teacher" | "student">;
     badgeKey?: keyof MobileNavBadges;
+    hidden?: boolean;
+    requiredFlags?: Array<"isCorporateManager">;
 }
 export interface MobileNavBadges {
     messages?: number;
@@ -44,19 +45,60 @@ export interface MobileNavBadges {
     notifications?: number;
 }
 
-// Final Mobile Navigation Items Definition - Keep as is
-export const mobileNavItems: MobileNavItem[] = [
-    { title: "Home", href: "/dashboard", icon: HouseSimple, roles: ["admin", "teacher", "student"] },
-    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["admin", "teacher", "student"] },
-    { title: "Timetable", href: "/timetable", icon: CalendarBlank, roles: ["teacher", "student", "admin"] },
-    { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
-    { title: "  Discussions", href: "/chat", icon: UsersThree, roles: ["teacher", "student", "admin"], badgeKey: "messages" }, // Use EnvelopeSimple for nav
-];
+export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
+    const isCorpManager = user && isStudent(user) && user.isCorporateManager;
+
+    const items: MobileNavItem[] = [
+        {
+            title: "Dashboard",
+            href: isCorpManager ? "/corporate-management" : "/dashboard",
+            icon: LayoutDashboard,
+            roles: ["admin", "teacher", "student"],
+        },
+        {
+            title: "Courses",
+            href: "/courses",
+            icon: GraduationCap,
+            roles: ["student", "teacher", "admin"],
+        },
+        {
+            title: "Attendance",
+            href: "/attendance",
+            icon: CheckCircle,
+            roles: ["student", "teacher", "admin"],
+            hidden: isCorpManager as boolean,
+        },
+        {
+            title: "Timetable",
+            href: "/timetable",
+            icon: CalendarBlank,
+            roles: ["student", "teacher", "admin"],
+            hidden: isCorpManager as boolean,
+        },
+        {
+            title: "Discussions",
+            href: "/chat",
+            icon: UsersThree,
+            roles: ["student", "teacher", "admin"],
+            hidden: isCorpManager as boolean,
+        }
+    ];
+
+    // Filter items
+    return items.filter(item => {
+        if (!user || !item.roles.includes(user.role as any)) return false;
+        if (item.hidden) return false;
+        if (item.requiredFlags?.includes("isCorporateManager") && !isCorpManager) return false;
+        return true;
+    });
+};
 
 // --- MobileNav Component ---
 export function MobileNav() {
     const pathname = usePathname();
     const { user } = useAppSelector((state) => state.auth);
+    const mobileNavItems = getMobileNavItems(user);
+
     // const cart = useAppSelector((state) => state.cart); // Keep if cart badge is needed
     const isMobile = useMobile();
     const scrollDirection = useScrollDirection();

@@ -99,6 +99,10 @@ import {
 	getMockChatMessages,
 	getMockChatRooms,
 } from "@/data/mock-chat-data";
+import {
+	deleteMockManagedStudent,
+	getMockManagedStudents,
+} from "@/data/mock-corporate-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -326,6 +330,66 @@ async function handleMockRequest<T>(
 		}
 	}
 	// --- END: Corporate Slot Creation Mock Handler ---
+
+	// --- START: Corporate Student Management Mock Handlers ---
+
+	// GET /corporate/:corporateId/students - Fetch Managed Students List
+	const getManagedStudentsMatch = endpoint.match(
+		/^\/corporate\/([\w-]+)\/students$/
+	);
+	if (getManagedStudentsMatch && method === "get") {
+		const corporateId = getManagedStudentsMatch[1];
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const search = urlParams.get("search") || undefined;
+		console.log(
+			`%cAPI Client MOCK: GET /corporate/${corporateId}/students?page=${page}&limit=${limit}&search=${search}`,
+			"color: purple;"
+		);
+		try {
+			const result = await getMockManagedStudents(
+				corporateId,
+				page,
+				limit,
+				search
+			);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /corporate/${corporateId}/students:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// Note: We assume POST /users, PUT /users/:id, DELETE /users/:id are handled by existing
+	// mockLogin, mockUpdateMyProfile, and a generic delete handler (if needed).
+	// The *backend* differentiates based on the authenticated user's role/corporateId.
+	// If you used DELETE /corporate/students/:studentId instead:
+	const deleteManagedStudentMatch = endpoint.match(
+		/^\/corporate\/students\/([\w-]+)$/
+	);
+	if (deleteManagedStudentMatch && method === "delete") {
+		const studentId = deleteManagedStudentMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /corporate/students/${studentId}`,
+			"color: purple;"
+		);
+		try {
+			await deleteMockManagedStudent(studentId);
+			return { success: true, id: studentId } as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for DELETE /corporate/students/${studentId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// --- END: Corporate Student Management Mock Handlers ---
 
 	// --- Pricing and Subscriptions
 	const userSubscriptionMatch = endpoint.match(/^\/users\/(.+)\/subscription$/);

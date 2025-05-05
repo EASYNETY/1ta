@@ -29,6 +29,7 @@ import settingsReducer from "@/features/settings/store/settingsSlice";
 import supportReducer from "@/features/support/store/supportSlice";
 import checkoutReducer from "@/features/checkout/store/checkoutSlice";
 import paymentHistoryReducer from "@/features/payment/store/payment-slice";
+import corporateReducer from "@/features/corporate/store/corporate-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -76,6 +77,7 @@ const persistConfig = {
 		"chat",
 		"settings",
 		"support",
+		"corporate",
 	],
 };
 
@@ -96,6 +98,7 @@ const rootReducer = combineReducers({
 	chat: chatReducer,
 	settings: settingsReducer,
 	support: supportReducer,
+	corporate: corporateReducer,
 });
 
 // --- Persisted Reducer ---

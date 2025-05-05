@@ -22,13 +22,14 @@ import { Avatar } from "@radix-ui/react-avatar"
 import { AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useScrollDirection } from "@/hooks/use-scroll-direction"
 import { adminNavItems, NavItem, primaryNavItems } from "./app-sidebar"
-import { mobileNavItems } from "./mobile-nav"
+
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { CartItem } from "@/features/cart/store/cart-slice"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems"
+import { getMobileNavItems } from "./mobile-nav"
 
 
 // Mock notifications data
@@ -47,6 +48,7 @@ export function Header() {
     const isMobile = useMobile()
     const { theme, setTheme, systemTheme } = useTheme();
     const scrollDirection = useScrollDirection();
+    const mobileNavItems = getMobileNavItems(user);
 
     // --- State ---
     const [isScrolled, setIsScrolled] = useState(false)

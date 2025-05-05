@@ -23,13 +23,8 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"; // Adjust path
 import {
-    LayoutDashboard, BookOpen, Users as AdminUsersIcon, BarChart3 as AdminAnalyticsIcon, LifeBuoy,
-    Settings, LogOut, ShoppingCart,
+    LayoutDashboard, Users as AdminUsersIcon, LifeBuoy, LogOut,
     BarChart3,
-    Users,
-    MessageSquare,
-    Award,
-    RefreshCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
@@ -39,11 +34,12 @@ import { Calendar, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, User
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
-import { ThemeToggle } from "@/providers/theme-provider";
+// import { ThemeToggle } from "@/providers/theme-provider";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { RootState } from "@/store";
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems";
+import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems";
 
 // --- Define Nav Item Type ---
 export interface NavItem {
@@ -61,7 +57,7 @@ export const primaryNavItems: NavItem[] = [
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", 'admin'] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", 'admin'] },
-    { title: "Discussions", href: "/chat", icon: UsersThree , roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
+    { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
 ];
 
 // Admin Specific Items
@@ -103,8 +99,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         return secondary.filter(item => !primaryHrefs.has(item.href));
     }
 
-    const visiblePrimaryItems = filterItems(primaryNavItems);
-    // Ensure admin routes are unique from primary ones if needed
+    const visiblePrimaryItems = useFilteredPrimaryNavItems();    // Ensure admin routes are unique from primary ones if needed
     const visibleAdminItems = removeDuplicateNavItems(
         visiblePrimaryItems.filter(item => item.roles.includes('admin')), // Filter primary for admin first
         filterItems(adminNavItems)

@@ -22,19 +22,24 @@ import { GradesTab } from "@/components/dashboard/grades-tab"
 import { AssignmentsTab } from "@/components/dashboard/assignments-tab"
 import { ScheduleTab } from "@/components/dashboard/schedule-tab"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { useRouter } from "next/navigation"
+import { isStudent } from "@/types/user.types"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
     const { courses, status } = useAppSelector((state) => state.auth_courses)
     const [activeTab, setActiveTab] = useState("overview")
     const dispatch = useAppDispatch()
+    const router = useRouter();
 
-    // Fetch courses on mount
+    // --- Redirect Corporate Manager ---
     useEffect(() => {
-        if (user) {
-            dispatch(fetchAuthCourses())
+        if (isInitialized && user && isStudent(user) && user.isCorporateManager) {
+            console.log("Dashboard: Redirecting Corporate Manager to /corporate-management");
+            router.replace("/corporate-management"); // Use replace to avoid adding to history
         }
-    }, [dispatch, user])
+    }, [user, isInitialized, router]);
+    // --- End Redirect ---
 
     // Loading state while checking auth
     if (!isInitialized) {
