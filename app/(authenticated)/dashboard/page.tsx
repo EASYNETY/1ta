@@ -190,47 +190,42 @@ export default function DashboardPage() {
                 </Alert>
             )}
 
-            {/* Welcome message for new users */}
+            {/* --- UPDATED Welcome message for new users --- */}
+            {/* Show only if profile is incomplete (onboarding needed OR skipped) */}
             {!profileComplete && (
                 <DyraneCard className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                     <CardContent className="p-6">
-                        <div className="flex flex-col md:flex-row items-center gap-4">
-                            <div className="bg-primary/20 rounded-full p-3">
+                        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6"> {/* Added gap */}
+                            <div className="bg-primary/10 rounded-full p-3 flex-shrink-0"> {/* Adjusted background */}
                                 <Sparkles className="h-8 w-8 text-primary" />
                             </div>
-                            <div>
-                                <h2 className="text-xl font-semibold mb-2">Getting Started with 1Tech Academy</h2>
-                                <p className="text-muted-foreground mb-4">
-                                    Welcome to your learning journey! Complete these steps to get the most out of your experience:
+                            <div className="flex-grow"> {/* Allow text content to take space */}
+                                <h2 className="text-xl font-semibold mb-1">Getting Started with 1Tech Academy</h2> {/* Reduced mb */}
+                                <p className="text-muted-foreground mb-4 text-sm"> {/* Smaller text */}
+                                    Welcome! To unlock all features and begin your journey, please complete these steps:
                                 </p>
-                                <ul className="space-y-2 mb-4">
+                                <ul className="space-y-2 mb-4 text-sm"> {/* Added text-sm */}
                                     <li className="flex items-center gap-2">
-                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
-                                            1
-                                        </div>
-                                        <span>Complete your profile information</span>
+                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+                                        <span>Complete your profile information.</span>
                                     </li>
+                                    {/* Step 2 Removed (Pricing Plan) */}
                                     <li className="flex items-center gap-2">
-                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
-                                            2
-                                        </div>
-                                        <span>Choose a pricing plan that fits your needs</span>
+                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+                                        <span>Explore available courses and enroll to start learning.</span>
                                     </li>
-                                    <li className="flex items-center gap-2">
-                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
-                                            3
-                                        </div>
-                                        <span>Explore available courses and start learning</span>
-                                    </li>
+
                                 </ul>
-                                <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex flex-row gap-3 mt-4 flex-wrap"> {/* Added mt-4 */}
                                     <DyraneButton asChild>
+                                        {/* Ensure handleCompleteProfile resets skip flag */}
                                         <Link href="/profile" onClick={handleCompleteProfile}>
                                             Complete Profile
                                         </Link>
                                     </DyraneButton>
+                                    {/* Removed "View Pricing Plans" button */}
                                     <DyraneButton asChild variant="outline">
-                                        <Link href="/pricing">View Pricing Plans</Link>
+                                        <Link href="/courses">Browse Courses</Link>
                                     </DyraneButton>
                                 </div>
                             </div>
@@ -238,6 +233,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </DyraneCard>
             )}
+            {/* --- End Welcome Message --- */}
             {/* Tabs for different sections */}
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
                 <ScrollArea className="w-full whitespace-nowrap pb-0">
