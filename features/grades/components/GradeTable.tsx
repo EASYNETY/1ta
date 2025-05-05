@@ -134,7 +134,7 @@ export default function GradeTable() {
                 </Button>
             </div>
 
-            <div className="rounded-md border">
+            <div className="rounded-md border bg-Card/5 shadow-sm backdrop-blur-sm">
                 <Table>
                     <TableHeader>
                         <TableRow>

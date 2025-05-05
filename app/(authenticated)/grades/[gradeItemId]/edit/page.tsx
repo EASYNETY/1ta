@@ -131,15 +131,7 @@ export default function EditGradePage() {
                 <h1 className="text-3xl font-bold">Edit Grade Item</h1>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Edit Grade Item Details</CardTitle>
-                    <CardDescription>Update the grade item information.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <GradeForm isEditing={true} gradeItemId={gradeItemId} />
-                </CardContent>
-            </Card>
+            <GradeForm isEditing={true} gradeItemId={gradeItemId} />
         </div>
     )
 }

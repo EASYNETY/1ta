@@ -16,7 +16,7 @@ import {
     clearCurrentGradeItem,
     clearCurrentGrade,
 } from "@/features/grades/store/grade-slice"
-import { PageHeader } from "@/components/page-header"
+import { PageHeader } from "@/components/layout/auth/page-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { AlertCircle, ArrowLeft, Loader2, Save } from "lucide-react"
 import { format, parseISO } from "date-fns"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 
 export default function StudentGradeDetailPage() {
     const params = useParams()
@@ -189,10 +190,10 @@ export default function StudentGradeDetailPage() {
                 heading="Student Grade Details"
                 subheading={`${gradeItem.title} - Student: ${grade?.studentName || studentId}`}
                 actions={
-                    <Button variant="outline" onClick={() => router.push(`/grades/${gradeItemId}/student-grades`)}>
+                    <DyraneButton variant="outline" onClick={() => router.push(`/grades/${gradeItemId}/student-grades`)}>
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to All Grades
-                    </Button>
+                    </DyraneButton>
                 }
             />
 
@@ -274,10 +275,10 @@ export default function StudentGradeDetailPage() {
                 <CardFooter className="flex justify-between">
                     {isEditing ? (
                         <>
-                            <Button variant="outline" onClick={handleCancelEdit}>
+                            <DyraneButton variant="outline" onClick={handleCancelEdit}>
                                 Cancel
-                            </Button>
-                            <Button onClick={handleSave} disabled={operationStatus === "loading"}>
+                            </DyraneButton>
+                            <DyraneButton onClick={handleSave} disabled={operationStatus === "loading"}>
                                 {operationStatus === "loading" ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -289,14 +290,14 @@ export default function StudentGradeDetailPage() {
                                         Save Changes
                                     </>
                                 )}
-                            </Button>
+                            </DyraneButton>
                         </>
                     ) : (
                         <>
-                            <Button variant="outline" onClick={() => router.push(`/grades/${gradeItemId}/student-grades`)}>
+                            <DyraneButton variant="outline" onClick={() => router.push(`/grades/${gradeItemId}/student-grades`)}>
                                 Back to All Grades
-                            </Button>
-                            <Button onClick={() => setIsEditing(true)}>Edit Grade</Button>
+                            </DyraneButton>
+                            <DyraneButton onClick={() => setIsEditing(true)}>Edit Grade</DyraneButton>
                         </>
                     )}
                 </CardFooter>

@@ -75,12 +75,12 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
         if (status === "succeeded") {
             // Create a map of existing grades
             const gradesMap = new Map<string, StudentGrade>()
-            studentGrades.forEach(grade => {
+            studentGrades.forEach((grade) => {
                 gradesMap.set(grade.studentId, grade)
             })
 
             // Create editable grades for all students
-            const newEditableGrades = mockStudents.map(student => {
+            const newEditableGrades = mockStudents.map((student) => {
                 const existingGrade = gradesMap.get(student.id)
                 return {
                     studentId: student.id,
@@ -90,7 +90,7 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
                     status: existingGrade?.status || "draft",
                     gradeId: existingGrade?.id,
                     isEditing: false,
-                    isSaving: false
+                    isSaving: false,
                 }
             })
 
@@ -99,57 +99,41 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
     }, [studentGrades, status])
 
     // Filter students based on search query
-    const filteredGrades = editableGrades.filter(grade =>
-        grade.studentName.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredGrades = editableGrades.filter((grade) =>
+        grade.studentName.toLowerCase().includes(searchQuery.toLowerCase()),
     )
 
     // Handle editing a grade
     const handleEdit = (studentId: string) => {
-        setEditableGrades(prev =>
-            prev.map(grade =>
-                grade.studentId === studentId
-                    ? { ...grade, isEditing: true }
-                    : grade
-            )
+        setEditableGrades((prev) =>
+            prev.map((grade) => (grade.studentId === studentId ? { ...grade, isEditing: true } : grade)),
         )
     }
 
     // Handle canceling edit
-    // const handleCancelEdit = (studentId: string) => {
-    //     setEditableGrades(prev =>
-    //         prev.map(grade => {
-    //             if (grade.studentId === studentId) {
-    //                 const existingGrade = studentGrades.find(g => g.studentId === studentId)
-    //                 return {
-    //                     ...grade,
-    //                     points: existingGrade?.points || 0,
-    //                     feedback: existingGrade?.feedback || "",
-    //                     status: existingGrade?.status || "draft",
-    //                     isEditing: false,
-    //                     isSaving: false
-    //                 } : grade
-    //   )
-    //     )
-    // }
-
     const handleCancelEdit = (studentId: string) => {
-        setEditableGrades(prev =>
-            prev.map(grade =>
-                grade.studentId === studentId
-                    ? { ...grade, isEditing: false, isSaving: false }
-                    : grade
-            )
+        setEditableGrades((prev) =>
+            prev.map((grade) => {
+                if (grade.studentId === studentId) {
+                    const existingGrade = studentGrades.find((g) => g.studentId === studentId)
+                    return {
+                        ...grade,
+                        points: existingGrade?.points || 0,
+                        feedback: existingGrade?.feedback || "",
+                        status: existingGrade?.status || "draft",
+                        isEditing: false,
+                        isSaving: false,
+                    }
+                }
+                return grade
+            }),
         )
     }
 
     // Handle input change
     const handleInputChange = (studentId: string, field: keyof EditableGrade, value: any) => {
-        setEditableGrades(prev =>
-            prev.map(grade =>
-                grade.studentId === studentId
-                    ? { ...grade, [field]: value }
-                    : grade
-            )
+        setEditableGrades((prev) =>
+            prev.map((grade) => (grade.studentId === studentId ? { ...grade, [field]: value } : grade)),
         )
     }
 
@@ -157,58 +141,50 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
     const handleSaveGrade = async (studentId: string) => {
         if (!user?.id) return
 
-        const gradeToSave = editableGrades.find(g => g.studentId === studentId)
+        const gradeToSave = editableGrades.find((g) => g.studentId === studentId)
         if (!gradeToSave) return
 
         // Mark as saving
-        setEditableGrades(prev =>
-            prev.map(grade =>
-                grade.studentId === studentId
-                    ? { ...grade, isSaving: true }
-                    : grade
-            )
+        setEditableGrades((prev) =>
+            prev.map((grade) => (grade.studentId === studentId ? { ...grade, isSaving: true } : grade)),
         )
 
         try {
             if (gradeToSave.gradeId) {
                 // Update existing grade
-                await dispatch(updateGrade({
-                    gradeId: gradeToSave.gradeId,
-                    grade: {
-                        points: gradeToSave.points,
-                        feedback: gradeToSave.feedback,
-                        status: gradeToSave.status
-                    }
-                })).unwrap()
+                await dispatch(
+                    updateGrade({
+                        gradeId: gradeToSave.gradeId,
+                        grade: {
+                            points: gradeToSave.points,
+                            feedback: gradeToSave.feedback,
+                            status: gradeToSave.status,
+                        },
+                    }),
+                ).unwrap()
             } else {
                 // Create new grade
-                await dispatch(assignGrade({
-                    gradeItemId: gradeItem.id,
-                    studentId: gradeToSave.studentId,
-                    points: gradeToSave.points,
-                    feedback: gradeToSave.feedback,
-                    status: gradeToSave.status,
-                    gradedBy: user.id
-                })).unwrap()
+                await dispatch(
+                    assignGrade({
+                        gradeItemId: gradeItem.id,
+                        studentId: gradeToSave.studentId,
+                        points: gradeToSave.points,
+                        feedback: gradeToSave.feedback,
+                        status: gradeToSave.status,
+                        gradedBy: user.id,
+                    }),
+                ).unwrap()
             }
 
             // Update UI after successful save
-            setEditableGrades(prev =>
-                prev.map(grade =>
-                    grade.studentId === studentId
-                        ? { ...grade, isEditing: false, isSaving: false }
-                        : grade
-                )
+            setEditableGrades((prev) =>
+                prev.map((grade) => (grade.studentId === studentId ? { ...grade, isEditing: false, isSaving: false } : grade)),
             )
         } catch (error) {
             console.error("Failed to save grade:", error)
             // Reset saving state
-            setEditableGrades(prev =>
-                prev.map(grade =>
-                    grade.studentId === studentId
-                        ? { ...grade, isSaving: false }
-                        : grade
-                )
+            setEditableGrades((prev) =>
+                prev.map((grade) => (grade.studentId === studentId ? { ...grade, isSaving: false } : grade)),
             )
         }
     }
@@ -218,41 +194,39 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
         if (!user?.id) return
 
         // Only save grades that are being edited
-        const gradesToSave = editableGrades.filter(grade => grade.isEditing)
+        const gradesToSave = editableGrades.filter((grade) => grade.isEditing)
         if (gradesToSave.length === 0) return
 
         // Mark all as saving
-        setEditableGrades(prev =>
-            prev.map(grade =>
-                grade.isEditing
-                    ? { ...grade, isSaving: true }
-                    : grade
-            )
-        )
+        setEditableGrades((prev) => prev.map((grade) => (grade.isEditing ? { ...grade, isSaving: true } : grade)))
 
         // Save each grade
         for (const grade of gradesToSave) {
             try {
                 if (grade.gradeId) {
                     // Update existing grade
-                    await dispatch(updateGrade({
-                        gradeId: grade.gradeId,
-                        grade: {
-                            points: grade.points,
-                            feedback: grade.feedback,
-                            status: bulkPublish ? "published" : "draft"
-                        }
-                    })).unwrap()
+                    await dispatch(
+                        updateGrade({
+                            gradeId: grade.gradeId,
+                            grade: {
+                                points: grade.points,
+                                feedback: grade.feedback,
+                                status: bulkPublish ? "published" : "draft",
+                            },
+                        }),
+                    ).unwrap()
                 } else {
                     // Create new grade
-                    await dispatch(assignGrade({
-                        gradeItemId: gradeItem.id,
-                        studentId: grade.studentId,
-                        points: grade.points,
-                        feedback: grade.feedback,
-                        status: bulkPublish ? "published" : "draft",
-                        gradedBy: user.id
-                    })).unwrap()
+                    await dispatch(
+                        assignGrade({
+                            gradeItemId: gradeItem.id,
+                            studentId: grade.studentId,
+                            points: grade.points,
+                            feedback: grade.feedback,
+                            status: bulkPublish ? "published" : "draft",
+                            gradedBy: user.id,
+                        }),
+                    ).unwrap()
                 }
             } catch (error) {
                 console.error(`Failed to save grade for student ${grade.studentId}:`, error)
@@ -260,12 +234,12 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
         }
 
         // Update UI after all saves
-        setEditableGrades(prev =>
-            prev.map(grade =>
+        setEditableGrades((prev) =>
+            prev.map((grade) =>
                 grade.isEditing
                     ? { ...grade, isEditing: false, isSaving: false, status: bulkPublish ? "published" : "draft" }
-                    : grade
-            )
+                    : grade,
+            ),
         )
     }
 
@@ -325,11 +299,7 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Switch
-                                id="bulk-publish"
-                                checked={bulkPublish}
-                                onCheckedChange={setBulkPublish}
-                            />
+                            <Switch id="bulk-publish" checked={bulkPublish} onCheckedChange={setBulkPublish} />
                             <Label htmlFor="bulk-publish">Publish grades immediately</Label>
                         </div>
                     </div>
@@ -368,7 +338,9 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
                                                         className="w-20"
                                                     />
                                                 ) : (
-                                                    <span>{grade.points}/{gradeItem.pointsPossible}</span>
+                                                    <span>
+                                                        {grade.points}/{gradeItem.pointsPossible}
+                                                    </span>
                                                 )}
                                             </TableCell>
                                             <TableCell>
@@ -437,11 +409,7 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
                                                         </Button>
                                                     </div>
                                                 ) : (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleEdit(grade.studentId)}
-                                                    >
+                                                    <Button variant="outline" size="sm" onClick={() => handleEdit(grade.studentId)}>
                                                         {grade.gradeId ? "Edit" : "Grade"}
                                                     </Button>
                                                 )}
@@ -460,7 +428,7 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
                 </Button>
                 <Button
                     onClick={handleBulkSave}
-                    disabled={!editableGrades.some(grade => grade.isEditing) || operationStatus === "loading"}
+                    disabled={!editableGrades.some((grade) => grade.isEditing) || operationStatus === "loading"}
                 >
                     {operationStatus === "loading" ? (
                         <>

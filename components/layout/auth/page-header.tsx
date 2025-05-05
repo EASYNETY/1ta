@@ -62,7 +62,6 @@ export function PageHeader({ heading, subheading, actions, breadcrumbs = true, c
         <nav className="flex items-center text-sm text-muted-foreground">
           <Link href="/" className="flex items-center hover:text-foreground transition-colors">
             <Home className="h-4 w-4 mr-1" />
-            Home
           </Link>
           {breadcrumbItems.map((item, index) => (
             <React.Fragment key={index}>

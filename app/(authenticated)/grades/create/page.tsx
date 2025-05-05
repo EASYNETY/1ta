@@ -74,15 +74,7 @@ export default function CreateGradePage() {
                 <h1 className="text-3xl font-bold">Create Grade Item</h1>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Create New Grade Item</CardTitle>
-                    <CardDescription>Fill in the details to create a new grade item for your course.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <GradeForm />
-                </CardContent>
-            </Card>
+            <GradeForm />
         </div>
     )
 }

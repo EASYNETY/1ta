@@ -114,6 +114,7 @@ import {
 	submitMockAssignment,
 	updateMockAssignment,
 } from "@/data/mock-assignment-data";
+import { assignMockGrade, calculateMockCourseGrades, createMockGradeItem, deleteMockGradeItem, getMockCourseGrades, getMockGradeItemById, getMockGradeItemsForCourse, getMockGradeItemsForStudent, getMockStudentGradeById, getMockStudentGradesForGradeItem, updateMockGrade, updateMockGradeItem } from "@/data/mock-grade-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -1069,6 +1070,261 @@ async function handleMockRequest<T>(
 	}
 
 	// --- END: Assignment CRUD Mock Handlers ---
+
+	// --- START: Grade Item CRUD Mock Handlers ---
+
+	// GET /grade-items (list - needs query params for role/context)
+	if (
+		endpoint.startsWith("/grade-items") &&
+		!endpoint.match(/^\/grade-items\/([\w-]+)$/) &&
+		!endpoint.includes("/grades") &&
+		method === "get"
+	) {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const courseId = urlParams.get("courseId") || undefined;
+		const classId = urlParams.get("classId") || undefined;
+		console.log(`%cAPI Client MOCK: GET /grade-items`, "color: purple;");
+		try {
+			const result = await getMockGradeItemsForCourse(courseId, classId);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /grade-items:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /grade-items/student/:userId - Fetch Grade Items for Student
+	const getGradeItemsForStudentMatch = endpoint.match(
+		/^\/grade-items\/student\/([\w-]+)$/
+	);
+	if (getGradeItemsForStudentMatch && method === "get") {
+		const userId = getGradeItemsForStudentMatch[1];
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const courseId = urlParams.get("courseId") || undefined;
+		console.log(
+			`%cAPI Client MOCK: GET /grade-items/student/${userId}`,
+			"color: purple;"
+		);
+		try {
+			const result = await getMockGradeItemsForStudent(userId, courseId);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /grade-items/student/${userId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /grade-items/:id - Fetch Single Grade Item
+	const getGradeItemByIdMatch = endpoint.match(/^\/grade-items\/([\w-]+)$/);
+	if (
+		getGradeItemByIdMatch &&
+		method === "get" &&
+		!endpoint.includes("/grades")
+	) {
+		const gradeItemId = getGradeItemByIdMatch[1];
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const role = urlParams.get("role") || "student";
+		const userId = urlParams.get("userId") || undefined;
+		console.log(
+			`%cAPI Client MOCK: GET /grade-items/${gradeItemId}`,
+			"color: purple;"
+		);
+		try {
+			const data = await getMockGradeItemById(gradeItemId, role, userId);
+			return data as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /grade-items/${gradeItemId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// GET /grade-items/:id/grades - Fetch Student Grades for Grade Item
+	const getStudentGradesMatch = endpoint.match(
+		/^\/grade-items\/([\w-]+)\/grades$/
+	);
+	if (getStudentGradesMatch && method === "get") {
+		const gradeItemId = getStudentGradesMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /grade-items/${gradeItemId}/grades`,
+			"color: purple;"
+		);
+		try {
+			const data = await getMockStudentGradesForGradeItem(gradeItemId);
+			return data as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /grade-items/${gradeItemId}/grades:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// POST /grade-items - Create Grade Item
+	if (endpoint === "/grade-items" && method === "post") {
+		console.log("%cAPI Client MOCK: POST /grade-items", "color: purple;");
+		if (!body)
+			throw new Error("Mock API Error: Missing body for POST /grade-items");
+		try {
+			const result = await createMockGradeItem(body);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /grade-items:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// PUT /grade-items/:id - Update Grade Item
+	const updateGradeItemMatch = endpoint.match(/^\/grade-items\/([\w-]+)$/);
+	if (updateGradeItemMatch && method === "put") {
+		const gradeItemId = updateGradeItemMatch[1];
+		console.log(
+			`%cAPI Client MOCK: PUT /grade-items/${gradeItemId}`,
+			"color: purple;"
+		);
+		if (!body)
+			throw new Error(
+				`Mock API Error: Missing body for PUT /grade-items/${gradeItemId}`
+			);
+		try {
+			const result = await updateMockGradeItem(gradeItemId, body);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for PUT /grade-items/${gradeItemId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// DELETE /grade-items/:id - Delete Grade Item
+	const deleteGradeItemMatch = endpoint.match(/^\/grade-items\/([\w-]+)$/);
+	if (deleteGradeItemMatch && method === "delete") {
+		const gradeItemId = deleteGradeItemMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /grade-items/${gradeItemId}`,
+			"color: purple;"
+		);
+		try {
+			await deleteMockGradeItem(gradeItemId);
+			return { success: true, id: gradeItemId } as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for DELETE /grade-items/${gradeItemId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// GET /grades/:id - Fetch Student Grade By ID
+	const getStudentGradeByIdMatch = endpoint.match(/^\/grades\/([\w-]+)$/);
+	if (getStudentGradeByIdMatch && method === "get") {
+		const gradeId = getStudentGradeByIdMatch[1];
+		console.log(`%cAPI Client MOCK: GET /grades/${gradeId}`, "color: purple;");
+		try {
+			const data = await getMockStudentGradeById(gradeId);
+			return data as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /grades/${gradeId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// POST /grades - Assign Grade
+	if (endpoint === "/grades" && method === "post") {
+		console.log("%cAPI Client MOCK: POST /grades", "color: purple;");
+		if (!body) throw new Error("Mock API Error: Missing body for POST /grades");
+		try {
+			const result = await assignMockGrade(body);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /grades:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// PUT /grades/:id - Update Grade
+	const updateGradeMatch = endpoint.match(/^\/grades\/([\w-]+)$/);
+	if (updateGradeMatch && method === "put") {
+		const gradeId = updateGradeMatch[1];
+		console.log(`%cAPI Client MOCK: PUT /grades/${gradeId}`, "color: purple;");
+		if (!body)
+			throw new Error(
+				`Mock API Error: Missing body for PUT /grades/${gradeId}`
+			);
+		try {
+			const result = await updateMockGrade(gradeId, body);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for PUT /grades/${gradeId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// GET /courses/:id/grades - Fetch Course Grades
+	const getCourseGradesMatch = endpoint.match(/^\/courses\/([\w-]+)\/grades$/);
+	if (getCourseGradesMatch && method === "get") {
+		const courseId = getCourseGradesMatch[1];
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const classId = urlParams.get("classId") || undefined;
+		const studentId = urlParams.get("studentId") || undefined;
+		console.log(
+			`%cAPI Client MOCK: GET /courses/${courseId}/grades`,
+			"color: purple;"
+		);
+		try {
+			const data = await getMockCourseGrades(courseId, classId, studentId);
+			return data as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /courses/${courseId}/grades:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// POST /courses/:id/calculate-grades - Calculate Course Grades
+	const calculateCourseGradesMatch = endpoint.match(
+		/^\/courses\/([\w-]+)\/calculate-grades$/
+	);
+	if (calculateCourseGradesMatch && method === "post") {
+		const courseId = calculateCourseGradesMatch[1];
+		console.log(
+			`%cAPI Client MOCK: POST /courses/${courseId}/calculate-grades`,
+			"color: purple;"
+		);
+		if (!body)
+			throw new Error(
+				`Mock API Error: Missing body for POST /courses/${courseId}/calculate-grades`
+			);
+		try {
+			const result = await calculateMockCourseGrades(body);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for POST /courses/${courseId}/calculate-grades:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// --- END: Grade Item CRUD Mock Handlers ---
 
 	// --- Fallback ---
 	console.error(

@@ -12,7 +12,7 @@ import {
     clearCurrentGradeItem,
 } from "@/features/grades/store/grade-slice"
 import GradeStudentsForm from "@/features/grades/components/GradeStudentsForm"
-import { PageHeader } from "@/components/page-header"
+import { PageHeader } from "@/components/layout/auth/page-header"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle } from "lucide-react"
@@ -54,14 +54,14 @@ export default function GradeStudentsPage() {
     }
 
     // Loading state
-    if (status === "loading") {
-        return (
-            <div className="space-y-6">
-                <PageHeader heading={<Skeleton className="h-8 w-64" />} subheading={<Skeleton className="h-5 w-48" />} />
-                <Skeleton className="h-[600px] w-full rounded-lg" />
-            </div>
-        )
-    }
+    // if (status === "loading") {
+    //     return (
+    //         <div className="space-y-6">
+    //             <PageHeader heading={<Skeleton className="h-8 w-64" />} subheading={<Skeleton className="h-5 w-48" />} />
+    //             <Skeleton className="h-[600px] w-full rounded-lg" />
+    //         </div>
+    //     )
+    // }
 
     // Error state
     if (status === "failed") {
