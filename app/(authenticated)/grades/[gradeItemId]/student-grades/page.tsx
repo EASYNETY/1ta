@@ -14,7 +14,6 @@ import {
     clearCurrentGradeItem,
 } from "@/features/grades/store/grade-slice"
 import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -22,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle, ArrowLeft, Download, CheckCircle, FileEdit } from "lucide-react"
 import { format, parseISO } from "date-fns"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 
 export default function StudentGradesPage() {
     const params = useParams()
@@ -120,19 +120,19 @@ export default function StudentGradesPage() {
                 heading="Student Grades"
                 subheading={`View all grades for ${gradeItem.title}`}
                 actions={
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={() => router.push(`/grades/${gradeItemId}`)}>
+                    <div className="flex gap-2 flex-wrap">
+                        <DyraneButton variant="outline" onClick={() => router.push(`/grades/${gradeItemId}`)}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             Back to Details
-                        </Button>
-                        <Button onClick={() => router.push(`/grades/${gradeItemId}/grade-students`)}>
+                        </DyraneButton>
+                        <DyraneButton onClick={() => router.push(`/grades/${gradeItemId}/grade-students`)}>
                             <FileEdit className="mr-2 h-4 w-4" />
                             Grade Students
-                        </Button>
-                        <Button variant="outline">
+                        </DyraneButton>
+                        <DyraneButton variant="outline">
                             <Download className="mr-2 h-4 w-4" />
                             Export Grades
-                        </Button>
+                        </DyraneButton>
                     </div>
                 }
             />
@@ -231,13 +231,13 @@ export default function StudentGradesPage() {
                                             </TableCell>
                                             <TableCell>{formatDate(grade.gradedAt)}</TableCell>
                                             <TableCell className="text-right">
-                                                <Button
+                                                <DyraneButton
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => router.push(`/grades/${gradeItemId}/student/${grade.studentId}`)}
                                                 >
                                                     View Details
-                                                </Button>
+                                                </DyraneButton>
                                             </TableCell>
                                         </TableRow>
                                     ))
