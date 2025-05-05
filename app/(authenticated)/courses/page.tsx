@@ -123,14 +123,13 @@ export default function CoursesPage() {
             </TabsContent>
           )}
 
-          {user?.role === "admin" && (
+          {/* {user?.role === "admin" && (
             <TabsContent value="course-analytics">
-              {/* Add Admin Analytics Tab Content here */}
               <div className="p-6 text-center bg-muted/20 rounded-lg border">
                 <p className="text-muted-foreground">Course analytics content will be displayed here.</p>
               </div>
             </TabsContent>
-          )}
+          )} */}
 
           {user?.role === "teacher" && (
             <TabsContent value="course-requests">
@@ -138,7 +137,7 @@ export default function CoursesPage() {
               <CourseRequestsTabContent status={status} />
             </TabsContent>
           )}
-
+{/* 
           {user?.role === "student" && (
             <TabsContent value="recommended">
               <div className="p-6 text-center bg-muted/20 rounded-lg border">
@@ -153,7 +152,7 @@ export default function CoursesPage() {
                 <p className="text-muted-foreground">Completed courses will be displayed here.</p>
               </div>
             </TabsContent>
-          )}
+          )} */}
         </Tabs>
       </div>
     </AuthenticationGuard>
