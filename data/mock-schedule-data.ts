@@ -36,7 +36,7 @@ let mockScheduleEvents: ScheduleEvent[] = [
 		instructorId: "teacher_1",
 		meetingLink: "https://zoom.us/j/mock1",
 		description: "Introduction to PMBOK framework.",
-		attendees: ["student_1", "student_2", "student_3"],
+		attendees: ["student_1", "student_2", "corp_student_1"],
 	},
 	{
 		id: "sched_2",
@@ -49,9 +49,9 @@ let mockScheduleEvents: ScheduleEvent[] = [
 		type: "lecture",
 		location: "Room 301",
 		instructor: "Michael Chen",
-		instructorId: "teacher_2",
+		instructorId: "teacher_1",
 		description: "Covering var, let, const and function basics.",
-		attendees: ["student_1", "student_4"],
+		attendees: ["student_1", "corp_student_2"],
 	},
 	{
 		id: "sched_3",
@@ -66,7 +66,7 @@ let mockScheduleEvents: ScheduleEvent[] = [
 		instructor: "Dr. Sarah Johnson",
 		instructorId: "teacher_1",
 		description: "Quiz on project initiation.",
-		attendees: ["student_1", "student_2", "student_3"],
+		attendees: ["student_1", "student_2", "corp_student_1"],
 	},
 	{
 		id: "sched_4",
@@ -79,9 +79,9 @@ let mockScheduleEvents: ScheduleEvent[] = [
 		type: "lab",
 		location: "Computer Lab 2",
 		instructor: "Michael Chen",
-		instructorId: "teacher_2",
+		instructorId: "teacher_1",
 		description: "Hands-on session.",
-		attendees: ["student_1", "student_4"],
+		attendees: ["student_1", "corp_student_2"],
 	},
 	{
 		id: "sched_5",
@@ -94,9 +94,9 @@ let mockScheduleEvents: ScheduleEvent[] = [
 		type: "office-hours",
 		location: "Teacher's Virtual Room",
 		instructor: "Michael Chen",
-		instructorId: "teacher_2",
+		instructorId: "teacher_1",
 		meetingLink: "https://zoom.us/j/mock2",
-		attendees: ["student_1", "student_4"],
+		attendees: ["student_1", "corp_student_2"],
 	},
 ];
 
