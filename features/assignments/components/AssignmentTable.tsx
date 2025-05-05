@@ -110,15 +110,6 @@ export default function AssignmentTable({ courseId, classId }: AssignmentTablePr
 
     return (
         <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Assignments</CardTitle>
-                <Button asChild>
-                    <Link href="/assignments/create">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Assignment
-                    </Link>
-                </Button>
-            </CardHeader>
             <CardContent>
                 <div className="mb-4 flex flex-col space-y-2 md:flex-row md:items-center md:space-x-2 md:space-y-0">
                     <div className="relative flex-1">

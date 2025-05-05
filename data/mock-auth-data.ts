@@ -339,7 +339,7 @@ export function resetPassword(payload: { token: string; password: string }): {
 export function mockGetMyProfile(): User {
 	// For testing purposes, return a specific user
 	// In a real implementation, this would use the token to identify the user
-	const mockUserId = "student_2"; // Using the incomplete profile user for testing
+	const mockUserId = "admin_1"; // Using the incomplete profile user for testing
 	const user = users.find((u) => u.id === mockUserId);
 
 	if (!user) {
