@@ -22,6 +22,7 @@ import {
     clearCurrentManagedStudent
 } from '@/features/corporate/store/corporate-slice'; // Adjust path
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 // Helper to format date
 const formatDateDisplay = (dateString?: string | null) => {
@@ -103,10 +104,10 @@ export default function ViewManagedStudentPage() {
         <AuthorizationGuard allowedRoles={['student']}>
             {corporateManager && (
                 <div className="mx-auto">
-                    <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Student List
-                    </DyraneButton>
-
+                    <PageHeader
+                        heading={`Student Details`}
+                        subheading={`Explore the details of ${currentStudent?.name}`}
+                    />
                     {isLoading && (
                         <DyraneCard>
                             <DyraneCardHeader><Skeleton className="h-8 w-3/4" /></DyraneCardHeader>

@@ -24,6 +24,7 @@ import {
     updateManagedStudent // Thunk to update
 } from '@/features/corporate/store/corporate-slice'; // Adjust path
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 // Define shape for editable fields by manager
 type EditStudentFormValues = {
@@ -88,12 +89,10 @@ export default function EditManagedStudentPage() {
         <AuthorizationGuard allowedRoles={['student']}>
             {corporateManager && (
                 <div className="mx-auto">
-                    <div className="flex items-center gap-3 mb-4">
-                        <DyraneButton variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
-                            <ArrowLeft className="h-4 w-4" />
-                        </DyraneButton>
-                        <h1 className="text-2xl font-bold">Edit Student</h1>
-                    </div>
+                    <PageHeader
+                        heading={`Edit Student`}
+                        subheading={`Edit the details of ${currentStudent?.name}`}
+                    />
 
                     {isLoading && !currentStudent && (
                         <div className="space-y-4 p-4 border rounded-md">

@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { isStudent } from '@/types/user.types';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { PageHeader } from '@/components/layout/auth/page-header';
 // TODO: Import createManagedStudentThunk, resetCorpStatus from corporate-slice
 
 export default function CreateCorporateStudentPage() {
@@ -57,9 +58,10 @@ export default function CreateCorporateStudentPage() {
             {/* Additional check for manager flag */}
             {corporateManager && (
                 <div className="mx-auto">
-                    <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Management
-                    </DyraneButton>
+                    <PageHeader
+                        heading={`Create Student Account`}
+                        subheading={`Create a new student account under your management`}
+                    />
                     <CorporateStudentForm
                         onSubmit={handleCreate}
                         isSubmitting={isSubmitting} // Pass submitting state
