@@ -30,6 +30,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems"
 import { getMobileNavItems } from "./mobile-nav"
+import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
 
 
 // Mock notifications data
@@ -98,7 +99,8 @@ export function Header() {
     const excludeHrefs = new Set(mobileNavItems.map(item => item.href));
     const userRole = user?.role as ("admin" | "teacher" | "student") | undefined; // Get user role safely
 
-    const sheetNavItems = userRole ? primaryNavItems.filter(item =>
+    const visiblePrimaryItems = useFilteredPrimaryNavItems();
+    const sheetNavItems = userRole ? visiblePrimaryItems.filter(item =>
         !excludeHrefs.has(item.href) && item.roles.includes(userRole)
     ) : [];
 
