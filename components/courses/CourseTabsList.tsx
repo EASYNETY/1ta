@@ -25,7 +25,7 @@ export function CourseTabsList({ user }: CourseTabsListProps) {
                     <>
                         {allCoursesTab}
                         <TabsTrigger value="manage-courses">Manage Courses</TabsTrigger>
-                        <TabsTrigger value="course-analytics">Analytics</TabsTrigger>
+                        {/* <TabsTrigger value="course-analytics">Analytics</TabsTrigger> */}
                     </>
                 )
             case "teacher":
@@ -42,8 +42,8 @@ export function CourseTabsList({ user }: CourseTabsListProps) {
                     <>
                         {allCoursesTab}
                         <TabsTrigger value="my-courses">My Courses</TabsTrigger>
-                        <TabsTrigger value="recommended">Recommended</TabsTrigger>
-                        <TabsTrigger value="completed">Completed</TabsTrigger>
+                        {/* <TabsTrigger value="recommended">Recommended</TabsTrigger>
+                        <TabsTrigger value="completed">Completed</TabsTrigger> */}
                     </>
                 )
         }
