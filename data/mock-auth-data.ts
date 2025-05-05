@@ -33,6 +33,7 @@ export type MockUser = {
 	corporateAccountName?: string | null;
 	// Student specific
 	isCorporateManager?: boolean;
+	purchasedStudentSlots?: number | null;
 	// Teacher specific
 	subjects?: string[];
 	officeHours?: string;
@@ -133,6 +134,7 @@ export const users: MockUser[] = [
 		corporateId: "corp_xyz123",
 		corporateAccountName: "XYZ Corporation",
 		isCorporateManager: true,
+		purchasedStudentSlots: 50,
 	},
 	{
 		id: "corp_student_1",
@@ -201,7 +203,12 @@ function convertToUserType(mockUser: MockUser): User {
 				role: "student",
 				dateOfBirth: mockUser.dateOfBirth,
 				barcodeId: mockUser.barcodeId,
+				classId: mockUser.classId,
+				guardianId: mockUser.guardianId,
+				corporateId: mockUser.corporateId,
+				corporateAccountName: mockUser.corporateAccountName,
 				isCorporateManager: mockUser.isCorporateManager || false,
+				purchasedStudentSlots: mockUser.purchasedStudentSlots, // <-- INCLUDE FIELD
 			} as StudentUser;
 
 		default:
@@ -332,7 +339,7 @@ export function resetPassword(payload: { token: string; password: string }): {
 export function mockGetMyProfile(): User {
 	// For testing purposes, return a specific user
 	// In a real implementation, this would use the token to identify the user
-	const mockUserId = "student_2"; // Using the incomplete profile user for testing
+	const mockUserId = "corp_manager_1"; // Using the incomplete profile user for testing
 	const user = users.find((u) => u.id === mockUserId);
 
 	if (!user) {
@@ -344,7 +351,7 @@ export function mockGetMyProfile(): User {
 
 export function mockUpdateMyProfile(profileData: Partial<User>): User {
 	// For testing purposes, update a specific user
-	const mockUserId = "student_2"; // Using the incomplete profile user for testing
+	const mockUserId = "corp_manager_1"; // Using the incomplete profile user for testing
 	const userIndex = users.findIndex((u) => u.id === mockUserId);
 
 	if (userIndex === -1) {
@@ -399,48 +406,75 @@ export function mockUpdateMyProfile(profileData: Partial<User>): User {
 
 export function createCorporateStudentSlots(params: {
 	corporateId: string;
-	studentCount: number;
-	courses: string[];
-}): { success: boolean; createdStudents: number } {
+	studentCount: number; // How many slots are being requested *now*
+	courses: string[]; // Course IDs to initially assign (optional?)
+}): { success: boolean; createdStudents: number; message?: string } {
 	console.log(
-		`%c MOCK API: Creating ${params.studentCount} corporate student slots for ${params.corporateId}`,
-		"background: #555; color: #eee"
+		`MOCK API: Creating ${params.studentCount} slots for ${params.corporateId}`
 	);
-
 	const now = new Date().toISOString();
-	const createdStudents = [];
 
-	// Create placeholder student accounts
+	// 1. Find the Manager for this corporateId
+	const manager = users.find(
+		(u) => u.corporateId === params.corporateId && u.isCorporateManager
+	);
+	if (!manager) {
+		throw new Error(
+			`Mock Error: Corporate Manager for ID ${params.corporateId} not found.`
+		);
+	}
+
+	// 2. Check available slots against the manager's purchased limit
+	const currentCorpStudents = users.filter(
+		(u) => u.corporateId === params.corporateId && !u.isCorporateManager
+	).length;
+	const purchasedSlots = manager.purchasedStudentSlots ?? 0; // Default to 0 if null/undefined
+	const availableSlots = purchasedSlots - currentCorpStudents;
+
+	if (params.studentCount > availableSlots) {
+		console.error(
+			`MOCK ERROR: Cannot create ${params.studentCount} slots. Only ${availableSlots} available out of ${purchasedSlots} purchased for ${params.corporateId}.`
+		);
+		throw new Error(
+			`Cannot create ${params.studentCount} slots. Only ${availableSlots} available.`
+		);
+	}
+
+	// 3. Create placeholder student accounts
+	let createdCount = 0;
 	for (let i = 0; i < params.studentCount; i++) {
-		const studentId = `corp_student_placeholder_${Date.now()}_${i}`;
-		const email = `student_${i}@${params.corporateId.toLowerCase()}.example.com`;
+		const studentId = `corp_stud_${params.corporateId}_${Date.now()}_${i}`;
+		// Use a placeholder email convention
+		const email = `student${currentCorpStudents + i + 1}@${params.corporateId.replace(/[^a-z0-9]/gi, "").toLowerCase()}.1t.academy`;
 
 		const newStudent: MockUser = {
 			id: studentId,
-			name: "", // Empty name to be filled by the student
+			name: "", // To be filled during student's onboarding
 			email: email,
-			password: "temporary_password", // Would be a random password in real implementation
+			password: "defaultPassword123", // Should be securely generated/managed
 			role: "student",
 			dateOfBirth: null,
-			classId: params.courses[0] || null, // Assign first course by default
-			barcodeId: `CORP-${Date.now()}-${i}`,
+			// Assign to the *first* selected course ID, or null if none selected?
+			// Or require course selection for slot creation? Let's assign first for now.
+			classId: params.courses[0] || null,
+			barcodeId: `CORP-${params.corporateId.substring(0, 4).toUpperCase()}-${Date.now()}-${i}`,
 			guardianId: null,
 			onboardingStatus: "incomplete",
 			accountType: "corporate",
-			isActive: true,
+			isActive: true, // Activate immediately or require manager action? Activate for now.
 			createdAt: now,
 			updatedAt: now,
 			corporateId: params.corporateId,
-			corporateAccountName: params.corporateId, // Would be a proper name in real implementation
+			corporateAccountName: manager.corporateAccountName || params.corporateId, // Inherit name
 			isCorporateManager: false,
+			purchasedStudentSlots: null, // Not applicable to managed students
 		};
-
-		users.push(newStudent);
-		createdStudents.push(studentId);
+		users.push(newStudent); // Add to the main user list
+		createdCount++;
 	}
 
-	return {
-		success: true,
-		createdStudents: createdStudents.length,
-	};
+	console.log(
+		`MOCK: Successfully created ${createdCount} student slots for ${params.corporateId}. Total students now: ${currentCorpStudents + createdCount}/${purchasedSlots}`
+	);
+	return { success: true, createdStudents: createdCount };
 }

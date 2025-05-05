@@ -23,6 +23,7 @@ import {
 	resetPassword as mockResetPassword,
 	mockGetMyProfile,
 	mockUpdateMyProfile,
+	createCorporateStudentSlots,
 } from "@/data/mock-auth-data";
 import { getPublicMockCourses } from "@/data/public-mock-course-data";
 import {
@@ -93,7 +94,11 @@ import {
 	mockFetchAllPaymentsAdmin,
 	mockFetchMyPaymentHistory,
 } from "@/data/mock-payment-data";
-import { createMockChatMessage, getMockChatMessages, getMockChatRooms } from "@/data/mock-chat-data";
+import {
+	createMockChatMessage,
+	getMockChatMessages,
+	getMockChatRooms,
+} from "@/data/mock-chat-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -288,6 +293,39 @@ async function handleMockRequest<T>(
 	if (endpoint === "/users/me" && method === "put") {
 		return mockUpdateMyProfile(body) as unknown as T;
 	}
+
+	// --- START: Corporate Slot Creation Mock Handler ---
+	if (endpoint === "/corporate/create-slots" && method === "post") {
+		console.log(
+			`%cAPI Client MOCK: POST /corporate/create-slots`,
+			"color: orange;"
+		);
+		if (
+			!body ||
+			!body.corporateId ||
+			body.studentCount === undefined ||
+			!body.courses
+		) {
+			throw new Error(
+				"Mock API Error: Missing required fields for creating corporate slots."
+			);
+		}
+		try {
+			const result = await createCorporateStudentSlots({
+				corporateId: body.corporateId,
+				studentCount: body.studentCount,
+				courses: body.courses,
+			});
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error(
+				"Mock API Error for POST /corporate/create-slots:",
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } }; // Bad Request
+		}
+	}
+	// --- END: Corporate Slot Creation Mock Handler ---
 
 	// --- Pricing and Subscriptions
 	const userSubscriptionMatch = endpoint.match(/^\/users\/(.+)\/subscription$/);

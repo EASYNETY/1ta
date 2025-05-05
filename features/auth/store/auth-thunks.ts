@@ -9,6 +9,7 @@ import type {
 } from "@/features/auth/types/auth-types";
 import { AUTH_ACTIONS } from "./auth-action-types";
 import type { User, AuthState } from "@/types/user.types";
+import { createCorporateStudentSlots } from "@/data/mock-auth-data";
 
 // Helper function for cookie options (optional, but good practice)
 const getCookieOptions = (maxAgeSeconds?: number) => {
@@ -147,18 +148,22 @@ export const signupThunk = createAsyncThunk(
 );
 
 // --- Update User Profile Thunk ---
+// Accepts Partial<User> which includes purchasedStudentSlots if relevant
 export const updateUserProfileThunk = createAsyncThunk<
-	Partial<User>,
+	User,
 	Partial<User>,
 	{ rejectValue: string }
 >("auth/updateUserProfile", async (profileData, { rejectWithValue }) => {
 	try {
+		// The payload `profileData` might contain `purchasedStudentSlots` if sent from onSubmit
 		const response = await put<User>("/users/me", profileData);
-		return response;
+		// --- Update User Cookie ---
+		const cookieOptions = getCookieOptions(30 * 24 * 60 * 60);
+		setCookie(null, "authUser", JSON.stringify(response), cookieOptions);
+		// --- End Cookie Update ---
+		return response; // Return the updated full user object
 	} catch (error: any) {
-		const errorMessage =
-			error instanceof Error ? error.message : "Failed to update user profile";
-		return rejectWithValue(errorMessage);
+		return rejectWithValue(error.message || "Failed to update profile");
 	}
 });
 
@@ -217,6 +222,38 @@ export const resetPasswordThunk = createAsyncThunk<
 			error?.message ||
 			"Failed to reset password. Link may be invalid/expired.";
 		console.error("Reset Password Thunk Error:", errorMessage);
+		return rejectWithValue(errorMessage);
+	}
+});
+
+// --- NEW Thunk for Creating Corporate Student Slots ---
+interface CreateSlotsParams {
+	corporateId: string;
+	studentCount: number;
+	courses: string[]; // Course IDs to assign
+}
+interface CreateSlotsResult {
+	// Example result
+	success: boolean;
+	createdStudents: number;
+	message?: string;
+}
+
+export const createCorporateStudentSlotsThunk = createAsyncThunk<
+	CreateSlotsResult, // Return type
+	CreateSlotsParams, // Argument type
+	{ rejectValue: string }
+>("auth/createCorporateSlots", async (params, { rejectWithValue }) => {
+	try {
+		console.log("Dispatching createCorporateStudentSlotsThunk:", params);
+		// TODO: Replace with actual API call
+		// const response = await post<CreateSlotsResult>('/corporate/create-slots', params); // Example endpoint
+		// Use the mock function for now
+		const response = await createCorporateStudentSlots(params); // Assuming this is async and returns the result
+		return response;
+	} catch (error: any) {
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to create student slots";
 		return rejectWithValue(errorMessage);
 	}
 });

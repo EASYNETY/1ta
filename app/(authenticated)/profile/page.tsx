@@ -1,3 +1,5 @@
+// app/(authenticated)/chat/components/ChatLayout.tsx
+
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
@@ -5,7 +7,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { updateUserProfileThunk } from "@/features/auth/store/auth-thunks"
+import { updateUserProfileThunk, createCorporateStudentSlotsThunk } from "@/features/auth/store/auth-thunks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
@@ -13,7 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 import { Form } from "@/components/ui/form"
 import { useRouter } from "next/navigation"
-import { GraduationCap } from "lucide-react"
+import { GraduationCap, Loader2 } from "lucide-react"
 
 // Import modular components
 import { ProfileAlerts } from "@/components/profile/ProfileAlerts"
@@ -21,20 +23,26 @@ import { ProfileAvatarInfo } from "@/components/profile/ProfileAvatarInfo"
 import { ProfileFormFields } from "@/components/profile/ProfileFormFields"
 import { CorporateManagerFields } from "@/components/profile/CorporateManagerFields"
 import { isStudent } from "@/types/user.types"
+import type { User } from "@/types/user.types"
+import type { StudentUser } from "@/types/user.types"
 
 // Define schema here or import from shared location
 const profileSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    dateOfBirth: z.date({ required_error: "Date of birth is required" }).optional(),
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    dateOfBirth: z.date().optional(),
     classId: z.string().optional(),
-    accountType: z.enum(["individual", "institutional"]),
+    accountType: z.enum(["individual", "institutional"]).default("individual"),
     bio: z.string().optional(),
-    phone: z.string().optional(),
-    // Corporate manager fields
+    phone: z.string().optional(), // Changed from phoneNumber to phone to match User type
+    // Corporate Onboarding Specific Fields
+    isCorporateRegistration: z.boolean().default(false),
     companyName: z.string().optional(),
-    studentCount: z.number().positive().optional(),
-    selectedCourses: z.array(z.string()).optional(),
-    isCorporateRegistration: z.boolean().optional(),
+    initialStudentCount: z.preprocess(
+        (val) => (val === "" || val === null || isNaN(Number(val)) ? undefined : Number(val)),
+        z.number().positive("Must be > 0").int("Must be a whole number").optional(),
+    ),
+    initialSelectedCourses: z.array(z.string()).optional(),
+    purchasedStudentSlots: z.number().optional(),
 })
 
 type ProfileFormValues = z.infer<typeof profileSchema>
@@ -49,6 +57,7 @@ export default function ProfilePage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isOnboarding, setIsOnboarding] = useState(false)
     const [isCorporateManager, setIsCorporateManager] = useState(false)
+    const [isInitialized, setIsInitialized] = useState(false)
 
     // Determine if onboarding is needed
     useEffect(() => {
@@ -64,6 +73,7 @@ export default function ProfilePage() {
             setIsOnboarding(false)
             setIsCorporateManager(false)
         }
+        setIsInitialized(true)
     }, [user, skipOnboarding])
 
     // Prepare course options for the select dropdown
@@ -95,7 +105,7 @@ export default function ProfilePage() {
 
         // For new signups with items in cart
         if (isOnboarding && hasItemsInCart && cartItems[0]?.courseId) {
-            return cartItems[0].courseId
+            return cartItems[0]?.courseId
         }
 
         // Fallback if only one course option exists
@@ -106,48 +116,62 @@ export default function ProfilePage() {
         return ""
     }, [isOnboarding, hasItemsInCart, cartItems, user, courseOptions])
 
-    // Initialize the form
+    // Initialize the form with more flexible defaults that match what we'll set later
     const form = useForm<ProfileFormValues>({
-        resolver: zodResolver(profileSchema),
-        defaultValues: {
-            name: user?.name || "",
-            dateOfBirth: undefined,
-            classId: "",
-            accountType: "individual",
-            bio: user?.bio || "",
-            phone: user?.phone || "",
-            isCorporateRegistration: false,
-        },
+        resolver: zodResolver(profileSchema) as any, // Use type assertion to avoid resolver type conflicts
+        defaultValues: useMemo(() => {
+            // Return empty defaults initially
+            return {
+                name: "",
+                dateOfBirth: undefined,
+                classId: "",
+                accountType: "individual",
+                bio: "",
+                phone: "",
+                isCorporateRegistration: false,
+                companyName: "",
+                initialStudentCount: undefined,
+                initialSelectedCourses: [],
+                purchasedStudentSlots: 0,
+            }
+        }, []), // Empty dependency array means this only runs once
         mode: "onBlur",
     })
 
     // Effect to set form values once user data is available
     useEffect(() => {
-        if (user) {
+        if (user && isInitialized) {
             const defaultCourseId = determineDefaultCourseId()
-            const formValues: Partial<ProfileFormValues> = {
+
+            // Create form values based on user data
+            const formValues: ProfileFormValues = {
                 name: user.name || "",
                 bio: user.bio || "",
                 phone: user.phone || "",
-                classId: defaultCourseId,
                 accountType: "individual", // Default value
+                isCorporateRegistration: isStudent(user) ? user.isCorporateManager : false,
+                companyName: isStudent(user) ? user.corporateId || "" : "",
+                initialStudentCount: undefined,
+                initialSelectedCourses: [],
+                purchasedStudentSlots: isStudent(user) ? user.purchasedStudentSlots || 0 : 0,
+                classId: defaultCourseId,
+                dateOfBirth: undefined,
             }
 
-            // Only set student-specific fields if user is a student
             if (isStudent(user)) {
                 formValues.dateOfBirth = user.dateOfBirth ? new Date(user.dateOfBirth) : undefined
-                formValues.companyName = user.corporateId || ""
-                formValues.isCorporateRegistration = user.isCorporateManager === true
 
-                // Set account type based on corporateId
-                if (user.corporateId) {
+                if (user.accountType === "corporate" || user.accountType === "institutional") {
                     formValues.accountType = "institutional"
                 }
             }
 
-            form.reset(formValues)
+            // Reset the form with the user data
+            form.reset(formValues, {
+                keepDefaultValues: false, // Don't keep the initial default values
+            })
         }
-    }, [user, form, determineDefaultCourseId])
+    }, [user, form, determineDefaultCourseId, isInitialized])
 
     // Loading state
     if (!user) {
@@ -159,95 +183,166 @@ export default function ProfilePage() {
     }
 
     // Form submission handler
-    const onSubmit = async (data: ProfileFormValues) => {
-        if (!user) return
-        setIsSubmitting(true)
+    const handleSubmit = async (data: ProfileFormValues) => {
+        if (!user) {
+            toast({ title: "Error", description: "User session not found. Please log in again.", variant: "destructive" })
+            router.push("/login")
+            return
+        }
 
-        try {
-            let formattedData: any = {
-                ...data,
-                dateOfBirth: data.dateOfBirth ? data.dateOfBirth.toISOString() : undefined,
-                onboardingStatus: "complete" as const,
-            }
+        // --- Contextual Validation ---
+        let isValid = true
+        form.clearErrors()
 
-            // Handle corporate manager registration
+        if (isOnboarding) {
             if (data.isCorporateRegistration) {
-                formattedData = {
-                    ...formattedData,
-                    isCorporateManager: true,
-                    corporateId: data.companyName,
-                    // Additional corporate manager fields would be processed here
+                // Corporate Manager Onboarding Validation
+                if (!data.companyName || data.companyName.trim().length < 2) {
+                    form.setError("companyName", { type: "manual", message: "Company name is required." })
+                    isValid = false
                 }
-
-                // Here you would call an API to generate student slots
-                // This is where you'd create the corporate student accounts
-                if (data.studentCount && data.selectedCourses?.length) {
-                    try {
-                        // Mock API call - replace with actual implementation
-                        console.log("Creating corporate student slots:", {
-                            corporateId: data.companyName,
-                            studentCount: data.studentCount,
-                            courses: data.selectedCourses,
-                        })
-
-                        // You would dispatch an action here to create the student slots
-                        // dispatch(createCorporateStudentSlotsThunk({
-                        //   corporateId: data.companyName,
-                        //   studentCount: data.studentCount,
-                        //   courses: data.selectedCourses,
-                        // }));
-
-                        toast({
-                            title: "Corporate Registration Successful",
-                            description: `Created ${data.studentCount} student slots for your organization.`,
-                            variant: "success",
-                        })
-                    } catch (error) {
-                        toast({
-                            title: "Error Creating Student Slots",
-                            description: "Failed to create student accounts. Please try again.",
-                            variant: "destructive",
-                        })
+                if (data.initialStudentCount || (data.initialSelectedCourses && data.initialSelectedCourses.length > 0)) {
+                    if (data.initialStudentCount === undefined || data.initialStudentCount <= 0) {
+                        form.setError("initialStudentCount", { type: "manual", message: "Number of students required (>0)." })
+                        isValid = false
+                    }
+                    if (!data.initialSelectedCourses || data.initialSelectedCourses.length === 0) {
+                        form.setError("initialSelectedCourses", { type: "manual", message: "Select course(s)." })
+                        isValid = false
                     }
                 }
+            } else if (user.role === "student") {
+                // Individual Student Onboarding Validation
+                if (!data.dateOfBirth) {
+                    form.setError("dateOfBirth", { type: "manual", message: "Date of birth is required." })
+                    isValid = false
+                }
+                if (!data.classId || data.classId.trim() === "") {
+                    form.setError("classId", { type: "manual", message: "Please select your course." })
+                    isValid = false
+                }
+            }
+        }
+        if (!data.name || data.name.trim().length < 2) {
+            form.setError("name", { type: "manual", message: "Name is required (min 2 chars)." })
+            isValid = false
+        }
+
+        if (!isValid) {
+            toast({ title: "Validation Error", description: "Please fix errors.", variant: "destructive" })
+            return
+        }
+        // --- End Contextual Validation ---
+
+        setIsSubmitting(true)
+        let corporateIdForAction: string | undefined
+        let corporateActionNeeded = false
+
+        try {
+            // Define payload type with proper type casting for student-specific fields
+            let updatePayload: Partial<User> = {
+                // Base fields always included
+                name: data.name,
+                bio: data.bio || undefined,
+                phone: data.phone || undefined, // Changed from phoneNumber to phone
             }
 
-            // For corporate students, ensure they can't change certain fields
-            if (isStudent(user) && user.corporateId && !user.isCorporateManager) {
-                // Preserve the corporate ID and pre-assigned course
-                formattedData.corporateId = user.corporateId
-                if (user.classId) {
-                    formattedData.classId = user.classId
+            // Create a separate student-specific payload if needed
+            if (isStudent(user) || (isOnboarding && !data.isCorporateRegistration)) {
+                // Cast to StudentUser for student-specific properties
+                const studentPayload = updatePayload as Partial<StudentUser>
+
+                if (data.dateOfBirth) {
+                    studentPayload.dateOfBirth = data.dateOfBirth.toISOString()
+                }
+
+                if (!isStudent(user) || !(user.corporateId && !user.isCorporateManager)) {
+                    studentPayload.classId = data.classId || undefined
+                }
+
+                // If onboarding as corporate manager
+                if (isOnboarding && data.isCorporateRegistration) {
+                    studentPayload.isCorporateManager = true
+                    studentPayload.corporateId = data.companyName
+                    studentPayload.accountType = "corporate"
+                    studentPayload.onboardingStatus = "complete"
+
+                    // Remove fields not applicable to manager profile itself
+                    delete studentPayload.classId
+                    delete studentPayload.dateOfBirth
+
+                    corporateIdForAction = data.companyName || ""
+
+                    if (data.initialStudentCount && data.initialSelectedCourses?.length) {
+                        corporateActionNeeded = true
+                        // Set initial purchased slots
+                        studentPayload.purchasedStudentSlots = data.initialStudentCount
+                    }
+                }
+                // For existing corporate managers, handle student slot updates
+                else if (isStudent(user) && user.isCorporateManager) {
+                    if (data.initialStudentCount && data.initialStudentCount > 0) {
+                        // Add to existing slots
+                        const currentSlots = user.purchasedStudentSlots || 0
+                        studentPayload.purchasedStudentSlots = currentSlots + data.initialStudentCount
+
+                        corporateActionNeeded = true
+                        corporateIdForAction = user.corporateId || ""
+                    }
+                }
+                // Mark complete for other roles/individual students
+                else if (isOnboarding) {
+                    updatePayload.onboardingStatus = "complete"
+                }
+
+                // Use the properly typed payload
+                updatePayload = studentPayload
+            } else if (isOnboarding) {
+                // For non-student roles during onboarding
+                updatePayload.onboardingStatus = "complete"
+            }
+
+            // --- Dispatch Profile Update ---
+            await dispatch(updateUserProfileThunk(updatePayload)).unwrap()
+            toast({ title: isOnboarding ? "Profile Complete!" : "Profile Updated", variant: "success" })
+
+            // --- Trigger Corporate Slot Creation ---
+            if (corporateActionNeeded && corporateIdForAction && data.initialStudentCount && data.initialSelectedCourses) {
+                try {
+                    await dispatch(
+                        createCorporateStudentSlotsThunk({
+                            corporateId: corporateIdForAction,
+                            studentCount: data.initialStudentCount,
+                            courses: data.initialSelectedCourses,
+                        }),
+                    ).unwrap()
+                    toast({
+                        title: "Student Slots Created",
+                        description: `Successfully created ${data.initialStudentCount} student slots.`,
+                        variant: "success",
+                    })
+                } catch (slotError: any) {
+                    toast({
+                        title: "Error Creating Student Slots",
+                        description: slotError.message || "Failed to create student slots.",
+                        variant: "destructive",
+                    })
                 }
             }
 
-            // Remove undefined dateOfBirth if it wasn't provided
-            if (!formattedData.dateOfBirth) delete formattedData.dateOfBirth
-
-            await dispatch(updateUserProfileThunk(formattedData)).unwrap()
-
-            toast({
-                title: isOnboarding ? "Onboarding Complete" : "Profile Updated",
-                description: isOnboarding ? "Welcome! Your profile is set up." : "Your details have been saved.",
-                variant: "success",
-            })
-
-            // Mark onboarding as locally complete *after* successful submission
+            // --- Mark onboarding done locally & Redirect ---
             if (isOnboarding) {
                 dispatch(skipOnboardingProcess())
+                if (data.isCorporateRegistration) {
+                    router.push("/corporate-management")
+                } else if (hasItemsInCart) {
+                    router.push(`/checkout`)
+                } else {
+                    router.push("/dashboard")
+                }
             }
-
-            // Redirect logic
-            if (isOnboarding && data.isCorporateRegistration) {
-                router.push("/corporate-management") // Redirect corporate managers to their dashboard
-            } else if (isOnboarding && hasItemsInCart) {
-                router.push(`/pricing?type=${data.accountType}`) // Redirect to pricing/checkout
-            } else if (isOnboarding) {
-                router.push("/dashboard") // Redirect to dashboard if onboarding is done
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : "Failed to update profile"
-            toast({ title: "Update Error", description: errorMessage, variant: "destructive" })
+        } catch (error: any) {
+            toast({ title: "Update Error", description: error.message || "Failed to update profile", variant: "destructive" })
         } finally {
             setIsSubmitting(false)
         }
@@ -261,7 +356,8 @@ export default function ProfilePage() {
     }
 
     // Determine if the user is a corporate student (has corporateId but is not a manager)
-    const isCorporateStudent = isStudent(user) && user.corporateId !== undefined && user.corporateId !== null && !user.isCorporateManager;
+    const isCorporateStudent = isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager
+    const isCorporateManagerView = isStudent(user) && user.isCorporateManager
 
     return (
         <div className="mx-auto space-y-6">
@@ -294,9 +390,16 @@ export default function ProfilePage() {
                     <ProfileAvatarInfo user={user} />
 
                     <Form {...form}>
-                        <form id="profile-form" onSubmit={form.handleSubmit(onSubmit)} className="mt-6">
+                        <form id="profile-form" onSubmit={form.handleSubmit(handleSubmit)} className="mt-6">
                             {/* Show corporate manager fields if applicable */}
-                            {form.watch("isCorporateRegistration") && <CorporateManagerFields form={form} courses={courseOptions} />}
+                            {(isOnboarding && form.watch("isCorporateRegistration")) || isCorporateManagerView ? (
+                                <CorporateManagerFields
+                                    form={form}
+                                    courses={courseOptions}
+                                    purchasedStudentSlots={isStudent(user) ? user.purchasedStudentSlots : 0}
+                                    isExistingManager={isCorporateManagerView}
+                                />
+                            ) : null}
 
                             {/* Standard profile fields */}
                             <ProfileFormFields
@@ -313,13 +416,13 @@ export default function ProfilePage() {
                 </CardContent>
                 <CardFooter className="flex flex-col sm:flex-row gap-4 sm:justify-between pt-6">
                     <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                        {hasItemsInCart && !isOnboarding && !isCorporateStudent &&(
+                        {hasItemsInCart && !isOnboarding && (
                             <DyraneButton variant="outline" onClick={() => router.push("/checkout")} className="w-full sm:w-auto">
                                 <GraduationCap className="mr-2 h-4 w-4" />
                                 View Cart ({cartItems.length})
                             </DyraneButton>
                         )}
-                        {isOnboarding && (
+                        {isOnboarding && !isCorporateStudent && (
                             <DyraneButton
                                 variant="outline"
                                 onClick={handleSkipOnboarding}
@@ -337,6 +440,7 @@ export default function ProfilePage() {
                         disabled={isSubmitting || (!form.formState.isDirty && !isOnboarding)}
                         className="w-full sm:w-auto sm:ml-auto"
                     >
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isSubmitting ? "Saving..." : isOnboarding ? "Complete Profile" : "Save Changes"}
                     </DyraneButton>
                 </CardFooter>

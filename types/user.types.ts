@@ -68,6 +68,9 @@ export interface StudentUser extends BaseUser {
 
 	/** Corporate identifier (shared with managed users). Required for corporate students and managers. */
 	corporateId?: string | null;
+
+	/** Total number of student slots this manager has purchased/is allocated. Null/undefined if not applicable. */
+	purchasedStudentSlots?: number | null;
 }
 
 // --- Teacher Specific Information ---

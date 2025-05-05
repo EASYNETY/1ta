@@ -2,7 +2,6 @@
 "use client"
 
 import type { UseFormReturn } from "react-hook-form"
-import { z } from "zod"
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -12,21 +11,8 @@ import { DatePickerWithYearMonth } from "@/components/ui/date-picker-with-year-m
 import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
 
-// Re-define schema or import from a shared location
-const profileSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    dateOfBirth: z.date({ required_error: "Date of birth is required" }).optional(),
-    classId: z.string().optional(),
-    accountType: z.enum(["individual", "institutional"]),
-    bio: z.string().optional(),
-    phoneNumber: z.string().optional(),
-    isCorporateRegistration: z.boolean().optional(),
-})
-
-type ProfileFormValues = z.infer<typeof profileSchema>
-
 interface ProfileFormFieldsProps {
-    form: UseFormReturn<ProfileFormValues>
+    form: UseFormReturn<any>
     courses: Array<{ id: string; name: string }>
     userRole: string
     userEmail: string
@@ -51,7 +37,7 @@ export function ProfileFormFields({
                 return (
                     <FormField
                         control={form.control}
-                        name="phoneNumber"
+                        name="phone"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Phone Number (Optional)</FormLabel>
@@ -88,7 +74,7 @@ export function ProfileFormFields({
                         />
                         <FormField
                             control={form.control}
-                            name="phoneNumber"
+                            name="phone"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Phone Number (Optional)</FormLabel>
@@ -156,12 +142,7 @@ export function ProfileFormFields({
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>Primary Class/Course</FormLabel>
-                        <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            defaultValue={field.value}
-                            disabled={isCorporateStudent}
-                        >
+                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={isCorporateStudent}>
                             <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select your primary class or course" />
@@ -202,12 +183,7 @@ export function ProfileFormFields({
                                     Account Type <span className="text-red-500">*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <RadioGroup
-                                        onValueChange={field.onChange}
-                                        value={field.value}
-                                        defaultValue={field.value}
-                                        className="flex flex-col space-y-1"
-                                    >
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className="flex flex-col space-y-1">
                                         <FormItem className="flex items-center space-x-3 space-y-0">
                                             <FormControl>
                                                 <RadioGroupItem value="individual" />
