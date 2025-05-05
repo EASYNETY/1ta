@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserData } from '@/components/users/UserTableRow'; // Use shared type
 import Link from 'next/link';
 import { ArrowLeft, User, Mail, Calendar, CheckCircle, XCircle, Briefcase } from 'lucide-react'; // Icons for details
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 // --- Mock Data Fetching (Replace with API/Store) ---
 const mockUsers: UserData[] = [ // Use UserData type
@@ -73,7 +74,7 @@ export default function ViewUserPage() {
     }
 
     if (error) {
-         return <div className="p-6 text-center text-red-600">{error}</div>;
+        return <div className="p-6 text-center text-red-600">{error}</div>;
     }
 
     if (!user) {
@@ -82,48 +83,62 @@ export default function ViewUserPage() {
     }
 
     // Badge styling logic (can be extracted)
-    const getRoleBadgeClass = (role: string) => { /* ... same as in UserTableRow ... */ };
-    const getStatusBadgeClass = (status: string) => { /* ... same as in UserTableRow ... */ };
+    const getRoleBadgeClass = (role: string) => {
+        switch (role) {
+            case "admin": return "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-100";
+            case "teacher": return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-100";
+            case "student": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
+            default: return "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-100";
+        }
+    };
+
+    const getStatusBadgeClass = (status: string) => {
+        switch (status) {
+            case "active": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
+            case "inactive": return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
+            default: return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100"; // Or handle unknown status
+        }
+    };
 
 
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
             <div className="mx-auto">
-                <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Users
-                </Button>
-
+                <PageHeader
+                    heading={`User Details`}
+                    subheading={`Explore the details of the user ${user.name}`}
+                />
                 <DyraneCard>
                     <DyraneCardHeader>
                         <DyraneCardTitle className="flex items-center gap-3">
                             <User className="h-6 w-6" />
                             {user.name}
                         </DyraneCardTitle>
-                         <DyraneCardDescription>
-                           Viewing profile details for {user.name}.
+                        <DyraneCardDescription>
+                            Viewing profile details for {user.name}.
                         </DyraneCardDescription>
                     </DyraneCardHeader>
                     <DyraneCardContent className="space-y-4">
-                         <div className="flex items-center gap-3 border-b pb-3">
+                        <div className="flex items-center gap-3 border-b pb-3">
                             <Mail className="h-5 w-5 text-muted-foreground" />
                             <span className="text-sm">{user.email}</span>
-                         </div>
-                         <div className="flex items-center gap-3 border-b pb-3">
+                        </div>
+                        <div className="flex items-center gap-3 border-b pb-3">
                             <Briefcase className="h-5 w-5 text-muted-foreground" />
-                             <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(user.role)}`}>
+                            <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(user.role)}`}>
                                 {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </Badge>
-                         </div>
-                         <div className="flex items-center gap-3 border-b pb-3">
-                             {user.status === 'active' ? <CheckCircle className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
-                             <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(user.status)}`}>
+                        </div>
+                        <div className="flex items-center gap-3 border-b pb-3">
+                            {user.status === 'active' ? <CheckCircle className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
+                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(user.status)}`}>
                                 {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                             </Badge>
-                         </div>
-                         <div className="flex items-center gap-3">
-                             <Calendar className="h-5 w-5 text-muted-foreground" />
-                             <span className="text-sm text-muted-foreground">Joined on {formatDate(user.joinDate)}</span>
-                         </div>
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Calendar className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Joined on {formatDate(user.joinDate)}</span>
+                        </div>
                         {/* Add more details fields here */}
                     </DyraneCardContent>
                     <DyraneCardFooter className="flex justify-end">

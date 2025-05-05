@@ -57,7 +57,7 @@ export function PageHeader({ heading, subheading, actions, breadcrumbs = true, c
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2 mb-4", className)}>
       {breadcrumbs && breadcrumbItems && breadcrumbItems.length > 0 && (
         <nav className="flex items-center text-sm text-muted-foreground">
           <Link href="/" className="flex items-center hover:text-foreground transition-colors">

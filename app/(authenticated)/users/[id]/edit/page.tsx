@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 
 // --- Mock Data Fetching (Replace with API/Store) ---
@@ -100,12 +101,10 @@ export default function EditUserPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
             <div className="mx-auto">
-                <div className="flex items-center gap-3 mb-4">
-                    <DyraneButton variant="outline" size="icon" onClick={() => router.back()} aria-label="Go back">
-                        <ArrowLeft className="h-4 w-4" />
-                    </DyraneButton>
-                    <h1 className="text-2xl font-bold">Edit {initialUserData.name}</h1>
-                </div>
+                <PageHeader
+                    heading={`Edit ${initialUserData.id}`}
+                    subheading={`Edit the details of ${initialUserData.name}`}
+                />
                 {/* UserForm handles its own Card and structure */}
                 <UserForm
                     initialData={initialUserData}
