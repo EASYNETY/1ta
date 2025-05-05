@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 export default function CreateClassPage() {
     const dispatch = useAppDispatch();
@@ -39,9 +40,9 @@ export default function CreateClassPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}>
             <div className="mx-auto">
-                <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Classes
-                </DyraneButton>
+                <PageHeader
+                    heading={`Create Class`}
+                />
                 <ClassForm
                     onSubmit={handleCreate}
                     isSubmitting={isSubmitting}

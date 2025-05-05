@@ -16,6 +16,7 @@ import type { AdminClassView } from '@/features/classes/types/classes-types';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { Users } from 'phosphor-react';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 // Helper to format date range or single date
 const formatDateDisplay = (dateString?: string) => {
@@ -58,9 +59,10 @@ export default function ViewClassPage() {
     return (
         <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles if needed */}
             <div className="mx-auto">
-                <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Classes
-                </DyraneButton>
+                <PageHeader
+                    heading={`Class Details`}
+                    subheading={`Explore the details of ${currentClass?.courseTitle}`}
+                />
 
                 {isLoading && (
                     <DyraneCard>
