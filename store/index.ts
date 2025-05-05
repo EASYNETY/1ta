@@ -30,6 +30,7 @@ import supportReducer from "@/features/support/store/supportSlice";
 import checkoutReducer from "@/features/checkout/store/checkoutSlice";
 import paymentHistoryReducer from "@/features/payment/store/payment-slice";
 import corporateReducer from "@/features/corporate/store/corporate-slice";
+import assignmentsReducer from "@/features/assignments/store/assignment-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -78,6 +79,7 @@ const persistConfig = {
 		"settings",
 		"support",
 		"corporate",
+		"assignments",
 	],
 };
 
@@ -99,6 +101,7 @@ const rootReducer = combineReducers({
 	settings: settingsReducer,
 	support: supportReducer,
 	corporate: corporateReducer,
+	assignments: assignmentsReducer,
 });
 
 // --- Persisted Reducer ---

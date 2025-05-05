@@ -103,6 +103,17 @@ import {
 	deleteMockManagedStudent,
 	getMockManagedStudents,
 } from "@/data/mock-corporate-data";
+import {
+	createMockAssignment,
+	deleteMockAssignment,
+	getMockAssignmentById,
+	getMockAssignmentsForCourse,
+	getMockAssignmentsForStudent,
+	getMockSubmissionsForAssignment,
+	gradeMockSubmission,
+	submitMockAssignment,
+	updateMockAssignment,
+} from "@/data/mock-assignment-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -898,6 +909,166 @@ async function handleMockRequest<T>(
 			senderRole
 		) as unknown as T;
 	}
+
+	// --- START: Assignment CRUD Mock Handlers ---
+
+	// GET /assignments (list - needs query params for role/context)
+	if (
+		endpoint.startsWith("/assignments") &&
+		!endpoint.match(/^\/assignments\/([\w-]+)$/) &&
+		!endpoint.includes("/submissions") &&
+		!endpoint.includes("/submit") &&
+		method === "get"
+	) {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const role = urlParams.get("role") || "student"; // Assume role passed
+		const userId = urlParams.get("userId") || undefined;
+		const courseId = urlParams.get("courseId") || undefined;
+		const classId = urlParams.get("classId") || undefined;
+		console.log(
+			`%cAPI Client MOCK: GET /assignments (Role: ${role})`,
+			"color: green;"
+		);
+		try {
+			let result;
+			if (role === "student") {
+				result = await getMockAssignmentsForStudent(userId!, courseId); // Need userId
+			} else {
+				result = await getMockAssignmentsForCourse(courseId, classId);
+			}
+			return result as unknown as T; // Returns array
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// GET /assignments/:id - Fetch Single Assignment
+	const getAssignmentByIdMatch = endpoint.match(/^\/assignments\/([\w-]+)$/);
+	if (getAssignmentByIdMatch && method === "get") {
+		const assignmentId = getAssignmentByIdMatch[1];
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const role = urlParams.get("role") || "student"; // Assume role passed
+		const userId = urlParams.get("userId") || undefined;
+		console.log(
+			`%cAPI Client MOCK: GET /assignments/${assignmentId}`,
+			"color: green;"
+		);
+		try {
+			const data = await getMockAssignmentById(assignmentId, role, userId);
+			return data as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// GET /assignments/:id/submissions - Fetch Submissions for Assignment
+	const getSubmissionsMatch = endpoint.match(
+		/^\/assignments\/([\w-]+)\/submissions$/
+	);
+	if (getSubmissionsMatch && method === "get") {
+		const assignmentId = getSubmissionsMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /assignments/${assignmentId}/submissions`,
+			"color: green;"
+		);
+		try {
+			const data = await getMockSubmissionsForAssignment(assignmentId);
+			return data as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// POST /assignments - Create Assignment
+	if (endpoint === "/assignments" && method === "post") {
+		console.log("%cAPI Client MOCK: POST /assignments", "color: green;");
+		if (!body)
+			throw new Error("Mock API Error: Missing body for POST /assignments");
+		try {
+			const result = await createMockAssignment(body);
+			return result as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// PUT /assignments/:id - Update Assignment
+	const updateAssignmentMatch = endpoint.match(/^\/assignments\/([\w-]+)$/);
+	if (updateAssignmentMatch && method === "put") {
+		const assignmentId = updateAssignmentMatch[1];
+		console.log(
+			`%cAPI Client MOCK: PUT /assignments/${assignmentId}`,
+			"color: green;"
+		);
+		if (!body)
+			throw new Error(
+				`Mock API Error: Missing body for PUT /assignments/${assignmentId}`
+			);
+		try {
+			const result = await updateMockAssignment(assignmentId, body);
+			return result as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// DELETE /assignments/:id - Delete Assignment
+	const deleteAssignmentMatch = endpoint.match(/^\/assignments\/([\w-]+)$/);
+	if (deleteAssignmentMatch && method === "delete") {
+		const assignmentId = deleteAssignmentMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /assignments/${assignmentId}`,
+			"color: green;"
+		);
+		try {
+			await deleteMockAssignment(assignmentId);
+			return { success: true, id: assignmentId } as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// POST /assignments/:id/submissions - Student Submit Assignment
+	const submitAssignmentMatch = endpoint.match(
+		/^\/assignments\/([\w-]+)\/submissions$/
+	);
+	if (submitAssignmentMatch && method === "post") {
+		const assignmentId = submitAssignmentMatch[1];
+		console.log(
+			`%cAPI Client MOCK: POST /assignments/${assignmentId}/submissions`,
+			"color: green;"
+		);
+		if (!body) throw new Error(`Mock API Error: Missing body for submission`);
+		// Assume body includes studentId (or backend gets it from auth) and submission details
+		try {
+			const result = await submitMockAssignment({ assignmentId, ...body });
+			return result as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// PUT /submissions/:id/grade - Teacher Grade Submission
+	const gradeSubmissionMatch = endpoint.match(
+		/^\/submissions\/([\w-]+)\/grade$/
+	);
+	if (gradeSubmissionMatch && method === "put") {
+		const submissionId = gradeSubmissionMatch[1];
+		console.log(
+			`%cAPI Client MOCK: PUT /submissions/${submissionId}/grade`,
+			"color: green;"
+		);
+		if (!body) throw new Error(`Mock API Error: Missing body for grading`);
+		// Assume body includes grade, feedback, graderId
+		try {
+			const result = await gradeMockSubmission({ submissionId, ...body });
+			return result as unknown as T;
+		} catch (error: any) {
+			/* ... error handling ... */ throw error;
+		}
+	}
+
+	// --- END: Assignment CRUD Mock Handlers ---
 
 	// --- Fallback ---
 	console.error(
