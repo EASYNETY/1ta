@@ -1,31 +1,38 @@
 // features/chat/store/chatSlice.ts
+
 import {
 	createSlice,
 	createAsyncThunk,
-	PayloadAction,
+	type PayloadAction,
 	createSelector,
 } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import type { ChatState, ChatRoom, ChatMessage } from "../types/chat-types";
+import type {
+	ChatState,
+	ChatRoom,
+	ChatMessage,
+	FetchRoomsResponse,
+	FetchMessagesResponse,
+	SendMessageResponse,
+} from "../types/chat-types";
 
-// Import mock functions (Replace with API client eventually)
-import {
-	getMockChatRooms,
-	getMockChatMessages,
-	createMockChatMessage,
-} from "@/data/mock-chat-data";
-import { parseISO } from "date-fns";
+// Import API client
+import { get, post } from "@/lib/api-client";
 
 // --- Async Thunks ---
 export const fetchChatRooms = createAsyncThunk<
 	ChatRoom[],
-	string,
+	string, // userId
 	{ rejectValue: string }
 >("chat/fetchRooms", async (userId, { rejectWithValue }) => {
 	try {
-		return await getMockChatRooms(userId);
+		// In a real app, we'd use the API client to fetch rooms
+		const response = await get<FetchRoomsResponse>(
+			`/chat/rooms/user/${userId}`
+		);
+		return response.rooms;
 	} catch (e: any) {
-		return rejectWithValue(e.message);
+		return rejectWithValue(e.message || "Failed to fetch chat rooms");
 	}
 });
 
@@ -34,17 +41,21 @@ interface FetchMessagesParams {
 	page?: number;
 	limit?: number;
 }
+
 export const fetchChatMessages = createAsyncThunk<
 	ChatMessage[],
 	FetchMessagesParams,
 	{ rejectValue: string }
 >(
 	"chat/fetchMessages",
-	async ({ roomId, page, limit }, { rejectWithValue }) => {
+	async ({ roomId, page = 1, limit = 30 }, { rejectWithValue }) => {
 		try {
-			return await getMockChatMessages(roomId, page, limit);
+			const response = await get<FetchMessagesResponse>(
+				`/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`
+			);
+			return response.messages;
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to fetch messages");
 		}
 	}
 );
@@ -54,6 +65,7 @@ interface SendMessageParams {
 	senderId: string;
 	content: string;
 }
+
 export const sendChatMessage = createAsyncThunk<
 	ChatMessage,
 	SendMessageParams,
@@ -62,9 +74,14 @@ export const sendChatMessage = createAsyncThunk<
 	"chat/sendMessage",
 	async ({ roomId, senderId, content }, { rejectWithValue }) => {
 		try {
-			return await createMockChatMessage(roomId, senderId, content);
+			const response = await post<SendMessageResponse>("/chat/messages", {
+				roomId,
+				content,
+				// senderId is typically derived from the authenticated user on the server
+			});
+			return response.message;
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to send message");
 		}
 	}
 );
@@ -75,7 +92,7 @@ const initialState: ChatState = {
 	messagesByRoom: {},
 	selectedRoomId: null,
 	roomStatus: "idle",
-	messageStatus: {}, // Status per room
+	messageStatus: {},
 	sendMessageStatus: "idle",
 	error: null,
 };
@@ -88,18 +105,52 @@ const chatSlice = createSlice({
 		selectChatRoom: (state, action: PayloadAction<string | null>) => {
 			state.selectedRoomId = action.payload;
 			state.error = null; // Clear error when changing rooms
+
 			if (action.payload && !state.messageStatus[action.payload]) {
 				state.messageStatus[action.payload] = "idle"; // Ensure status exists
 			}
-			// Reset unread count locally on selection (real app might need API call/socket event)
+
+			// Reset unread count locally on selection
 			const room = state.rooms.find((r) => r.id === action.payload);
 			if (room) room.unreadCount = 0;
 		},
+
 		clearChatError: (state) => {
 			state.error = null;
 		},
-		// Reducer to add a message received (e.g., from websocket - Post-MVP)
-		// messageReceived: (state, action: PayloadAction<ChatMessage>) => { ... }
+
+		// For handling real-time messages (e.g., from WebSocket)
+		messageReceived: (state, action: PayloadAction<ChatMessage>) => {
+			const message = action.payload;
+			const roomId = message.roomId;
+
+			// Add message to the appropriate room
+			if (!state.messagesByRoom[roomId]) {
+				state.messagesByRoom[roomId] = [];
+			}
+
+			// Avoid duplicates
+			if (!state.messagesByRoom[roomId].some((m) => m.id === message.id)) {
+				state.messagesByRoom[roomId].push(message);
+			}
+
+			// Update last message in room list
+			const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
+			if (roomIndex !== -1) {
+				state.rooms[roomIndex].lastMessage = {
+					content: message.content,
+					timestamp: message.timestamp,
+					senderId: message.senderId,
+					senderName: message.sender?.name,
+				};
+
+				// Increment unread count if not the selected room
+				if (state.selectedRoomId !== roomId) {
+					state.rooms[roomIndex].unreadCount =
+						(state.rooms[roomIndex].unreadCount || 0) + 1;
+				}
+			}
+		},
 	},
 	extraReducers: (builder) => {
 		// Fetch Rooms
@@ -122,32 +173,40 @@ const chatSlice = createSlice({
 			.addCase(fetchChatMessages.pending, (state, action) => {
 				const roomId = action.meta.arg.roomId;
 				state.messageStatus[roomId] = "loading";
-				state.error = null; // Clear general error on fetch attempt
+				state.error = null;
 			})
 			.addCase(fetchChatMessages.fulfilled, (state, action) => {
 				const roomId = action.meta.arg.roomId;
 				state.messageStatus[roomId] = "succeeded";
-				// Prepend older messages if implementing pagination, otherwise replace
+
+				// Initialize if needed
+				if (!state.messagesByRoom[roomId]) {
+					state.messagesByRoom[roomId] = [];
+				}
+
+				// Merge messages, avoiding duplicates
+				const existingIds = new Set(
+					state.messagesByRoom[roomId].map((m) => m.id)
+				);
+				const newMessages = action.payload.filter(
+					(m) => !existingIds.has(m.id)
+				);
+
 				state.messagesByRoom[roomId] = [
-					...action.payload,
-					...(state.messagesByRoom[roomId] || []),
-				]; // Simple replace/prepend
-				// Remove duplicates just in case
-				state.messagesByRoom[roomId] = Array.from(
-					new Map(
-						state.messagesByRoom[roomId].map((item) => [item.id, item])
-					).values()
-				);
+					...state.messagesByRoom[roomId],
+					...newMessages,
+				];
+
 				// Sort by timestamp
-				state.messagesByRoom[roomId].sort(
-					(a, b) =>
-						parseISO(a.timestamp).getTime() - parseISO(b.timestamp).getTime()
-				);
+				state.messagesByRoom[roomId].sort((a, b) => {
+					return (
+						new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+					);
+				});
 			})
 			.addCase(fetchChatMessages.rejected, (state, action) => {
 				const roomId = action.meta.arg.roomId;
 				state.messageStatus[roomId] = "failed";
-				// Store error specific to this room fetch? Or just use general error.
 				state.error =
 					action.payload ?? `Failed to fetch messages for room ${roomId}`;
 			});
@@ -161,15 +220,20 @@ const chatSlice = createSlice({
 			.addCase(sendChatMessage.fulfilled, (state, action) => {
 				state.sendMessageStatus = "succeeded";
 				const roomId = action.payload.roomId;
-				// Add the sent message optimistically (or wait for websocket)
-				if (!state.messagesByRoom[roomId]) state.messagesByRoom[roomId] = [];
-				// Avoid duplicates if websocket confirms quickly
+
+				// Add the sent message
+				if (!state.messagesByRoom[roomId]) {
+					state.messagesByRoom[roomId] = [];
+				}
+
+				// Avoid duplicates
 				if (
 					!state.messagesByRoom[roomId].some((m) => m.id === action.payload.id)
 				) {
 					state.messagesByRoom[roomId].push(action.payload);
 				}
-				// Update last message in the room list preview
+
+				// Update last message in room
 				const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
 				if (roomIndex !== -1) {
 					state.rooms[roomIndex].lastMessage = {
@@ -188,36 +252,47 @@ const chatSlice = createSlice({
 });
 
 // --- Actions & Selectors ---
-export const { selectChatRoom, clearChatError } = chatSlice.actions;
+export const { selectChatRoom, clearChatError, messageReceived } =
+	chatSlice.actions;
 
+// Basic selectors
 export const selectChatRooms = (state: RootState) => state.chat.rooms;
 export const selectMessagesByRoom = (state: RootState) =>
 	state.chat.messagesByRoom;
 export const selectSelectedRoomId = (state: RootState) =>
 	state.chat.selectedRoomId;
-export const selectCurrentRoomMessages = (state: RootState): ChatMessage[] => {
-	const roomId = state.chat.selectedRoomId;
-	return roomId ? state.chat.messagesByRoom[roomId] || [] : [];
-};
 export const selectRoomStatus = (state: RootState) => state.chat.roomStatus;
-export const selectMessageStatusForRoom = (
-	state: RootState,
-	roomId: string | null
-): ChatState["messageStatus"][string] => {
-	return roomId ? state.chat.messageStatus[roomId] || "idle" : "idle";
-};
 export const selectSendMessageStatus = (state: RootState) =>
 	state.chat.sendMessageStatus;
 export const selectChatError = (state: RootState) => state.chat.error;
-// --- Add Selector for Unread Chat Count ---
-// This selector uses createSelector for memoization, which is good practice
+
+// Derived selectors
+export const selectCurrentRoomMessages = createSelector(
+	[selectMessagesByRoom, selectSelectedRoomId],
+	(messagesByRoom, selectedRoomId): ChatMessage[] => {
+		return selectedRoomId ? messagesByRoom[selectedRoomId] || [] : [];
+	}
+);
+
+export const selectMessageStatusForRoom = (
+	state: RootState,
+	roomId: string | null
+) => {
+	return roomId ? state.chat.messageStatus[roomId] || "idle" : "idle";
+};
+
+export const selectSelectedRoom = createSelector(
+	[selectChatRooms, selectSelectedRoomId],
+	(rooms, selectedRoomId): ChatRoom | undefined => {
+		return rooms.find((room) => room.id === selectedRoomId);
+	}
+);
+
 export const selectChatUnreadCount = createSelector(
-	[selectChatRooms], // Input selector(s)
+	[selectChatRooms],
 	(rooms): number => {
-		// Result function
-		// Calculate the total unread count by summing up unreadCount from each room
 		return rooms.reduce((total, room) => total + (room.unreadCount || 0), 0);
 	}
-); // <-- ADD THIS SELECTOR
+);
 
 export default chatSlice.reducer;

@@ -70,11 +70,7 @@ import {
 	getMockTaughtClasses,
 	updateMockClass,
 } from "@/data/mock-classes-data";
-import {
-	createMockChatMessage,
-	getMockChatMessages,
-	getMockChatRooms,
-} from "@/data/mock-chat-data";
+
 import { MarkAttendancePayload } from "@/features/attendance/store/attendance-slice";
 import {
 	mockGetNotificationPreferences,
@@ -97,6 +93,7 @@ import {
 	mockFetchAllPaymentsAdmin,
 	mockFetchMyPaymentHistory,
 } from "@/data/mock-payment-data";
+import { createMockChatMessage, getMockChatMessages, getMockChatRooms } from "@/data/mock-chat-data";
 
 // --- Config ---
 const API_BASE_URL =
@@ -648,36 +645,65 @@ async function handleMockRequest<T>(
 	}
 
 	// --- Chat Mocks ---
-	const chatRoomsForStudentMatch = endpoint.match(
-		/^\/chat\/rooms\/student\/(.+)$/
-	);
-	if (chatRoomsForStudentMatch && method === "get") {
-		const userId = chatRoomsForStudentMatch[1];
-		return getMockChatRooms(userId) as unknown as T;
+	const chatRoomsForUserMatch = endpoint.match(/^\/chat\/rooms\/user\/(.+)$/);
+	if (chatRoomsForUserMatch && method === "get") {
+		const userId = chatRoomsForUserMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /chat/rooms/user/${userId}`,
+			"color: orange;"
+		);
+		try {
+			const response = await getMockChatRooms(userId); // Calls updated mock
+			return response as unknown as T; // Returns { rooms: [], total: N }
+		} catch (error: any) {
+			console.error("Mock API Error for GET /chat/rooms:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
 
 	if (endpoint === "/chat/messages" && method === "get") {
-		// Extract query params for roomId, page, limit
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const roomId = urlParams.get("roomId");
 		const page = parseInt(urlParams.get("page") || "1", 10);
 		const limit = parseInt(urlParams.get("limit") || "30", 10);
-		if (!roomId)
-			throw new Error("Mock Error: roomId is required for fetching messages");
-		return getMockChatMessages(roomId, page, limit) as unknown as T;
+		if (!roomId) throw new Error("Mock Error: roomId required");
+		console.log(
+			`%cAPI Client MOCK: GET /chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`,
+			"color: orange;"
+		);
+		try {
+			const response = await getMockChatMessages(roomId, page, limit); // Calls updated mock
+			return response as unknown as T; // Returns { messages: [], total: N, hasMore: bool }
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /chat/messages (Room ${roomId}):`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
 
 	if (endpoint === "/chat/messages" && method === "post") {
-		// Assuming body contains { roomId, content } and senderId comes from auth context
 		if (!body?.roomId || !body?.content)
-			throw new Error("Mock Error: roomId and content are required");
-		const mockSenderId = "student_123"; // Simulate logged-in user
-		return createMockChatMessage(
-			body.roomId,
-			mockSenderId,
-			body.content
-		) as unknown as T;
+			throw new Error("Mock Error: roomId and content required");
+		const senderId = body.senderId || "unknown_mock_sender"; // Get senderId passed from thunk
+		console.log(
+			`%cAPI Client MOCK: POST /chat/messages (Room: ${body.roomId}, Sender: ${senderId})`,
+			"color: orange;"
+		);
+		try {
+			const response = await createMockChatMessage(
+				body.roomId,
+				senderId,
+				body.content
+			); // Calls updated mock
+			return response as unknown as T; // Returns { message: {...}, success: true }
+		} catch (error: any) {
+			console.error("Mock API Error for POST /chat/messages:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
 	}
+	// --- End Chat Mocks ---
 
 	// --- Settings Mocks ---
 	const notificationPrefsMatch = endpoint.match(/^\/users\/me\/notifications$/);

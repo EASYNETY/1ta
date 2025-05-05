@@ -1,45 +1,100 @@
 // features/chat/types/chat-types.ts
 
-// Basic user info needed for display
+// Chat participant types - users who can participate in chats
 export interface ChatParticipant {
-    id: string;
-    name: string;
-    avatarUrl?: string; // Optional avatar
-    role?: 'student' | 'teacher' | 'admin';
+	id: string;
+	name: string;
+	avatarUrl?: string;
+	role: "student" | "teacher" | "admin";
 }
 
-// Represents a single message
+// Chat room types - different contexts for discussions
+export enum ChatRoomType {
+	COURSE = "course",
+	CLASS = "class",
+	EVENT = "event",
+	ANNOUNCEMENT = "announcement",
+}
+
+// Message types that can be sent
+export enum MessageType {
+	TEXT = "text",
+	IMAGE = "image",
+	FILE = "file",
+	SYSTEM = "system",
+}
+
+// A single chat message
 export interface ChatMessage {
-    id: string;          // Message ID (e.g., "msg_123")
-    roomId: string;      // Room it belongs to
-    senderId: string;      // ID of the user who sent it
-    sender?: ChatParticipant; // Populated sender info for display
-    content: string;     // The message text
-    timestamp: string;   // ISO 8601 timestamp string
-    type?: 'text' | 'image' | 'file'; // Type of message (default 'text')
-    isRead?: boolean;    // UI flag if current user read it (can be derived)
+	id: string;
+	roomId: string;
+	senderId: string;
+	sender?: ChatParticipant; // Populated sender info for display
+	content: string;
+	timestamp: string;
+	type: MessageType;
+	metadata?: {
+		fileName?: string;
+		fileSize?: number;
+		fileUrl?: string;
+		imageUrl?: string;
+		width?: number;
+		height?: number;
+	};
+	isRead?: boolean;
 }
 
-// Represents a chat room
+// A chat room
 export interface ChatRoom {
-    id: string;          // Room ID (e.g., "room_abc")
-    name: string;        // Room name (e.g., "PMP Study Group", "Web Dev Q&A")
-    participants?: ChatParticipant[]; // List of users in the room
-    lastMessage?: Pick<ChatMessage, 'content' | 'timestamp' | 'senderId'> & { senderName?: string }; // Preview of last message
-    unreadCount?: number;  // How many messages are unread for the current user
-    isGroupChat?: boolean; // Flag if it's more than a 1-on-1
-    createdAt?: string;    // ISO 8601 timestamp
-    // Add other relevant properties like associated classId if needed
-    classId?: string;
+	id: string;
+	name: string;
+	description?: string;
+	type: ChatRoomType;
+	contextId: string; // ID of the course, class, or event
+	participants: ChatParticipant[];
+	lastMessage?: {
+		content: string;
+		timestamp: string;
+		senderId: string;
+		senderName?: string;
+	};
+	unreadCount?: number;
+	isGroupChat: boolean; // Always true for course/class/event chats
+	createdAt: string;
+	updatedAt?: string;
+	createdBy?: string;
+    iconUrl?: string; // URL for the room icon
 }
 
 // State shape for the Redux chat slice
 export interface ChatState {
-    rooms: ChatRoom[];
-    messagesByRoom: Record<string, ChatMessage[]>; // Store messages keyed by roomId
-    selectedRoomId: string | null;
-    roomStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
-    messageStatus: Record<string, 'idle' | 'loading' | 'succeeded' | 'failed'>; // Loading status per room
-    sendMessageStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
-    error: string | null;
+	rooms: ChatRoom[];
+	messagesByRoom: Record<string, ChatMessage[]>; // Store messages keyed by roomId
+	selectedRoomId: string | null;
+	roomStatus: "idle" | "loading" | "succeeded" | "failed";
+	messageStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">; // Loading status per room
+	sendMessageStatus: "idle" | "loading" | "succeeded" | "failed";
+	error: string | null;
+}
+
+// API response types
+export interface FetchRoomsResponse {
+	rooms: ChatRoom[];
+	total: number;
+}
+
+export interface FetchMessagesResponse {
+	messages: ChatMessage[];
+	total: number;
+	hasMore: boolean;
+}
+
+export interface SendMessageResponse {
+	message: ChatMessage;
+	success: boolean;
+}
+
+export interface CreateRoomResponse {
+	room: ChatRoom;
+	success: boolean;
 }
