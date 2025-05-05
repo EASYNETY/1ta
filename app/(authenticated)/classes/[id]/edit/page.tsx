@@ -64,9 +64,7 @@ export default function EditClassPage() {
                     heading={`Edit ${currentClass?.courseTitle}`}
                     subheading={`Edit the details of ${currentClass?.id}`}
                 />
-                <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Classes
-                </DyraneButton>
+
                 {isLoading && !currentClass && (
                     <div className="space-y-4 p-4 border rounded-md">
                         <Skeleton className="h-8 w-1/2" />
