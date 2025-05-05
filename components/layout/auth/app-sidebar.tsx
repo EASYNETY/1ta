@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CheckCircle, EnvelopeSimple, GraduationCap, Money, User } from "phosphor-react";
+import { Calendar, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree } from "phosphor-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
@@ -61,7 +61,7 @@ export const primaryNavItems: NavItem[] = [
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", 'admin'] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", 'admin'] },
-    { title: "Chat", href: "/chat", icon: EnvelopeSimple, roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
+    { title: "Discussions", href: "/chat", icon: UsersThree , roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
 ];
 
 // Admin Specific Items

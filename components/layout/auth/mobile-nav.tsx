@@ -18,6 +18,7 @@ import {
     GraduationCap,
     EnvelopeSimple, // Use Envelope for Chat Nav Item
     CheckCircle,
+    UsersThree,
     // FAB Icons are now sourced from fab-config.ts via the hook
 } from "phosphor-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -49,7 +50,7 @@ export const mobileNavItems: MobileNavItem[] = [
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["admin", "teacher", "student"] },
     { title: "Timetable", href: "/timetable", icon: CalendarBlank, roles: ["teacher", "student", "admin"] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
-    { title: "Chat", href: "/chat", icon: EnvelopeSimple, roles: ["teacher", "student", "admin"], badgeKey: "messages" }, // Use EnvelopeSimple for nav
+    { title: "  Discussions", href: "/chat", icon: UsersThree, roles: ["teacher", "student", "admin"], badgeKey: "messages" }, // Use EnvelopeSimple for nav
 ];
 
 // --- MobileNav Component ---
