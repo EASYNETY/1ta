@@ -31,7 +31,7 @@ import { Card } from "@/components/cards/FeatureCard"
 import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo } from "phosphor-react"
 import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
 import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
-import { CourseOfferingsDisplay } from "@/components/landing/CourseOfferingsDisplay"
+import { CourseCards } from "@/components/landing/CourseOfferingsDisplay"
 
 export default function LandingPage() {
 
@@ -402,7 +402,7 @@ export default function LandingPage() {
               description="Master the tools and platforms shaping the future of tech."
             />
 
-            <CourseOfferingsDisplay />
+            <CourseCards />
           </div>
         </section>
 

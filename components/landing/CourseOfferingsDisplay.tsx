@@ -1,16 +1,12 @@
 "use client"
 
-import { useRef, useState, useEffect, type FormEvent } from "react"
+import type React from "react"
+
+import { useState } from "react"
 import Image from "next/image"
-import { useMobile } from "@/hooks/use-mobile"
-
-// UI Components
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-
-// Icons
-import { Users, CheckCircle, Info, Loader2, ArrowRight, ExternalLink } from "lucide-react"
-import { DyraneButton } from "../dyrane-ui/dyrane-button"
+import { Users, ArrowRight, CheckCircle, X, Loader2, BookOpen } from "lucide-react"
 
 // Types
 export interface CourseListing {
@@ -23,65 +19,6 @@ export interface CourseListing {
   imageUrl?: string
   iconUrl?: string
   tags?: string[]
-}
-
-// API Service
-
-const courseApiService = {
-  fetchCourses: async (): Promise<CourseListing[]> => {
-    if (false) {
-      try {
-        const response = await fetch("/course-listings/courses")
-        if (!response.ok) throw new Error("Failed to fetch courses")
-        return await response.json()
-      } catch (error) {
-        console.error("Error fetching courses:", error)
-        return mockCourseListingsData
-      }
-    }
-
-    // Mock API response
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("[MOCK API] Courses fetched.")
-        resolve([...mockCourseListingsData])
-      }, 800)
-    })
-  },
-
-  joinWaitlist: async (payload: { email: string; courseId: string }): Promise<{
-    success: boolean
-    message: string
-    newWaitlistCount?: number
-  }> => {
-    if (false) {
-      try {
-        const response = await fetch("/course-listings/waitlist/join", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        })
-
-        if (!response.ok) throw new Error("Failed to join waitlist")
-        return await response.json()
-      } catch (error) {
-        console.error("Error joining waitlist:", error)
-        throw error
-      }
-    }
-
-    // Mock API response
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("[MOCK API] Joining waitlist:", payload)
-        resolve({
-          success: true,
-          message: "Successfully joined the waitlist! We'll keep you updated.",
-          newWaitlistCount: Math.floor(Math.random() * 50) + 100, // Random number for demo
-        })
-      }, 1000)
-    })
-  },
 }
 
 // Mock Data
@@ -177,598 +114,288 @@ const mockCourseListingsData: CourseListing[] = [
   },
 ]
 
-export function CourseOfferingsDisplay() {
-  const currentCoursesRef = useRef<HTMLDivElement>(null)
-  const futureCoursesRef = useRef<HTMLDivElement>(null)
-  const isoCoursesRef = useRef<HTMLDivElement>(null)
-  const isMobile = useMobile()
-
-  const [waitlistEmails, setWaitlistEmails] = useState<Record<string, string>>({})
-  const [joinStatus, setJoinStatus] = useState<Record<string, "idle" | "submitting" | "success" | "error">>({})
-  const [errorMessages, setErrorMessages] = useState<Record<string, string | null>>({})
-  const [courses, setCourses] = useState<CourseListing[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+export function CourseCards() {
+  const [courses] = useState<CourseListing[]>(mockCourseListingsData)
+  const [selectedCourse, setSelectedCourse] = useState<CourseListing | null>(null)
+  const [showEmailForm, setShowEmailForm] = useState(false)
+  const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [visibleSections, setVisibleSections] = useState({
-    current: false,
-    future: false,
-    iso: false,
-  })
 
-  // Intersection Observer for section visibility
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.2,
-    }
-
-    const handleIntersect = (entries: IntersectionObserverEntry[], observer: IntersectionObserver) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          if (entry.target === currentCoursesRef.current) {
-            setVisibleSections((prev) => ({ ...prev, current: true }))
-          } else if (entry.target === futureCoursesRef.current) {
-            setVisibleSections((prev) => ({ ...prev, future: true }))
-          } else if (entry.target === isoCoursesRef.current) {
-            setVisibleSections((prev) => ({ ...prev, iso: true }))
-          }
-        }
-      })
-    }
-
-    const observer = new IntersectionObserver(handleIntersect, observerOptions)
-
-    if (currentCoursesRef.current) observer.observe(currentCoursesRef.current)
-    if (futureCoursesRef.current) observer.observe(futureCoursesRef.current)
-    if (isoCoursesRef.current) observer.observe(isoCoursesRef.current)
-
-    return () => {
-      if (currentCoursesRef.current) observer.unobserve(currentCoursesRef.current)
-      if (futureCoursesRef.current) observer.unobserve(futureCoursesRef.current)
-      if (isoCoursesRef.current) observer.unobserve(isoCoursesRef.current)
-    }
-  }, [currentCoursesRef.current, futureCoursesRef.current, isoCoursesRef.current])
-
-  // Fetch courses on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true)
-        const data = await courseApiService.fetchCourses()
-        setCourses(data)
-
-        // Initialize join status for all courses
-        const initialStatus = data.reduce<Record<string, "idle" | "submitting" | "success" | "error">>(
-          (acc, course) => {
-            acc[course.id] = "idle"
-            return acc
-          },
-          {},
-        )
-        setJoinStatus(initialStatus)
-      } catch (err) {
-        setError("Failed to load courses. Please try again later.")
-        console.error("Error fetching courses:", err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  const handleEmailChange = (courseId: string, email: string) => {
-    setWaitlistEmails((prev) => ({ ...prev, [courseId]: email }))
-    if (joinStatus[courseId] === "success" || joinStatus[courseId] === "error") {
-      setJoinStatus((prev) => ({ ...prev, [courseId]: "idle" }))
-      setErrorMessages((prev) => ({ ...prev, [courseId]: null }))
-    }
+  // Function to handle card click
+  const handleCardClick = (course: CourseListing) => {
+    setSelectedCourse(course)
+    setShowEmailForm(false)
+    setIsSuccess(false)
+    setError(null)
   }
 
-  const handleJoinWaitlist = async (e: FormEvent<HTMLFormElement>, courseId: string) => {
-    e.preventDefault()
-    const email = waitlistEmails[courseId]
+  // Function to close details
+  const handleCloseDetails = () => {
+    setSelectedCourse(null)
+    setShowEmailForm(false)
+    setEmail("")
+    setIsSuccess(false)
+    setError(null)
+  }
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrorMessages((prev) => ({ ...prev, [courseId]: "Please enter a valid email address." }))
-      setJoinStatus((prev) => ({ ...prev, [courseId]: "error" }))
+  // Function to handle join waitlist
+  const handleJoinWaitlist = () => {
+    setShowEmailForm(true)
+  }
+
+  // Function to handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!email || !email.includes("@")) {
+      setError("Please enter a valid email address")
       return
     }
 
-    setJoinStatus((prev) => ({ ...prev, [courseId]: "submitting" }))
-    setErrorMessages((prev) => ({ ...prev, [courseId]: null }))
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      const result = await courseApiService.joinWaitlist({ email, courseId })
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      if (result.success) {
-        // Update waitlist count
-        setCourses((prev) =>
-          prev.map((course) =>
-            course.id === courseId
-              ? { ...course, waitlistCount: result.newWaitlistCount || course.waitlistCount + 1 }
-              : course,
-          ),
-        )
+      // For live API, uncomment this code:
+      /*
+      const response = await fetch('/api/join-waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: selectedCourse?.id,
+          email
+        }),
+      });
 
-        setJoinStatus((prev) => ({ ...prev, [courseId]: "success" }))
-        setWaitlistEmails((prev) => ({ ...prev, [courseId]: "" }))
-      } else {
-        throw new Error(result.message || "Failed to join waitlist")
+      if (!response.ok) {
+        throw new Error('Failed to join waitlist');
       }
+      */
+
+      setIsSuccess(true)
+      setShowEmailForm(false)
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to join waitlist. Please try again."
-      setErrorMessages((prev) => ({ ...prev, [courseId]: errorMessage }))
-      setJoinStatus((prev) => ({ ...prev, [courseId]: "error" }))
+      setError("Failed to join waitlist. Please try again.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const currentCourses = courses.filter((c) => c.category === "current")
-  const futureTechCourses = courses.filter((c) => c.category === "future" && !c.isIsoCertification)
-  const isoCourses = courses.filter((c) => c.category === "future" && c.isIsoCertification)
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <p className="text-lg font-medium">Loading courses...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center text-center">
-          <Info className="h-12 w-12 text-destructive mb-4" />
-          <p className="text-lg font-medium mb-2">Something went wrong</p>
-          <p className="text-muted-foreground">{error}</p>
-          <DyraneButton variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-            Try Again
-          </DyraneButton>
-        </div>
-      </div>
-    )
-  }
+  // Group courses by category
+  const currentCourses = courses.filter((course) => course.category === "current")
+  const futureCourses = courses.filter((course) => course.category === "future" && !course.isIsoCertification)
+  const isoCourses = courses.filter((course) => course.isIsoCertification)
 
   return (
-    <div className="py-16 md:py-24 text-white overflow-x-hidden">
-      <div className="px-4 sm:px-6 lg:px-8">
-        {/* Current Courses Section */}
-        {currentCourses.length > 0 && (
-          <section
-            ref={currentCoursesRef}
-            className={`mb-20 transition-all duration-1000 ease-out ${visibleSections.current ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-primary/80 to-primary/60 mb-2">
-                Currently Enrolling
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Embark on your learning journey with our flagship programs.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {currentCourses.map((course, index) => (
-                <div
-                  key={course.id}
-                  className={`transition-all duration-700 ease-out delay-${index * 100} ${visibleSections.current ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                    }`}
-                  style={{ transitionDelay: `${index * 100}ms` }}
-                >
-                  <CurrentCourseCard course={course} />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Future Courses Section */}
-        {futureTechCourses.length > 0 && (
-          <section
-            ref={futureCoursesRef}
-            className={`mb-20 transition-all duration-1000 ease-out ${visibleSections.future ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-rose-400 mb-2">
-                Future Horizons
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Get exclusive early access. Join the waitlist for our upcoming courses.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {futureTechCourses.map((course, index) => (
-                <div
-                  key={course.id}
-                  className={`transition-all duration-700 ease-out`}
-                  style={{
-                    transitionDelay: `${index * 100}ms`,
-                    opacity: visibleSections.future ? 1 : 0,
-                    transform: visibleSections.future ? "translateY(0)" : "translateY(20px)",
-                  }}
-                >
-                  <FutureCourseCard
-                    course={course}
-                    email={waitlistEmails[course.id] || ""}
-                    onEmailChange={(email) => handleEmailChange(course.id, email)}
-                    onJoinWaitlist={(e) => handleJoinWaitlist(e, course.id)}
-                    status={joinStatus[course.id] || "idle"}
-                    errorMessage={errorMessages[course.id]}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ISO Courses Section */}
-        {isoCourses.length > 0 && (
-          <section
-            ref={isoCoursesRef}
-            className={`transition-all duration-1000 ease-out ${visibleSections.iso ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-bold text-white mb-2">ISO Certifications</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Industry-recognized certifications to advance your career.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isoCourses.map((course, index) => (
-                <div
-                  key={course.id}
-                  className={`transition-all duration-700 ease-out`}
-                  style={{
-                    transitionDelay: `${index * 100}ms`,
-                    opacity: visibleSections.iso ? 1 : 0,
-                    transform: visibleSections.iso ? "translateY(0)" : "translateY(20px)",
-                  }}
-                >
-                  <FutureCourseCard
-                    course={course}
-                    email={waitlistEmails[course.id] || ""}
-                    onEmailChange={(email) => handleEmailChange(course.id, email)}
-                    onJoinWaitlist={(e) => handleJoinWaitlist(e, course.id)}
-                    status={joinStatus[course.id] || "idle"}
-                    errorMessage={errorMessages[course.id]}
-                    isIso
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-    </div>
-  )
-}
-
-interface CurrentCourseCardProps {
-  course: CourseListing
-}
-
-function CurrentCourseCard({ course }: CurrentCourseCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const [isDyraneButtonHovered, setIsDyraneButtonHovered] = useState(false)
-
-  return (
-    <div
-      className="rounded-xl border border-border overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 bg-card/5 backdrop-blur-sm relative group hover:-translate-y-2"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="relative">
-        {course.imageUrl && (
-          <div className="relative h-48 w-full overflow-hidden">
-            <Image
-              src={course.imageUrl || "/placeholder.svg"}
-              alt={course.name}
-              fill
-              className={`object-cover transition-all duration-700 ${isHovered ? "scale-110" : "scale-100"}`}
-              priority
-            />
-            <div
-              className={`absolute inset-0 bg-gradient-to-t  from-primary
-                 opacity-30 to-transparent transition-opacity duration-500 ${isHovered ? "opacity-50" : "opacity-30"}`}
-            ></div>
-          </div>
-        )}
-
-        {/* Apple-style hover overlay with action DyraneButton */}
-        <div
-          className={`absolute inset-0 bg-black/0 flex items-center justify-center transition-all duration-500 ${isHovered ? "bg-black/60" : "bg-black/0 pointer-events-none"
-            }`}
-        >
-          <div
-            className={`transform transition-all duration-500 ${isHovered ? "scale-100 opacity-100" : "scale-90 opacity-0"
-              }`}
-            onMouseEnter={() => setIsDyraneButtonHovered(true)}
-            onMouseLeave={() => setIsDyraneButtonHovered(false)}
-          >
-            <DyraneButton
-              size="lg"
-              className={`font-medium relative overflow-hidden transition-all duration-300 ${isDyraneButtonHovered ? "bg-primary/90 ring-4 ring-primary/20" : ""
-                }`}
-              asChild
-            >
-              <a href={`/courses/${course.id}`} className="flex items-center">
-                <span>Explore Program</span>
-                <ArrowRight
-                  className={`ml-2 h-4 w-4 transition-all duration-300 ${isDyraneButtonHovered ? "translate-x-1" : "translate-x-0"
-                    }`}
-                />
-                <span
-                  className={`absolute inset-0 bg-white/10 transition-transform duration-500 ${isDyraneButtonHovered ? "-translate-y-full" : "translate-y-full"
-                    }`}
-                ></span>
-              </a>
-            </DyraneButton>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-6">
-        <div className="flex items-center mb-4">
-          {course.iconUrl && (
-            <div
-              className={`p-2 rounded-lg mr-3 bg-muted/50 h-10 w-10 flex items-center justify-center transition-all duration-300 ${isHovered ? "bg-primary/20" : "bg-muted/50"
-                }`}
-            >
-              <Image
-                src={course.iconUrl || "/placeholder.svg"}
-                alt=""
-                width={24}
-                height={24}
-                className={`object-contain transition-all duration-300 ${isHovered ? "scale-110" : "scale-100"}`}
-              />
-            </div>
-          )}
-          <h3 className="text-xl font-bold text-white">{course.name}</h3>
-        </div>
-
-        <p className="text-sm text-muted-foreground mb-4">{course.description}</p>
-
-        {course.tags && course.tags.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {course.tags.slice(0, 3).map((tag, index) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className={`text-xs transition-all duration-300 delay-${index * 50} ${isHovered ? "bg-primary/10 border-primary/30" : ""
-                  }`}
-                style={{ transitionDelay: isHovered ? `${index * 50}ms` : "0ms" }}
-              >
-                {tag}
-              </Badge>
+    <div className="p-4 md:p-6">
+      {/* Current Courses Section */}
+      {currentCourses.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-4">Currently Enrolling</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {currentCourses.map((course) => (
+              <CourseCard key={course.id} course={course} onClick={() => handleCardClick(course)} />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* Future Courses Section */}
+      {futureCourses.length > 0 && (
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold mb-4">Future Courses</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {futureCourses.map((course) => (
+              <CourseCard key={course.id} course={course} onClick={() => handleCardClick(course)} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ISO Certification Courses Section */}
+      {isoCourses.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">ISO Certifications</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {isoCourses.map((course) => (
+              <CourseCard key={course.id} course={course} onClick={() => handleCardClick(course)} isIso />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Course Details Modal */}
+      {selectedCourse && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center">
+                  <div className="w-10 h-10 relative mr-3">
+                    {selectedCourse.iconUrl ? (
+                      <Image
+                        src={selectedCourse.iconUrl || "/placeholder.svg"}
+                        alt={selectedCourse.name}
+                        fill
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                        <BookOpen className="w-5 h-5 text-primary" />
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="text-xl font-bold">{selectedCourse.name}</h3>
+                </div>
+                <button onClick={handleCloseDetails} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {selectedCourse.imageUrl && (
+                <div className="relative h-40 w-full mb-4 rounded-md overflow-hidden">
+                  <Image
+                    src={selectedCourse.imageUrl || "/placeholder.svg"}
+                    alt={selectedCourse.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+
+              <p className="text-muted-foreground mb-4">{selectedCourse.description}</p>
+
+              {selectedCourse.tags && selectedCourse.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedCourse.tags.map((tag) => (
+                    <span key={tag} className="bg-muted text-muted-foreground px-2 py-1 rounded-md text-xs">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {selectedCourse.category === "future" && (
+                <div className="flex items-center text-sm text-muted-foreground mb-6">
+                  <Users className="w-4 h-4 mr-2" />
+                  <span>{selectedCourse.waitlistCount} people on waitlist</span>
+                </div>
+              )}
+
+              {selectedCourse.category === "current" ? (
+                <Button className="w-full">
+                  Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              ) : isSuccess ? (
+                <div className="bg-green-500/10 border border-green-500/30 rounded-md p-3 flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                  <span className="text-green-500">Successfully joined the waitlist!</span>
+                </div>
+              ) : showEmailForm ? (
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubmitting}
+                    className="w-full"
+                  />
+                  {error && <p className="text-destructive text-sm">{error}</p>}
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={isSubmitting} className="flex-1">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Joining...
+                        </>
+                      ) : (
+                        "Join Waitlist"
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowEmailForm(false)}
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <Button onClick={handleJoinWaitlist} className="w-full">
+                  Join Waitlist <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-interface FutureCourseCardProps {
+interface CourseCardProps {
   course: CourseListing
-  email: string
-  onEmailChange: (email: string) => void
-  onJoinWaitlist: (e: FormEvent<HTMLFormElement>) => void
-  status: "idle" | "submitting" | "success" | "error"
-  errorMessage: string | null
+  onClick: () => void
   isIso?: boolean
 }
 
-function FutureCourseCard({
-  course,
-  email,
-  onEmailChange,
-  onJoinWaitlist,
-  status,
-  errorMessage,
-  isIso = false,
-}: FutureCourseCardProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const [showForm, setShowForm] = useState(false)
-  const [isDyraneButtonHovered, setIsDyraneButtonHovered] = useState(false)
-  const formRef = useRef<HTMLFormElement>(null)
-
-  // Handle click outside to close form
-  useEffect(() => {
-    if (!showForm) return
-
-    function handleClickOutside(event: MouseEvent) {
-      if (formRef.current && !formRef.current.contains(event.target as Node) && status !== "submitting") {
-        setShowForm(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [showForm, status])
-
+function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
   return (
     <div
-      className={`rounded-xl border border-border overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 bg-card/5 backdrop-blur-sm relative group hover:-translate-y-2 ${isIso ? "iso-card" : ""
-        }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      className="border rounded-lg p-4 cursor-pointer hover:shadow-md transition-shadow flex flex-col bg-card/5 backdrop-blur-sm"
     >
-      <div className="relative">
-        {course.imageUrl && (
-          <div className="relative h-40 w-full overflow-hidden">
-            <Image
-              src={course.imageUrl || "/placeholder.svg"}
-              alt={course.name}
-              fill
-              className={`object-cover transition-all duration-700 ${isHovered ? "scale-110" : "scale-100"}`}
-            />
-            <div
-              className={`absolute inset-0 bg-gradient-to-t from-primary
-                 opacity-30 to-transparent transition-opacity duration-500 ${isHovered ? "opacity-50" : "opacity-30"}`}
-            ></div>
-          </div>
-        )}
-
-        {/* Apple-style hover overlay with action DyraneButton */}
-        {!showForm && status !== "success" && (
-          <div
-            className={`absolute inset-0 bg-black/0 flex items-center justify-center transition-all duration-500 ${isHovered ? "bg-black/60" : "bg-black/0 pointer-events-none"
-              }`}
-          >
-            <div
-              className={`transform transition-all duration-500 ${isHovered ? "scale-100 opacity-100" : "scale-90 opacity-0"
-                }`}
-              onMouseEnter={() => setIsDyraneButtonHovered(true)}
-              onMouseLeave={() => setIsDyraneButtonHovered(false)}
-            >
-              <DyraneButton
-                size="lg"
-                className={`font-medium relative overflow-hidden transition-all duration-300 ${isDyraneButtonHovered ? "bg-primary/90 ring-4 ring-primary/20" : ""
-                  }`}
-                onClick={() => setShowForm(true)}
-              >
-                <span>Join Waitlist</span>
-                <ExternalLink
-                  className={`ml-2 h-4 w-4 transition-all duration-300 ${isDyraneButtonHovered ? "rotate-12" : "rotate-0"}`}
-                />
-                <span
-                  className={`absolute inset-0 bg-white/10 transition-transform duration-500 ${isDyraneButtonHovered ? "-translate-y-full" : "translate-y-full"
-                    }`}
-                ></span>
-              </DyraneButton>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="p-6">
-        <div className="flex items-center mb-4">
-          {course.iconUrl && (
-            <div
-              className={`p-2 rounded-lg mr-3 bg-muted/50 h-10 w-10 flex items-center justify-center transition-all duration-300 ${isHovered ? (isIso ? "bg-indigo-400/20" : "bg-primary/20") : "bg-muted/50"
-                }`}
-            >
-              <Image
-                src={course.iconUrl || "/placeholder.svg"}
-                alt=""
-                width={24}
-                height={24}
-                className={`object-contain transition-all duration-300 ${isHovered ? "scale-110" : "scale-100"}`}
-              />
-            </div>
-          )}
-          <h3 className="text-xl font-bold text-white">{course.name}</h3>
-        </div>
-
-        <p className="text-sm text-muted-foreground mb-4 min-h-[60px]">{course.description}</p>
-
-        <div className="flex items-center text-sm text-muted-foreground mb-3">
-          <Users
-            className={`w-4 h-4 mr-2 ${isIso ? "text-indigo-400" : "text-primary"} transition-all duration-300 ${isHovered ? "scale-110" : "scale-100"
-              }`}
-          />
-          <span className="font-medium text-white">{course.waitlistCount}</span>
-          <span className="ml-1">{course.waitlistCount === 1 ? "person" : "people"} on waitlist</span>
-        </div>
-
-        {course.tags && course.tags.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {course.tags.slice(0, 3).map((tag, index) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className={`text-xs transition-all duration-300 delay-${index * 50} ${isHovered ? (isIso ? "bg-indigo-400/10 border-indigo-400/30" : "bg-primary/10 border-primary/30") : ""
-                  }`}
-                style={{ transitionDelay: isHovered ? `${index * 50}ms` : "0ms" }}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-
-        <div className="pt-4 border-t border-border">
-          {status === "success" ? (
-            <div className="flex items-center justify-center text-center py-3 px-3 rounded-md bg-green-500/10 border border-green-500/30 transition-all duration-300 animate-fadeIn">
-              <CheckCircle className="w-5 h-5 mr-2 text-green-400" />
-              <span className="text-sm font-medium text-green-300">Joined Successfully!</span>
-            </div>
-          ) : showForm ? (
-            <form
-              ref={formRef}
-              onSubmit={onJoinWaitlist}
-              className="space-y-3 transition-all duration-300 animate-slideUp"
-            >
-              <Input
-                type="email"
-                placeholder="Your email address"
-                value={email}
-                onChange={(e) => onEmailChange(e.target.value)}
-                disabled={status === "submitting"}
-                className="bg-muted/50 focus:ring-2 focus:ring-primary/50 transition-all duration-300"
-                required
-              />
-              <div className="flex gap-2">
-                <DyraneButton
-                  type="submit"
-                  disabled={status === "submitting" || !email}
-                  className="flex-1 transition-all duration-300 hover:bg-primary/90"
-                >
-                  {status === "submitting" ? (
-                    <>
-                      <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Join Waitlist"
-                  )}
-                </DyraneButton>
-                <DyraneButton
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowForm(false)}
-                  disabled={status === "submitting"}
-                  className="transition-all duration-300 hover:bg-muted/50"
-                >
-                  Cancel
-                </DyraneButton>
-              </div>
-              {status === "error" && errorMessage && (
-                <p className="text-xs text-destructive flex items-center animate-fadeIn">
-                  <Info className="mr-1.5 h-3.5 w-3.5" /> {errorMessage}
-                </p>
-              )}
-            </form>
+      <div className="flex items-center mb-3">
+        <div className="w-10 h-10 relative mr-3">
+          {course.iconUrl ? (
+            <Image src={course.iconUrl || "/placeholder.svg"} alt={course.name} fill className="object-contain" />
           ) : (
-            <DyraneButton
-              onClick={() => setShowForm(true)}
-              variant="outline"
-              className={`w-full transition-all duration-300 ${isHovered
-                ? isIso
-                  ? "bg-indigo-400/10 border-indigo-400/30 text-indigo-300"
-                  : "bg-primary/10 border-primary/30 text-primary-foreground"
-                : ""
-                }`}
-            >
-              Join Waitlist
-            </DyraneButton>
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-primary" />
+            </div>
           )}
         </div>
+        <h3 className="font-medium text-base">{course.name}</h3>
       </div>
+
+      {course.tags && course.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {course.tags.slice(0, 2).map((tag) => (
+            <span key={tag} className="bg-muted text-muted-foreground px-1.5 py-0.5 rounded text-xs">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {course.category === "future" && (
+        <div className="flex items-center text-xs text-muted-foreground mt-auto">
+          <Users className="w-3 h-3 mr-1" />
+          <span>{course.waitlistCount}</span>
+        </div>
+      )}
+
+      {course.category === "current" && (
+        <div className="mt-auto">
+          <span className="text-xs bg-green-500/10 text-green-500 px-2 py-0.5 rounded-full">Enrolling Now</span>
+        </div>
+      )}
+
+      {isIso && (
+        <div className="mt-auto">
+          <span className="text-xs bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded-full">ISO Certification</span>
+        </div>
+      )}
     </div>
   )
 }
