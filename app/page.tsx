@@ -381,7 +381,7 @@ export default function LandingPage() {
             <div className="text-center mt-16">
               <DyraneButton size="lg" asChild>
                 <Link href="/signup">
-                  Join 162ZNuWcguTech Today
+                  Join 1Tech Today
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </DyraneButton>
