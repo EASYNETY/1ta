@@ -1,6 +1,6 @@
 // features/auth/store/auth-thunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { post, get, put, ApiError } from "@/lib/api-client";
+import { post, get, put, ApiError } from "@/lib/live/api-client";
 import type { User, AuthState } from "@/types/user.types";
 import type {
 	AuthResponse,

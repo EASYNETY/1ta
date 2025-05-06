@@ -133,14 +133,14 @@ import {
 	getAuthToken,
 	getRefreshToken,
 	handleUnauthorized,
-} from "./auth-service";
+} from "../auth-service";
 import { store } from "@/store";
 import { refreshTokenThunk } from "@/features/auth/store/auth-thunks";
 
 // --- Config ---
 const API_BASE_URL =
 	process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
-const IS_LIVE_API = false;
+const IS_LIVE_API = process.env.NEXT_PUBLIC_API_IS_LIVE === "true";
 
 console.log(
 	`%cAPI Client Mode: ${IS_LIVE_API ? "LIVE" : "MOCK"}`,
