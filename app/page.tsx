@@ -11,7 +11,7 @@ import { FeatureCard } from "@/components/landing/feature-card"
 import { ComparisonGrid } from "@/components/landing/comparison-grid"
 import { OnboardingStep } from "@/components/landing/onboarding-step"
 import { HeroAnimation } from "@/components/landing/hero-animation"
-import { IntegrationLogos } from "@/components/landing/integration-logos"
+
 import { DemoRequestForm } from "@/components/landing/demo-request-form"
 import NavBar from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -31,6 +31,7 @@ import { Card } from "@/components/cards/FeatureCard"
 import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo } from "phosphor-react"
 import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
 import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
+import { CourseOfferingsDisplay } from "@/components/landing/CourseOfferingsDisplay"
 
 export default function LandingPage() {
 
@@ -350,7 +351,7 @@ export default function LandingPage() {
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Get Started with onTech"
+              title="Get Started with oneTech"
               description="Join in minutes and start unlocking your academic potential."
             />
 
@@ -401,7 +402,7 @@ export default function LandingPage() {
               description="Master the tools and platforms shaping the future of tech."
             />
 
-            <IntegrationLogos />
+            <CourseOfferingsDisplay />
           </div>
         </section>
 

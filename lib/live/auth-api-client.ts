@@ -2,11 +2,7 @@
 
 "use client";
 
-import {
-	getAuthToken,
-	handleUnauthorized,
-} from "../auth-service";
-
+import { getAuthToken, handleUnauthorized } from "../auth-service";
 
 // --- Config ---
 const API_BASE_URL =
@@ -186,7 +182,6 @@ async function apiClient<T>(
 	}
 }
 
-
 // --- Convenience Methods ---
 export const get = <T>(
 	endpoint: string,
@@ -221,4 +216,4 @@ export const del = <T>(
 ) => apiClient<T>(endpoint, { ...options, method: "DELETE" });
 
 // --- Export ---
-export { apiClient };
+export { apiClient, IS_LIVE_API };

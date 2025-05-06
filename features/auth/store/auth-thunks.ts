@@ -257,3 +257,20 @@ export const resetPasswordThunk = createAsyncThunk<
 		return rejectWithValue(errorMessage);
 	}
 });
+
+
+export const createCorporateStudentSlotsThunk = createAsyncThunk(
+	"auth/createCorporateStudentSlots",
+	async (payload: any, { rejectWithValue }) => {
+		try {
+			const response = await post("/corporate-student-slots", payload);
+			return response;
+		} catch (error: any) {
+			const errorMessage =
+				error instanceof Error
+					? error.message
+					: "Failed to create corporate student slots.";
+			return rejectWithValue(errorMessage);
+		}
+	}
+);

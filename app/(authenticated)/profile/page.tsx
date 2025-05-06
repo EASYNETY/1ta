@@ -35,7 +35,7 @@ const profileSchema = z.object({
     bio: z.string().optional(),
     phone: z.string().optional(), // Changed from phoneNumber to phone to match User type
     // Corporate Onboarding Specific Fields
-    isCorporateRegistration: z.boolean().default(false),
+    isCorporateRegistration: z.boolean().optional(),
     companyName: z.string().optional(),
     initialStudentCount: z.preprocess(
         (val) => (val === "" || val === null || isNaN(Number(val)) ? undefined : Number(val)),
