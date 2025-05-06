@@ -10,14 +10,14 @@ import { cn } from "@/lib/utils"
 // Using direct image URLs
 const heroImages = [
   {
-    src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1470&auto=format&fit=crop",
+    src: "/collaborate.jpg",
     alt: "Diverse students collaborating on code around a modern workstation",
     caption: "Collaborative Learning with Professionals",
   },
   {
-    src: "https://images.pexels.com/photos/20240502/pexels-photo-20240502/free-photo-of-graduate-in-mortarboard-and-diploma-in-hand.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    src: "/earn.jpg",
     alt: "Student proudly holding a digital certification badge",
-    caption: "Earn Industry-Recognized Certifications",
+    caption: "Earn Industry-Recognized Certificate",
   },
   {
     src: "https://images.unsplash.com/photo-1596495577886-d920f1fb7238?q=80&w=1470&auto=format&fit=crop",
@@ -30,7 +30,7 @@ const heroImages = [
     caption: "Learn in a Conducive Digital Environment",
   },
   {
-    src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1470&auto=format&fit=crop",
+    src: "/collaborate.jpg",
     alt: "Diverse students collaborating on code around a modern workstation",
     caption: "Collaborative Project-Based Learning",
   },
