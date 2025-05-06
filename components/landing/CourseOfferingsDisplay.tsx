@@ -26,11 +26,10 @@ export interface CourseListing {
 }
 
 // API Service
-const IS_LIVE_API = false // Set to true to use live API
 
 const courseApiService = {
   fetchCourses: async (): Promise<CourseListing[]> => {
-    if (IS_LIVE_API) {
+    if (false) {
       try {
         const response = await fetch("/course-listings/courses")
         if (!response.ok) throw new Error("Failed to fetch courses")
@@ -55,7 +54,7 @@ const courseApiService = {
     message: string
     newWaitlistCount?: number
   }> => {
-    if (IS_LIVE_API) {
+    if (false) {
       try {
         const response = await fetch("/course-listings/waitlist/join", {
           method: "POST",
