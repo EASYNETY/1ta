@@ -9,7 +9,7 @@ import { Users, ArrowRight, CheckCircle, X, Loader2, BookOpen } from "lucide-rea
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion" // Import framer-motion
 
-// Types (same as yours)
+// Types
 export interface CourseListing {
   id: string
   name: string
@@ -22,7 +22,7 @@ export interface CourseListing {
   tags?: string[]
 }
 
-// Mock Data (same as yours)
+// Mock Data
 const mockCourseListingsData: CourseListing[] = [
   {
     id: "pmp",
@@ -486,7 +486,7 @@ function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
         {course.category === "future" && (
           <div className="flex items-center text-xs text-muted-foreground">
             <Users className="w-3 h-3 mr-1.5 text-primary" />
-            <span className="font-medium">{course.waitlistCount}</span>
+            <span className="font-medium">{course.waitlistCount}{' '} waiting</span>
           </div>
         )}
 
