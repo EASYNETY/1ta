@@ -114,7 +114,22 @@ import {
 	submitMockAssignment,
 	updateMockAssignment,
 } from "@/data/mock-assignment-data";
-import { assignMockGrade, calculateMockCourseGrades, createMockGradeItem, deleteMockGradeItem, getMockCourseGrades, getMockGradeItemById, getMockGradeItemsForCourse, getMockGradeItemsForStudent, getMockStudentGradeById, getMockStudentGradesForGradeItem, updateMockGrade, updateMockGradeItem } from "@/data/mock-grade-data";
+import {
+	assignMockGrade,
+	calculateMockCourseGrades,
+	createMockGradeItem,
+	deleteMockGradeItem,
+	getMockCourseGrades,
+	getMockGradeItemById,
+	getMockGradeItemsForCourse,
+	getMockGradeItemsForStudent,
+	getMockStudentGradeById,
+	getMockStudentGradesForGradeItem,
+	updateMockGrade,
+	updateMockGradeItem,
+} from "@/data/mock-grade-data";
+import { store } from "@/store";
+import { logout } from "@/features/auth/store/auth-slice";
 
 // --- Config ---
 const API_BASE_URL =
@@ -130,6 +145,27 @@ console.log(
 interface FetchOptions extends RequestInit {
 	requiresAuth?: boolean;
 	url?: string;
+	skipAuthRefresh?: boolean; // Add this to prevent infinite loops during token refresh
+}
+
+// Custom error class for API errors
+export class ApiError extends Error {
+	status: number;
+	data: any;
+	isNetworkError: boolean;
+
+	constructor(
+		message: string,
+		status = 0,
+		data: any = null,
+		isNetworkError = false
+	) {
+		super(message);
+		this.name = "ApiError";
+		this.status = status;
+		this.data = data;
+		this.isNetworkError = isNetworkError;
+	}
 }
 
 // --- Main API Client ---
@@ -137,12 +173,28 @@ async function apiClient<T>(
 	endpoint: string,
 	options: FetchOptions = {}
 ): Promise<T> {
-	const { requiresAuth = true, ...fetchOptions } = options;
+	const {
+		requiresAuth = true,
+		skipAuthRefresh = false,
+		...fetchOptions
+	} = options;
 	const headers = new Headers(fetchOptions.headers);
 
 	if (!headers.has("Content-Type") && options.body)
 		headers.set("Content-Type", "application/json");
 	if (!headers.has("Accept")) headers.set("Accept", "application/json");
+
+	// Add auth token if required and available
+	if (requiresAuth && !skipAuthRefresh) {
+		const state = store.getState();
+		const token = state.auth.token;
+
+		if (token) {
+			headers.set("Authorization", `Bearer ${token}`);
+		} else if (requiresAuth) {
+			console.warn("Auth required but no token available");
+		}
+	}
 
 	const config: RequestInit = { ...fetchOptions, headers };
 
@@ -161,21 +213,42 @@ async function apiClient<T>(
 			`%cAPI Client: LIVE ${config.method || "GET"} ${API_BASE_URL}${endpoint}`,
 			"color: lightblue;"
 		);
+
 		const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
 		if (!response.ok) {
 			let errorData: any = {
 				message: `API Error: ${response.status} ${response.statusText}`,
 			};
+
 			try {
 				errorData = await response.json();
 			} catch (e) {
-				/* non-json */
+				/* non-json response */
 			}
+
 			console.error("API Error Data:", errorData);
-			const error = new Error(errorData.message || "Unknown API error");
-			(error as any).status = response.status;
-			throw error;
+
+			// Handle 401 Unauthorized errors (expired token, etc.)
+			if (response.status === 401 && !skipAuthRefresh) {
+				console.warn("Received 401 Unauthorized, logging out user");
+				// Dispatch logout action to clear auth state
+				store.dispatch(logout());
+
+				// Throw a specific error for 401
+				throw new ApiError(
+					errorData.message || "Your session has expired. Please log in again.",
+					401,
+					errorData
+				);
+			}
+
+			// Handle other error status codes
+			throw new ApiError(
+				errorData.message || `Error ${response.status}: ${response.statusText}`,
+				response.status,
+				errorData
+			);
 		}
 
 		if (response.status === 204) return undefined as T;
@@ -187,9 +260,30 @@ async function apiClient<T>(
 
 		console.warn(`API Client: Non-JSON response received for ${endpoint}`);
 		return undefined as T;
-	} catch (error) {
+	} catch (error: any) {
 		console.error(`API request failed for ${endpoint}:`, error);
-		throw error;
+
+		// If it's already an ApiError, just rethrow it
+		if (error instanceof ApiError) {
+			throw error;
+		}
+
+		// Handle network errors (offline, DNS failure, etc.)
+		if (error.name === "TypeError" && error.message.includes("fetch")) {
+			throw new ApiError(
+				"Network error. Please check your internet connection.",
+				0,
+				null,
+				true
+			);
+		}
+
+		// For any other errors
+		throw new ApiError(
+			error.message || "An unexpected error occurred",
+			error.status || 0,
+			error.data || null
+		);
 	}
 }
 
