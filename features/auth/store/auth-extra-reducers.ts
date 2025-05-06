@@ -18,8 +18,8 @@ export const addAuthExtraReducers = (builder: any) => {
 			state.isLoading = false;
 			state.isAuthenticated = true;
 			state.isInitialized = true;
-			state.user = action.payload.user;
-			state.token = action.payload.token;
+			state.user = action.payload.data.user;
+			state.token = action.payload.data.tokens.accessToken;
 			state.error = null;
 			state.skipOnboarding = false;
 		}
@@ -31,8 +31,8 @@ export const addAuthExtraReducers = (builder: any) => {
 			state.isLoading = false;
 			state.isAuthenticated = true;
 			state.isInitialized = true;
-			state.user = action.payload.user;
-			state.token = action.payload.token;
+			state.user = action.payload.data.user;
+			state.token = action.payload.data.tokens.accessToken;
 			state.error = null;
 			state.skipOnboarding = false;
 		}

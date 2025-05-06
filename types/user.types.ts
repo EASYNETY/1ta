@@ -1,4 +1,4 @@
-// src/types/user.types.ts
+// types/user.types.ts
 
 // Defines the possible primary roles within the platform
 export type UserRole = "admin" | "teacher" | "student";
@@ -28,11 +28,11 @@ export interface BaseUser {
 	/** Nature of the account (personal, company, etc.). Defaulted by backend (e.g., 'individual'). Not set by student onboarding form. Can be changed by Admin. */
 	accountType: AccountType;
 	/** ISO 8601 timestamp of account creation. Read-only. */
-	createdAt: string;
+	createdAt?: string;
 	/** ISO 8601 timestamp of last profile update. Read-only. */
-	updatedAt: string;
+	updatedAt?: string;
 	/** Indicates if the account is currently active/enabled. Typically managed by Admins. */
-	isActive: boolean;
+	isActive?: boolean;
 	/** URL of the user's profile picture. Optional. */
 	avatarUrl?: string | null;
 	/** User's contact phone number. Optional. Editable via Profile. */
@@ -52,10 +52,10 @@ export interface StudentUser extends BaseUser {
 	role: "student";
 
 	/** Student's date of birth (ISO format). Required for individual students. Null initially. */
-	dateOfBirth: string | null;
+	dateOfBirth?: string | null;
 
 	/** Barcode identifier for attendance scanning. Required after onboarding. */
-	barcodeId: string;
+	barcodeId?: string;
 
 	/** Class the student is assigned to (set during onboarding). Nullable until assigned. */
 	classId?: string | null;
@@ -64,13 +64,16 @@ export interface StudentUser extends BaseUser {
 	guardianId?: string | null;
 
 	/** Marks if this user manages corporate students. Used to trigger special onboarding UI. */
-	isCorporateManager: boolean;
+	isCorporateManager?: boolean;
 
 	/** Corporate identifier (shared with managed users). Required for corporate students and managers. */
 	corporateId?: string | null;
 
 	/** Total number of student slots this manager has purchased/is allocated. Null/undefined if not applicable. */
 	purchasedStudentSlots?: number | null;
+
+	/** Class object if populated by API */
+	class?: any | null;
 }
 
 // --- Teacher Specific Information ---
@@ -78,9 +81,9 @@ export interface StudentUser extends BaseUser {
 export interface TeacherUser extends BaseUser {
 	role: "teacher";
 	/** Subjects or areas of expertise the teacher handles. Optional. Editable via Settings. */
-	subjects?: string[];
+	subjects?: string[] | null;
 	/** Text description of availability (e.g., "Mon 2-4 PM via Zoom"). Optional. Editable via Settings. */
-	officeHours?: string;
+	officeHours?: string | null;
 	// Note: List of taught classes (`taughtClassIds`) is fetched separately.
 }
 
@@ -89,7 +92,7 @@ export interface TeacherUser extends BaseUser {
 export interface AdminUser extends BaseUser {
 	role: "admin";
 	/** List of specific admin permissions (e.g., 'manage_users'). Optional for future granular control. */
-	permissions?: string[];
+	permissions?: string[] | null;
 }
 
 // --- Union Type ---

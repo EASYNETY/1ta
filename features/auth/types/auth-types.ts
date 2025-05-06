@@ -1,11 +1,24 @@
 // features/auth/types/auth-types.ts
 import type { User } from "@/types/user.types";
 
-export interface AuthResponse {
-	user: User;
-	token: string;
-	refreshToken?: string;
+// API response structure
+export interface ApiResponse<T> {
+	success: boolean;
+	message: string;
+	data: T;
 }
+
+// Auth response data structure
+export interface AuthResponseData {
+	user: User;
+	tokens: {
+		accessToken: string;
+		refreshToken: string;
+	};
+}
+
+// Combined auth response
+export type AuthResponse = ApiResponse<AuthResponseData>;
 
 export interface LoginCredentials {
 	email: string;
@@ -25,13 +38,6 @@ export interface RegisterData {
 		email: string;
 		password: string;
 	};
-	classId?: string;
-	barcodeId?: string;
-	guardianId?: string | null;
-	cartItems?: any[];
-	// Corporate fields
-	corporateId?: string;
-	isCorporateManager?: boolean;
 }
 
 export interface RefreshTokenRequest {
@@ -39,8 +45,14 @@ export interface RefreshTokenRequest {
 }
 
 export interface RefreshTokenResponse {
-	token: string;
-	refreshToken?: string;
+	success: boolean;
+	message: string;
+	data: {
+		tokens: {
+			accessToken: string;
+			refreshToken: string;
+		};
+	};
 }
 
 export interface ResetPasswordPayload {

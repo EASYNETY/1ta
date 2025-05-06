@@ -17,29 +17,41 @@ export const loginThunk = createAsyncThunk(
 	async (credentials: LoginCredentials, { dispatch }) => {
 		try {
 			dispatch({ type: AUTH_ACTIONS.LOGIN_START });
+
 			const response = await post<AuthResponse>("/auth/login", credentials, {
 				requiresAuth: false,
 			});
 
-			// Store auth data including refresh token if provided
-			setAuthData(response.user, response.token, response.refreshToken);
+			// Extract user and tokens from the response
+			const { user, tokens } = response.data;
+			const { accessToken, refreshToken } = tokens;
+
+			// Store auth data
+			setAuthData(user, accessToken, refreshToken);
 
 			dispatch({
 				type: AUTH_ACTIONS.LOGIN_SUCCESS,
 				payload: {
-					user: response.user,
-					token: response.token,
+					user,
+					token: accessToken,
 				},
 			});
 
 			return response;
 		} catch (error: any) {
-			const errorMessage =
-				error instanceof Error ? error.message : "Login failed";
+			let errorMessage = "Login failed";
+
+			if (error instanceof ApiError && error.data) {
+				errorMessage = error.data.message || errorMessage;
+			} else if (error instanceof Error) {
+				errorMessage = error.message;
+			}
+
 			dispatch({
 				type: AUTH_ACTIONS.LOGIN_FAILURE,
 				payload: errorMessage,
 			});
+
 			throw error;
 		}
 	}
@@ -62,30 +74,44 @@ export const signupThunk = createAsyncThunk(
 				requiresAuth: false,
 			});
 
-			// Store auth data including refresh token if provided
-			setAuthData(response.user, response.token, response.refreshToken);
+			// Extract user and tokens from the response
+			const { user, tokens } = response.data;
+			const { accessToken, refreshToken } = tokens;
+
+			// Store auth data
+			setAuthData(user, accessToken, refreshToken);
 
 			dispatch({
 				type: AUTH_ACTIONS.LOGIN_SUCCESS,
 				payload: {
-					user: response.user,
-					token: response.token,
+					user,
+					token: accessToken,
 				},
 			});
 
 			return response;
 		} catch (error: any) {
-			const errorMessage =
-				error instanceof Error ? error.message : "Registration failed";
+			let errorMessage = "Registration failed";
+
+			if (error instanceof ApiError && error.data) {
+				errorMessage = error.data.message || errorMessage;
+
+				// Handle validation errors
+				if (error.data.errors && Array.isArray(error.data.errors)) {
+					const validationErrors = error.data.errors
+						.map((err: any) => `${err.path}: ${err.msg}`)
+						.join(", ");
+
+					errorMessage = `${errorMessage}: ${validationErrors}`;
+				}
+			} else if (error instanceof Error) {
+				errorMessage = error.message;
+			}
+
 			dispatch({
 				type: AUTH_ACTIONS.LOGIN_FAILURE,
 				payload: errorMessage,
 			});
-
-			// Enhance the error with validation details if available
-			if (error instanceof ApiError && error.data) {
-				error.message = error.data.message || errorMessage;
-			}
 
 			throw error;
 		}
@@ -131,8 +157,8 @@ export const fetchUserProfileThunk = createAsyncThunk<
 	"auth/fetchUserProfile",
 	async (_, { rejectWithValue, getState }) => {
 		try {
-			const response = await get<User>("/users/me");
-			return response;
+			const response = await get<{ success: boolean; data: User }>("/users/me");
+			return response.data;
 		} catch (error: any) {
 			if (error.status === 401) {
 				// Try to refresh the token if we get a 401
@@ -140,8 +166,10 @@ export const fetchUserProfileThunk = createAsyncThunk<
 					const { refreshAuthToken } = await import("@/lib/auth-service");
 					await refreshAuthToken();
 					// If refresh succeeds, retry the original request
-					const response = await get<User>("/users/me");
-					return response;
+					const response = await get<{ success: boolean; data: User }>(
+						"/users/me"
+					);
+					return response.data;
 				} catch (refreshError) {
 					// If refresh fails, reject with the original error
 					return rejectWithValue("Authentication required");
@@ -168,8 +196,11 @@ export const updateUserProfileThunk = createAsyncThunk<
 	{ rejectValue: string }
 >("auth/updateUserProfile", async (profileData, { rejectWithValue }) => {
 	try {
-		const response = await put<User>("/users/me", profileData);
-		return response;
+		const response = await put<{ success: boolean; data: User }>(
+			"/users/me",
+			profileData
+		);
+		return response.data;
 	} catch (error: any) {
 		const errorMessage =
 			error instanceof Error ? error.message : "Failed to update profile";
@@ -184,14 +215,14 @@ export const forgotPasswordThunk = createAsyncThunk<
 	{ rejectValue: string }
 >("auth/forgotPassword", async (payload, { rejectWithValue }) => {
 	try {
-		const response = await post<{ message: string }>(
+		const response = await post<{ success: boolean; message: string }>(
 			"/auth/forgot-password",
 			payload,
 			{
 				requiresAuth: false,
 			}
 		);
-		return response;
+		return { message: response.message };
 	} catch (error: any) {
 		const errorMessage =
 			error instanceof Error
@@ -210,14 +241,14 @@ export const resetPasswordThunk = createAsyncThunk<
 	try {
 		// Ensure only token and password are sent, not confirmPassword
 		const apiPayload = { token: payload.token, password: payload.password };
-		const response = await post<{ message: string }>(
+		const response = await post<{ success: boolean; message: string }>(
 			"/auth/reset-password",
 			apiPayload,
 			{
 				requiresAuth: false,
 			}
 		);
-		return response;
+		return { message: response.message };
 	} catch (error: any) {
 		const errorMessage =
 			error instanceof Error

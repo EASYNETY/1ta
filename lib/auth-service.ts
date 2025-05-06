@@ -144,33 +144,47 @@ export async function refreshAuthToken(): Promise<{
 
 		const data = await response.json();
 
+		// Extract tokens from the response structure
+		const accessToken =
+			data.data?.tokens?.accessToken ||
+			data.data?.accessToken ||
+			data.accessToken;
+		const newRefreshToken =
+			data.data?.tokens?.refreshToken ||
+			data.data?.refreshToken ||
+			data.refreshToken;
+
+		if (!accessToken) {
+			throw new Error("Invalid token response format");
+		}
+
 		// Update stored tokens
 		const user = getAuthUser();
 		if (user) {
-			setAuthData(user, data.token, data.refreshToken);
+			setAuthData(user, accessToken, newRefreshToken);
 		} else {
 			// Just update the tokens if we don't have user data
 			if (typeof window !== "undefined") {
-				localStorage.setItem(AUTH_TOKEN_KEY, data.token);
-				if (data.refreshToken) {
-					localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+				localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+				if (newRefreshToken) {
+					localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
 				}
 			}
 
-			setCookie(null, AUTH_TOKEN_KEY, data.token, AUTH_COOKIE_OPTIONS);
-			if (data.refreshToken) {
+			setCookie(null, AUTH_TOKEN_KEY, accessToken, AUTH_COOKIE_OPTIONS);
+			if (newRefreshToken) {
 				setCookie(
 					null,
 					REFRESH_TOKEN_KEY,
-					data.refreshToken,
+					newRefreshToken,
 					AUTH_COOKIE_OPTIONS
 				);
 			}
 		}
 
 		return {
-			token: data.token,
-			refreshToken: data.refreshToken,
+			token: accessToken,
+			refreshToken: newRefreshToken,
 		};
 	} catch (error) {
 		console.error("Token refresh failed:", error);
@@ -190,4 +204,9 @@ export function setupAuthListener(callback: () => void): () => void {
 	return () => {
 		window.removeEventListener(UNAUTHORIZED_EVENT, handler);
 	};
+}
+
+// --- Check if user is authenticated ---
+export function isAuthenticated(): boolean {
+	return !!getAuthToken() && !!getAuthUser();
 }
