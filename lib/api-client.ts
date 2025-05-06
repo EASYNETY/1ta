@@ -128,9 +128,8 @@ import {
 	updateMockGrade,
 	updateMockGradeItem,
 } from "@/data/mock-grade-data";
-import { store } from "@/store";
 import { logout } from "@/features/auth/store/auth-slice";
-import { getAuthToken } from "./auth-service";
+import { getAuthToken, handleUnauthorized } from "./auth-service";
 
 // --- Config ---
 const API_BASE_URL =
@@ -170,6 +169,7 @@ export class ApiError extends Error {
 }
 
 // --- Main API Client ---
+
 async function apiClient<T>(
 	endpoint: string,
 	options: FetchOptions = {}
@@ -188,18 +188,18 @@ async function apiClient<T>(
 	// Replace the auth token retrieval in the apiClient function
 	// Change this code:
 	/*
-    // Add auth token if required and available
-    if (requiresAuth && !skipAuthRefresh) {
-      const state = store.getState()
-      const token = state.auth.token
-
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`)
-      } else if (requiresAuth) {
-        console.warn("Auth required but no token available")
-      }
-    }
-  */
+	  // Add auth token if required and available
+	  if (requiresAuth && !skipAuthRefresh) {
+		const state = store.getState()
+		const token = state.auth.token
+  
+		if (token) {
+		  headers.set("Authorization", `Bearer ${token}`)
+		} else if (requiresAuth) {
+		  console.warn("Auth required but no token available")
+		}
+	  }
+	*/
 
 	// With this code:
 	// Add auth token if required and available
@@ -246,11 +246,26 @@ async function apiClient<T>(
 
 			console.error("API Error Data:", errorData);
 
+			// Replace the 401 handling code
+			// Change this code:
+			/*
+			  // Handle 401 Unauthorized errors (expired token, etc.)
+			  if (response.status === 401 && !skipAuthRefresh) {
+				console.warn("Received 401 Unauthorized, logging out user")
+				// Dispatch logout action to clear auth state
+				store.dispatch(logout())
+  
+				// Throw a specific error for 401
+				throw new ApiError(errorData.message || "Your session has expired. Please log in again.", 401, errorData)
+			  }
+		*/
+
+			// With this code:
 			// Handle 401 Unauthorized errors (expired token, etc.)
 			if (response.status === 401 && !skipAuthRefresh) {
 				console.warn("Received 401 Unauthorized, logging out user");
-				// Dispatch logout action to clear auth state
-				store.dispatch(logout());
+				// Handle unauthorized using the auth service
+				handleUnauthorized();
 
 				// Throw a specific error for 401
 				throw new ApiError(
