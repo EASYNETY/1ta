@@ -351,7 +351,7 @@ export default function LandingPage() {
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Get Started with oneTech"
+              title="Get Started with 1Tech"
               description="Join in minutes and start unlocking your academic potential."
             />
 
@@ -381,7 +381,7 @@ export default function LandingPage() {
             <div className="text-center mt-16">
               <DyraneButton size="lg" asChild>
                 <Link href="/signup">
-                  Join oneTech Today
+                  Join 162ZNuWcguTech Today
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </DyraneButton>
