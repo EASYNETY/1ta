@@ -7,6 +7,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Users, ArrowRight, CheckCircle, X, Loader2, BookOpen } from "lucide-react"
+import Link from "next/link"
 
 // Types
 export interface CourseListing {
@@ -290,8 +291,10 @@ export function CourseCards() {
               )}
 
               {selectedCourse.category === "current" ? (
-                <Button className="w-full">
-                  Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
+                <Button className="w-full" asChild onClick={handleCloseDetails}>
+                  <Link href='/#courses' className="flex items-center">
+                    Enroll Now <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
                 </Button>
               ) : isSuccess ? (
                 <div className="bg-green-500/10 border border-green-500/30 rounded-md p-3 flex items-center">
