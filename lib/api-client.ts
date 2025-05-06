@@ -130,6 +130,7 @@ import {
 } from "@/data/mock-grade-data";
 import { store } from "@/store";
 import { logout } from "@/features/auth/store/auth-slice";
+import { getAuthToken } from "./auth-service";
 
 // --- Config ---
 const API_BASE_URL =
@@ -184,10 +185,26 @@ async function apiClient<T>(
 		headers.set("Content-Type", "application/json");
 	if (!headers.has("Accept")) headers.set("Accept", "application/json");
 
+	// Replace the auth token retrieval in the apiClient function
+	// Change this code:
+	/*
+    // Add auth token if required and available
+    if (requiresAuth && !skipAuthRefresh) {
+      const state = store.getState()
+      const token = state.auth.token
+
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`)
+      } else if (requiresAuth) {
+        console.warn("Auth required but no token available")
+      }
+    }
+  */
+
+	// With this code:
 	// Add auth token if required and available
 	if (requiresAuth && !skipAuthRefresh) {
-		const state = store.getState();
-		const token = state.auth.token;
+		const token = getAuthToken();
 
 		if (token) {
 			headers.set("Authorization", `Bearer ${token}`);

@@ -11,6 +11,7 @@ import { fetchUserProfileThunk } from "../store/auth-thunks";
 import { useToast } from "@/hooks/use-toast";
 import { isStudent } from "@/types/user.types";
 import { clearCart } from "@/features/cart/store/cart-slice";
+import { AuthListener } from "@/lib/auth-listener";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -155,5 +156,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   // Render children once initialization is complete and component is mounted
-  return <>{children}</>;
+  return <>
+    {/* AuthListener is used to keep track of auth state */}
+    {/* It should be placed inside the AuthProvider */}
+    <AuthListener />
+    {children}
+  </>;
 }
