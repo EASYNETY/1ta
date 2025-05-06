@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import Link from "next/link"
-import { Eye, EyeOff, GraduationCap, Loader2, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 
 // Redux Imports
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
@@ -33,8 +33,8 @@ const signupSchema = z
         email: z.string().email({ message: "Please enter a valid email address" }),
         password: passwordValidation,
         confirmPassword: z.string(),
-        phone: z.string().optional(),
-        address: z.string().optional(),
+        phone: z.string().min(1, { message: "Phone number is required" }),
+        address: z.string().min(1, { message: "Address is required" }),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords do not match",
@@ -47,11 +47,10 @@ type SignupFormValues = z.infer<typeof signupSchema>
 export function SignupForm() {
     const dispatch = useAppDispatch()
     const isLoading = useAppSelector((state) => state.auth.isLoading)
-    const cart = useAppSelector((state) => state.cart)
     const router = useRouter()
     const { toast } = useToast()
 
-    const [serverError, setServerError] = useState<string | null>(null)
+    const [serverErrors, setServerErrors] = useState<{ [key: string]: string }>({})
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -70,25 +69,14 @@ export function SignupForm() {
 
     // --- Submit Handler ---
     const onSubmit = async (data: SignupFormValues) => {
-        setServerError(null)
+        setServerErrors({})
         try {
-            // Generate placeholders needed by backend
-            const barcodeId = `TEMP-${crypto.randomUUID()}`
-            const classId = cart.items?.length > 0 ? cart.items[0].courseId || "1" : "1"
-            const dateOfBirth = "2000-01-01T00:00:00.000Z"
-
             // Data to send (exclude confirmPassword)
             const { confirmPassword, ...signupData } = data
             const payload = {
                 ...signupData,
                 role: "student", // Set default role
-                dateOfBirth,
-                classId,
-                barcodeId,
-                guardianId: null,
-                // Optional fields from the API spec
-                guardianDetails: undefined, // Only needed for minors
-                cartItems: cart.items?.map((item) => ({ courseId: item.courseId })) || [],
+                dateOfBirth: "2000-01-01T00:00:00.000Z",
             }
 
             console.log("Attempting signup with payload:", payload)
@@ -102,19 +90,48 @@ export function SignupForm() {
                 variant: "success",
             })
 
-            setServerError(null)
-
             // Navigate to dashboard
             router.push("/dashboard")
         } catch (error: any) {
-            const errorMessage = error?.message || "Registration failed. Please try again."
             console.error("Signup Failed:", error)
-            setServerError(errorMessage)
-            toast({
-                title: "Registration Failed",
-                description: errorMessage,
-                variant: "destructive",
-            })
+
+            // Handle validation errors from the API
+            if (error?.data?.errors && Array.isArray(error.data.errors)) {
+                const fieldErrors: { [key: string]: string } = {}
+
+                error.data.errors.forEach((err: any) => {
+                    if (err.path && err.msg) {
+                        fieldErrors[err.path] = err.msg
+
+                        // Set the error in the form if the field exists
+                        if (form.getFieldState(err.path as any)) {
+                            form.setError(err.path as any, {
+                                type: "server",
+                                message: err.msg,
+                            })
+                        }
+                    }
+                })
+
+                setServerErrors(fieldErrors)
+
+                // Show a summary of validation errors
+                const errorSummary = Object.values(fieldErrors).join(", ")
+                toast({
+                    title: "Registration Failed",
+                    description: `Please fix the following issues: ${errorSummary}`,
+                    variant: "destructive",
+                })
+            } else {
+                // Generic error message
+                const errorMessage = error?.message || "Registration failed. Please try again."
+                setServerErrors({ general: errorMessage })
+                toast({
+                    title: "Registration Failed",
+                    description: errorMessage,
+                    variant: "destructive",
+                })
+            }
         }
     }
 
@@ -126,28 +143,15 @@ export function SignupForm() {
             </CardHeader>
 
             <CardContent>
-                {/* Optional: Display selected courses */}
-                {cart.items?.length > 0 && (
-                    <Alert variant="default" className="mb-4 bg-primary/5 border-primary/20">
-                        <GraduationCap className="h-4 w-4 text-primary" />
-                        <AlertTitle className="text-sm font-medium text-primary">
-                            {cart.items.length} {cart.items.length === 1 ? "Course" : "Courses"} Selected
-                        </AlertTitle>
-                        <AlertDescription className="text-xs text-muted-foreground">
-                            Complete signup to proceed with enrollment.
-                        </AlertDescription>
-                    </Alert>
-                )}
-
                 {/* Shadcn Form Component */}
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         {/* Server Error Alert */}
-                        {serverError && (
+                        {serverErrors.general && (
                             <Alert variant="destructive">
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertTitle>Signup Error</AlertTitle>
-                                <AlertDescription>{serverError}</AlertDescription>
+                                <AlertDescription>{serverErrors.general}</AlertDescription>
                             </Alert>
                         )}
 
@@ -191,6 +195,9 @@ export function SignupForm() {
                                     <FormControl>
                                         <Input type="tel" placeholder="+1234567890" {...field} disabled={isLoading} />
                                     </FormControl>
+                                    {serverErrors.phone && !form.formState.errors.phone && (
+                                        <p className="text-sm font-medium text-destructive">{serverErrors.phone}</p>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -206,6 +213,9 @@ export function SignupForm() {
                                     <FormControl>
                                         <Input placeholder="123 Main St" {...field} disabled={isLoading} />
                                     </FormControl>
+                                    {serverErrors.address && !form.formState.errors.address && (
+                                        <p className="text-sm font-medium text-destructive">{serverErrors.address}</p>
+                                    )}
                                     <FormMessage />
                                 </FormItem>
                             )}

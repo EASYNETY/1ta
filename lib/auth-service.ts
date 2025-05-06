@@ -2,108 +2,114 @@
 import { setCookie, destroyCookie, parseCookies } from "nookies";
 import type { User } from "@/types/user.types";
 
-// Store auth data in cookies/localStorage
-export const setAuthData = (
+// --- Constants ---
+const AUTH_TOKEN_KEY = "authToken";
+const AUTH_USER_KEY = "authUser";
+const REFRESH_TOKEN_KEY = "refreshToken";
+const AUTH_COOKIE_OPTIONS = {
+	maxAge: 30 * 24 * 60 * 60, // 30 days
+	path: "/",
+	secure: process.env.NODE_ENV === "production",
+};
+
+// --- Custom Event for Auth State Changes ---
+const UNAUTHORIZED_EVENT = "auth:unauthorized";
+
+// --- Helper Functions ---
+export function getAuthToken(): string | null {
+	// Try to get from localStorage first (for client-side)
+	if (typeof window !== "undefined") {
+		const token = localStorage.getItem(AUTH_TOKEN_KEY);
+		if (token) return token;
+	}
+
+	// Fall back to cookies (works server-side too)
+	const cookies = parseCookies();
+	return cookies[AUTH_TOKEN_KEY] || null;
+}
+
+export function getRefreshToken(): string | null {
+	// Try to get from localStorage first (for client-side)
+	if (typeof window !== "undefined") {
+		const token = localStorage.getItem(REFRESH_TOKEN_KEY);
+		if (token) return token;
+	}
+
+	// Fall back to cookies (works server-side too)
+	const cookies = parseCookies();
+	return cookies[REFRESH_TOKEN_KEY] || null;
+}
+
+export function getAuthUser(): User | null {
+	try {
+		// Try to get from localStorage first
+		if (typeof window !== "undefined") {
+			const userJson = localStorage.getItem(AUTH_USER_KEY);
+			if (userJson) return JSON.parse(userJson);
+		}
+
+		// Fall back to cookies
+		const cookies = parseCookies();
+		const userJson = cookies[AUTH_USER_KEY];
+		return userJson ? JSON.parse(userJson) : null;
+	} catch (error) {
+		console.error("Error parsing auth user:", error);
+		return null;
+	}
+}
+
+export function setAuthData(
 	user: User,
 	token: string,
 	refreshToken?: string
-) => {
-	// Set cookies with 30 days expiration
-	const cookieOptions = {
-		maxAge: 30 * 24 * 60 * 60, // 30 days
-		path: "/",
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
-	};
-
-	setCookie(null, "authToken", token, cookieOptions);
-	setCookie(null, "authUser", JSON.stringify(user), cookieOptions);
-
-	// Store refresh token if provided
-	if (refreshToken) {
-		setCookie(null, "refreshToken", refreshToken, cookieOptions);
-	}
-
-	// Also set in localStorage for the API client
+): void {
+	// Store in localStorage for easy access
 	if (typeof window !== "undefined") {
-		localStorage.setItem("authToken", token);
-		localStorage.setItem("authUser", JSON.stringify(user));
+		localStorage.setItem(AUTH_TOKEN_KEY, token);
+		localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 		if (refreshToken) {
-			localStorage.setItem("refreshToken", refreshToken);
+			localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 		}
 	}
-};
 
-export const getAuthToken = (): string | null => {
-	if (typeof window !== "undefined") {
-		const cookies = parseCookies();
-		return cookies.authToken || localStorage.getItem("authToken") || null;
+	// Also store in cookies for persistence across sessions
+	setCookie(null, AUTH_TOKEN_KEY, token, AUTH_COOKIE_OPTIONS);
+	setCookie(null, AUTH_USER_KEY, JSON.stringify(user), AUTH_COOKIE_OPTIONS);
+	if (refreshToken) {
+		setCookie(null, REFRESH_TOKEN_KEY, refreshToken, AUTH_COOKIE_OPTIONS);
 	}
-	return null;
-};
+}
 
-export const getRefreshToken = (): string | null => {
+export function clearAuthData(): void {
+	// Clear from localStorage
 	if (typeof window !== "undefined") {
-		const cookies = parseCookies();
-		return cookies.refreshToken || localStorage.getItem("refreshToken") || null;
+		localStorage.removeItem(AUTH_TOKEN_KEY);
+		localStorage.removeItem(AUTH_USER_KEY);
+		localStorage.removeItem(REFRESH_TOKEN_KEY);
 	}
-	return null;
-};
 
-export const getAuthUser = (): User | null => {
-	if (typeof window !== "undefined") {
-		const cookies = parseCookies();
-		const userStr = cookies.authUser || localStorage.getItem("authUser");
-		if (userStr) {
-			try {
-				return JSON.parse(userStr);
-			} catch (e) {
-				return null;
-			}
-		}
-	}
-	return null;
-};
+	// Clear cookies
+	destroyCookie(null, AUTH_TOKEN_KEY, { path: "/" });
+	destroyCookie(null, AUTH_USER_KEY, { path: "/" });
+	destroyCookie(null, REFRESH_TOKEN_KEY, { path: "/" });
+}
 
-export const clearAuthData = () => {
-	destroyCookie(null, "authToken");
-	destroyCookie(null, "authUser");
-	destroyCookie(null, "refreshToken");
-
-	if (typeof window !== "undefined") {
-		localStorage.removeItem("authToken");
-		localStorage.removeItem("authUser");
-		localStorage.removeItem("refreshToken");
-	}
-};
-
-// Helper function to handle unauthorized responses
-export const handleUnauthorized = () => {
+export function handleUnauthorized(): void {
 	// Clear auth data
 	clearAuthData();
 
-	// Optionally redirect to login page
+	// Dispatch custom event for components to listen to
 	if (typeof window !== "undefined") {
-		// Use a custom event to notify the app about logout
-		window.dispatchEvent(new CustomEvent("auth:unauthorized"));
-
-		// Redirect to login page if not already there
-		if (!window.location.pathname.includes("/login")) {
-			window.location.href = "/login";
-		}
+		window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
 	}
-};
+}
 
-// Function to check if the user is authenticated
-export const isAuthenticated = (): boolean => {
-	return !!getAuthToken();
-};
-
-// Direct token refresh function that doesn't rely on Redux
-export const refreshAuthToken = async (): Promise<{
+// --- Direct Token Refresh Function ---
+// This function is used directly by the API client to avoid circular dependencies
+export async function refreshAuthToken(): Promise<{
 	token: string;
 	refreshToken?: string;
-}> => {
+}> {
 	const refreshToken = getRefreshToken();
 
 	if (!refreshToken) {
@@ -111,50 +117,54 @@ export const refreshAuthToken = async (): Promise<{
 	}
 
 	try {
-		// Make a direct fetch request without using the API client
 		const response = await fetch(
 			`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`,
 			{
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					Accept: "application/json",
 				},
 				body: JSON.stringify({ refreshToken }),
 			}
 		);
 
 		if (!response.ok) {
-			throw new Error(`Failed to refresh token: ${response.status}`);
+			let errorData = {
+				message: `Token refresh failed: ${response.status} ${response.statusText}`,
+			};
+			try {
+				errorData = await response.json();
+			} catch (e) {
+				/* non-json response */
+			}
+
+			throw new Error(errorData.message || "Failed to refresh token");
 		}
 
 		const data = await response.json();
 
 		// Update stored tokens
-		if (data.token) {
-			// Only update the token, not the user data
-			setCookie(null, "authToken", data.token, {
-				maxAge: 30 * 24 * 60 * 60,
-				path: "/",
-				secure: process.env.NODE_ENV === "production",
-				sameSite: "strict",
-			});
-
+		const user = getAuthUser();
+		if (user) {
+			setAuthData(user, data.token, data.refreshToken);
+		} else {
+			// Just update the tokens if we don't have user data
 			if (typeof window !== "undefined") {
-				localStorage.setItem("authToken", data.token);
+				localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+				if (data.refreshToken) {
+					localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+				}
 			}
 
-			// Also update refresh token if provided
+			setCookie(null, AUTH_TOKEN_KEY, data.token, AUTH_COOKIE_OPTIONS);
 			if (data.refreshToken) {
-				setCookie(null, "refreshToken", data.refreshToken, {
-					maxAge: 30 * 24 * 60 * 60,
-					path: "/",
-					secure: process.env.NODE_ENV === "production",
-					sameSite: "strict",
-				});
-
-				if (typeof window !== "undefined") {
-					localStorage.setItem("refreshToken", data.refreshToken);
-				}
+				setCookie(
+					null,
+					REFRESH_TOKEN_KEY,
+					data.refreshToken,
+					AUTH_COOKIE_OPTIONS
+				);
 			}
 		}
 
@@ -168,4 +178,16 @@ export const refreshAuthToken = async (): Promise<{
 		clearAuthData();
 		throw error;
 	}
-};
+}
+
+// --- Auth Listener ---
+export function setupAuthListener(callback: () => void): () => void {
+	if (typeof window === "undefined") return () => {};
+
+	const handler = () => callback();
+	window.addEventListener(UNAUTHORIZED_EVENT, handler);
+
+	return () => {
+		window.removeEventListener(UNAUTHORIZED_EVENT, handler);
+	};
+}

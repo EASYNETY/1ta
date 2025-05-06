@@ -1,6 +1,6 @@
 // features/auth/store/auth-thunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { post, get, put } from "@/lib/api-client";
+import { post, get, put, ApiError } from "@/lib/api-client";
 import type { User, AuthState } from "@/types/user.types";
 import type {
 	AuthResponse,
@@ -10,7 +10,6 @@ import type {
 } from "../types/auth-types";
 import { setAuthData } from "@/lib/auth-service";
 import { AUTH_ACTIONS } from "./auth-action-types";
-import { AppDispatch } from "@/store";
 
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
@@ -82,6 +81,12 @@ export const signupThunk = createAsyncThunk(
 				type: AUTH_ACTIONS.LOGIN_FAILURE,
 				payload: errorMessage,
 			});
+
+			// Enhance the error with validation details if available
+			if (error instanceof ApiError && error.data) {
+				error.message = error.data.message || errorMessage;
+			}
+
 			throw error;
 		}
 	}
@@ -121,21 +126,24 @@ export const fetchUserProfileThunk = createAsyncThunk<
 	{
 		rejectValue: string;
 		state: { auth: AuthState };
-		dispatch: AppDispatch;
 	}
 >(
 	"auth/fetchUserProfile",
-	async (_, { rejectWithValue, getState, dispatch }) => {
+	async (_, { rejectWithValue, getState }) => {
 		try {
 			const response = await get<User>("/users/me");
 			return response;
 		} catch (error: any) {
 			if (error.status === 401) {
+				// Try to refresh the token if we get a 401
 				try {
-					await dispatch(refreshTokenThunk());
+					const { refreshAuthToken } = await import("@/lib/auth-service");
+					await refreshAuthToken();
+					// If refresh succeeds, retry the original request
 					const response = await get<User>("/users/me");
 					return response;
 				} catch (refreshError) {
+					// If refresh fails, reject with the original error
 					return rejectWithValue("Authentication required");
 				}
 			}
@@ -148,7 +156,7 @@ export const fetchUserProfileThunk = createAsyncThunk<
 	{
 		condition: (_, { getState }) => {
 			const { token } = getState().auth;
-			return !!token;
+			return !!token; // only allow fetch if token exists
 		},
 	}
 );
