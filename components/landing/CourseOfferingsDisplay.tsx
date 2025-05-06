@@ -370,7 +370,7 @@ function CourseCard({
   return (
     <motion.div
       variants={variants}
-      className="rounded-xl border border-border overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+      className="rounded-xl border border-border overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-card/5 backdrop-blur-sm"
       whileHover={{ y: -5, transition: { type: "spring", stiffness: 300, damping: 15 } }}
     >
       {course.imageUrl && (
