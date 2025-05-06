@@ -129,7 +129,13 @@ import {
 	updateMockGradeItem,
 } from "@/data/mock-grade-data";
 import { logout } from "@/features/auth/store/auth-slice";
-import { getAuthToken, handleUnauthorized } from "./auth-service";
+import {
+	getAuthToken,
+	getRefreshToken,
+	handleUnauthorized,
+} from "./auth-service";
+import { store } from "@/store";
+import { refreshTokenThunk } from "@/features/auth/store/auth-thunks";
 
 // --- Config ---
 const API_BASE_URL =
@@ -169,7 +175,6 @@ export class ApiError extends Error {
 }
 
 // --- Main API Client ---
-
 async function apiClient<T>(
 	endpoint: string,
 	options: FetchOptions = {}
@@ -185,23 +190,6 @@ async function apiClient<T>(
 		headers.set("Content-Type", "application/json");
 	if (!headers.has("Accept")) headers.set("Accept", "application/json");
 
-	// Replace the auth token retrieval in the apiClient function
-	// Change this code:
-	/*
-	  // Add auth token if required and available
-	  if (requiresAuth && !skipAuthRefresh) {
-		const state = store.getState()
-		const token = state.auth.token
-  
-		if (token) {
-		  headers.set("Authorization", `Bearer ${token}`)
-		} else if (requiresAuth) {
-		  console.warn("Auth required but no token available")
-		}
-	  }
-	*/
-
-	// With this code:
 	// Add auth token if required and available
 	if (requiresAuth && !skipAuthRefresh) {
 		const token = getAuthToken();
@@ -246,26 +234,43 @@ async function apiClient<T>(
 
 			console.error("API Error Data:", errorData);
 
-			// Replace the 401 handling code
-			// Change this code:
-			/*
-			  // Handle 401 Unauthorized errors (expired token, etc.)
-			  if (response.status === 401 && !skipAuthRefresh) {
-				console.warn("Received 401 Unauthorized, logging out user")
-				// Dispatch logout action to clear auth state
-				store.dispatch(logout())
-  
-				// Throw a specific error for 401
-				throw new ApiError(errorData.message || "Your session has expired. Please log in again.", 401, errorData)
-			  }
-		*/
-
-			// With this code:
 			// Handle 401 Unauthorized errors (expired token, etc.)
 			if (response.status === 401 && !skipAuthRefresh) {
-				console.warn("Received 401 Unauthorized, logging out user");
-				// Handle unauthorized using the auth service
-				handleUnauthorized();
+				console.warn("Received 401 Unauthorized, attempting token refresh");
+
+				// Try to refresh the token using the direct function from auth-service
+				try {
+					// Import the refreshAuthToken function from auth-service
+					const { refreshAuthToken } = await import("@/lib/auth-service");
+
+					// Call the function directly without using Redux
+					const { token } = await refreshAuthToken();
+
+					// If refresh successful, retry the original request with the new token
+					if (token) {
+						headers.set("Authorization", `Bearer ${token}`);
+						const retryConfig = { ...config, headers };
+						const retryResponse = await fetch(
+							`${API_BASE_URL}${endpoint}`,
+							retryConfig
+						);
+
+						if (retryResponse.ok) {
+							if (retryResponse.status === 204) return undefined as T;
+
+							const contentType = retryResponse.headers.get("content-type");
+							if (contentType && contentType.includes("application/json")) {
+								return await retryResponse.json();
+							}
+
+							return undefined as T;
+						}
+					}
+				} catch (refreshError) {
+					console.error("Token refresh failed:", refreshError);
+					// If refresh fails, proceed with logout
+					handleUnauthorized();
+				}
 
 				// Throw a specific error for 401
 				throw new ApiError(

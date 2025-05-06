@@ -2,31 +2,30 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { logout } from "@/features/auth/store/auth-slice";
 import { useAppDispatch } from "@/store/hooks";
+import { logout } from "@/features/auth/store/auth-slice";
 
 /**
- * Component to listen for auth events and sync with Redux
- * This should be included in your layout or providers component
+ * Component that listens for auth-related events
+ * and dispatches appropriate actions
  */
 export function AuthListener() {
 	const dispatch = useAppDispatch();
-	const router = useRouter();
 
 	useEffect(() => {
-		// Listen for the custom unauthorized event
+		// Listen for unauthorized event
 		const handleUnauthorized = () => {
-			// Dispatch logout to update Redux state
 			dispatch(logout());
 		};
 
+		// Add event listener
 		window.addEventListener("auth:unauthorized", handleUnauthorized);
 
+		// Clean up
 		return () => {
 			window.removeEventListener("auth:unauthorized", handleUnauthorized);
 		};
-	}, [dispatch, router]);
+	}, [dispatch]);
 
 	// This component doesn't render anything
 	return null;

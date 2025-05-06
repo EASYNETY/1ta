@@ -1,76 +1,28 @@
 // features/auth/store/auth-thunks.ts
-
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { post, get, put } from "@/lib/api-client";
-import { setCookie } from "nookies"; // Import setCookie
+import type { User, AuthState } from "@/types/user.types";
 import type {
 	AuthResponse,
+	LoginCredentials,
+	RegisterData,
 	ResetPasswordPayload,
-} from "@/features/auth/types/auth-types";
+} from "../types/auth-types";
+import { setAuthData } from "@/lib/auth-service";
 import { AUTH_ACTIONS } from "./auth-action-types";
-import type { User, AuthState } from "@/types/user.types";
-import { createCorporateStudentSlots } from "@/data/mock-auth-data";
-
-// Helper function for cookie options (optional, but good practice)
-const getCookieOptions = (maxAgeSeconds?: number) => {
-	const options: any = {
-		path: "/", // Make cookie available across the entire site
-		// secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
-		// sameSite: 'lax', // Recommended for most cases ('strict' or 'none' are other options)
-	};
-	if (maxAgeSeconds) {
-		options.maxAge = maxAgeSeconds; // Expires after N seconds
-	}
-	// You might set 'expires' instead of 'maxAge' if preferred
-	// options.expires = new Date(Date.now() + maxAgeSeconds * 1000);
-	return options;
-};
-
-// --- Fetch User Profile Thunk ---
-export const fetchUserProfileThunk = createAsyncThunk<
-	Partial<User>,
-	void,
-	{
-		rejectValue: string;
-		state: { auth: AuthState }; // provide state type here
-		condition: boolean;
-	}
->(
-	"auth/fetchUserProfile",
-	async (_, { rejectWithValue }) => {
-		try {
-			const response = await get<User>("/users/me");
-			return response;
-		} catch (error: any) {
-			const errorMessage =
-				error instanceof Error ? error.message : "Failed to fetch user profile";
-			return rejectWithValue(errorMessage);
-		}
-	},
-	{
-		condition: (_, { getState }) => {
-			const { token } = getState().auth;
-			return !!token; // only allow fetch if token exists
-		},
-	}
-);
 
 // --- Login Thunk ---
 export const loginThunk = createAsyncThunk(
 	"auth/login",
-	async (credentials: { email: string; password: string }, { dispatch }) => {
+	async (credentials: LoginCredentials, { dispatch }) => {
 		try {
 			dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 			const response = await post<AuthResponse>("/auth/login", credentials, {
 				requiresAuth: false,
 			});
 
-			// --- Store auth data in cookies ---
-			// Example: Set cookies to expire in 30 days
-			const cookieOptions = getCookieOptions(30 * 24 * 60 * 60);
-			setCookie(null, "authToken", response.token, cookieOptions); // null context for client-side
-			setCookie(null, "authUser", JSON.stringify(response.user), cookieOptions); // Store user as JSON string
-			// --- End Cookie Setting ---
+			// Store auth data including refresh token if provided
+			setAuthData(response.user, response.token, response.refreshToken);
 
 			dispatch({
 				type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -96,34 +48,22 @@ export const loginThunk = createAsyncThunk(
 // --- Signup Thunk ---
 export const signupThunk = createAsyncThunk(
 	"auth/signup",
-	async (
-		userData: {
-			name: string;
-			email: string;
-			password: string;
-			dateOfBirth?: string;
-			classId?: string;
-			barcodeId?: string;
-			guardianId?: string | null;
-		},
-		{ dispatch, getState }
-	) => {
+	async (userData: RegisterData, { dispatch }) => {
 		try {
 			dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-			const state = getState() as any;
-			const cartItems = state.cart.items;
-			const fullPayload = { ...userData, cartItems };
+
+			// Ensure role is set to "student" if not provided
+			const fullPayload = {
+				...userData,
+				role: userData.role || "student",
+			};
 
 			const response = await post<AuthResponse>("/auth/register", fullPayload, {
 				requiresAuth: false,
 			});
 
-			// --- Store auth data in cookies ---
-			// Example: Set cookies to expire in 30 days
-			const cookieOptions = getCookieOptions(30 * 24 * 60 * 60);
-			setCookie(null, "authToken", response.token, cookieOptions);
-			setCookie(null, "authUser", JSON.stringify(response.user), cookieOptions);
-			// --- End Cookie Setting ---
+			// Store auth data including refresh token if provided
+			setAuthData(response.user, response.token, response.refreshToken);
 
 			dispatch({
 				type: AUTH_ACTIONS.LOGIN_SUCCESS,
@@ -132,7 +72,6 @@ export const signupThunk = createAsyncThunk(
 					token: response.token,
 				},
 			});
-			// dispatch(clearCart()); // Keep if needed
 
 			return response;
 		} catch (error: any) {
@@ -147,113 +86,136 @@ export const signupThunk = createAsyncThunk(
 	}
 );
 
+// --- Refresh Token Thunk ---
+export const refreshTokenThunk = createAsyncThunk(
+	"auth/refreshToken",
+	async (_, { dispatch, rejectWithValue }) => {
+		try {
+			// Use the direct function from auth-service
+			const { refreshAuthToken } = await import("@/lib/auth-service");
+			const { token, refreshToken } = await refreshAuthToken();
+
+			// Update the token in auth state
+			dispatch({
+				type: AUTH_ACTIONS.TOKEN_REFRESHED,
+				payload: {
+					token,
+					refreshToken,
+				},
+			});
+
+			return { token, refreshToken };
+		} catch (error: any) {
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to refresh token";
+			return rejectWithValue(errorMessage);
+		}
+	}
+);
+
+// --- Fetch User Profile Thunk ---
+export const fetchUserProfileThunk = createAsyncThunk<
+	User,
+	void,
+	{
+		rejectValue: string;
+		state: { auth: AuthState };
+	}
+>(
+	"auth/fetchUserProfile",
+	async (_, { rejectWithValue, getState }) => {
+		try {
+			const response = await get<User>("/users/me");
+			return response;
+		} catch (error: any) {
+			if (error.status === 401) {
+				// Try to refresh the token if we get a 401
+				try {
+					await refreshTokenThunk()(null, null, null);
+					// If refresh succeeds, retry the original request
+					const response = await get<User>("/users/me");
+					return response;
+				} catch (refreshError) {
+					// If refresh fails, reject with the original error
+					return rejectWithValue("Authentication required");
+				}
+			}
+
+			const errorMessage =
+				error instanceof Error ? error.message : "Failed to fetch user profile";
+			return rejectWithValue(errorMessage);
+		}
+	},
+	{
+		condition: (_, { getState }) => {
+			const { token } = getState().auth;
+			return !!token; // only allow fetch if token exists
+		},
+	}
+);
+
 // --- Update User Profile Thunk ---
-// Accepts Partial<User> which includes purchasedStudentSlots if relevant
 export const updateUserProfileThunk = createAsyncThunk<
 	User,
 	Partial<User>,
 	{ rejectValue: string }
 >("auth/updateUserProfile", async (profileData, { rejectWithValue }) => {
 	try {
-		// The payload `profileData` might contain `purchasedStudentSlots` if sent from onSubmit
 		const response = await put<User>("/users/me", profileData);
-		// --- Update User Cookie ---
-		const cookieOptions = getCookieOptions(30 * 24 * 60 * 60);
-		setCookie(null, "authUser", JSON.stringify(response), cookieOptions);
-		// --- End Cookie Update ---
-		return response; // Return the updated full user object
+		return response;
 	} catch (error: any) {
-		return rejectWithValue(error.message || "Failed to update profile");
+		const errorMessage =
+			error instanceof Error ? error.message : "Failed to update profile";
+		return rejectWithValue(errorMessage);
 	}
 });
 
 // --- Forgot Password Thunk ---
 export const forgotPasswordThunk = createAsyncThunk<
-	{ message: string }, // Expected success response structure (adjust if different)
-	{ email: string }, // Input argument type
-	{ rejectValue: string } // Type for rejection payload
+	{ message: string },
+	{ email: string },
+	{ rejectValue: string }
 >("auth/forgotPassword", async (payload, { rejectWithValue }) => {
 	try {
-		console.log("Dispatching forgotPasswordThunk for:", payload.email);
-		// Use the post helper from apiClient
 		const response = await post<{ message: string }>(
 			"/auth/forgot-password",
 			payload,
 			{
-				requiresAuth: false, // No auth needed for this endpoint
+				requiresAuth: false,
 			}
 		);
-		console.log("Forgot Password API Response:", response);
-		return response; // Return the success message payload
+		return response;
 	} catch (error: any) {
 		const errorMessage =
-			error?.data?.message ||
-			error?.message ||
-			"Failed to send password reset link.";
-		console.error("Forgot Password Thunk Error:", errorMessage);
-		// Reject with the error message for the component to catch
+			error instanceof Error
+				? error.message
+				: "Failed to send password reset link.";
 		return rejectWithValue(errorMessage);
 	}
 });
 
 // --- Reset Password Thunk ---
 export const resetPasswordThunk = createAsyncThunk<
-	{ message: string }, // Expected success response structure
-	ResetPasswordPayload, // Input: { token: string; password: string }
-	{ rejectValue: string } // Type for rejection payload
+	{ message: string },
+	ResetPasswordPayload,
+	{ rejectValue: string }
 >("auth/resetPassword", async (payload, { rejectWithValue }) => {
 	try {
-		console.log("Dispatching resetPasswordThunk...");
 		// Ensure only token and password are sent, not confirmPassword
 		const apiPayload = { token: payload.token, password: payload.password };
-		// Call the API client
 		const response = await post<{ message: string }>(
 			"/auth/reset-password",
 			apiPayload,
 			{
-				requiresAuth: false, // No auth needed for this endpoint
+				requiresAuth: false,
 			}
 		);
-		console.log("Reset Password API Response:", response);
-		return response; // Return success message payload
-	} catch (error: any) {
-		const errorMessage =
-			error?.data?.message ||
-			error?.message ||
-			"Failed to reset password. Link may be invalid/expired.";
-		console.error("Reset Password Thunk Error:", errorMessage);
-		return rejectWithValue(errorMessage);
-	}
-});
-
-// --- NEW Thunk for Creating Corporate Student Slots ---
-interface CreateSlotsParams {
-	corporateId: string;
-	studentCount: number;
-	courses: string[]; // Course IDs to assign
-}
-interface CreateSlotsResult {
-	// Example result
-	success: boolean;
-	createdStudents: number;
-	message?: string;
-}
-
-export const createCorporateStudentSlotsThunk = createAsyncThunk<
-	CreateSlotsResult, // Return type
-	CreateSlotsParams, // Argument type
-	{ rejectValue: string }
->("auth/createCorporateSlots", async (params, { rejectWithValue }) => {
-	try {
-		console.log("Dispatching createCorporateStudentSlotsThunk:", params);
-		// TODO: Replace with actual API call
-		// const response = await post<CreateSlotsResult>('/corporate/create-slots', params); // Example endpoint
-		// Use the mock function for now
-		const response = await createCorporateStudentSlots(params); // Assuming this is async and returns the result
 		return response;
 	} catch (error: any) {
 		const errorMessage =
-			error instanceof Error ? error.message : "Failed to create student slots";
+			error instanceof Error
+				? error.message
+				: "Failed to reset password. Link may be invalid/expired.";
 		return rejectWithValue(errorMessage);
 	}
 });

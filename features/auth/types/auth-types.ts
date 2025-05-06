@@ -1,10 +1,10 @@
 // features/auth/types/auth-types.ts
-
 import type { User } from "@/types/user.types";
 
 export interface AuthResponse {
 	user: User;
 	token: string;
+	refreshToken?: string;
 }
 
 export interface LoginCredentials {
@@ -16,14 +16,31 @@ export interface RegisterData {
 	name: string;
 	email: string;
 	password: string;
+	role?: string;
+	phone?: string;
+	address?: string;
 	dateOfBirth?: string;
+	guardianDetails?: {
+		name: string;
+		email: string;
+		password: string;
+	};
 	classId?: string;
 	barcodeId?: string;
-	guardianId?: null;
+	guardianId?: string | null;
 	cartItems?: any[];
 	// Corporate fields
 	corporateId?: string;
 	isCorporateManager?: boolean;
+}
+
+export interface RefreshTokenRequest {
+	refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+	token: string;
+	refreshToken?: string;
 }
 
 export interface ResetPasswordPayload {

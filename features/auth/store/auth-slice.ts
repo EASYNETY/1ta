@@ -1,8 +1,7 @@
 // features/auth/store/auth-slice.ts
-
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { destroyCookie } from "nookies"; // Import destroyCookie
 import { addAuthExtraReducers } from "./auth-extra-reducers";
+import { clearAuthData } from "@/lib/auth-service";
 import type { User, AuthState } from "@/types/user.types";
 
 const initialState: AuthState = {
@@ -39,6 +38,13 @@ export const authSlice = createSlice({
 			state.error = action.payload;
 			state.isInitialized = true;
 		},
+		tokenRefreshed: (
+			state,
+			action: PayloadAction<{ token: string; refreshToken?: string }>
+		) => {
+			state.token = action.payload.token;
+			// Don't update user or other auth state, just the token
+		},
 		logout: (state) => {
 			state.user = null;
 			state.token = null;
@@ -47,12 +53,8 @@ export const authSlice = createSlice({
 			state.error = null;
 			state.skipOnboarding = false;
 
-			// --- Clear cookies on logout ---
-			if (typeof window !== "undefined") {
-				// Use destroyCookie, ensure path matches the one used in setCookie
-				destroyCookie(null, "authToken", { path: "/" }); // null context for client-side
-				destroyCookie(null, "authUser", { path: "/" });
-			}
+			// Clear auth data from cookies and localStorage
+			clearAuthData();
 		},
 		updateUser: (state, action: PayloadAction<Partial<User>>) => {
 			if (state.user) {
@@ -95,6 +97,7 @@ export const {
 	loginStart,
 	loginSuccess,
 	loginFailure,
+	tokenRefreshed,
 	logout,
 	updateUser,
 	initializeAuth,

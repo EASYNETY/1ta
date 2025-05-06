@@ -1,4 +1,4 @@
-// Define action types for the slice to use
+// features/auth/store/auth-action-types.ts
 export const AUTH_ACTIONS = {
 	LOGIN_START: "auth/loginStart",
 	LOGIN_SUCCESS: "auth/loginSuccess",
@@ -9,4 +9,5 @@ export const AUTH_ACTIONS = {
 	UPDATE_PROFILE_PENDING: "auth/updateUserProfile/pending",
 	UPDATE_PROFILE_FULFILLED: "auth/updateUserProfile/fulfilled",
 	UPDATE_PROFILE_REJECTED: "auth/updateUserProfile/rejected",
+	TOKEN_REFRESHED: "auth/tokenRefreshed",
 };

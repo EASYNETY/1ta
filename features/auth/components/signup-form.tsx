@@ -1,65 +1,59 @@
-// src/features/auth/components/SignupForm.tsx (Example Path)
-"use client";
+// features/auth/components/SignupForm.tsx
+"use client"
 
-import { useState } from "react";
-import { useRouter } from "next/navigation"; // Keep if needed for manual navigation
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import Link from "next/link";
-import { Eye, EyeOff, GraduationCap, Loader2, AlertCircle } from "lucide-react"; // Import icons
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import Link from "next/link"
+import { Eye, EyeOff, GraduationCap, Loader2, AlertCircle } from "lucide-react"
 
 // Redux Imports
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-// Assume signupThunk handles API call and returns user/token or throws error
-import { signupThunk } from "@/features/auth/store/auth-thunks"; // Adjust path
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { signupThunk } from "@/features/auth/store/auth-thunks"
 
 // Shadcn UI Imports
-import { Button } from "@/components/ui/button"; // Base button for toggle
-import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label"; // Replaced by FormLabel
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"; // Use Form components
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast"; // Keep using your toast hook
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useToast } from "@/hooks/use-toast"
 
 // DyraneUI Imports
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 
 // --- Zod Schema ---
-// Define password complexity rules more explicitly if matching backend
-const passwordValidation = z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" })
-// Add backend rules here if needed (e.g., uppercase, number)
-// .regex(/[A-Z]/, { message: "Password must contain an uppercase letter" })
-// .regex(/\d/, { message: "Password must contain a number" });
+const passwordValidation = z.string().min(8, { message: "Password must be at least 8 characters" })
 
 const signupSchema = z
     .object({
         name: z.string().min(2, { message: "Name must be at least 2 characters" }),
         email: z.string().email({ message: "Please enter a valid email address" }),
         password: passwordValidation,
-        confirmPassword: z.string(), // Keep confirmPassword for comparison
+        confirmPassword: z.string(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords do not match",
-        path: ["confirmPassword"], // Apply error to confirmPassword field
-    });
+        path: ["confirmPassword"],
+    })
 
-type SignupFormValues = z.infer<typeof signupSchema>;
+type SignupFormValues = z.infer<typeof signupSchema>
 
 // --- Component ---
 export function SignupForm() {
-    const dispatch = useAppDispatch();
-    const isLoading = useAppSelector((state) => state.auth.isLoading); // Get loading state
-    const cart = useAppSelector((state) => state.cart);
-    const router = useRouter(); // Keep if needed for specific navigation post-thunk
-    const { toast } = useToast(); // Use Shadcn toast hook
+    const dispatch = useAppDispatch()
+    const isLoading = useAppSelector((state) => state.auth.isLoading)
+    const cart = useAppSelector((state) => state.cart)
+    const router = useRouter()
+    const { toast } = useToast()
 
-    const [serverError, setServerError] = useState<string | null>(null);
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [serverError, setServerError] = useState<string | null>(null)
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     // --- React Hook Form Setup ---
     const form = useForm<SignupFormValues>({
@@ -69,72 +63,71 @@ export function SignupForm() {
             email: "",
             password: "",
             confirmPassword: "",
+            phone: "",
+            address: "",
         },
-    });
+    })
 
     // --- Submit Handler ---
     const onSubmit = async (data: SignupFormValues) => {
-        setServerError(null); // Clear previous errors on new submit
+        setServerError(null)
         try {
-            // Generate placeholders needed by backend (MVP Workaround)
-            const barcodeId = `TEMP-${crypto.randomUUID()}`;
-            // Use courseId from first cart item or default '1'
-            const classId = cart.items.length > 0 ? (cart.items[0].courseId || '1') : '1';
-            const dateOfBirth = "2000-01-01T00:00:00.000Z";
+            // Generate placeholders needed by backend
+            const barcodeId = `TEMP-${crypto.randomUUID()}`
+            const classId = cart.items?.length > 0 ? cart.items[0].courseId || "1" : "1"
+            const dateOfBirth = "2000-01-01T00:00:00.000Z"
 
             // Data to send (exclude confirmPassword)
-            const { confirmPassword, ...signupData } = data;
+            const { confirmPassword, ...signupData } = data
             const payload = {
                 ...signupData,
+                role: "student", // Set default role
                 dateOfBirth,
-                classId, // Mapped from courseId or default
+                classId,
                 barcodeId,
                 guardianId: null,
-                // Send cart items if backend supports it (optional field)
-                cartItems: cart.items.map(item => ({ courseId: item.courseId })), // Send only IDs for now
-            };
+                // Optional fields from the API spec
+                guardianDetails: undefined, // Only needed for minors
+                cartItems: cart.items?.map((item) => ({ courseId: item.courseId })) || [],
+            }
 
-            console.log("Attempting signup with payload:", payload); // Log payload for debugging
+            console.log("Attempting signup with payload:", payload)
 
-            // Dispatch the thunk and unwrap the result (handles loading/error state in slice)
-            await dispatch(signupThunk(payload)).unwrap();
+            // Dispatch the thunk and unwrap the result
+            await dispatch(signupThunk(payload)).unwrap()
 
             toast({
                 title: "Account Created Successfully!",
-                description: "Redirecting you to the next step...",
+                description: "Redirecting you to the dashboard...",
                 variant: "success",
-            });
+            })
 
-            setServerError(null); // Clear any previous errors
+            setServerError(null)
 
-            // Thunk success should update auth state. Navigation to payment/dashboard
-            // should ideally be handled based on that state change, possibly
-            // triggered by the component listening to authSlice or by logic within the thunk itself.
-            // Avoid manual router.push here if possible, rely on auth state changes.
-            // Example: router.push('/checkout'); // If thunk doesn't navigate
-
+            // Navigate to dashboard
+            router.push("/dashboard")
         } catch (error: any) {
-            const errorMessage = error?.message || "Registration failed. Please try again.";
-            console.error("Signup Failed:", error);
-            setServerError(errorMessage); // Show specific error from backend/thunk
+            const errorMessage = error?.message || "Registration failed. Please try again."
+            console.error("Signup Failed:", error)
+            setServerError(errorMessage)
             toast({
                 title: "Registration Failed",
                 description: errorMessage,
                 variant: "destructive",
-            });
+            })
         }
-    };
+    }
 
     return (
-        <Card className="w-full max-w-md mx-auto bg-transparent backdrop-blur-xs border-none"> {/* Card structure */}
+        <Card className="w-full max-w-md mx-auto bg-transparent backdrop-blur-xs border-none">
             <CardHeader className="text-center space-y-1">
                 <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
-                <CardDescription>Join 1Tech Academy to start learning</CardDescription>
+                <CardDescription>Join SmartEdu to start learning</CardDescription>
             </CardHeader>
 
             <CardContent>
                 {/* Optional: Display selected courses */}
-                {cart.items.length > 0 && (
+                {cart.items?.length > 0 && (
                     <Alert variant="default" className="mb-4 bg-primary/5 border-primary/20">
                         <GraduationCap className="h-4 w-4 text-primary" />
                         <AlertTitle className="text-sm font-medium text-primary">
@@ -166,9 +159,9 @@ export function SignupForm() {
                                 <FormItem>
                                     <FormLabel>Full Name</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="e.g., Ada Lovelace" {...field} disabled={isLoading} />
+                                        <Input placeholder="e.g., John Doe" {...field} disabled={isLoading} />
                                     </FormControl>
-                                    <FormMessage /> {/* Handles Zod error display */}
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -181,7 +174,37 @@ export function SignupForm() {
                                 <FormItem>
                                     <FormLabel>Email address</FormLabel>
                                     <FormControl>
-                                        <Input type="email" placeholder="ada@example.com" {...field} disabled={isLoading} />
+                                        <Input type="email" placeholder="john@example.com" {...field} disabled={isLoading} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Phone Field */}
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Phone Number</FormLabel>
+                                    <FormControl>
+                                        <Input type="tel" placeholder="+1234567890" {...field} disabled={isLoading} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Address Field */}
+                        <FormField
+                            control={form.control}
+                            name="address"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Address</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="123 Main St" {...field} disabled={isLoading} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -212,14 +235,13 @@ export function SignupForm() {
                                                 className="absolute top-0 right-0 h-full px-3 py-2 text-muted-foreground hover:text-foreground"
                                                 aria-label={showPassword ? "Hide password" : "Show password"}
                                                 disabled={isLoading}
-                                                tabIndex={-1} // Prevent toggle button from being tabbed to directly
+                                                tabIndex={-1}
                                             >
                                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                             </Button>
                                         </div>
                                     </FormControl>
-                                    {/* Optional: Add FormDescription for password rules */}
-                                    {/* <FormDescription>Min 8 characters, include upper, lower, number.</FormDescription> */}
+                                    <FormDescription>Password must be at least 8 characters</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -255,7 +277,7 @@ export function SignupForm() {
                                             </Button>
                                         </div>
                                     </FormControl>
-                                    <FormMessage /> {/* Handles "Passwords do not match" error */}
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
@@ -282,12 +304,18 @@ export function SignupForm() {
                         Log In
                     </Link>
                 </p>
-                {/* Optional: Terms Link */}
-                {/* <p className="text-xs text-muted-foreground mt-4 text-center">
+                <p className="text-xs text-muted-foreground mt-4 text-center">
                     By creating an account, you agree to our <br />
-                    <Link href="/terms" className="underline hover:text-primary">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-primary">Privacy Policy</Link>.
-                </p> */}
+                    <Link href="/terms" className="underline hover:text-primary">
+                        Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link href="/privacy" className="underline hover:text-primary">
+                        Privacy Policy
+                    </Link>
+                    .
+                </p>
             </CardFooter>
         </Card>
-    );
+    )
 }
