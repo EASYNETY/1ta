@@ -10,11 +10,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { DatePickerWithYearMonth } from "@/components/ui/date-picker-with-year-month"
 import { Label } from "../ui/label"
 import { Checkbox } from "../ui/checkbox"
+import type { UserRole } from "@/types/user.types"
 
 interface ProfileFormFieldsProps {
     form: UseFormReturn<any>
     courses: Array<{ id: string; name: string }>
-    userRole: string
+    userRole: UserRole
     userEmail: string
     isOnboarding: boolean
     isCorporateStudent?: boolean
@@ -30,7 +31,7 @@ export function ProfileFormFields({
     isCorporateStudent = false,
     isCorporateManager = false,
 }: ProfileFormFieldsProps) {
-    // Role-specific fields component (internal or could be separate)
+    // Role-specific fields component
     const RoleSpecificFields = () => {
         switch (userRole) {
             case "admin":
@@ -86,6 +87,46 @@ export function ProfileFormFields({
                                 </FormItem>
                             )}
                         />
+                        <FormField
+                            control={form.control}
+                            name="subjects"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Subjects/Areas of Expertise</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            value={Array.isArray(field.value) ? field.value.join(", ") : field.value || ""}
+                                            placeholder="e.g., Mathematics, Physics, Computer Science"
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                const subjects = value
+                                                    .split(",")
+                                                    .map((s) => s.trim())
+                                                    .filter(Boolean)
+                                                field.onChange(subjects.length > 0 ? subjects : null)
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>Comma-separated list of your teaching subjects</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="officeHours"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Office Hours (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} value={field.value ?? ""} placeholder="e.g., Mon-Fri 2-4 PM" />
+                                    </FormControl>
+                                    <FormDescription>When students can reach you</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </>
                 )
             default: // student
@@ -111,7 +152,7 @@ export function ProfileFormFields({
             />
 
             {/* Date of Birth - Not required for corporate managers */}
-            {!isCorporateManager && (
+            {userRole === "student" && !isCorporateManager && (
                 <FormField
                     control={form.control}
                     name="dateOfBirth"
@@ -136,43 +177,47 @@ export function ProfileFormFields({
             )}
 
             {/* Class/Course - Read-only for corporate students */}
-            <FormField
-                control={form.control}
-                name="classId"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Primary Class/Course</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={isCorporateStudent}>
-                            <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select your primary class or course" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {courses.length > 0 ? (
-                                    courses.map((classItem) => (
-                                        <SelectItem key={classItem.id} value={classItem.id}>
-                                            {classItem.name}
+            {userRole === "student" && (
+                <FormField
+                    control={form.control}
+                    name="classId"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Primary Class/Course</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""} disabled={isCorporateStudent}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select your primary class or course" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {courses.length > 0 ? (
+                                        courses.map((classItem) => (
+                                            <SelectItem key={classItem.id} value={classItem.id}>
+                                                {classItem.name}
+                                            </SelectItem>
+                                        ))
+                                    ) : (
+                                        <SelectItem value="no-courses" disabled>
+                                            No courses available/enrolled
                                         </SelectItem>
-                                    ))
-                                ) : (
-                                    <SelectItem value="no-courses" disabled>
-                                        No courses available/enrolled
-                                    </SelectItem>
-                                )}
-                            </SelectContent>
-                        </Select>
-                        {isCorporateStudent && <FormDescription>Your course is pre-assigned by your organization.</FormDescription>}
-                        {isOnboarding && !isCorporateStudent && !isCorporateManager && (
-                            <FormDescription>Select the main course you are enrolling in.</FormDescription>
-                        )}
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            {isCorporateStudent && (
+                                <FormDescription>Your course is pre-assigned by your organization.</FormDescription>
+                            )}
+                            {isOnboarding && !isCorporateStudent && !isCorporateManager && (
+                                <FormDescription>Select the main course you are enrolling in.</FormDescription>
+                            )}
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
 
             {/* Account Type (Onboarding Only) - Not for corporate students */}
-            {isOnboarding && !isCorporateStudent && (
+            {isOnboarding && !isCorporateStudent && userRole === "student" && (
                 <>
                     <FormField
                         control={form.control}

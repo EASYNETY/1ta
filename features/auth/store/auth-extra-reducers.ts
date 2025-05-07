@@ -7,6 +7,7 @@ import {
 	loginThunk,
 	signupThunk,
 	refreshTokenThunk,
+	createCorporateStudentSlotsThunk,
 } from "./auth-thunks";
 import type { AuthResponse } from "../types/auth-types";
 
@@ -97,12 +98,22 @@ export const addAuthExtraReducers = (builder: any) => {
 		fetchUserProfileThunk.fulfilled,
 		(state: AuthState, action: PayloadAction<User>) => {
 			state.isLoading = false;
-			state.user = {
-				...(state.user ?? {}),
-				...action.payload,
-				role: action.payload.role,
-			} as User;
-			state.isAuthenticated = true;
+
+			// Make sure we have a valid payload before trying to access properties
+			if (action.payload) {
+				state.user = {
+					...(state.user ?? {}),
+					...action.payload,
+					// Only set role if it exists in the payload
+					role: action.payload.role || state.user?.role || "student",
+				} as User;
+				state.isAuthenticated = true;
+			} else {
+				console.error(
+					"Received empty user payload in fetchUserProfileThunk.fulfilled"
+				);
+			}
+
 			state.isInitialized = true;
 		}
 	);
@@ -141,6 +152,35 @@ export const addAuthExtraReducers = (builder: any) => {
 		) => {
 			state.isLoading = false;
 			state.error = action.payload ?? "Failed to update profile";
+		}
+	);
+
+	// --- CREATE CORPORATE STUDENT SLOTS ---
+	builder.addCase(
+		createCorporateStudentSlotsThunk.pending,
+		(state: AuthState) => {
+			state.isLoading = true;
+			state.error = null;
+		}
+	);
+
+	builder.addCase(
+		createCorporateStudentSlotsThunk.fulfilled,
+		(state: AuthState) => {
+			state.isLoading = false;
+			// We don't need to update any state here as this doesn't directly affect the auth state
+		}
+	);
+
+	builder.addCase(
+		createCorporateStudentSlotsThunk.rejected,
+		(
+			state: AuthState,
+			action: ReturnType<typeof createCorporateStudentSlotsThunk.rejected>
+		) => {
+			state.isLoading = false;
+			state.error =
+				action.payload ?? "Failed to create corporate student slots";
 		}
 	);
 };

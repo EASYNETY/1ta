@@ -1,5 +1,4 @@
-// app/(authenticated)/chat/components/ChatLayout.tsx
-
+// app/(authenticated)/profile/page.tsx
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
@@ -23,17 +22,19 @@ import { ProfileAvatarInfo } from "@/components/profile/ProfileAvatarInfo"
 import { ProfileFormFields } from "@/components/profile/ProfileFormFields"
 import { CorporateManagerFields } from "@/components/profile/CorporateManagerFields"
 import { isStudent } from "@/types/user.types"
-import type { User } from "@/types/user.types"
-import type { StudentUser } from "@/types/user.types"
+import type { User, StudentUser, TeacherUser } from "@/types/user.types"
 
 // Define schema here or import from shared location
 const profileSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
     dateOfBirth: z.date().optional(),
     classId: z.string().optional(),
-    accountType: z.enum(["individual", "institutional"]).default("individual"),
+    accountType: z.enum(["individual", "corporate", "institutional"]).default("individual"),
     bio: z.string().optional(),
-    phone: z.string().optional(), // Changed from phoneNumber to phone to match User type
+    phone: z.string().optional(),
+    // Teacher specific fields
+    subjects: z.array(z.string()).optional().nullable(),
+    officeHours: z.string().optional(),
     // Corporate Onboarding Specific Fields
     isCorporateRegistration: z.boolean().optional(),
     companyName: z.string().optional(),
@@ -128,6 +129,8 @@ export default function ProfilePage() {
                 accountType: "individual",
                 bio: "",
                 phone: "",
+                subjects: [],
+                officeHours: "",
                 isCorporateRegistration: false,
                 companyName: "",
                 initialStudentCount: undefined,
@@ -148,7 +151,7 @@ export default function ProfilePage() {
                 name: user.name || "",
                 bio: user.bio || "",
                 phone: user.phone || "",
-                accountType: "individual", // Default value
+                accountType: user.accountType || "individual",
                 isCorporateRegistration: isStudent(user) ? user.isCorporateManager : false,
                 companyName: isStudent(user) ? user.corporateId || "" : "",
                 initialStudentCount: undefined,
@@ -156,14 +159,15 @@ export default function ProfilePage() {
                 purchasedStudentSlots: isStudent(user) ? user.purchasedStudentSlots || 0 : 0,
                 classId: defaultCourseId,
                 dateOfBirth: undefined,
+                subjects: [],
+                officeHours: "",
             }
 
             if (isStudent(user)) {
                 formValues.dateOfBirth = user.dateOfBirth ? new Date(user.dateOfBirth) : undefined
-
-                if (user.accountType === "corporate" || user.accountType === "institutional") {
-                    formValues.accountType = "institutional"
-                }
+            } else if (user.role === "teacher") {
+                formValues.subjects = user.subjects || []
+                formValues.officeHours = user.officeHours || ""
             }
 
             // Reset the form with the user data
@@ -221,6 +225,12 @@ export default function ProfilePage() {
                     form.setError("classId", { type: "manual", message: "Please select your course." })
                     isValid = false
                 }
+            } else if (user.role === "teacher") {
+                // Teacher Onboarding Validation
+                if (!data.subjects || data.subjects.length === 0) {
+                    form.setError("subjects", { type: "manual", message: "Please enter at least one subject." })
+                    isValid = false
+                }
             }
         }
         if (!data.name || data.name.trim().length < 2) {
@@ -244,7 +254,7 @@ export default function ProfilePage() {
                 // Base fields always included
                 name: data.name,
                 bio: data.bio || undefined,
-                phone: data.phone || undefined, // Changed from phoneNumber to phone
+                phone: data.phone || undefined,
             }
 
             // Create a separate student-specific payload if needed
@@ -297,6 +307,19 @@ export default function ProfilePage() {
 
                 // Use the properly typed payload
                 updatePayload = studentPayload
+            } else if (user.role === "teacher") {
+                // Teacher-specific fields
+                // Create a properly typed teacher payload
+                const teacherPayload = updatePayload as Partial<TeacherUser>
+                teacherPayload.subjects = data.subjects || []
+                teacherPayload.officeHours = data.officeHours || undefined
+
+                if (isOnboarding) {
+                    teacherPayload.onboardingStatus = "complete"
+                }
+
+                // Use the properly typed payload
+                updatePayload = teacherPayload
             } else if (isOnboarding) {
                 // For non-student roles during onboarding
                 updatePayload.onboardingStatus = "complete"

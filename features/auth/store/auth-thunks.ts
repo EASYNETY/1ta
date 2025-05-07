@@ -158,6 +158,12 @@ export const fetchUserProfileThunk = createAsyncThunk<
 	async (_, { rejectWithValue, getState }) => {
 		try {
 			const response = await get<{ success: boolean; data: User }>("/users/me");
+
+			// Ensure we have valid data before returning
+			if (!response || !response.data) {
+				return rejectWithValue("Invalid response format from API");
+			}
+
 			return response.data;
 		} catch (error: any) {
 			if (error.status === 401) {
@@ -169,6 +175,14 @@ export const fetchUserProfileThunk = createAsyncThunk<
 					const response = await get<{ success: boolean; data: User }>(
 						"/users/me"
 					);
+
+					// Ensure we have valid data before returning
+					if (!response || !response.data) {
+						return rejectWithValue(
+							"Invalid response format from API after token refresh"
+						);
+					}
+
 					return response.data;
 				} catch (refreshError) {
 					// If refresh fails, reject with the original error
@@ -202,8 +216,23 @@ export const updateUserProfileThunk = createAsyncThunk<
 		);
 		return response.data;
 	} catch (error: any) {
-		const errorMessage =
-			error instanceof Error ? error.message : "Failed to update profile";
+		let errorMessage = "Failed to update profile";
+
+		if (error instanceof ApiError && error.data) {
+			errorMessage = error.data.message || errorMessage;
+
+			// Handle validation errors
+			if (error.data.errors && Array.isArray(error.data.errors)) {
+				const validationErrors = error.data.errors
+					.map((err: any) => `${err.path}: ${err.msg}`)
+					.join(", ");
+
+				errorMessage = `${errorMessage}: ${validationErrors}`;
+			}
+		} else if (error instanceof Error) {
+			errorMessage = error.message;
+		}
+
 		return rejectWithValue(errorMessage);
 	}
 });
@@ -258,19 +287,42 @@ export const resetPasswordThunk = createAsyncThunk<
 	}
 });
 
+// --- Create Corporate Student Slots Thunk ---
+interface CreateSlotsParams {
+	corporateId: string;
+	studentCount: number;
+	courses: string[];
+}
 
-export const createCorporateStudentSlotsThunk = createAsyncThunk(
-	"auth/createCorporateStudentSlots",
-	async (payload: any, { rejectWithValue }) => {
-		try {
-			const response = await post("/corporate-student-slots", payload);
-			return response;
-		} catch (error: any) {
-			const errorMessage =
-				error instanceof Error
-					? error.message
-					: "Failed to create corporate student slots.";
-			return rejectWithValue(errorMessage);
+interface CreateSlotsResult {
+	success: boolean;
+	message: string;
+	data?: {
+		createdCount: number;
+		failedCount: number;
+	};
+}
+
+export const createCorporateStudentSlotsThunk = createAsyncThunk<
+	CreateSlotsResult,
+	CreateSlotsParams,
+	{ rejectValue: string }
+>("auth/createCorporateStudentSlots", async (payload, { rejectWithValue }) => {
+	try {
+		const response = await post<CreateSlotsResult>(
+			"/corporate/student-slots",
+			payload
+		);
+		return response;
+	} catch (error: any) {
+		let errorMessage = "Failed to create corporate student slots";
+
+		if (error instanceof ApiError && error.data) {
+			errorMessage = error.data.message || errorMessage;
+		} else if (error instanceof Error) {
+			errorMessage = error.message;
 		}
+
+		return rejectWithValue(errorMessage);
 	}
-);
+});

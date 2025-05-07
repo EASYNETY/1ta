@@ -1,4 +1,4 @@
-// src/lib/auth-api-client.ts
+// src/lib/live/auth-api-client.ts
 
 "use client";
 

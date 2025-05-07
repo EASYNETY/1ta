@@ -208,7 +208,7 @@ function convertToUserType(mockUser: MockUser): User {
 				corporateId: mockUser.corporateId,
 				corporateAccountName: mockUser.corporateAccountName,
 				isCorporateManager: mockUser.isCorporateManager || false,
-				purchasedStudentSlots: mockUser.purchasedStudentSlots, // <-- INCLUDE FIELD
+				purchasedStudentSlots: mockUser.purchasedStudentSlots,
 			} as StudentUser;
 
 		default:
@@ -216,7 +216,7 @@ function convertToUserType(mockUser: MockUser): User {
 	}
 }
 
-// --- Mock auth functions only ---
+// --- Mock auth functions with updated response structure ---
 export function login(credentials: {
 	email: string;
 	password: string;
@@ -232,9 +232,21 @@ export function login(credentials: {
 	// Update last login time
 	user.lastLogin = new Date().toISOString();
 
+	// Create tokens
+	const accessToken = `mock-token-${user.id}-${Date.now()}`;
+	const refreshToken = `mock-refresh-${user.id}-${Date.now()}`;
+
+	// Return in the new structure
 	return {
-		user: convertToUserType(user),
-		token: `mock-token-${user.id}-${Date.now()}`,
+		success: true,
+		message: "Login successful",
+		data: {
+			user: convertToUserType(user),
+			tokens: {
+				accessToken,
+				refreshToken,
+			},
+		},
 	};
 }
 
@@ -270,7 +282,7 @@ export function register(userData: {
 		barcodeId: userData.barcodeId || `TEMP-${Date.now()}`,
 		guardianId: null,
 		onboardingStatus: "incomplete",
-		accountType: accountType, // Set based on corporateId
+		accountType: accountType,
 		isActive: true,
 		createdAt: now,
 		updatedAt: now,
@@ -280,13 +292,26 @@ export function register(userData: {
 
 	users.push(newUser);
 
+	// Create tokens
+	const accessToken = `mock-token-${newUser.id}-${Date.now()}`;
+	const refreshToken = `mock-refresh-${newUser.id}-${Date.now()}`;
+
+	// Return in the new structure
 	return {
-		user: convertToUserType(newUser),
-		token: `mock-token-${newUser.id}-${Date.now()}`,
+		success: true,
+		message: "Registration successful",
+		data: {
+			user: convertToUserType(newUser),
+			tokens: {
+				accessToken,
+				refreshToken,
+			},
+		},
 	};
 }
 
 export function forgotPassword(payload: { email: string }): {
+	success: boolean;
 	message: string;
 } {
 	console.log(
@@ -303,12 +328,14 @@ export function forgotPassword(payload: { email: string }): {
 
 	// Always return a generic success message in mock mode for security parity
 	return {
+		success: true,
 		message:
 			"If an account with that email exists, a password reset link has been sent.",
 	};
 }
 
 export function resetPassword(payload: { token: string; password: string }): {
+	success: boolean;
 	message: string;
 } {
 	console.log(
@@ -331,12 +358,57 @@ export function resetPassword(payload: { token: string; password: string }): {
 		"background: #555; color: #eee"
 	);
 
-	return { message: "Password has been reset successfully." };
+	return {
+		success: true,
+		message: "Password has been reset successfully.",
+	};
 }
 
-// --- Profile management mock functions ---
+// --- Token refresh mock function ---
+export function refreshToken(refreshToken: string): {
+	success: boolean;
+	message: string;
+	data: {
+		tokens: {
+			accessToken: string;
+			refreshToken: string;
+		};
+	};
+} {
+	// Validate the refresh token (in a real implementation, this would be more complex)
+	if (!refreshToken || refreshToken.indexOf("mock-refresh-") !== 0) {
+		throw new Error("Invalid refresh token");
+	}
 
-export function mockGetMyProfile(): User {
+	// Extract user ID from the token
+	const parts = refreshToken.split("-");
+	const userId = parts[2]; // Assuming format is mock-refresh-userId-timestamp
+
+	// Find the user
+	const user = users.find((u) => u.id === userId);
+	if (!user) {
+		throw new Error("User not found for this refresh token");
+	}
+
+	// Generate new tokens
+	const newAccessToken = `mock-token-${userId}-${Date.now()}`;
+	const newRefreshToken = `mock-refresh-${userId}-${Date.now()}`;
+
+	return {
+		success: true,
+		message: "Token refreshed successfully",
+		data: {
+			tokens: {
+				accessToken: newAccessToken,
+				refreshToken: newRefreshToken,
+			},
+		},
+	};
+}
+
+// --- Profile management mock functions with updated response structure ---
+
+export function mockGetMyProfile(): { success: boolean; data: User } {
 	// For testing purposes, return a specific user
 	// In a real implementation, this would use the token to identify the user
 	const mockUserId = "admin_1"; // Using the incomplete profile user for testing
@@ -346,10 +418,16 @@ export function mockGetMyProfile(): User {
 		throw new Error("User not found");
 	}
 
-	return convertToUserType(user);
+	return {
+		success: true,
+		data: convertToUserType(user),
+	};
 }
 
-export function mockUpdateMyProfile(profileData: Partial<User>): User {
+export function mockUpdateMyProfile(profileData: Partial<User>): {
+	success: boolean;
+	data: User;
+} {
 	// For testing purposes, update a specific user
 	const mockUserId = "corp_manager_1"; // Using the incomplete profile user for testing
 	const userIndex = users.findIndex((u) => u.id === mockUserId);
@@ -399,16 +477,25 @@ export function mockUpdateMyProfile(profileData: Partial<User>): User {
 	// Save the updated user
 	users[userIndex] = updatedUser;
 
-	return convertToUserType(updatedUser);
+	return {
+		success: true,
+		data: convertToUserType(updatedUser),
+	};
 }
 
-// --- Corporate management mock functions ---
+// --- Corporate management mock functions with updated response structure ---
 
 export function createCorporateStudentSlots(params: {
 	corporateId: string;
-	studentCount: number; // How many slots are being requested *now*
-	courses: string[]; // Course IDs to initially assign (optional?)
-}): { success: boolean; createdStudents: number; message?: string } {
+	studentCount: number;
+	courses: string[];
+}): {
+	success: boolean;
+	data: {
+		createdStudents: number;
+		message: string;
+	};
+} {
 	console.log(
 		`MOCK API: Creating ${params.studentCount} slots for ${params.corporateId}`
 	);
@@ -428,7 +515,7 @@ export function createCorporateStudentSlots(params: {
 	const currentCorpStudents = users.filter(
 		(u) => u.corporateId === params.corporateId && !u.isCorporateManager
 	).length;
-	const purchasedSlots = manager.purchasedStudentSlots ?? 0; // Default to 0 if null/undefined
+	const purchasedSlots = manager.purchasedStudentSlots ?? 0;
 	const availableSlots = purchasedSlots - currentCorpStudents;
 
 	if (params.studentCount > availableSlots) {
@@ -454,27 +541,32 @@ export function createCorporateStudentSlots(params: {
 			password: "defaultPassword123", // Should be securely generated/managed
 			role: "student",
 			dateOfBirth: null,
-			// Assign to the *first* selected course ID, or null if none selected?
-			// Or require course selection for slot creation? Let's assign first for now.
 			classId: params.courses[0] || null,
 			barcodeId: `CORP-${params.corporateId.substring(0, 4).toUpperCase()}-${Date.now()}-${i}`,
 			guardianId: null,
 			onboardingStatus: "incomplete",
 			accountType: "corporate",
-			isActive: true, // Activate immediately or require manager action? Activate for now.
+			isActive: true,
 			createdAt: now,
 			updatedAt: now,
 			corporateId: params.corporateId,
-			corporateAccountName: manager.corporateAccountName || params.corporateId, // Inherit name
+			corporateAccountName: manager.corporateAccountName || params.corporateId,
 			isCorporateManager: false,
-			purchasedStudentSlots: null, // Not applicable to managed students
+			purchasedStudentSlots: null,
 		};
-		users.push(newStudent); // Add to the main user list
+		users.push(newStudent);
 		createdCount++;
 	}
 
 	console.log(
 		`MOCK: Successfully created ${createdCount} student slots for ${params.corporateId}. Total students now: ${currentCorpStudents + createdCount}/${purchasedSlots}`
 	);
-	return { success: true, createdStudents: createdCount };
+
+	return {
+		success: true,
+		data: {
+			createdStudents: createdCount,
+			message: `Successfully created ${createdCount} student slots`,
+		},
+	};
 }
