@@ -151,6 +151,29 @@ export function ProfileFormFields({
                 )}
             />
 
+            {/* Address - Only for students */}
+            {userRole === "student" && (
+                <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    {...field}
+                                    value={field.value ?? ""}
+                                    placeholder="Enter your address"
+                                    className="min-h-[80px]"
+                                />
+                            </FormControl>
+                            <FormDescription>Your physical address for correspondence</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            )}
+
             {/* Date of Birth - Not required for corporate managers */}
             {userRole === "student" && !isCorporateManager && (
                 <FormField
@@ -279,7 +302,7 @@ export function ProfileFormFields({
                 <Input id="email-readonly" type="email" value={userEmail} disabled className="bg-muted/50 cursor-not-allowed" />
                 <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
                 <Label htmlFor="role-readonly">Role</Label>
                 <Input
                     id="role-readonly"
@@ -288,7 +311,7 @@ export function ProfileFormFields({
                     className="bg-muted/50 cursor-not-allowed capitalize"
                 />
                 <p className="text-xs text-muted-foreground">Role cannot be changed.</p>
-            </div>
+            </div> */}
         </div>
     )
 }

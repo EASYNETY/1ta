@@ -54,6 +54,9 @@ export interface StudentUser extends BaseUser {
 	/** Student's date of birth (ISO format). Required for individual students. Null initially. */
 	dateOfBirth?: string | null;
 
+	/** Student's preferred pronouns. Optional. Editable via Profile. */
+	address?: string | null;
+
 	/** Barcode identifier for attendance scanning. Required after onboarding. */
 	barcodeId?: string;
 

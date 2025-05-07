@@ -27,6 +27,7 @@ import type { User, StudentUser, TeacherUser } from "@/types/user.types"
 // Define schema here or import from shared location
 const profileSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    address: z.string().optional(),
     dateOfBirth: z.date().optional(),
     classId: z.string().optional(),
     accountType: z.enum(["individual", "corporate", "institutional"]).default("individual"),
@@ -124,6 +125,7 @@ export default function ProfilePage() {
             // Return empty defaults initially
             return {
                 name: "",
+                address: "",
                 dateOfBirth: undefined,
                 classId: "",
                 accountType: "individual",
@@ -149,6 +151,7 @@ export default function ProfilePage() {
             // Create form values based on user data
             const formValues: ProfileFormValues = {
                 name: user.name || "",
+                address: isStudent(user) ? user.address || "" : "",
                 bio: user.bio || "",
                 phone: user.phone || "",
                 accountType: user.accountType || "individual",
@@ -261,6 +264,9 @@ export default function ProfilePage() {
             if (isStudent(user) || (isOnboarding && !data.isCorporateRegistration)) {
                 // Cast to StudentUser for student-specific properties
                 const studentPayload = updatePayload as Partial<StudentUser>
+
+                // Add address only for students
+                studentPayload.address = data.address || undefined
 
                 if (data.dateOfBirth) {
                     studentPayload.dateOfBirth = data.dateOfBirth.toISOString()
