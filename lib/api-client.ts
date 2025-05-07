@@ -325,7 +325,7 @@ async function apiClient<T>(
 }
 
 // --- Handle MOCK Requests ---
-async function handleMockRequest<T>(
+export async function handleMockRequest<T>(
 	endpoint: string,
 	options: FetchOptions
 ): Promise<T> {

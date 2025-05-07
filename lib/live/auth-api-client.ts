@@ -2,6 +2,7 @@
 
 "use client";
 
+import { handleMockRequest } from "../api-client";
 import { getAuthToken, handleUnauthorized } from "../auth-service";
 
 // --- Config ---
@@ -69,6 +70,15 @@ async function apiClient<T>(
 	}
 
 	const config: RequestInit = { ...fetchOptions, headers };
+
+	// --- MOCK Handling ---
+	if (!IS_LIVE_API) {
+		console.log(
+			`%cAPI Client: Using MOCK for ${options.method || "GET"} ${endpoint}`,
+			"color: orange;"
+		);
+		return handleMockRequest<T>(endpoint, options);
+	}
 
 	// --- LIVE Handling ---
 	try {
