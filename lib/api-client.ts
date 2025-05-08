@@ -345,6 +345,12 @@ export async function handleMockRequest<T>(
 		} catch {}
 	}
 
+	// --- Primary Debug Log ---
+	console.log(
+		`%c[DEBUG] handleMockRequest: Entry\n  Endpoint: "${endpoint}"\n  Method: "${method}"\n  options.url: "${options.url}"`,
+		"color: blue; font-weight: bold;"
+	);
+
 	// --- Courses
 	if (endpoint === "/courses" && method === "get") {
 		return (await getMockCourses()) as unknown as T;
@@ -893,35 +899,81 @@ export async function handleMockRequest<T>(
 	}
 
 	// --- Chat Mocks ---
+	console.log(
+		"%c[DEBUG] handleMockRequest: Checking Chat Mocks...",
+		"color: blue;"
+	);
+
+	// Handler for GET /chat/rooms/user/:userId
 	const chatRoomsForUserMatch = endpoint.match(/^\/chat\/rooms\/user\/(.+)$/);
 	if (chatRoomsForUserMatch && method === "get") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Chat Rooms (GET /chat/rooms/user/:userId)`,
+			"color: green; font-weight: bold;"
+		);
 		const userId = chatRoomsForUserMatch[1];
 		console.log(
 			`%cAPI Client MOCK: GET /chat/rooms/user/${userId}`,
 			"color: orange;"
 		);
 		try {
-			const response = await getMockChatRooms(userId); // Calls updated mock
-			return response as unknown as T; // Returns { rooms: [], total: N }
+			const response = await getMockChatRooms(userId);
+			return response as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for GET /chat/rooms:", error.message);
 			throw { response: { data: { message: error.message }, status: 500 } };
 		}
+	} else {
+		console.log(
+			"%c[DEBUG] handleMockRequest: NO MATCH for Chat Rooms",
+			"color: gray;"
+		);
 	}
 
-	if (endpoint === "/chat/messages" && method === "get") {
-		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+	// Handler for GET /chat/messages
+	// Let's test both exact match and startsWith for the endpoint
+	const cleanEndpoint = endpoint.split("?")[0]; // Get path without query string
+
+	console.log(
+		`%c[DEBUG] handleMockRequest: Testing for GET /chat/messages. Cleaned endpoint: "${cleanEndpoint}"`,
+		"color: blue;"
+	);
+
+	if (cleanEndpoint === "/chat/messages" && method === "get") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Chat Messages (GET /chat/messages)`,
+			"color: green; font-weight: bold;"
+		);
+
+		// Use options.url for query params as it's generally more reliable if passed
+		const queryString = options.url?.includes("?")
+			? options.url.split("?")[1]
+			: endpoint.split("?")[1];
+		const urlParams = new URLSearchParams(queryString || "");
+
 		const roomId = urlParams.get("roomId");
 		const page = parseInt(urlParams.get("page") || "1", 10);
 		const limit = parseInt(urlParams.get("limit") || "30", 10);
-		if (!roomId) throw new Error("Mock Error: roomId required");
+
 		console.log(
-			`%cAPI Client MOCK: GET /chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`,
+			`%c[DEBUG] Parsed Params: roomId=${roomId}, page=${page}, limit=${limit} from queryString: "${queryString}"`,
+			"color: purple;"
+		);
+
+		if (!roomId) {
+			console.error(
+				"Mock API Error: roomId parameter is required for /chat/messages"
+			);
+			throw new Error("Mock Error: roomId required for fetching messages");
+		}
+
+		console.log(
+			`%cAPI Client MOCK: Calling getMockChatMessages for roomId=${roomId}, page=${page}, limit=${limit}`,
 			"color: orange;"
 		);
 		try {
-			const response = await getMockChatMessages(roomId, page, limit); // Calls updated mock
-			return response as unknown as T; // Returns { messages: [], total: N, hasMore: bool }
+			const response = await getMockChatMessages(roomId, page, limit);
+			return response as unknown as T;
 		} catch (error: any) {
 			console.error(
 				`Mock API Error for GET /chat/messages (Room ${roomId}):`,
@@ -929,12 +981,22 @@ export async function handleMockRequest<T>(
 			);
 			throw { response: { data: { message: error.message }, status: 500 } };
 		}
+	} else {
+		console.log(
+			`%c[DEBUG] handleMockRequest: NO MATCH for GET /chat/messages. (endpoint: "${endpoint}", cleanEndpoint: "${cleanEndpoint}", method: "${method}")`,
+			"color: gray;"
+		);
 	}
 
+	// Handler for POST /chat/messages
 	if (endpoint === "/chat/messages" && method === "post") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Chat Messages (POST /chat/messages)`,
+			"color: green; font-weight: bold;"
+		);
 		if (!body?.roomId || !body?.content)
 			throw new Error("Mock Error: roomId and content required");
-		const senderId = body.senderId || "unknown_mock_sender"; // Get senderId passed from thunk
+		const senderId = body.senderId || "unknown_mock_sender";
 		console.log(
 			`%cAPI Client MOCK: POST /chat/messages (Room: ${body.roomId}, Sender: ${senderId})`,
 			"color: orange;"
@@ -944,11 +1006,19 @@ export async function handleMockRequest<T>(
 				body.roomId,
 				senderId,
 				body.content
-			); // Calls updated mock
-			return response as unknown as T; // Returns { message: {...}, success: true }
+			);
+			return response as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for POST /chat/messages:", error.message);
 			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	} else {
+		// Only log NO MATCH if it wasn't a GET request for /chat/messages either
+		if (!(cleanEndpoint === "/chat/messages" && method === "get")) {
+			console.log(
+				"%c[DEBUG] handleMockRequest: NO MATCH for POST /chat/messages",
+				"color: gray;"
+			);
 		}
 	}
 	// --- End Chat Mocks ---

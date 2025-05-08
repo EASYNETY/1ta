@@ -10,12 +10,13 @@ import { AlertCircle } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import {
-    fetchChatMessages,
+
     selectCurrentRoomMessages,
     selectMessageStatusForRoom,
     selectSelectedRoomId,
 } from "../store/chatSlice"
 import { ChatMessage } from "./ChatMessage"
+import { fetchChatMessages } from "../store/chat-thunks"
 
 export const ChatMessageList: React.FC = () => {
     const dispatch = useAppDispatch()
