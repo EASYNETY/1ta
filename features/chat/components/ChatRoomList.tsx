@@ -170,7 +170,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
             {/* Create Chat DyraneButton (for teachers/admins only) */}
             {(currentUser?.role === "teacher" || currentUser?.role === "admin") && (
-                <div className="p-4 border-t">
+                <div className="p-4 py-5 border-t">
                     <DyraneButton className="w-full" size="sm">
                         <MessageSquarePlus className="mr-2 h-4 w-4" />
                         Create Chat Room
