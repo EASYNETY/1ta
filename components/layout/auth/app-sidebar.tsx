@@ -68,7 +68,7 @@ export const adminNavItems: NavItem[] = [
     { title: "Payments", href: "/payments", icon: BarChart3, roles: ["admin"] },
     { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["admin"] },
     {
-        title: "Feedback",
+        title: "Feedbacks",
         href: "/support/feedback",
         icon: Chat,
         roles: ["admin"],
