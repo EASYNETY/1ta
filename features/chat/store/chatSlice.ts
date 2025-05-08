@@ -2,91 +2,18 @@
 
 import {
 	createSlice,
-	createAsyncThunk,
 	type PayloadAction,
 	createSelector,
 } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import type {
-	ChatState,
-	ChatRoom,
-	ChatMessage,
-	FetchRoomsResponse,
-	FetchMessagesResponse,
-	SendMessageResponse,
-} from "../types/chat-types";
+import type { ChatState, ChatRoom, ChatMessage } from "../types/chat-types";
+import {
+	fetchChatRooms,
+	fetchChatMessages,
+	sendChatMessage,
+} from "./chat-thunks";
 
-// Import API client
-import { get, post } from "@/lib/api-client";
-
-// --- Async Thunks ---
-export const fetchChatRooms = createAsyncThunk<
-	ChatRoom[],
-	string, // userId
-	{ rejectValue: string }
->("chat/fetchRooms", async (userId, { rejectWithValue }) => {
-	try {
-		// In a real app, we'd use the API client to fetch rooms
-		const response = await get<FetchRoomsResponse>(
-			`/chat/rooms/user/${userId}`
-		);
-		return response.rooms;
-	} catch (e: any) {
-		return rejectWithValue(e.message || "Failed to fetch chat rooms");
-	}
-});
-
-interface FetchMessagesParams {
-	roomId: string;
-	page?: number;
-	limit?: number;
-}
-
-export const fetchChatMessages = createAsyncThunk<
-	ChatMessage[],
-	FetchMessagesParams,
-	{ rejectValue: string }
->(
-	"chat/fetchMessages",
-	async ({ roomId, page = 1, limit = 30 }, { rejectWithValue }) => {
-		try {
-			const response = await get<FetchMessagesResponse>(
-				`/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`
-			);
-			return response.messages;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to fetch messages");
-		}
-	}
-);
-
-interface SendMessageParams {
-	roomId: string;
-	senderId: string;
-	content: string;
-}
-
-export const sendChatMessage = createAsyncThunk<
-	ChatMessage,
-	SendMessageParams,
-	{ rejectValue: string }
->(
-	"chat/sendMessage",
-	async ({ roomId, senderId, content }, { rejectWithValue }) => {
-		try {
-			const response = await post<SendMessageResponse>("/chat/messages", {
-				roomId,
-				content,
-				// senderId is typically derived from the authenticated user on the server
-			});
-			return response.message;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to send message");
-		}
-	}
-);
-
-// --- Initial State ---
+// Initial state
 const initialState: ChatState = {
 	rooms: [],
 	messagesByRoom: {},
@@ -97,7 +24,7 @@ const initialState: ChatState = {
 	error: null,
 };
 
-// --- Slice Definition ---
+// Slice definition
 const chatSlice = createSlice({
 	name: "chat",
 	initialState,
@@ -251,7 +178,7 @@ const chatSlice = createSlice({
 	},
 });
 
-// --- Actions & Selectors ---
+// Actions & Selectors
 export const { selectChatRoom, clearChatError, messageReceived } =
 	chatSlice.actions;
 

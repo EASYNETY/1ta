@@ -10,7 +10,6 @@ import { AlertCircle, MessageSquarePlus, Search } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import {
-    fetchChatRooms,
     selectChatRooms,
     selectRoomStatus,
     selectSelectedRoomId,
@@ -19,6 +18,7 @@ import {
 import { ChatRoomItem } from "./ChatRoomItem"
 import { ChatRoomType } from "../types/chat-types"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { fetchChatRooms } from "../store/chat-thunks"
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
