@@ -11,6 +11,7 @@ import {
 	fetchChatRooms,
 	fetchChatMessages,
 	sendChatMessage,
+	createChatRoom,
 } from "./chat-thunks";
 
 // Initial state
@@ -19,9 +20,11 @@ const initialState: ChatState = {
 	messagesByRoom: {},
 	selectedRoomId: null,
 	roomStatus: "idle",
+	createRoomStatus: "idle",
 	messageStatus: {},
 	sendMessageStatus: "idle",
 	error: null,
+	createRoomError: null,
 };
 
 // Slice definition
@@ -77,6 +80,10 @@ const chatSlice = createSlice({
 						(state.rooms[roomIndex].unreadCount || 0) + 1;
 				}
 			}
+		},
+		clearCreateRoomStatus: (state) => {
+			state.createRoomStatus = "idle";
+			state.createRoomError = null;
 		},
 	},
 	extraReducers: (builder) => {
@@ -175,12 +182,39 @@ const chatSlice = createSlice({
 				state.sendMessageStatus = "failed";
 				state.error = action.payload ?? "Failed to send message";
 			});
+		// VVVV NEW EXTRA REDUCERS FOR createChatRoom VVVV
+		builder
+			.addCase(createChatRoom.pending, (state) => {
+				state.createRoomStatus = "loading";
+				state.createRoomError = null;
+			})
+			.addCase(
+				createChatRoom.fulfilled,
+				(state, action: PayloadAction<ChatRoom>) => {
+					state.createRoomStatus = "succeeded";
+					// Add the new room to the list, avoid duplicates
+					if (!state.rooms.find((room) => room.id === action.payload.id)) {
+						state.rooms.unshift(action.payload); // Add to the beginning
+					}
+					// Optionally, auto-select the newly created room
+					// state.selectedRoomId = action.payload.id;
+				}
+			)
+			.addCase(createChatRoom.rejected, (state, action) => {
+				state.createRoomStatus = "failed";
+				state.createRoomError = action.payload ?? "Unknown error creating room";
+			});
+		// ^^^^ END OF NEW EXTRA REDUCERS ^^^^
 	},
 });
 
 // Actions & Selectors
-export const { selectChatRoom, clearChatError, messageReceived } =
-	chatSlice.actions;
+export const {
+	selectChatRoom,
+	clearChatError,
+	messageReceived,
+	clearCreateRoomStatus,
+} = chatSlice.actions;
 
 // Basic selectors
 export const selectChatRooms = (state: RootState) => state.chat.rooms;
@@ -192,7 +226,11 @@ export const selectRoomStatus = (state: RootState) => state.chat.roomStatus;
 export const selectSendMessageStatus = (state: RootState) =>
 	state.chat.sendMessageStatus;
 export const selectChatError = (state: RootState) => state.chat.error;
-
+// New selectors for create room status
+export const selectCreateRoomStatus = (state: RootState) =>
+	state.chat.createRoomStatus;
+export const selectCreateRoomError = (state: RootState) =>
+	state.chat.createRoomError;
 // Derived selectors
 export const selectCurrentRoomMessages = createSelector(
 	[selectMessagesByRoom, selectSelectedRoomId],

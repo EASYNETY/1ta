@@ -8,6 +8,8 @@ import {
 	SendMessageResponse,
 	FetchRoomsResponse,
 	FetchMessagesResponse,
+	CreateRoomResponse,
+	CreateRoomPayload,
 } from "@/features/chat/types/chat-types"; // Use refined types
 import { subHours, subMinutes, formatISO } from "date-fns";
 // Import the *exported* users array from your auth mock data
@@ -368,3 +370,69 @@ export const createMockChatMessage = async (
 };
 
 // TODO: Add mock functions for createRoom, markRead etc. if needed
+
+export const createMockChatRoom = async (
+	payload: CreateRoomPayload
+): Promise<CreateRoomResponse> => {
+	console.log(`MOCK: Creating chat room with payload:`, payload);
+	await new Promise((res) => setTimeout(res, 300));
+
+	const creator = mockParticipants[payload.createdBy];
+	if (!creator) {
+		throw new Error("Mock Error: Invalid creator ID for chat room.");
+	}
+
+	const participants: ChatParticipant[] = payload.participantIds
+		.map((pid) => mockParticipants[pid])
+		.filter((p) => p !== undefined) as ChatParticipant[];
+
+	// For course/class/event, ensure the creator (if teacher) is a participant
+	if (
+		(payload.type === ChatRoomType.COURSE ||
+			payload.type === ChatRoomType.CLASS ||
+			payload.type === ChatRoomType.EVENT) &&
+		creator.role === "teacher" &&
+		!participants.some((p) => p.id === creator.id)
+	) {
+		participants.push(creator);
+	}
+	// For announcements, all users might be implicitly participants or handled by a special rule
+	// Or, if explicit, ensure the admin creator is listed.
+	if (
+		payload.type === ChatRoomType.ANNOUNCEMENT &&
+		creator.role === "admin" &&
+		!participants.some((p) => p.id === creator.id)
+	) {
+		// For mock, let's add creator if not present. Real system might add all users automatically to announcements.
+		participants.push(creator);
+	}
+
+	const newRoom: ChatRoom = {
+		id: `room_${payload.type}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`,
+		name: payload.name,
+		description: payload.description,
+		type: payload.type,
+		contextId: payload.contextId,
+		participants: participants, // Use the resolved ChatParticipant objects
+		lastMessage: undefined, // No last message initially
+		unreadCount: 0,
+		isGroupChat: true, // Assuming most created rooms are group chats
+		createdAt: formatISO(new Date()),
+		updatedAt: formatISO(new Date()),
+		createdBy: payload.createdBy,
+		// iconUrl: generateIconForRoomType(payload.type), // You could have a helper for this
+	};
+
+	mockRooms.unshift(newRoom); // Add to the beginning of the list for visibility
+
+	// Populate participant details again for the response, similar to getMockChatRooms
+	const populatedNewRoom = {
+		...newRoom,
+		participants: newRoom.participants.map(
+			(pRef) => mockParticipants[pRef.id] || pRef
+		),
+	};
+
+	return { room: JSON.parse(JSON.stringify(populatedNewRoom)), success: true };
+};
+

@@ -96,6 +96,7 @@ import {
 } from "@/data/mock-payment-data";
 import {
 	createMockChatMessage,
+	createMockChatRoom,
 	getMockChatMessages,
 	getMockChatRooms,
 } from "@/data/mock-chat-data";
@@ -986,6 +987,27 @@ export async function handleMockRequest<T>(
 			`%c[DEBUG] handleMockRequest: NO MATCH for GET /chat/messages. (endpoint: "${endpoint}", cleanEndpoint: "${cleanEndpoint}", method: "${method}")`,
 			"color: gray;"
 		);
+	}
+
+	if (endpoint === "/chat/rooms" && method === "post") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Create Chat Room (POST /chat/rooms)`,
+			"color: green; font-weight: bold;"
+		);
+		if (!body) {
+			console.error("Mock API Error: Missing body for POST /chat/rooms");
+			throw new Error(
+				"Mock API Error: Missing request body for creating chat room."
+			);
+		}
+		try {
+			// body should be CreateRoomPayload
+			const response = await createMockChatRoom(body);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /chat/rooms:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
 	}
 
 	// Handler for POST /chat/messages

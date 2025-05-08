@@ -19,6 +19,7 @@ import { ChatRoomItem } from "./ChatRoomItem"
 import { ChatRoomType } from "../types/chat-types"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { fetchChatRooms } from "../store/chat-thunks"
+import Link from "next/link"
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -171,9 +172,11 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             {/* Create Chat DyraneButton (for teachers/admins only) */}
             {(currentUser?.role === "teacher" || currentUser?.role === "admin") && (
                 <div className="p-4 py-5 border-t">
-                    <DyraneButton className="w-full" size="sm">
-                        <MessageSquarePlus className="mr-2 h-4 w-4" />
-                        Create Chat Room
+                    <DyraneButton className="w-full" size="sm" asChild>
+                        {/* Use asChild with Link */}
+                        <Link href="/chat/create">
+                            <MessageSquarePlus className="mr-2 h-4 w-4" />
+                            Create Chat Room</Link>
                     </DyraneButton>
                 </div>
             )}
