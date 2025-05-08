@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree } from "phosphor-react";
+import { Calendar, Chat, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree } from "phosphor-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
@@ -67,6 +67,13 @@ export const adminNavItems: NavItem[] = [
     // { title: "Pricing", href: "/admin/pricing", icon: Money, roles: ["admin"] },
     { title: "Payments", href: "/payments", icon: BarChart3, roles: ["admin"] },
     { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["admin"] },
+    {
+        title: "Feedback",
+        href: "/support/feedback",
+        icon: Chat,
+        roles: ["admin"],
+    }
+
 ];
 
 

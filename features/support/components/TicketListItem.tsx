@@ -9,6 +9,8 @@ import { parseISO } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { SupportTicket, TicketStatus, TicketPriority } from '../types/support-types';
 import { Tag, MessageSquare, Clock } from 'lucide-react'; // Icons
+import { useAppSelector } from '@/store/hooks';
+import { isAdmin } from '@/types/user.types';
 
 interface TicketListItemProps {
     ticket: SupportTicket;
@@ -35,6 +37,8 @@ export const getPriorityStyles = (priority: TicketPriority): string => {
 }
 
 export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
+    const { user } = useAppSelector(state => state.auth);
+
     const formatTimeAgo = (dateString?: string) => {
         if (!dateString) return '';
         try {
@@ -44,9 +48,14 @@ export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
         }
     };
 
+    // Determine the link based on user role
+    const ticketLink = user && isAdmin(user)
+        ? `/admin/tickets/${ticket.id}`
+        : `/support/tickets/${ticket.id}`;
+
     return (
         <DyraneCard className="hover:shadow-md transition-shadow duration-150">
-            <Link href={`/support/tickets/${ticket.id}`} className="block">
+            <Link href={ticketLink} className="block">
                 <CardContent className="p-4 flex flex-col sm:flex-row justify-between gap-4">
                     <div className="flex-1 overflow-hidden">
                         <div className="flex items-center gap-2 mb-1">

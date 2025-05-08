@@ -4,9 +4,7 @@ import type {
 	TicketResponse,
 	FeedbackRecord,
 	TicketStatus,
-	TicketPriority,
 	FeedbackType,
-	FeedbackStatus,
 	CreateTicketPayload,
 	SubmitFeedbackPayload,
 	AddTicketResponsePayload,
@@ -14,11 +12,11 @@ import type {
 import { formatISO, subDays, subHours } from "date-fns";
 
 // In-memory store for mock data
-let mockTickets: SupportTicket[] = [
+const mockTickets: SupportTicket[] = [
 	{
 		id: "ticket_1",
-		studentId: "student_123",
-		studentName: "Alice Student",
+		studentId: "student_1", // Updated to match mock auth user ID
+		studentName: "Student User",
 		subject: "Cannot Access Course Video Week 3",
 		description:
 			"The video for PMP Training Day 3 seems broken, it stops playing after 2 minutes. Tried different browsers.",
@@ -30,19 +28,19 @@ let mockTickets: SupportTicket[] = [
 			{
 				id: "resp_1_1",
 				ticketId: "ticket_1",
-				userId: "admin_001",
-				userName: "Support Staff",
+				userId: "admin_1", // Updated to match mock auth user ID
+				userName: "Admin User",
 				userRole: "admin",
 				message:
-					"Thanks for reporting, Alice. We are looking into the video issue now.",
+					"Thanks for reporting. We are looking into the video issue now.",
 				createdAt: formatISO(subHours(new Date(), 4)),
 			},
 		],
 	},
 	{
 		id: "ticket_2",
-		studentId: "student_456",
-		studentName: "Bob Learner",
+		studentId: "student_2",
+		studentName: "New Student",
 		subject: "Question about Assignment 1",
 		description:
 			"What is the exact deadline for the first Web Dev assignment? The syllabus says Friday but the portal says Saturday.",
@@ -54,19 +52,19 @@ let mockTickets: SupportTicket[] = [
 			{
 				id: "resp_2_1",
 				ticketId: "ticket_2",
-				userId: "teacher_789",
-				userName: "Michael Chen",
+				userId: "teacher_1",
+				userName: "Teacher User",
 				userRole: "teacher",
 				message:
-					"Good question, Bob. Let me confirm the official deadline with admin and get back to you.",
+					"Good question. Let me confirm the official deadline with admin and get back to you.",
 				createdAt: formatISO(subDays(new Date(), 1)),
 			},
 		],
 	},
 	{
 		id: "ticket_3",
-		studentId: "student_123",
-		studentName: "Alice Student",
+		studentId: "student_1",
+		studentName: "Student User",
 		subject: "Invoice Discrepancy",
 		description:
 			"My latest invoice seems to be double the expected amount for the Pro plan.",
@@ -78,31 +76,134 @@ let mockTickets: SupportTicket[] = [
 			{
 				id: "resp_3_1",
 				ticketId: "ticket_3",
-				userId: "admin_001",
-				userName: "Support Staff",
+				userId: "admin_1",
+				userName: "Admin User",
 				userRole: "admin",
 				message:
-					"Apologies Alice, there was a system glitch. We have corrected the invoice and resent it. Please check your email.",
+					"Apologies, there was a system glitch. We have corrected the invoice and resent it. Please check your email.",
 				createdAt: formatISO(subDays(new Date(), 8)),
 			},
 			{
 				id: "resp_3_2",
 				ticketId: "ticket_3",
-				userId: "student_123",
-				userName: "Alice Student",
+				userId: "student_1",
+				userName: "Student User",
 				userRole: "student",
 				message: "Got it, thank you!",
 				createdAt: formatISO(subDays(new Date(), 7)),
 			},
 		],
 	},
+	{
+		id: "ticket_4",
+		studentId: "corp_student_1",
+		studentName: "Corporate Student",
+		subject: "Access to Premium Course Materials",
+		description:
+			"Our company purchased the premium package, but I can't access the advanced modules in the Data Science course.",
+		priority: "high",
+		status: "open",
+		createdAt: formatISO(subDays(new Date(), 3)),
+		updatedAt: formatISO(subDays(new Date(), 3)),
+		responses: [],
+	},
+	{
+		id: "ticket_5",
+		studentId: "corp_manager_1",
+		studentName: "Corporate Manager",
+		subject: "Bulk Student Registration Issue",
+		description:
+			"I'm trying to register 15 new students but the system keeps timing out after the 10th student.",
+		priority: "urgent",
+		status: "in_progress",
+		createdAt: formatISO(subDays(new Date(), 4)),
+		updatedAt: formatISO(subHours(new Date(), 12)),
+		responses: [
+			{
+				id: "resp_5_1",
+				ticketId: "ticket_5",
+				userId: "admin_1",
+				userName: "Admin User",
+				userRole: "admin",
+				message:
+					"We're investigating this issue. As a temporary workaround, could you try registering them in smaller batches of 5?",
+				createdAt: formatISO(subHours(new Date(), 12)),
+			},
+		],
+	},
+	{
+		id: "ticket_6",
+		studentId: "student_2",
+		studentName: "New Student",
+		subject: "Reset Password Not Working",
+		description:
+			"I requested a password reset but never received the email. I've checked my spam folder.",
+		priority: "medium",
+		status: "closed",
+		createdAt: formatISO(subDays(new Date(), 15)),
+		updatedAt: formatISO(subDays(new Date(), 14)),
+		responses: [
+			{
+				id: "resp_6_1",
+				ticketId: "ticket_6",
+				userId: "admin_1",
+				userName: "Admin User",
+				userRole: "admin",
+				message:
+					"I've manually reset your password to 'Temporary123' and sent the details to your registered email. Please log in and change it immediately.",
+				createdAt: formatISO(subDays(new Date(), 14)),
+			},
+			{
+				id: "resp_6_2",
+				ticketId: "ticket_6",
+				userId: "student_2",
+				userName: "New Student",
+				userRole: "student",
+				message: "Got it working now, thanks!",
+				createdAt: formatISO(subDays(new Date(), 14)),
+			},
+		],
+	},
+	{
+		id: "ticket_7",
+		studentId: "corp_student_2",
+		studentName: "New Corporate Student",
+		subject: "Course Certificate Not Generated",
+		description:
+			"I completed the JavaScript Fundamentals course two weeks ago with a 92% score, but my certificate hasn't been generated yet.",
+		priority: "low",
+		status: "resolved",
+		createdAt: formatISO(subDays(new Date(), 8)),
+		updatedAt: formatISO(subDays(new Date(), 6)),
+		responses: [
+			{
+				id: "resp_7_1",
+				ticketId: "ticket_7",
+				userId: "admin_1",
+				userName: "Admin User",
+				userRole: "admin",
+				message:
+					"There was a delay in our certificate generation system. I've manually triggered it and your certificate should be available now.",
+				createdAt: formatISO(subDays(new Date(), 7)),
+			},
+			{
+				id: "resp_7_2",
+				ticketId: "ticket_7",
+				userId: "corp_student_2",
+				userName: "New Corporate Student",
+				userRole: "student",
+				message: "I can see it now. Thank you!",
+				createdAt: formatISO(subDays(new Date(), 6)),
+			},
+		],
+	},
 ];
 
-let mockFeedback: FeedbackRecord[] = [
+const mockFeedback: FeedbackRecord[] = [
 	{
 		id: "fb_1",
-		studentId: "student_456",
-		studentName: "Bob Learner",
+		studentId: "student_2",
+		studentName: "New Student",
 		rating: 4,
 		comment:
 			"The Web Dev course is great, but maybe more examples on async/await?",
@@ -112,13 +213,35 @@ let mockFeedback: FeedbackRecord[] = [
 	},
 	{
 		id: "fb_2",
-		studentId: "student_123",
-		studentName: "Alice Student",
+		studentId: "student_1",
+		studentName: "Student User",
 		rating: 5,
 		comment: "The platform is really smooth and easy to use!",
 		type: "general",
 		status: "reviewed",
 		createdAt: formatISO(subDays(new Date(), 3)),
+	},
+	{
+		id: "fb_3",
+		studentId: "corp_student_1",
+		studentName: "Corporate Student",
+		rating: 3,
+		comment:
+			"The mobile experience could be improved. Some features are hard to use on smaller screens.",
+		type: "bug_report",
+		status: "new",
+		createdAt: formatISO(subDays(new Date(), 1)),
+	},
+	{
+		id: "fb_4",
+		studentId: "corp_manager_1",
+		studentName: "Corporate Manager",
+		rating: 4,
+		comment:
+			"Would love to see more analytics for tracking student progress as a corporate manager.",
+		type: "feature_request",
+		status: "actioned",
+		createdAt: formatISO(subDays(new Date(), 5)),
 	},
 ];
 
