@@ -99,6 +99,7 @@ import {
 	createMockChatRoom,
 	getMockChatMessages,
 	getMockChatRooms,
+	markMockRoomAsRead,
 } from "@/data/mock-chat-data";
 import {
 	deleteMockManagedStudent,
@@ -1041,6 +1042,33 @@ export async function handleMockRequest<T>(
 				"%c[DEBUG] handleMockRequest: NO MATCH for POST /chat/messages",
 				"color: gray;"
 			);
+		}
+	}
+
+	// VVVV ADD THIS BLOCK FOR MARKING ROOM AS READ VVVV
+	if (endpoint === "/chat/rooms/mark-read" && method === "post") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Mark Room Read (POST /chat/rooms/mark-read)`,
+			"color: green; font-weight: bold;"
+		);
+		if (!body) {
+			console.error(
+				"Mock API Error: Missing body for POST /chat/rooms/mark-read"
+			);
+			throw new Error(
+				"Mock API Error: Missing request body for marking room read."
+			);
+		}
+		try {
+			// body should be MarkRoomReadPayload
+			const response = await markMockRoomAsRead(body);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				"Mock API Error for POST /chat/rooms/mark-read:",
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
 		}
 	}
 	// --- End Chat Mocks ---

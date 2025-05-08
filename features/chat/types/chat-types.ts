@@ -109,3 +109,9 @@ export interface CreateRoomPayload {
 	participantIds: string[]; // Array of user IDs to be added as participants
 	createdBy: string; // ID of the user creating the room
 }
+
+export interface MarkReadResponse {
+	success: boolean;
+	message?: string;
+	updatedRoom?: ChatRoom; // Optionally return the updated room with new unreadCount
+}

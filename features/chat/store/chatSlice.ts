@@ -12,6 +12,7 @@ import {
 	fetchChatMessages,
 	sendChatMessage,
 	createChatRoom,
+	markRoomAsRead,
 } from "./chat-thunks";
 
 // Initial state
@@ -33,16 +34,24 @@ const chatSlice = createSlice({
 	initialState,
 	reducers: {
 		selectChatRoom: (state, action: PayloadAction<string | null>) => {
+			const previouslySelectedRoomId = state.selectedRoomId;
 			state.selectedRoomId = action.payload;
-			state.error = null; // Clear error when changing rooms
+			state.error = null;
 
 			if (action.payload && !state.messageStatus[action.payload]) {
-				state.messageStatus[action.payload] = "idle"; // Ensure status exists
+				state.messageStatus[action.payload] = "idle";
 			}
 
-			// Reset unread count locally on selection
-			const room = state.rooms.find((r) => r.id === action.payload);
-			if (room) room.unreadCount = 0;
+			// If a new room is selected, locally update its unread count to 0 immediately
+			// The thunk will confirm with the backend.
+			if (action.payload && action.payload !== previouslySelectedRoomId) {
+				const room = state.rooms.find((r) => r.id === action.payload);
+				if (room && room.unreadCount && room.unreadCount > 0) {
+					// We will dispatch markRoomAsRead thunk from the component
+					// but can optimistically update here for faster UI response
+					room.unreadCount = 0;
+				}
+			}
 		},
 
 		clearChatError: (state) => {
@@ -204,7 +213,30 @@ const chatSlice = createSlice({
 				state.createRoomStatus = "failed";
 				state.createRoomError = action.payload ?? "Unknown error creating room";
 			});
-		// ^^^^ END OF NEW EXTRA REDUCERS ^^^^
+		builder
+			.addCase(markRoomAsRead.fulfilled, (state, action) => {
+				const { roomId, updatedRoom } = action.payload;
+				const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
+				if (roomIndex !== -1) {
+					// Update from server response if provided, otherwise just ensure unreadCount is 0
+					if (updatedRoom) {
+						state.rooms[roomIndex] = {
+							...state.rooms[roomIndex],
+							...updatedRoom,
+							unreadCount: updatedRoom.unreadCount ?? 0,
+						};
+					} else {
+						state.rooms[roomIndex].unreadCount = 0;
+					}
+				}
+				// If you were tracking individual message.isRead, you might update them here too
+				// based on what the backend confirms, or optimistically.
+			})
+			.addCase(markRoomAsRead.rejected, (state, action) => {
+				// Handle error, maybe revert optimistic update if you did one
+				console.error("Failed to mark room as read on server:", action.payload);
+				// You might want to add a specific error state for this if needed
+			});
 	},
 });
 

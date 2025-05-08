@@ -10,6 +10,7 @@ import {
 	FetchMessagesResponse,
 	CreateRoomResponse,
 	CreateRoomPayload,
+	MarkReadResponse,
 } from "@/features/chat/types/chat-types"; // Use refined types
 import { subHours, subMinutes, formatISO } from "date-fns";
 // Import the *exported* users array from your auth mock data
@@ -434,5 +435,53 @@ export const createMockChatRoom = async (
 	};
 
 	return { room: JSON.parse(JSON.stringify(populatedNewRoom)), success: true };
+};
+
+export interface MarkRoomReadPayload {
+    roomId: string;
+    userId: string; // The user for whom messages are being marked read
+    lastReadMessageTimestamp?: string; // Optional: Mark all messages up to this timestamp as read
+}
+
+export const markMockRoomAsRead = async (
+    payload: MarkRoomReadPayload
+): Promise<MarkReadResponse> => { // Use MarkReadResponse type
+    console.log(`MOCK: Marking room ${payload.roomId} as read for user ${payload.userId}`);
+    await new Promise((res) => setTimeout(res, 150));
+
+    const roomIndex = mockRooms.findIndex(r => r.id === payload.roomId);
+    if (roomIndex === -1) {
+        console.error(`MOCK: Room ${payload.roomId} not found for marking as read.`);
+        return { success: false, message: `Room ${payload.roomId} not found.` };
+    }
+
+    // Simulate updating the unread count for this user.
+    // In a real backend, this would be more complex, probably checking against the user's last read timestamp.
+    // For the mock, we'll just set it to 0 for the room in the main list.
+    // This mock affects the `unreadCount` that is returned when `getMockChatRooms` is called next.
+    mockRooms[roomIndex].unreadCount = 0; // Simplistic mock: just clear it.
+
+    // Optionally, if you want to mark individual messages as read in the mockMessages store:
+    if (mockMessages[payload.roomId]) {
+        mockMessages[payload.roomId].forEach(msg => {
+            // If a lastReadMessageTimestamp is provided, only mark messages up to that point.
+            // Otherwise, mark all. This example marks all for simplicity.
+            // Note: This `isRead` flag on mockMessages would only be seen if messages are re-fetched
+            // and if your `ChatMessage` type and display logic use it.
+            // The primary effect clientside will be through the thunk updating the room's unreadCount.
+            if (!payload.lastReadMessageTimestamp || new Date(msg.timestamp) <= new Date(payload.lastReadMessageTimestamp)) {
+                 // msg.isReadBy = msg.isReadBy || {}; // If tracking per user
+                 // msg.isReadBy[payload.userId] = true;
+                 // For a simpler global isRead for the current user context:
+                 // msg.isRead = true; // This is less accurate for multi-user mock viewing
+            }
+        });
+    }
+    console.log(`MOCK: Room ${payload.roomId} unread count set to 0.`);
+
+    // Return a copy of the updated room for the thunk to potentially use
+    const updatedRoomCopy = JSON.parse(JSON.stringify(mockRooms[roomIndex]));
+
+    return { success: true, message: "Room marked as read.", updatedRoom: updatedRoomCopy };
 };
 

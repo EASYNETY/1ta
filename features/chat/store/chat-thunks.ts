@@ -7,8 +7,10 @@ import type {
 	SendMessageResponse,
 	CreateRoomPayload,
 	CreateRoomResponse,
+	MarkReadResponse,
 } from "../types/chat-types";
 import { get, post } from "@/lib/api-client";
+import { MarkRoomReadPayload } from "@/data/mock-chat-data";
 
 // Fetch chat rooms for a user
 export const fetchChatRooms = createAsyncThunk<
@@ -95,6 +97,32 @@ export const createChatRoom = createAsyncThunk<
 	} catch (e: any) {
 		const errorMessage =
 			e.response?.data?.message || e.message || "Failed to create chat room";
+		return rejectWithValue(errorMessage);
+	}
+});
+
+export const markRoomAsRead = createAsyncThunk<
+	{ roomId: string; updatedRoom?: ChatRoom }, // Return roomId and optionally the updated room data
+	MarkRoomReadPayload,
+	{ rejectValue: string }
+>("chat/markRoomAsRead", async (payload, { rejectWithValue }) => {
+	try {
+		// In a real API, you might not need to send all messages,
+		// just the roomId and maybe the timestamp of the last read message.
+		const response = await post<MarkReadResponse>(
+			"/chat/rooms/mark-read",
+			payload
+		); // Example endpoint
+		if (response.success) {
+			return { roomId: payload.roomId, updatedRoom: response.updatedRoom };
+		} else {
+			return rejectWithValue(
+				response.message || "Failed to mark room as read."
+			);
+		}
+	} catch (e: any) {
+		const errorMessage =
+			e.response?.data?.message || e.message || "Failed to mark room as read";
 		return rejectWithValue(errorMessage);
 	}
 });
