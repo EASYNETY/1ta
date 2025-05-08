@@ -43,8 +43,8 @@ export interface FabConfigRule {
 	href?: string;
 	/** Optional: Priority for rule matching (higher first) - useful for overrides */
 	priority?: number;
-	requiredFlags?: Array<'isCorporateManager'>; // NEW: Check if user MUST have these flags
-    excludeFlags?: Array<'isCorporateManager'>; // NEW: Check if user MUST NOT have these flags
+	requiredFlags?: Array<"isCorporateManager">; // NEW: Check if user MUST have these flags
+	excludeFlags?: Array<"isCorporateManager">; // NEW: Check if user MUST NOT have these flags
 }
 
 // Define the props needed by Phosphor icons (adjust if needed)
@@ -86,16 +86,16 @@ export const fabConfigurations: FabConfigRule[] = [
 
 	// --- Specific Page Actions ---
 	// --- NEW: Corporate Management FAB ---
-    {
-        pathPattern: /^\/corporate-management/, // Matches the manager dashboard and subpages
-        roles: ["student"], // Only for users with student role
-        requiredFlags: ['isCorporateManager'], // Specifically for managers
-        actionType: "navigate", // Or "openCreateStudentModal" if using a modal
-        ariaLabel: "Add New Student",
-        icon: UserPlus, // Icon for adding a student
-        href: "/corporate-management/students/create", // Link to the create page
-        priority: 75, // High priority for this specific section
-    },
+	{
+		pathPattern: /^\/corporate-management/, // Matches the manager dashboard and subpages
+		roles: ["student"], // Only for users with student role
+		requiredFlags: ["isCorporateManager"], // Specifically for managers
+		actionType: "navigate", // Or "openCreateStudentModal" if using a modal
+		ariaLabel: "Add New Student",
+		icon: UserPlus, // Icon for adding a student
+		href: "/corporate-management/students/create", // Link to the create page
+		priority: 75, // High priority for this specific section
+	},
 	{
 		pathPattern: /^\/attendance$/, // Attendance list page
 		roles: ["admin", "teacher"],
@@ -114,7 +114,7 @@ export const fabConfigurations: FabConfigRule[] = [
 		priority: 80,
 	},
 	{
-		pathPattern: /^\/chat/, // Any chat page (list or specific room)
+		pathPattern: /^\/chat$/, // Any chat page (list or specific room)
 		roles: ["admin", "teacher", "student"],
 		// actionType: "openCreateChatModal", // Example: Trigger a modal
 		actionType: "navigate", // Or navigate to a create page
@@ -124,7 +124,7 @@ export const fabConfigurations: FabConfigRule[] = [
 		priority: 70,
 	},
 	{
-		pathPattern: /^\/courses/, // Courses list/details pages
+		pathPattern: /^\/courses$/, // Courses list/details pages
 		roles: ["admin"],
 		// actionType: "openCreateCourseModal",
 		actionType: "navigate",
@@ -134,7 +134,7 @@ export const fabConfigurations: FabConfigRule[] = [
 		priority: 60,
 	},
 	{
-		pathPattern: /^\/courses/, // Courses list/details pages
+		pathPattern: /^\/courses$/, // Courses list/details pages
 		roles: ["teacher"],
 		// actionType: "openCreateClassModal",
 		actionType: "navigate",
@@ -144,7 +144,7 @@ export const fabConfigurations: FabConfigRule[] = [
 		priority: 60,
 	},
 	{
-		pathPattern: /^\/timetable/, // Timetable page
+		pathPattern: /^\/timetable$/, // Timetable page
 		roles: ["admin", "teacher"],
 		// actionType: "openCreateEventModal",
 		actionType: "navigate",
@@ -163,7 +163,7 @@ export const fabConfigurations: FabConfigRule[] = [
 		priority: 40,
 	},
 	{
-		pathPattern: /^\/users/, // Admin User management pages
+		pathPattern: /^\/users$/, // Admin User management pages
 		roles: ["admin"],
 		// actionType: "openCreateStudentModal",
 		actionType: "navigate",
@@ -197,12 +197,46 @@ export const fabConfigurations: FabConfigRule[] = [
 	{
 		pathPattern: /^\/dashboard|^\/$/,
 		roles: ["student"],
-		excludeFlags: ['isCorporateManager'],
+		excludeFlags: ["isCorporateManager"],
 		actionType: "navigate",
 		ariaLabel: "New Support Ticket",
 		icon: Ticket,
 		href: "/support/create",
 		priority: 10,
+	},
+
+	// --- Hide FAB on Create Pages ---
+	{
+		pathPattern: /^\/courses\/create$/,
+		roles: ["admin"],
+		actionType: "none",
+		ariaLabel: "",
+		icon: Plus,
+		priority: 95,
+	},
+	{
+		pathPattern: /^\/classes\/create$/,
+		roles: ["teacher", "admin"],
+		actionType: "none",
+		ariaLabel: "",
+		icon: Plus,
+		priority: 95,
+	},
+	{
+		pathPattern: /^\/chat\/create$/,
+		roles: ["admin", "teacher", "student"],
+		actionType: "none",
+		ariaLabel: "",
+		icon: Plus,
+		priority: 95,
+	},
+	{
+		pathPattern: /^\/users\/create$/,
+		roles: ["admin"],
+		actionType: "none",
+		ariaLabel: "",
+		icon: Plus,
+		priority: 95,
 	},
 
 	// --- Catch-all / No Action Defined ---
