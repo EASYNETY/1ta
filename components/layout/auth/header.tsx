@@ -31,6 +31,7 @@ import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems"
 import { getMobileNavItems } from "./mobile-nav"
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
+import { isStudent } from "@/types/user.types"
 
 
 // Mock notifications data
@@ -261,8 +262,8 @@ export function Header() {
                                             )} */}
                                             <div className="flex flex-row space-x-4 w-full items-center justify-between">
                                                 {/* Barcode Section */}
-                                                {isAuthenticated && user?.id && (
-                                                    <BarcodeDialog userId={user.id} lineColor="#C99700" />
+                                                {isAuthenticated && isStudent(user) && (
+                                                    <BarcodeDialog userId={user.id} barcodeId={user.barcodeId} lineColor="#C99700" />
                                                 )}
                                                 {/* Logout Button */}
                                                 <DyraneButton

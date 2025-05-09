@@ -40,6 +40,7 @@ import { RootState } from "@/store";
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems";
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems";
+import { isStudent } from "@/types/user.types";
 
 // --- Define Nav Item Type ---
 export interface NavItem {
@@ -234,8 +235,8 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                 )}>
                     {/* {mounted && isSidebarOpen && <ThemeToggle />} */}
                     {/* Barcode Section */}
-                    {isAuthenticated && user?.id && (
-                        <BarcodeDialog userId={user.id} lineColor="#C99700" />
+                    {isAuthenticated && isStudent(user) && (
+                        <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} lineColor="#C99700" />
                     )}
 
                     <DyraneButton

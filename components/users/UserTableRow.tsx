@@ -22,6 +22,7 @@ export interface UserData {
     email: string;
     role: "student" | "teacher" | "admin" | string; // Allow string for flexibility if roles expand
     status: "active" | "inactive" | string;
+    barcodeId?: string; // Optional, only if applicable
     joinDate: string;
     // Add other fields if needed by the row
 }
@@ -118,7 +119,7 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
             <td className="py-3 px-4 align-top text-right">
                 <div className="flex items-center justify-end gap-1">
                     {/* Barcode Dialog (conditionally render for students?) */}
-                    {user.role === 'student' && <BarcodeDialog userId={user.id} triggerLabel="Barcode" />}
+                    {user.role === 'student' && <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
