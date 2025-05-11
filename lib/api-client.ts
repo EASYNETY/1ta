@@ -796,22 +796,26 @@ export async function handleMockRequest<T>(
 		}
 	}
 
-	// Example: Admin getting all classes (This one should already be fine if your thunk uses /admin/classes)
-	if (endpoint === "/admin/classes" && method === "get") {
+	// Example: Admin getting all classes with regex URL match
+	if (method === "get" && /^\/admin\/classes(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const page = parseInt(urlParams.get("page") || "1", 10);
 		const limit = parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
+
 		console.log(
 			`%cAPI Client MOCK: GET /admin/classes?page=${page}&limit=${limit}&search=${search}`,
 			"color: orange;"
 		);
+
 		try {
 			const result = await getMockAllClassesAdmin(page, limit, search);
 			return result as unknown as T; // Expects { classes: [], total: number }
 		} catch (error: any) {
 			console.error("Mock API Error for GET /admin/classes:", error.message);
-			throw { response: { data: { message: error.message }, status: 500 } };
+			throw {
+				response: { data: { message: error.message }, status: 500 },
+			};
 		}
 	}
 
