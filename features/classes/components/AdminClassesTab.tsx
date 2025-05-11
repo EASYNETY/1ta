@@ -13,10 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Plus, Search, AlertTriangle, Users, Eye, Edit, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { fetchAllClassesAdmin, selectAllAdminClasses, selectAdminPagination, selectClassesStatus, selectClassesError, deleteClass, resetOperationStatus } from '../store/classes-slice'; // Adjust path
 import type { AdminClassView } from '../types/classes-types';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
+import { resetOperationStatus, selectAdminPagination, selectAllAdminClasses, selectClassesError, selectClassesStatus } from '../store/classes-slice';
+import { deleteClass, fetchAllClassesAdmin } from '../store/classes-thunks';
 
 
 const AdminClassesTab: React.FC = () => {

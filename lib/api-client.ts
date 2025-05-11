@@ -67,6 +67,7 @@ import {
 	deleteMockClass,
 	getMockAllClassesAdmin,
 	getMockClassById,
+	getMockCourseClassOptions,
 	getMockEnrolledClasses,
 	getMockTaughtClasses,
 	updateMockClass,
@@ -746,24 +747,72 @@ export async function handleMockRequest<T>(
 	// --- END: Schedule Event CRUD Mock Handlers ---
 
 	// --- Classes Mocks ---
-	// Example: Student getting their courses
-	if (endpoint === "/users/me/courses" && method === "get") {
-		const mockUserId = "student_123"; // Simulate logged-in user
-		return getMockEnrolledClasses(mockUserId) as unknown as T;
+	console.log(
+		"%c[DEBUG] handleMockRequest: Checking Classes Mocks...",
+		"color: magenta;"
+	);
+
+	// VVVV UPDATED STUDENT ENROLLED CLASSES HANDLER VVVV
+	const enrolledClassesMatch = endpoint.match(
+		/^\/users\/([\w-]+)\/enrolled-classes$/
+	);
+	if (enrolledClassesMatch && method === "get") {
+		const userId = enrolledClassesMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /users/${userId}/enrolled-classes`,
+			"color: orange;"
+		);
+		try {
+			const response = await getMockEnrolledClasses(userId);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /users/${userId}/enrolled-classes:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
-	// Example: Teacher getting their courses
-	if (endpoint === "/teachers/me/courses" && method === "get") {
-		const mockTeacherId = "teacher_1"; // Simulate logged-in user
-		return getMockTaughtClasses(mockTeacherId) as unknown as T;
+
+	// VVVV UPDATED TEACHER TAUGHT CLASSES HANDLER VVVV
+	const taughtClassesMatch = endpoint.match(
+		/^\/teachers\/([\w-]+)\/taught-classes$/
+	);
+	if (taughtClassesMatch && method === "get") {
+		const teacherId = taughtClassesMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /teachers/${teacherId}/taught-classes`,
+			"color: orange;"
+		);
+		try {
+			const response = await getMockTaughtClasses(teacherId);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /teachers/${teacherId}/taught-classes:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
-	// Example: Admin getting all classes
+
+	// Example: Admin getting all classes (This one should already be fine if your thunk uses /admin/classes)
 	if (endpoint === "/admin/classes" && method === "get") {
-		// Extract pagination/search from options.url query params if passed
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const page = parseInt(urlParams.get("page") || "1", 10);
 		const limit = parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
-		return getMockAllClassesAdmin(page, limit, search) as unknown as T;
+		console.log(
+			`%cAPI Client MOCK: GET /admin/classes?page=${page}&limit=${limit}&search=${search}`,
+			"color: orange;"
+		);
+		try {
+			const result = await getMockAllClassesAdmin(page, limit, search);
+			return result as unknown as T; // Expects { classes: [], total: number }
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/classes:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
 
 	// --- START: Class CRUD Mock Handlers ---
@@ -841,6 +890,29 @@ export async function handleMockRequest<T>(
 			throw { response: { data: { message: error.message }, status: 404 } }; // Simulate 404
 		}
 	}
+
+	// VVVV NEW HANDLER FOR COURSE CLASS OPTIONS VVVV
+	if (endpoint === "/class-sessions/options" && method === "get") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Get Course Class Options (GET /class-sessions/options)`,
+			"color: green; font-weight: bold;"
+		);
+		try {
+			const response = await getMockCourseClassOptions();
+			console.log(
+				"MOCK API: Successfully fetched course class options:",
+				response
+			);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				"Mock API Error for GET /class-sessions/options:",
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+	// ^^^^ END OF NEW HANDLER ^^^^
 
 	// --- Attendance Mock Data ---
 	const studentAttendanceMatch = endpoint.match(
