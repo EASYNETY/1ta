@@ -1,7 +1,7 @@
 // features/classes/components/ClassForm.tsx
 "use client";
 
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,8 +14,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYearMonth } from '@/components/ui/date-picker-with-year-month'; // Assuming reusable picker
 import type { AdminClassView } from '../types/classes-types';
+import { fetchUsersByRole } from '@/features/auth/store/user-thunks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 // Import hooks/selectors for fetching teachers/courses if needed for dropdowns
-// import { useAppSelector } from '@/store/hooks';
 // import { selectAllTeachers, selectAllCoursesForDropdown } from '@/features/...';
 
 // Define Zod Schema for the form
@@ -60,9 +61,13 @@ interface ClassFormProps {
 
 export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }: ClassFormProps) {
     const router = useRouter();
+    const dispatch = useAppDispatch();
+    const { users } = useAppSelector((state) => state.auth); // Assuming you have a user state
     // TODO: Fetch teachers/courses for dropdowns if needed
-    const mockTeachers = [{ id: 'teacher_1', name: 'Dr. Sarah Johnson' }, { id: 'teacher_2', name: 'Michael Chen' }];
-    // const coursesForSelect = useAppSelector(selectAllCoursesForDropdown); // Example
+    useEffect(() => {
+        dispatch(fetchUsersByRole({ role: 'teacher' })); // Fetch teachers on mount
+    }
+        , []); // Fetch users (teachers) on mount
 
     const form = useForm<ClassFormValues>({
         resolver: zodResolver(classFormSchema),
@@ -115,7 +120,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                         </FormControl>
                                         <SelectContent>
                                             <SelectItem value="No-teacher">-- No Teacher --</SelectItem>
-                                            {mockTeachers.map(teacher => (
+                                            {users.map(teacher => (
                                                 <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                                             ))}
                                         </SelectContent>
