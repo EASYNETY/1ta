@@ -4,16 +4,6 @@ import type { RootState } from "@/store";
 import { isStudent, type StudentUser } from "@/types/user.types"; // Use StudentUser type
 import { get, post, put, del } from "@/lib/api-client"; // Import CRUD methods
 
-// Import mock functions
-// Assuming these will be added to mock-corporate-data.ts or similar
-import {
-	getMockManagedStudents,
-	// createManagedStudent is handled by mockRegister or a modified POST /users mock
-	// updateManagedStudent is handled by mockUpdateMyProfile or PUT /users/:id mock
-	// deleteManagedStudent is handled by DELETE /users/:id mock
-	deleteMockManagedStudent, // We might need a specific delete mock if different from general user delete
-} from "@/data/mock-corporate-data"; // Adjust path
-
 // --- State Definition ---
 interface CorporateState {
 	managedStudents: StudentUser[]; // List of students managed by the current manager
@@ -68,6 +58,7 @@ export type UpdateManagedStudentPayload = {
 
 // --- Thunks ---
 
+// Fetch the list of students managed by the specific corporate manager
 export const fetchManagedStudents = createAsyncThunk<
 	FetchManagedStudentsResult,
 	FetchManagedStudentsParams,
@@ -75,133 +66,127 @@ export const fetchManagedStudents = createAsyncThunk<
 >("corporate/fetchManagedStudents", async (params, { rejectWithValue }) => {
 	try {
 		const { corporateId, page = 1, limit = 10, search = "" } = params;
-		// API Call Example: const result = await get<FetchManagedStudentsResult>(`/corporate/${corporateId}/students?page=${page}&limit=${limit}&search=${search}`);
-		// MOCK Call:
-		const result = await getMockManagedStudents(
-			corporateId,
-			page,
-			limit,
-			search
-		);
+
+		const queryParams = new URLSearchParams({
+			page: String(page),
+			limit: String(limit),
+			...(search && { search }),
+		}).toString();
+
+		// Endpoint: GET /corporate/{corporateId}/students?page=...&limit=...&search=...
+		const endpoint = `/corporate/${corporateId}/students?${queryParams}`;
+		console.log(`Calling API: GET ${endpoint}`);
+
+		const result = await get<FetchManagedStudentsResult>(endpoint);
 		return result;
 	} catch (error: any) {
+		console.error("Error fetching managed students:", error);
 		return rejectWithValue(error.message || "Failed to fetch managed students");
 	}
 });
 
-// Thunk for *Manager* creating a student. Assumes backend handles corporateId linking & slot check.
-// Uses the standard '/users' or a specific '/corporate/students' endpoint. Let's use '/users' for now.
+// Create a new student managed by the corporate manager
 export const createManagedStudent = createAsyncThunk<
-	StudentUser, // Returns the newly created student user object
-	CreateManagedStudentPayload & { corporateId: string }, // Manager provides name/email, thunk adds corporateId
+	StudentUser,
+	CreateManagedStudentPayload & { corporateId: string }, // Thunk needs corporateId context
 	{ rejectValue: string }
 >("corporate/createManagedStudent", async (payload, { rejectWithValue }) => {
 	try {
-		console.log("Dispatching createManagedStudent:", payload);
-		// The backend's POST /users needs to handle the corporate context
-		// It receives name, email, (maybe password), and the *manager's* corporateId
-		// It should check slots for that corporateId before creating.
-		const response = await post<StudentUser>("/users", payload); // Backend assigns role, corpId, etc.
+		// Endpoint: POST /users (Assuming backend handles corporate context)
+		const endpoint = "/users";
+		console.log(`Calling API: POST ${endpoint}`, payload);
+
+		const response = await post<StudentUser>(endpoint, payload);
 		return response;
 	} catch (error: any) {
+		console.error("Error creating managed student:", error);
 		return rejectWithValue(error.message || "Failed to create student");
 	}
 });
 
-// Thunk for *Manager* updating a student they manage.
-// Uses the standard '/users/:id' endpoint, but backend must verify manager's permission.
+// Update an existing student managed by the corporate manager
 export const updateManagedStudent = createAsyncThunk<
 	StudentUser,
-	UpdateManagedStudentPayload,
+	UpdateManagedStudentPayload, // Contains { id: string, ...updateData }
 	{ rejectValue: string }
 >(
 	"corporate/updateManagedStudent",
 	async ({ id, ...updateData }, { rejectWithValue }) => {
 		try {
-			console.log(`Dispatching updateManagedStudent for ${id}:`, updateData);
-			// Backend PUT /users/:id needs to verify the requesting user (manager) has rights over student 'id'
-			const response = await put<StudentUser>(`/users/${id}`, updateData); // Send only allowed fields
+			// Endpoint: PUT /users/{id} (Assuming backend verifies permission)
+			const endpoint = `/users/${id}`;
+			console.log(`Calling API: PUT ${endpoint}`, updateData);
+
+			const response = await put<StudentUser>(endpoint, updateData);
 			return response;
 		} catch (error: any) {
+			console.error(`Error updating managed student ${id}:`, error);
 			return rejectWithValue(error.message || "Failed to update student");
 		}
 	}
 );
 
-// Thunk for *Manager* deleting/removing a student they manage.
-// Uses standard '/users/:id', backend must verify permission & handle slot freeing.
+// Delete/remove a student managed by the corporate manager
 export const deleteManagedStudent = createAsyncThunk<
 	string, // Return deleted student ID
-	{ studentId: string; corporateId: string }, // Need studentId to delete, corporateId for context/logging?
+	{ studentId: string; corporateId: string }, // corporateId might be needed for logging/context
 	{ rejectValue: string }
 >(
 	"corporate/deleteManagedStudent",
-	async ({ studentId }, { rejectWithValue }) => {
+	async ({ studentId /*, corporateId */ }, { rejectWithValue }) => {
 		try {
-			console.log(`Dispatching deleteManagedStudent for ${studentId}`);
-			// Backend DELETE /users/:id needs permission check
-			await del<void>(`/users/${studentId}`);
-			// MOCK call simulation:
-			await deleteMockManagedStudent(studentId); // Assuming a specific mock for this
-			return studentId;
+			// Endpoint: DELETE /corporate/students/{studentId}
+			// Assumes this is the correct endpoint for manager deletion in both mock and live
+			const endpoint = `/corporate/students/${studentId}`;
+			console.log(`Calling API: DELETE ${endpoint}`);
+
+			await del<void>(endpoint); // Expecting 204 No Content or similar
+			return studentId; // Return ID for reducer to filter the list
 		} catch (error: any) {
+			console.error(`Error deleting managed student ${studentId}:`, error);
 			return rejectWithValue(error.message || "Failed to remove student");
 		}
 	}
 );
 
-// NEW THUNK: Find student in existing auth.users list and set as current
+// Find student in existing auth.users list and set as current (No API Call)
 export const findAndSetCurrentManagedStudent = createAsyncThunk<
-	StudentUser | null, // Returns the found StudentUser or null
-	string, // Takes the studentId to find
-	{ state: RootState; rejectValue: string } // Access full state, define rejection payload
+	StudentUser | null,
+	string,
+	{ state: RootState; rejectValue: string }
 >(
 	"corporate/findAndSetCurrentManagedStudent",
 	async (studentId, { getState, rejectWithValue }) => {
 		console.log(`THUNK: Attempting to find student ${studentId} in auth.users`);
 		const state = getState();
-		const allUsers = state.auth.users; // Access the users list from the auth slice
-		const manager = state.auth.user as StudentUser; // Get the logged-in manager for permission check
+		const allUsers = state.auth.users;
+		const manager = state.auth.user as StudentUser; // Assuming manager has StudentUser type properties needed
 
 		if (!manager || !manager.isCorporateManager) {
-			// Should ideally not happen if page guards work, but good to check
+			console.warn("Action requires a corporate manager.");
 			return rejectWithValue("Action requires a corporate manager.");
 		}
-
 		if (!allUsers || allUsers.length === 0) {
 			console.warn("THUNK: auth.users list is empty. Cannot find student.");
-			// This indicates the user list wasn't loaded before this action was dispatched.
-			// Returning null might be acceptable, or rejecting. Let's reject for clarity.
 			return rejectWithValue("User list not available.");
 		}
-
 		const foundUser = allUsers.find((user) => user.id === studentId);
-
 		if (!foundUser) {
 			console.log(`THUNK: Student ${studentId} not found in auth.users.`);
-			return null; // Or rejectWithValue("Student not found in the list.");
+			return null;
 		}
-
-		// --- Permission & Type Check ---
-		// 1. Is the found user actually a student?
 		if (!isStudent(foundUser)) {
-			console.warn(
-				`THUNK: User ${studentId} found, but is not a student (role: ${foundUser.role}).`
-			);
+			console.warn(`THUNK: User ${studentId} found, but is not a student.`);
 			return rejectWithValue("User found is not a student.");
 		}
-
-		// 2. Does the found student belong to the current manager?
 		if (foundUser.corporateId !== manager.corporateId) {
 			console.warn(
-				`THUNK: Manager ${manager.id} (Corp ${manager.corporateId}) does not manage student ${foundUser.id} (Corp ${foundUser.corporateId}).`
+				`THUNK: Access denied - Manager does not manage this student.`
 			);
 			return rejectWithValue("Access denied: You do not manage this student.");
 		}
-
-		// If all checks pass, return the found student
 		console.log(`THUNK: Student ${studentId} found and validated:`, foundUser);
-		return foundUser; // Return the specific StudentUser object
+		return foundUser;
 	}
 );
 
@@ -251,8 +236,7 @@ const corporateSlice = createSlice({
 			})
 			.addCase(createManagedStudent.fulfilled, (state, action) => {
 				state.operationStatus = "succeeded";
-				state.managedStudents.unshift(action.payload); // Add to list
-				// Optionally update pagination total
+				state.managedStudents.unshift(action.payload);
 				if (state.pagination) state.pagination.totalStudents++;
 			})
 			.addCase(createManagedStudent.rejected, (state, action) => {
@@ -287,11 +271,11 @@ const corporateSlice = createSlice({
 				state.error = null;
 			})
 			.addCase(deleteManagedStudent.fulfilled, (state, action) => {
+				// action.payload is studentId
 				state.operationStatus = "succeeded";
 				state.managedStudents = state.managedStudents.filter(
 					(s) => s.id !== action.payload
 				);
-				// Optionally update pagination total
 				if (state.pagination) state.pagination.totalStudents--;
 				if (state.currentManagedStudent?.id === action.payload)
 					state.currentManagedStudent = null;
@@ -301,10 +285,10 @@ const corporateSlice = createSlice({
 				state.error = action.payload ?? "Failed to remove student";
 			});
 
-		// --- Add Reducers for findAndSetCurrentManagedStudent ---
+		// Find and Set Current Managed Student
 		builder
 			.addCase(findAndSetCurrentManagedStudent.pending, (state) => {
-				state.status = "loading"; // Use the main status
+				state.status = "loading";
 				state.currentManagedStudent = null;
 				state.error = null;
 			})
@@ -312,10 +296,6 @@ const corporateSlice = createSlice({
 				state.status = "succeeded";
 				state.currentManagedStudent = action.payload; // Payload is StudentUser | null
 				state.error = null;
-				if (!action.payload) {
-					// Optional: Set a specific message if find returned null
-					// state.error = "Student details could not be found in the loaded list.";
-				}
 			})
 			.addCase(findAndSetCurrentManagedStudent.rejected, (state, action) => {
 				state.status = "failed";
