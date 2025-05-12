@@ -25,6 +25,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { format, parseISO } from "date-fns"
 import { PageHeader } from "@/components/layout/auth/page-header"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
 
 export default function AdminFeedbackPage() {
     const dispatch = useAppDispatch()
@@ -113,6 +115,19 @@ export default function AdminFeedbackPage() {
         )
     }
 
+    // Define tab items in an array for easier mapping
+    const feedbackTabItems = [
+        { value: "all" as const, label: "All", count: feedbackCounts.all },
+        { value: "general" as const, label: "General", count: feedbackCounts.general },
+        { value: "bug_report" as const, label: "Bugs", count: feedbackCounts.bug_report },
+        { value: "feature_request" as const, label: "Features", count: feedbackCounts.feature_request },
+        { value: "course_feedback" as const, label: "Courses", count: feedbackCounts.course_feedback },
+    ];
+
+    const handleValueChange = (value: string) => {
+        setTypeFilter(value as FeedbackType | "all");
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -120,44 +135,42 @@ export default function AdminFeedbackPage() {
                 subheading="View and manage user feedback"
             />
 
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                {/* Apply the same pattern here */}
                 <Tabs
-                    defaultValue="all"
-                    className="w-full"
-                    onValueChange={(value) => setTypeFilter(value as FeedbackType | "all")}
+                    value={typeFilter} // Make it controlled
+                    className="w-full sm:max-w-2xl" // Constrain Tabs width on desktop
+                    onValueChange={handleValueChange}
                 >
-                    <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-                        <TabsTrigger value="all">
-                            All{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {feedbackCounts.all}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="general">
-                            General{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {feedbackCounts.general}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="bug_report">
-                            Bugs{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {feedbackCounts.bug_report}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="feature_request">
-                            Features{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {feedbackCounts.feature_request}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="course_feedback">
-                            Courses{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {feedbackCounts.course_feedback}
-                            </Badge>
-                        </TabsTrigger>
-                    </TabsList>
+                    <ScrollArea
+                        className="w-full whitespace-nowrap" // Allow content to not wrap, enabling horizontal scroll
+                    >
+                        <TabsList
+                            className={cn(
+                                // --- Mobile First (Scrollable) ---
+                                "inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground",
+                                "gap-1", // Add a small gap between items for scrolling
+                                // --- SM Breakpoint and Up (Grid) ---
+                                "sm:grid sm:w-full sm:grid-cols-5 sm:justify-center sm:gap-2" // Override to grid, fill width, 5 cols, center items
+                            )}
+                        >
+                            {/* Map over the defined tab items */}
+                            {feedbackTabItems.map((item) => (
+                                <TabsTrigger
+                                    key={item.value} // Add key prop
+                                    value={item.value}
+                                    // On desktop, make triggers take equal width in the grid
+                                    className="sm:flex-1"
+                                >
+                                    {item.label}
+                                    <Badge variant="outline" className="ml-2 tabular-nums">
+                                        {item.count}
+                                    </Badge>
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                        <ScrollBar orientation="horizontal" className="h-2 sm:hidden" /> {/* Show scrollbar only on mobile */}
+                    </ScrollArea>
                 </Tabs>
             </div>
 
