@@ -27,7 +27,7 @@ export function SectionDivider({ className = "" }: SectionDividerProps) {
     };
 
     return (
-        <div ref={ref} className={cn("relative h-24 my-6 sm:my-12 md:my-16", className)} aria-hidden="true"> {/* Increased height slightly, added margin */}
+        <div ref={ref} className={cn("relative h-16 my-4 sm:my-6 md:my-8", className)} aria-hidden="true"> {/* Reduced height and margins */}
             {/* Vertical Line */}
             <motion.div
                 className="absolute left-1/2 top-0 h-full w-px origin-top bg-gradient-to-b from-transparent via-primary/30 to-transparent" // Use a gradient for fade effect

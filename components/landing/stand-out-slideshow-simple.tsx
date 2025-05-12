@@ -27,7 +27,7 @@ export function StandOutSlideshowSimple() {
     const currentItem = standOutPointsData[currentIndex];
 
     return (
-        <div className="relative w-full max-w-2xl mx-auto mt-12 md:mt-16 min-h-[280px] flex items-center justify-center text-center px-4">
+        <div className="relative w-full max-w-2xl mx-auto mt-8 md:mt-10 min-h-[220px] flex items-center justify-center text-center px-4">
             <AnimatePresence initial={false} mode="wait">
                 <motion.div
                     key={currentIndex}
@@ -55,7 +55,7 @@ export function StandOutSlideshowSimple() {
             </AnimatePresence>
 
             {/* Navigation Dots */}
-            <div className="absolute bottom-[-40px] left-1/2 -translate-x-1/2 z-10 flex space-x-2">
+            <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 z-10 flex space-x-2">
                 {/* ... (dots logic remains the same) ... */}
                 {standOutPointsData.map((_, index) => (
                     <button

@@ -76,7 +76,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="py-24 md:py-32 relative overflow-hidden flex items-center justify-center min-h-[90vh]">
+        <section className="py-16 md:py-24 relative overflow-hidden flex items-center justify-center min-h-[80vh]">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="container px-4 md:px-6 relative">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -110,27 +110,16 @@ export default function LandingPage() {
 
         {/* About Us Section */}
 
-        <section id="about_us" className="py-24 relative overflow-hidden">
+        <section id="about_us" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative text-center">
             <SectionHeader
               title="About 1Tech Academy"
-              description="We are more than just a school; we're a launchpad into a world of tech possibilities, built on a foundation of excellence and empowerment." />
+              description="We are a community where creativity thrives, innovation takes shape, and transformation begins. Here, you'll build problem-solving skills, grow your professional network, and gain the confidence to turn ideas into reality." />
 
-            {/* Grid for Mission & Vision Cards */}
+            {/* Grid for Vision & Mission Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 mx-auto mb-16 lg:mb-20">
-              {/* Mission Card */}
-              <Card
-                title={missionContent.title}
-                subtitle={missionContent.subtitle}
-                imageSrc={missionContent.imageSrc}
-                imageAlt={missionContent.imageAlt}
-                modalContent={missionContent.modalContent}
-                // Pass Icon if FeatureCard supports it, otherwise render icon separately
-                icon={<missionContent.icon className="h-8 w-8" />} // Example if prop exists
-                className="h-full" // Ensure cards try to match height
-              />
               {/* Vision Card */}
               <Card
                 title={visionContent.title}
@@ -138,7 +127,17 @@ export default function LandingPage() {
                 imageSrc={visionContent.imageSrc}
                 imageAlt={visionContent.imageAlt}
                 modalContent={visionContent.modalContent}
-                icon={<visionContent.icon className="h-8 w-8" />} // Example if prop exists
+                icon={<visionContent.icon className="h-8 w-8" />}
+                className="h-full"
+              />
+              {/* Mission Card */}
+              <Card
+                title={missionContent.title}
+                subtitle={missionContent.subtitle}
+                imageSrc={missionContent.imageSrc}
+                imageAlt={missionContent.imageAlt}
+                modalContent={missionContent.modalContent}
+                icon={<missionContent.icon className="h-8 w-8" />}
                 className="h-full"
               />
             </div>
@@ -228,7 +227,7 @@ export default function LandingPage() {
         <SectionDivider /> */}
 
         {/* Courses Section */}
-        <section id="courses" className="py-24 relative overflow-hidden">
+        <section id="courses" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
@@ -243,16 +242,16 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* === UPDATED Why Choose Us Section === */}
-        <section id="why_us" className="py-24 relative overflow-hidden">
+        <section id="why_us" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-60 dark:opacity-50" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
               title="Why Choose 1Tech Academy"
-              description="Discover what makes us the premier choice for your tech journey."
+              description="At 1Tech Academy, you're not just learning, you're joining a network of like-minded professionals, industry leaders, and tech enthusiasts. Our alumni work at top companies, and our career-focused approach ensures that you're job-ready from day one. Take the first step with 1Tech Academy and unlock limitless opportunities in the tech industry."
             />
 
             {/* Static Cards: Who We Are & What We Do */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10 max-w-5xl mx-auto mb-16 md:mb-24">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto mb-10 md:mb-14">
               {/* **** Use imported data **** */}
               <FeatureCard
                 icon={whoWeAreFeatureData.icon}
@@ -280,7 +279,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Contact Us / Inquiry CTA */}
-        <section id="contact-us" className="py-24 relative overflow-hidden">
+        <section id="contact-us" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
@@ -347,7 +346,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Onboarding Teaser Section */}
-        <section className="py-24 relative overflow-hidden">
+        <section className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
@@ -393,7 +392,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Technologies Taught Section */}
-        <section id="technologies" className="py-24 relative overflow-hidden">
+        <section id="technologies" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-50 dark:opacity-40" />
 
           <div className="px-4 md:px-6 relative">
@@ -409,7 +408,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Testimonials & Case Studies */}
-        <section id="testimonials" className="py-24 relative overflow-hidden">
+        <section id="testimonials" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
