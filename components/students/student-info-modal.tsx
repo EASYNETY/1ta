@@ -12,71 +12,83 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Calendar, School, BookOpen, User, CheckCircle, XCircle, Loader2, Barcode, AlertTriangle } from "lucide-react"
+import {
+    Calendar,
+    School,
+    BookOpen,
+    User as UserIcon, // Renamed to avoid conflict if User is a type
+    CheckCircle,
+    XCircle,
+    Loader2,
+    Barcode,
+    AlertTriangle,
+    CreditCard // Added for payment status
+} from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Money } from "phosphor-react"
 
+// This interface should align with the data you pass from ScanPage.tsx
+// which in turn should be derived from your canonical User/StudentUser type.
 interface StudentInfo {
-    id: string | number
-    name: string
-    email: string
-    dateOfBirth?: string
-    classId?: string
-    className?: string
-    barcodeId: string // Ensure this matches the scanned ID type/format if needed
-    paidStatus?: boolean
+    id: string;
+    name: string;
+    email: string;
+    dateOfBirth?: string | null;
+    classId?: string | null;     // Student's assigned class ID
+    className?: string;          // Name of the student's assigned class
+    barcodeId: string;
+    isActive?: boolean;      // This will be interpreted as paid status for display
+    avatarUrl?: string | null; // URL for the student's avatar image
 }
 
 interface StudentInfoModalProps {
     isOpen: boolean
-    onClose: () => void // Just closes the modal
-    onResumeScan: () => void // Resets state AND resumes scanning
-    studentInfo: StudentInfo | null
-    isLoading: boolean // Loading student info specifically
-    scannedId: string | null
-    apiStatus: "success" | "error" | "idle" | "loading" // Added loading state for API call
-    apiError: string | null
+    onClose: () => void        // Function to visually close the modal
+    onResumeScan: () => void   // Function to reset state AND resume scanning in parent
+    studentInfo: StudentInfo | null // The student data to display
+    isLoading: boolean         // True when student details are being fetched/processed after scan
+    scannedId: string | null   // The ID that was scanned from the barcode
+    apiStatus: "success" | "error" | "idle" | "loading" // Status of the markAttendance API call
+    apiError: string | null    // Error message from the markAttendance API call
 }
 
 export function StudentInfoModal({
     isOpen,
     onClose,
-    onResumeScan, // Pass this down
+    onResumeScan,
     studentInfo,
-    isLoading, // Loading student *details*
+    isLoading,
     scannedId,
-    apiStatus, // Status of the *attendance marking* API call
+    apiStatus,
     apiError,
 }: StudentInfoModalProps) {
 
     // This function handles closing the modal AND triggering the scan resumption
     const handleCloseAndResume = () => {
-        onClose(); // Close the modal visually
-        onResumeScan(); // Trigger the parent component's resume logic
+        onClose();        // Close the modal visually
+        onResumeScan();   // Trigger the parent component's resume logic
     };
 
     const getDialogTitle = () => {
-        if (isLoading) return "Fetching Student Details...";
-        if (apiStatus === "loading") return "Marking Attendance..."; // If marking takes time
+        if (isLoading) return "Processing Scan...";
+        if (apiStatus === "loading") return "Marking Attendance...";
         if (studentInfo) return "Student Information";
         if (scannedId && !studentInfo && !isLoading) return "Student Not Found";
-        return "Scan Result";
+        return "Scan Result"; // Default title
     }
 
     const getDialogDescription = () => {
-        if (isLoading) return `Looking for student with barcode: ${scannedId}...`;
-        if (apiStatus === 'loading') return "Processing attendance..."
-        if (studentInfo && apiStatus === 'success') return `Attendance marked for ${studentInfo.name}.`;
-        if (studentInfo && apiStatus === 'error') return `Failed to mark attendance for ${studentInfo.name}.`;
-        if (studentInfo) return `Details for student with id: ${scannedId}`;
-        if (scannedId && !studentInfo && !isLoading) return `No student record found for barcode: ${scannedId}.`;
-        return "Ready to display scan results.";
+        if (isLoading) return `Looking up student with barcode: ${scannedId || 'N/A'}...`;
+        if (apiStatus === 'loading') return "Submitting attendance record to the server...";
+        if (studentInfo && apiStatus === 'success') return `Attendance successfully marked for ${studentInfo.name}.`;
+        if (studentInfo && apiStatus === 'error') return `Failed to mark attendance for ${studentInfo.name}. Please try again.`;
+        if (studentInfo) return `Details for student associated with barcode: ${scannedId || 'N/A'}`;
+        if (scannedId && !studentInfo && !isLoading) return `No student record found for barcode: ${scannedId || 'N/A'}.`;
+        return "Scan result will appear here once a barcode is detected.";
     }
 
-
     return (
-        // Prevent closing on overlay click if an action is in progress
-        <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseAndResume()}>
+        // Prevent closing on overlay click if an action is in progress (e.g., apiStatus === 'loading')
+        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleCloseAndResume(); }}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{getDialogTitle()}</DialogTitle>
@@ -85,91 +97,111 @@ export function StudentInfoModal({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="py-4 min-h-[150px]"> {/* Added min-height */}
-                    {isLoading ? ( // Skeleton for fetching student info
+                <div className="py-4 min-h-[200px]"> {/* Adjusted min-height for content consistency */}
+                    {isLoading ? ( // Skeleton UI when student info is being looked up
                         <div className="space-y-4">
                             <div className="flex items-center space-x-4">
-                                <Skeleton className="h-12 w-12 rounded-full" />
+                                <Skeleton className="h-16 w-16 rounded-full" /> {/* Avatar skeleton */}
                                 <div className="space-y-2">
-                                    <Skeleton className="h-4 w-[200px]" />
-                                    <Skeleton className="h-4 w-[150px]" />
+                                    <Skeleton className="h-5 w-[200px]" /> {/* Name skeleton */}
+                                    <Skeleton className="h-4 w-[150px]" /> {/* Email skeleton */}
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-3 mt-4">
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
-                                <Skeleton className="h-8 w-full" />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 mt-4 pt-2 border-t">
+                                <Skeleton className="h-6 w-full" />
+                                <Skeleton className="h-6 w-full" />
+                                <Skeleton className="h-6 w-full" />
+                                <Skeleton className="h-6 w-full" />
                             </div>
                         </div>
                     ) : !studentInfo && scannedId ? ( // Student not found state
-                        <div className="p-4 border border-orange-200 bg-orange-50/50 rounded-md text-orange-700 flex flex-col items-center text-center">
-                            <AlertTriangle className="h-8 w-8 mb-2 text-orange-500" />
-                            <span className="font-semibold">Student Not Found</span>
-                            <p className="mt-1 text-sm">No student record associated with barcode:</p>
-                            <code className="mt-1 text-sm font-mono bg-orange-100 px-1.5 py-0.5 rounded">{scannedId}</code>
+                        <div className="p-4 border border-orange-300 bg-orange-50 rounded-md text-orange-700 flex flex-col items-center text-center space-y-2">
+                            <AlertTriangle className="h-10 w-10 text-orange-500" />
+                            <span className="font-semibold text-lg">Student Not Found</span>
+                            <p className="text-sm">No student record is associated with the scanned barcode:</p>
+                            <code className="text-sm font-mono bg-orange-100 text-orange-800 px-2 py-1 rounded">{scannedId}</code>
                         </div>
                     ) : studentInfo ? ( // Student found - display details
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-4">
-                                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                    <User className="h-6 w-6 text-primary" />
-                                </div>
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-4 pb-3">
+                                {studentInfo.avatarUrl ? (
+                                    <img
+                                        src={studentInfo.avatarUrl}
+                                        alt={studentInfo.name}
+                                        className="h-16 w-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+                                    />
+                                ) : (
+                                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0 border shadow-sm">
+                                        <UserIcon className="h-8 w-8 text-muted-foreground" />
+                                    </div>
+                                )}
                                 <div className="flex-grow">
-                                    <h3 className="font-semibold text-lg">{studentInfo.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{studentInfo.email}</p>
+                                    <h3 className="font-semibold text-xl leading-tight">{studentInfo.name}</h3>
+                                    <p className="text-sm text-muted-foreground truncate">{studentInfo.email}</p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 pt-2">
+                            <div className="border-t pt-3 grid grid-cols-1 gap-x-4 gap-y-1.5"> {/* Reduced gap-y slightly */}
+                                <InfoItem icon={Barcode} label="Barcode ID" value={studentInfo.barcodeId} isCode />
                                 <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.id} isCode />
-                                <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth} />
-                                <InfoItem icon={School} label="Class" value={studentInfo.className} />
-                                <InfoItem icon={Money} label="Fees" value={studentInfo.paidStatus} />
+                                {studentInfo.className && <InfoItem icon={School} label="Registered Class" value={studentInfo.className} />}
+                                <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth || "Not Provided"} />
+                                {/* Treat isActive as Paid Status */}
+                                <InfoItem
+                                    icon={CreditCard}
+                                    label="Payment Status"
+                                    value={studentInfo.isActive === true ? "Paid" : studentInfo.isActive === false ? "Unpaid" : "Unknown"}
+                                    valueAsBadge={true}
+                                    badgeVariant={
+                                        studentInfo.isActive === true ? "success"
+                                            : studentInfo.isActive === false ? "destructive"
+                                                : "secondary"
+                                    }
+                                />
                             </div>
 
-                            {/* API Status Feedback */}
+                            {/* API Status Feedback for Attendance Marking */}
                             {apiStatus === "success" && !isLoading && (
-                                <div className="p-2 mt-3 bg-green-50 text-green-700 rounded-md text-sm flex items-center gap-2 border border-green-200">
-                                    <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                                <div className="p-3 mt-3 bg-green-50 text-green-700 rounded-md text-sm flex items-center gap-2 border border-green-200 dark:bg-green-700/10 dark:text-green-300 dark:border-green-600/30">
+                                    <CheckCircle className="h-5 w-5 flex-shrink-0" />
                                     Attendance marked successfully.
                                 </div>
                             )}
                             {apiStatus === "error" && !isLoading && (
-                                <div className="p-2 mt-3 bg-red-50 text-red-700 rounded-md text-sm flex items-center gap-2 border border-red-200">
-                                    <XCircle className="h-4 w-4 flex-shrink-0" />
+                                <div className="p-3 mt-3 bg-red-50 text-red-700 rounded-md text-sm flex items-center gap-2 border border-red-200 dark:bg-red-700/10 dark:text-red-300 dark:border-red-600/30">
+                                    <XCircle className="h-5 w-5 flex-shrink-0" />
                                     Error: {apiError || "Could not mark attendance."}
                                 </div>
                             )}
-                            {apiStatus === "loading" && !isLoading && ( // Show if marking is in progress
-                                <div className="p-2 mt-3 bg-blue-50 text-blue-700 rounded-md text-sm flex items-center gap-2 border border-blue-200">
-                                    <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" />
-                                    Marking attendance...
+                            {apiStatus === "loading" && !isLoading && ( // Show if marking is in progress (after student info is loaded)
+                                <div className="p-3 mt-3 bg-blue-50 text-blue-700 rounded-md text-sm flex items-center gap-2 border border-blue-200 dark:bg-blue-700/10 dark:text-blue-300 dark:border-blue-600/30">
+                                    <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />
+                                    Marking attendance, please wait...
                                 </div>
                             )}
-
                         </div>
-                    ) : null /* Initial state before scan */}
+                    ) : (
+                        <div className="text-center text-muted-foreground py-10">
+                            Ready to scan.
+                        </div>
+                    ) /* Initial state before any scan */}
                 </div>
 
-                <DialogFooter className="sm:justify-end">
-                    {/* Show loading indicator during API call */}
+                <DialogFooter className="sm:justify-end pt-4">
                     {apiStatus === 'loading' && (
-                        <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 mr-auto">
+                        <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 mr-auto dark:bg-blue-700/20 dark:text-blue-300 dark:border-blue-600/30">
                             <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Processing...
                         </Badge>
                     )}
                     <Button
                         type="button"
                         onClick={handleCloseAndResume}
-                        // Disable button while marking attendance
-                        disabled={apiStatus === 'loading'}
+                        disabled={apiStatus === 'loading'} // Disable button while attendance marking is in progress
+                        className="w-full sm:w-auto"
                     >
-                        {/* Change button text based on outcome */}
-                        {apiStatus === 'success' ? "Scan Next" : (studentInfo || apiStatus === 'error' || (!studentInfo && scannedId)) ? "Scan Next" : "Close"}
-                        {/* Or keep it simple: "Scan Next" / "Close" */}
-                        {/* {apiStatus === 'success' || apiStatus === 'error' || (!studentInfo && scannedId) ? "Scan Next" : "Close"} */}
-
+                        {apiStatus === 'success' || apiStatus === 'error' || (!studentInfo && scannedId)
+                            ? "Scan Next Student"
+                            : "Close"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -178,31 +210,49 @@ export function StudentInfoModal({
 }
 
 // Helper component for displaying info items
-const InfoItem: React.FC<{ icon: React.ElementType, label: string, value?: string | number | null | boolean, isCode?: boolean, }> = ({ icon: Icon, label, value, isCode = false }) => {
-    if (!value) return null; // Don't render if value is missing
+const InfoItem: React.FC<{
+    icon: React.ElementType,
+    label: string,
+    value?: string | number | null | boolean, // Allow boolean for generic use if needed
+    isCode?: boolean,
+    valueAsBadge?: boolean,
+    badgeVariant?: "default" | "secondary" | "destructive" | "outline" | "success" // Added "success"
+}> = ({ icon: Icon, label, value, isCode = false, valueAsBadge = false, badgeVariant = "secondary" }) => {
+    // More robust check for empty or undefined values
+    if (value === undefined || value === null || String(value).trim() === '') {
+        // Optionally display N/A for specifically empty strings if desired, else hide
+        // For now, we just don't render the item if value is not meaningfully present
+        return null;
+    }
+
+    let displayValue: React.ReactNode;
+    const stringValue = String(value); // Convert to string for display in Badge or span
+
+    if (valueAsBadge) {
+        let badgeClass = ""; // For custom Tailwind classes
+
+        let shadcnBadgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary"; // Default
+        if (badgeVariant === "destructive" || badgeVariant === "outline" || badgeVariant === "default") {
+            shadcnBadgeVariant = badgeVariant;
+        }
+        // For "success" or other custom ones, we rely on className and a base variant like "outline"
+
+        displayValue = (
+            <Badge variant={shadcnBadgeVariant} className={badgeClass}> {/* Use shadcnBadgeVariant here */}
+                {stringValue}
+            </Badge>
+        );
+    } else if (isCode) {
+        displayValue = <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{stringValue}</code>;
+    } else {
+        displayValue = <span className="font-medium truncate">{stringValue}</span>;
+    }
 
     return (
-        <div className="flex items-center gap-2 text-sm py-1">
-            <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-muted-foreground">{label}:</span>
-            {/* handle paid status */}
-            {typeof value === "boolean" ? (
-                value ? (
-                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
-                        Paid
-                    </Badge>
-                ) : (
-                    <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
-                        Unpaid
-                    </Badge>
-                )
-            ) : null}
-            {/* handle code or text */}
-            {isCode ? (
-                <code className="font-mono text-xs bg-secondary px-1 py-0.5 rounded">{value}</code>
-            ) : (
-                <span className="font-medium truncate">{value}</span>
-            )}
+        <div className="flex items-start gap-2.5 text-sm py-1"> {/* Adjusted gap and py */}
+            <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-[3px]" /> {/* Fine-tuned icon alignment */}
+            <span className="text-muted-foreground min-w-[110px] w-[110px] flex-shrink-0">{label}:</span> {/* Fixed width for labels */}
+            <div className="flex-grow min-w-0 break-words">{displayValue}</div> {/* Allow words to break */}
         </div>
     );
 }

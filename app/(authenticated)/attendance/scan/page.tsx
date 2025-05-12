@@ -33,36 +33,19 @@ import { selectAllCourseClassOptions, selectCourseClassOptionsStatus } from "@/f
 import { fetchCourseClassOptionsForScanner } from "@/features/classes/store/classes-thunks";
 import { CourseClassOption } from "@/features/classes/types/classes-types";
 import { PageHeader } from "@/components/layout/auth/page-header";
+import { fetchUsersByRole } from "@/features/auth/store/user-thunks";
+import { StudentUser, User } from "@/types/user.types";
 
-
-// Mock student data (KEEP THIS EXACTLY AS IS FOR TESTING)
 interface StudentInfo {
-    id: string | number;
+    id: string;
     name: string;
     email: string;
-    dateOfBirth?: string;
-    classId?: string;
-    className?: string;
+    dateOfBirth?: string | null;
+    classId?: string | null;
     barcodeId: string;
-    paidStatus?: boolean;
+    isActive?: boolean;
+    avatarUrl?: string | null;
 }
-
-const fetchStudentInfo = async (scannedBarcodeId: string): Promise<StudentInfo | null> => {
-    console.log(`fetchStudentInfo called with: "${scannedBarcodeId}" (Type: ${typeof scannedBarcodeId})`);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const mockStudents: Record<string, StudentInfo> = {
-        "STUDENT-123": { id: "S1", name: "Alice Wonderland", email: "alice@example.com", dateOfBirth: "2001-03-10", classId: "1", className: "CS 101", barcodeId: "STUDENT-123", paidStatus: true },
-        "TEMP-123": { id: "S2", name: "Bob The Builder", email: "bob@example.com", barcodeId: "TEMP-123", className: "Temporary Pass", paidStatus: false },
-        "1": { id: "1", name: "Charlie Chaplin", email: "charlie@example.com", dateOfBirth: "1999-05-15", classId: "2", className: "Physics 101", barcodeId: "1", paidStatus: true },
-        "2": { id: "2", name: "Diana Prince", email: "diana@example.com", dateOfBirth: "2000-08-22", classId: "3", className: "Chemistry 101", barcodeId: "2", paidStatus: false },
-        "3": { id: "2", name: "Ethan Hunt", email: "ethan@example.com", dateOfBirth: "2000-01-01", classId: "1", className: "CS 101", barcodeId: "3", paidStatus: true },
-        "4": { id: "4", name: "Fiona Shrek", email: "fiona@example.com", dateOfBirth: "2000-01-01", classId: "3", barcodeId: "4", className: "Arts 101", paidStatus: false },
-        "CODE/128#EXTRA": { id: "S5", name: "Special Code User", email: "special@example.com", barcodeId: "CODE/128#EXTRA", className: "Advanced Topics", paidStatus: true },
-    };
-    const foundStudent = mockStudents[scannedBarcodeId] || null;
-    console.log(`fetchStudentInfo returning for "${scannedBarcodeId}":`, foundStudent);
-    return foundStudent;
-};
 
 
 export default function ScanPage() {
@@ -71,7 +54,12 @@ export default function ScanPage() {
     const dispatch = useAppDispatch();
 
     // Redux state
-    const { user } = useAppSelector((state) => state.auth);
+    const {
+        user: loggedInUser, // Renamed to avoid conflict with student 'user' objects
+        users: allFetchedUsers, // This will store users fetched by fetchUsersByRole (mostly students)
+        usersLoading: isLoadingStudents,
+        usersError: studentsFetchError
+    } = useAppSelector((state) => state.auth);
     const selectedClass = useAppSelector(selectCourseClass);
     const markingLoading = useAppSelector(selectAttendanceMarkingLoading);
     const apiError = useAppSelector(selectAttendanceMarkingError);
@@ -87,71 +75,74 @@ export default function ScanPage() {
     const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
     const [fetchingStudentInfo, setFetchingStudentInfo] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isProcessingScan, setIsProcessingScan] = useState(false);
+    const initialClassOptionsFetchAttempted = useRef(false);
+    const initialStudentsFetchAttempted = useRef(false);
 
-    // Ref to track if an initial fetch attempt for class options has been made for the current user.
-    const initialFetchAttempted = useRef(false);
 
-    // Effect to reset initialFetchAttempted flag when user.id changes
+    // Effect 1: User validation and fetching class options (dropdown)
     useEffect(() => {
-        console.log("User ID changed or component mounted/updated. Resetting initialFetchAttempted flag.");
-        initialFetchAttempted.current = false;
-    }, [user?.id]);
-
-
-    // Primary Effect for user validation and fetching class options
-    useEffect(() => {
-        if (user === undefined) {
-            console.log("ScanPage: User data is undefined, waiting for auth slice.");
-            return; // Wait for user object to be determined
-        }
-
-        if (!user || (user.role !== "admin" && user.role !== "teacher")) {
+        if (loggedInUser === undefined) return;
+        if (!loggedInUser || (loggedInUser.role !== "admin" && loggedInUser.role !== "teacher")) {
             toast({ variant: "destructive", title: "Unauthorized", description: "Access denied." });
             router.replace("/dashboard");
             return;
         }
-
-        console.log("ScanPage: User validated. Resetting marking status.");
         dispatch(resetMarkingStatus());
 
-        // Conditional logic to fetch class options
-        const needsFetch =
+        const needsFetchOptions =
             classOptionsStatus === 'idle' ||
             classOptionsStatus === 'failed' ||
-            (classOptionsStatus === 'succeeded' && classOptions.length === 0 && !initialFetchAttempted.current);
+            (classOptionsStatus === 'succeeded' && classOptions.length === 0 && !initialClassOptionsFetchAttempted.current);
 
-        if (needsFetch) {
-            console.log(`ScanPage: Triggering fetch for course class options. Current Status: ${classOptionsStatus}, Options Length: ${classOptions.length}, Initial Fetch Attempted: ${initialFetchAttempted.current}`);
+        if (needsFetchOptions) {
             dispatch(fetchCourseClassOptionsForScanner());
-            initialFetchAttempted.current = true; // Mark that an attempt has been made for this user context
-        } else {
-            console.log(`ScanPage: Skipping fetch for course class options. Current Status: ${classOptionsStatus}, Options Length: ${classOptions.length}, Initial Fetch Attempted: ${initialFetchAttempted.current}`);
+            initialClassOptionsFetchAttempted.current = true;
         }
+    }, [loggedInUser, dispatch, router, toast, classOptionsStatus, classOptions.length]);
 
-        // No specific cleanup for fetch logic needed here, as re-runs are controlled by dependencies.
-        // resetMarkingStatus() is called at the start of this effect.
-    }, [user, dispatch, router, toast, classOptionsStatus, classOptions.length]); // Added classOptionsStatus and classOptions.length for re-evaluation if they change externally.
-    // The `needsFetch` logic prevents loop.
+    // Effect 2: Fetch all students (with role 'student') when component mounts or user changes
+    // We only fetch students once, or if the fetch failed previously.
+    useEffect(() => {
+        if (loggedInUser && (!allFetchedUsers || allFetchedUsers.length === 0) && !isLoadingStudents && !studentsFetchError && !initialStudentsFetchAttempted.current) {
+            console.log("ScanPage: Fetching all students for barcode lookup.");
+            dispatch(fetchUsersByRole({ role: "student" })); // Fetch all students, high limit
+            initialStudentsFetchAttempted.current = true;
+        }
+    }, [dispatch, loggedInUser, allFetchedUsers, isLoadingStudents, studentsFetchError]);
 
 
     const handleRetryFetchOptions = () => {
         console.log("Manually retrying class options fetch");
-        initialFetchAttempted.current = false; // Allow re-attempt
+        initialClassOptionsFetchAttempted.current = false; // Allow re-attempt
         dispatch(fetchCourseClassOptionsForScanner());
     };
 
-    // Control Scanner Activation based on Class Selection & Modal State
+    const handleRetryFetchStudents = () => {
+        initialStudentsFetchAttempted.current = false; // Allow re-attempt
+        if (loggedInUser) {
+            console.log("ScanPage: Manually retrying fetch for all students.");
+            dispatch(fetchUsersByRole({ role: "student" }));
+        }
+    };
+
+
+    // Control Scanner Activation
     useEffect(() => {
-        const shouldScan = !!selectedClass?.id && !isModalOpen;
-        if (shouldScan && !isScannerActive) { // Activate only if it's not already active
+        // Activate scanner if a class is selected, modal is closed, and student list is available (or loading is done)
+        const studentListReady = (allFetchedUsers && allFetchedUsers.length > 0) || (!isLoadingStudents && !studentsFetchError);
+        const shouldScan = !!selectedClass?.id && !isModalOpen && studentListReady;
+
+        if (shouldScan && !isScannerActive) {
             setIsScannerActive(true);
-            console.log("Scanner Activated for class:", selectedClass.id);
-        } else if (!shouldScan && isScannerActive) { // Deactivate only if it's active
+            console.log("Scanner Activated for class:", selectedClass?.id);
+        } else if ((!shouldScan || !studentListReady) && isScannerActive) {
             setIsScannerActive(false);
             if (!selectedClass?.id) console.log("Scanner Paused: No class selected.");
             if (isModalOpen) console.log("Scanner Paused: Modal is open.");
+            if (!studentListReady && selectedClass?.id) console.log("Scanner Paused: Student list not ready.");
         }
-    }, [selectedClass, isModalOpen, isScannerActive]); // Added isScannerActive to prevent unnecessary state sets
+    }, [selectedClass, isModalOpen, isScannerActive, allFetchedUsers, isLoadingStudents, studentsFetchError]);
 
 
     // Handle Class Selection
@@ -175,64 +166,83 @@ export default function ScanPage() {
     }, [dispatch, classOptions, toast]);
 
 
-    // Handle Barcode Detection
+    // Handle Barcode Detection - MAJOR CHANGES HERE
     const handleBarcodeDetected = useCallback(async (scannedData: any) => {
         console.log("--- Scan Detected ---");
-        console.log("Raw scanner data:", scannedData);
-
         setIsScannerActive(false);
         setIsModalOpen(true);
-        setFetchingStudentInfo(true);
+        setIsProcessingScan(true);
         dispatch(resetMarkingStatus());
 
-        const potentialId = typeof scannedData === 'object' && scannedData !== null && scannedData.text
-            ? scannedData.text
-            : scannedData;
-        const barcodeId = String(potentialId ?? '').trim();
-        setLastScannedId(barcodeId);
-        console.log(`Processed Barcode ID: "${barcodeId}"`);
+        const potentialId = typeof scannedData === 'object' && scannedData?.text ? scannedData.text : String(scannedData ?? '');
+        const scannedBarcodeId = potentialId.trim();
+        setLastScannedId(scannedBarcodeId);
+        console.log(`Processed Barcode ID: "${scannedBarcodeId}"`);
 
-        if (!barcodeId) {
-            console.error("Scan resulted in empty barcode ID.");
+        if (!scannedBarcodeId) {
             setStudentInfo(null);
-            setFetchingStudentInfo(false);
-            toast({ variant: "destructive", title: "Scan Error", description: "Detected an empty barcode." });
+            setIsProcessingScan(false);
+            toast({ variant: "destructive", title: "Scan Error", description: "Detected an empty or invalid barcode." });
             return;
         }
 
-        let fetchedInfo: StudentInfo | null = null;
-        try {
-            fetchedInfo = await fetchStudentInfo(barcodeId);
-            setStudentInfo(fetchedInfo);
-        } catch (error) {
-            console.error("Error fetching student info:", error);
+        if (isLoadingStudents || !allFetchedUsers) {
             setStudentInfo(null);
-            toast({ variant: "destructive", title: "Lookup Error", description: "Could not fetch student details." });
-        } finally {
-            setFetchingStudentInfo(false);
+            setIsProcessingScan(false);
+            toast({ variant: "destructive", title: "Processing Error", description: "Student list not yet available. Please wait a moment and try again." });
+            return;
         }
 
-        if (fetchedInfo && selectedClass?.id && user?.id) {
-            const payload = {
-                studentId: String(fetchedInfo.id),
-                classInstanceId: selectedClass.id,
-                markedByUserId: user.id,
-                timestamp: new Date().toISOString(),
-                scannedBarcode: barcodeId,
+        // Find student in the locally stored Redux state (allFetchedUsers)
+        // Ensure your CanonicalUser (StudentUser) has a barcodeId field!
+        const foundStudent = allFetchedUsers.find(
+            (student: User) => (student as StudentUser).barcodeId === scannedBarcodeId && student.role === 'student'
+        ) as StudentUser | undefined; // Cast to StudentUser
+
+        console.log("Search result in allFetchedUsers for barcode", scannedBarcodeId, ":", foundStudent);
+
+        if (foundStudent) {
+            // Map CanonicalUser (StudentUser) to local StudentInfo for the modal
+            const studentDataForModal: StudentInfo = {
+                id: foundStudent.id,
+                name: foundStudent.name,
+                email: foundStudent.email,
+                dateOfBirth: foundStudent.dateOfBirth,
+                classId: foundStudent.classId, // This is student's general class, not necessarily selectedClass.id
+                // className: foundStudent.class?.name, // If you have nested class info
+                barcodeId: foundStudent.barcodeId || scannedBarcodeId, // Fallback just in case
+                isActive: foundStudent.isActive,
+                avatarUrl: foundStudent.avatarUrl,
             };
-            console.log("Dispatching markStudentAttendance with payload:", payload);
-            try {
-                await dispatch(markStudentAttendance(payload)).unwrap();
-                console.log("Attendance marked successfully via Redux.");
-            } catch (error: any) {
-                console.error("Attendance marking failed via Redux:", error);
+            setStudentInfo(studentDataForModal);
+
+            if (selectedClass?.id && loggedInUser?.id) {
+                const payload = {
+                    studentId: String(foundStudent.id),
+                    classInstanceId: selectedClass.id, // The class session being scanned FOR
+                    markedByUserId: loggedInUser.id,
+                    timestamp: new Date().toISOString(),
+                    scannedBarcode: scannedBarcodeId,
+                };
+                console.log("Dispatching markStudentAttendance with payload:", payload);
+                try {
+                    await dispatch(markStudentAttendance(payload)).unwrap();
+                    console.log("Attendance marked successfully via Redux.");
+                } catch (reduxError: any) {
+                    console.error("Attendance marking failed via Redux:", reduxError);
+                    // Error will be handled by apiError selector for display
+                }
+            } else {
+                console.error("Missing data for marking attendance:", { studentId: foundStudent.id, selectedClass, loggedInUser });
+                // Potentially show a toast if class not selected, though scanner shouldn't be active then.
             }
-        } else if (!fetchedInfo) {
-            console.log("Student not found, attendance not marked.");
         } else {
-            console.error("Missing data for marking attendance:", { fetchedInfo, selectedClass, user });
+            console.log("Student not found in local list for barcode:", scannedBarcodeId);
+            setStudentInfo(null); // Clear previous student info if any
+            // Toast for student not found is implicitly handled by studentInfo being null in modal
         }
-    }, [selectedClass, user, dispatch, toast]);
+        setIsProcessingScan(false);
+    }, [allFetchedUsers, selectedClass, loggedInUser, dispatch, toast, isLoadingStudents]);
 
 
     // Handle Modal Close
@@ -282,6 +292,13 @@ export default function ScanPage() {
             if (fetchingStudentInfo) return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Fetching Info...</Badge>;
             if (markingLoading) return <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Marking...</Badge>;
             return <Badge variant="outline">Processing Scan...</Badge>
+        }
+
+        if (isLoadingStudents && (!allFetchedUsers || allFetchedUsers.length === 0)) {
+            return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Loading Students...</Badge>;
+        }
+        if (studentsFetchError && (!allFetchedUsers || allFetchedUsers.length === 0)) {
+            return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" /> Students Failed to Load</Badge>;
         }
 
         if (selectedClass?.id) {
