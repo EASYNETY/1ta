@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle, Search, CheckCircle, Loader2 } from "lucide-react"
 import type { GradeItem, StudentGrade } from "../types/grade-types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { fetchUsersByRole } from "@/features/auth/store/user-thunks"
 
 interface GradeStudentsFormProps {
     gradeItem: GradeItem
@@ -50,24 +51,18 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
     const status = useAppSelector(selectGradeStatus)
     const operationStatus = useAppSelector(selectGradeOperationStatus)
     const error = useAppSelector(selectGradeError)
-    const { user } = useAppSelector((state) => state.auth)
+    const { user, users } = useAppSelector((state) => state.auth)
 
     const [searchQuery, setSearchQuery] = useState("")
     const [editableGrades, setEditableGrades] = useState<EditableGrade[]>([])
     const [bulkPublish, setBulkPublish] = useState(true)
 
-    // Mock student list - in a real app, this would come from an API
-    const mockStudents = [
-        { id: "student_1", name: "Alice Student" },
-        { id: "student_2", name: "Bob Learner" },
-        { id: "student_3", name: "Charlie Scholar" },
-        { id: "student_4", name: "Diana Hacker" },
-        { id: "student_5", name: "Ethan Coder" },
-    ]
 
     // Fetch student grades when component mounts
     useEffect(() => {
         dispatch(fetchStudentGrades(gradeItem.id))
+        const role = "student"
+        dispatch(fetchUsersByRole({ role }))
     }, [dispatch, gradeItem.id])
 
     // Initialize editable grades when student grades are loaded
@@ -80,7 +75,7 @@ export default function GradeStudentsForm({ gradeItem }: GradeStudentsFormProps)
             })
 
             // Create editable grades for all students
-            const newEditableGrades = mockStudents.map((student) => {
+            const newEditableGrades = users.map((student) => {
                 const existingGrade = gradesMap.get(student.id)
                 return {
                     studentId: student.id,
