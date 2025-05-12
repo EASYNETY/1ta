@@ -21,7 +21,8 @@ import {
     selectCorporateStatus,
     resetOperationStatus,
     clearCurrentManagedStudent,
-    updateManagedStudent // Thunk to update
+    updateManagedStudent, // Thunk to update
+    findAndSetCurrentManagedStudent
 } from '@/features/corporate/store/corporate-slice'; // Adjust path
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { PageHeader } from '@/components/layout/auth/page-header';
@@ -50,13 +51,7 @@ export default function EditManagedStudentPage() {
     // Fetch student data on mount
     useEffect(() => {
         if (studentId) {
-            // TODO: Dispatch fetchManagedStudentById(studentId);
-            console.warn("TODO: Dispatch fetchManagedStudentById(" + studentId + ")");
-            // Mock fetch for now
-            const mockStudent = user && isStudent(user) && user.isCorporateManager
-                ? { ...user, id: studentId, name: "Mock Managed Student", isCorporateManager: false, email: `${studentId}@example.com` } as StudentUser
-                : null;
-            // dispatch({ type: 'corporate/setCurrentManagedStudent', payload: mockStudent });
+            dispatch(findAndSetCurrentManagedStudent(studentId));
         }
         return () => {
             dispatch(clearCurrentManagedStudent());
