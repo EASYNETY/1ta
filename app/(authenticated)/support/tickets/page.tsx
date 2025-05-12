@@ -23,6 +23,8 @@ import { useRouter } from "next/navigation"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { PageHeader } from "@/components/layout/auth/page-header"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { cn } from "@/lib/utils"
 
 export default function AdminTicketsPage() {
     const dispatch = useAppDispatch()
@@ -89,6 +91,18 @@ export default function AdminTicketsPage() {
         )
     }
 
+    const tabItems = [
+        { value: "all" as const, label: "All", count: ticketCounts.all },
+        { value: "open" as const, label: "Open", count: ticketCounts.open },
+        { value: "in_progress" as const, label: "In Progress", count: ticketCounts.in_progress },
+        { value: "resolved" as const, label: "Resolved", count: ticketCounts.resolved },
+        { value: "closed" as const, label: "Closed", count: ticketCounts.closed },
+    ];
+
+    const handleValueChange = (value: string) => {
+        setStatusFilter(value as TicketStatus | "all");
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -96,44 +110,41 @@ export default function AdminTicketsPage() {
                 subheading="View and manage all support tickets"
             />
 
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <Tabs
-                    defaultValue="all"
-                    className="w-full"
-                    onValueChange={(value) => setStatusFilter(value as TicketStatus | "all")}
+                    value={statusFilter}
+                    className="w-full sm:max-w-2xl" // Constrain Tabs width on desktop
+                    onValueChange={handleValueChange}
                 >
-                    <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-                        <TabsTrigger value="all">
-                            All{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {ticketCounts.all}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="open">
-                            Open{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {ticketCounts.open}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="in_progress">
-                            In Progress{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {ticketCounts.in_progress}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="resolved">
-                            Resolved{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {ticketCounts.resolved}
-                            </Badge>
-                        </TabsTrigger>
-                        <TabsTrigger value="closed">
-                            Closed{" "}
-                            <Badge variant="outline" className="ml-2">
-                                {ticketCounts.closed}
-                            </Badge>
-                        </TabsTrigger>
-                    </TabsList>
+                    <ScrollArea
+                        className="w-full whitespace-nowrap" // Allow content to not wrap, enabling horizontal scroll
+                    >
+                        <TabsList
+                            className={cn(
+                                // --- Mobile First (Scrollable) ---
+                                // Uses shadcn's default TabsList (inline-flex) + adjustments
+                                "inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground",
+                                "gap-1", // Add a small gap between items for scrolling
+                                // --- SM Breakpoint and Up (Grid) ---
+                                "sm:grid sm:w-full sm:grid-cols-5 sm:justify-center sm:gap-2" // Override to grid, fill width, 5 cols, center items
+                            )}
+                        >
+                            {tabItems.map((item) => (
+                                <TabsTrigger
+                                    key={item.value}
+                                    value={item.value}
+                                    // On desktop, make triggers take equal width in the grid
+                                    className="sm:flex-1"
+                                >
+                                    {item.label}
+                                    <Badge variant="outline" className="ml-2 tabular-nums">
+                                        {item.count}
+                                    </Badge>
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                        <ScrollBar orientation="horizontal" className="h-2 sm:hidden" /> {/* Show scrollbar only on mobile */}
+                    </ScrollArea>
                 </Tabs>
             </div>
 
