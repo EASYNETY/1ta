@@ -10,7 +10,7 @@ interface UserTableProps {
 
 export function UserTable({ users, onDeleteUser, isLoading = false, error = null }: UserTableProps) {
     return (
-        <div className="rounded-md border">
+        <div className="rounded-md border bg-card/5 backdrop-blur-sm">
             <div className="relative overflow-x-auto">
                 <table className="w-full text-sm text-left">
                     <thead className="text-xs uppercase bg-muted/50">
