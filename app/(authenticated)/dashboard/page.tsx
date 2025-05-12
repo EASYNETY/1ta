@@ -99,9 +99,9 @@ export default function DashboardPage() {
                 return (
                     <>
                         {commonTabs}
-                        <TabsTrigger value="users">Users</TabsTrigger>
+                        {/* <TabsTrigger value="users">Users</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                        <TabsTrigger value="settings">Settings</TabsTrigger>
+                        <TabsTrigger value="settings">Settings</TabsTrigger> */}
                     </>
                 )
             case "teacher":
