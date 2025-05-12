@@ -21,7 +21,7 @@ export default function UsersPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [roleFilter, setRoleFilter] = useState<string | "all">("all")
     const [statusFilter, setStatusFilter] = useState<string | "all">("all")
-    const [activeTab, setActiveTab] = useState("all-users")
+    const [activeTab, setActiveTab] = useState("students")
 
     // Fetch users based on active tab
     useEffect(() => {
@@ -62,7 +62,7 @@ export default function UsersPage() {
             <div className="space-y-6">
                 <UsersPageHeader />
 
-                <Tabs defaultValue="all-users" value={activeTab} onValueChange={handleTabChange}>
+                <Tabs defaultValue="students" value={activeTab} onValueChange={handleTabChange}>
                     <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-4">
                         <TabsTrigger value="all-users">All Users</TabsTrigger>
                         <TabsTrigger value="students">Students</TabsTrigger>
