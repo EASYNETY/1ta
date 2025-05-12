@@ -197,7 +197,7 @@ const AdminPaymentsTable: React.FC = () => {
 
             {/* Table */}
             {status === "succeeded" && !isLoading && (
-                <div className="border rounded-md">
+                <div className="border rounded-md bg-card/5 backdrop-blur-sm">
                     <Table>
                         <TableHeader>
                             <TableRow>

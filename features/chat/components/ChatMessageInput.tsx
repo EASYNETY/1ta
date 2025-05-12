@@ -8,9 +8,10 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { SendHorizontal, Loader2, Paperclip, ImageIcon, X } from "lucide-react"
-import { sendChatMessage, selectSelectedRoomId, selectSendMessageStatus } from "../store/chatSlice"
+import { selectSelectedRoomId, selectSendMessageStatus } from "../store/chatSlice"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { MessageType } from "../types/chat-types"
+import { sendChatMessage } from "../store/chat-thunks"
 
 export const ChatMessageInput: React.FC = () => {
     const dispatch = useAppDispatch()

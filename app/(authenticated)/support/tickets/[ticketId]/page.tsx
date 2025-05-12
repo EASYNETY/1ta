@@ -31,6 +31,7 @@ import {
 import type { TicketPriority, TicketResponse, TicketStatus } from '@/features/support/types/support-types';
 import { Label } from '@/components/ui/label';
 import { getPriorityStyles, getStatusVariant } from '@/features/support/components/TicketListItem';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
 
 // Helper to format date string safely
@@ -125,13 +126,12 @@ export default function TicketDetailPage() {
 
 
     return (
-        <div className="max-w-3xl mx-auto">
-            <div className="flex items-center gap-2 mb-6">
-                <DyraneButton variant="outline" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4" />
-                </DyraneButton>
-                <h1 className="text-2xl font-bold truncate">Ticket Details</h1>
-            </div>
+        <div className="mx-auto">
+            {/* Header */}
+            <PageHeader
+                heading="Support Ticket"
+                subheading="View and manage your support ticket"
+            />
 
             <DyraneCard className="mb-6">
                 <CardHeader>
@@ -176,6 +176,17 @@ export default function TicketDetailPage() {
                     <p className="text-sm text-muted-foreground italic">No responses yet.</p>
                 )}
             </div>
+
+            {/* Feedback Link (Add this below the responses or in a convenient spot) */}
+            {ticket.status !== 'resolved' && ticket.status !== 'closed' && (
+                <DyraneButton
+                    variant="outline"
+                    onClick={() => router.push(`/support/feedback/create?ticketId=${ticket.id}`)}
+                    className="mt-6"
+                >
+                    Submit Feedback
+                </DyraneButton>
+            )}
 
             {/* Add Response Form (Show if ticket is not resolved/closed) */}
             {ticket.status !== 'resolved' && ticket.status !== 'closed' && (

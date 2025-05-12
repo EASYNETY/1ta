@@ -1,148 +1,40 @@
 // features/classes/store/classes-slice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"; // Removed createAsyncThunk from here
 import type { RootState } from "@/store";
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
-import type { ClassesState, AdminClassView } from "../types/classes-types";
-import { get, post, put, del } from "@/lib/api-client";
+import type {
+	ClassesState,
+	AdminClassView,
+	CourseClassOption,
+} from "../types/classes-types";
+// No direct apiClient import needed here anymore for thunks
 
-// Define payload types for create/update if different from AdminClassView
-type CreateClassPayload = Omit<AdminClassView, "id" | "studentCount">;
-type UpdateClassPayload = Partial<CreateClassPayload> & { id: string };
-
-// Import mocks (replace with API client later)
+// VVVV Import thunks from the new file VVVV
 import {
-	getMockEnrolledClasses,
-	getMockTaughtClasses,
-	getMockAllClassesAdmin,
-	createMockClass,
-	getMockClassById,
-	updateMockClass,
-	deleteMockClass,
-} from "@/data/mock-classes-data";
+	fetchMyEnrolledClasses,
+	fetchMyTaughtClasses,
+	fetchAllClassesAdmin,
+	fetchCourseClassOptionsForScanner,
+	fetchClassById,
+	createClass,
+	updateClass,
+	deleteClass,
+	// FetchAdminClassesResult // Import if needed for action payload typing, but usually inferred
+} from "./classes-thunks"; // Assuming thunks are in the same directory
+import type { FetchAdminClassesResult } from "./classes-thunks"; // Explicit import for clarity
 
-// --- Thunks ---
-export const fetchMyEnrolledClasses = createAsyncThunk<
-	AuthCourse[],
-	string,
-	{ rejectValue: string }
->("classes/fetchMyEnrolled", async (userId, { rejectWithValue }) => {
-	try {
-		return await getMockEnrolledClasses(userId);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
-	}
-});
-
-export const fetchMyTaughtClasses = createAsyncThunk<
-	AuthCourse[],
-	string,
-	{ rejectValue: string }
->("classes/fetchMyTaught", async (teacherId, { rejectWithValue }) => {
-	try {
-		return await getMockTaughtClasses(teacherId);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
-	}
-});
-
-// --- NEW CRUD Thunks ---
-export const fetchClassById = createAsyncThunk<
-	AdminClassView, // Return type
-	string, // Argument type (classId)
-	{ rejectValue: string }
->("classes/fetchById", async (classId, { rejectWithValue }) => {
-	try {
-		// Replace with API call: return await get<AdminClassView>(`/classes/${classId}`);
-		return await getMockClassById(classId);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
-	}
-});
-
-export const createClass = createAsyncThunk<
-	AdminClassView, // Return the created class
-	CreateClassPayload, // Payload to create
-	{ rejectValue: string }
->("classes/create", async (classData, { rejectWithValue }) => {
-	try {
-		// Replace with API call: return await post<AdminClassView>('/classes', classData);
-		return await createMockClass(classData);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
-	}
-});
-
-export const updateClass = createAsyncThunk<
-	AdminClassView, // Return the updated class
-	UpdateClassPayload, // Payload includes ID and fields to update
-	{ rejectValue: string }
->("classes/update", async ({ id, ...updateData }, { rejectWithValue }) => {
-	try {
-		// Replace with API call: return await put<AdminClassView>(`/classes/${id}`, updateData);
-		return await updateMockClass(id, updateData);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
-	}
-});
-
-export const deleteClass = createAsyncThunk<
-	string, // Return the ID of deleted class
-	string, // Argument is classId
-	{ rejectValue: string }
->("classes/delete", async (classId, { rejectWithValue }) => {
-	try {
-		// Replace with API call: await del<void>(`/classes/${classId}`);
-		await deleteMockClass(classId);
-		return classId;
-	} catch (e: any) {
-		return rejectWithValue(e.message);
-	}
-});
-// --- End NEW CRUD Thunks ---
-
-interface FetchAdminParams {
-	page?: number;
-	limit?: number;
-	search?: string;
-}
-interface FetchAdminResult {
-	classes: AdminClassView[];
-	total: number;
-	page: number;
-	limit: number;
-	totalPages: number;
-}
-
-export const fetchAllClassesAdmin = createAsyncThunk<
-	FetchAdminResult,
-	FetchAdminParams,
-	{ rejectValue: string }
->(
-	"classes/fetchAllAdmin",
-	async ({ page = 1, limit = 10, search }, { rejectWithValue }) => {
-		try {
-			const { classes, total } = await getMockAllClassesAdmin(
-				page,
-				limit,
-				search
-			);
-			const totalPages = Math.ceil(total / limit);
-			return { classes, total, page, limit, totalPages };
-		} catch (e: any) {
-			return rejectWithValue(e.message);
-		}
-	}
-);
-
-// --- Initial State ---
+// --- Initial State (remains the same) ---
 const initialState: ClassesState = {
 	myClasses: [],
 	allClasses: [],
-	currentClass: null, // Add currentClass
-	status: "idle",
-	operationStatus: "idle", // Add operationStatus
-	error: null,
+	currentClass: null,
+	status: "idle", // General status for list fetching (myClasses, allAdminClasses)
+	operationStatus: "idle", // Status for CUD operations and fetchById
+	error: null, // General error for list fetching
 	adminPagination: null,
+	courseClassOptions: [],
+	courseClassOptionsStatus: "idle",
+	courseClassOptionsError: null,
 };
 
 // --- Slice ---
@@ -152,64 +44,152 @@ const classesSlice = createSlice({
 	reducers: {
 		clearClassesError: (state) => {
 			state.error = null;
+			// Also clear specific errors if you add them (e.g., operationError)
+			state.courseClassOptionsError = null;
 		},
 		clearCurrentClass: (state) => {
 			state.currentClass = null;
-		}, // Action to clear viewed/edited class
+			state.operationStatus = "idle"; // Reset status when clearing current class
+			state.error = null;
+		},
 		resetOperationStatus: (state) => {
 			state.operationStatus = "idle";
-		}, // Reset after CUD
+			state.error = null; // Clear general error too if it was related to an operation
+		},
+		setCourseClassOptionStatus: (
+			state,
+			action: PayloadAction<"idle" | "loading" | "succeeded" | "failed">
+		) => {
+			state.courseClassOptionsStatus = action.payload;
+		},
+		// Optional: A reducer to clear courseClassOptions if needed, e.g., on logout
+		clearCourseClassOptions: (state) => {
+			state.courseClassOptions = [];
+			state.courseClassOptionsStatus = "idle";
+			state.courseClassOptionsError = null;
+		},
 	},
 	extraReducers: (builder) => {
-		// My Enrolled / Taught (Combined handling example)
-		// --- REORDERED SECTION ---
+		// Fetch My Enrolled Classes
+		builder
+			.addCase(fetchMyEnrolledClasses.pending, (state) => {
+				state.status = "loading"; // Use general 'status' for list loading
+				state.error = null;
+			})
+			.addCase(
+				fetchMyEnrolledClasses.fulfilled,
+				(state, action: PayloadAction<AuthCourse[]>) => {
+					state.status = "succeeded";
+					state.myClasses = action.payload;
+				}
+			)
+			.addCase(fetchMyEnrolledClasses.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Failed to fetch enrolled classes";
+			});
 
-		// 1. Specific Cases (addCase) FIRST
+		// Fetch My Taught Classes
+		builder
+			.addCase(fetchMyTaughtClasses.pending, (state) => {
+				state.status = "loading";
+				state.error = null;
+			})
+			.addCase(
+				fetchMyTaughtClasses.fulfilled,
+				(state, action: PayloadAction<AuthCourse[]>) => {
+					state.status = "succeeded";
+					// Assuming myClasses is used for both student and teacher contexts, overwrite it.
+					// If you need to store them separately, add another field to ClassesState.
+					state.myClasses = action.payload;
+				}
+			)
+			.addCase(fetchMyTaughtClasses.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Failed to fetch taught classes";
+			});
+
+		// Fetch All Classes Admin
 		builder
 			.addCase(fetchAllClassesAdmin.pending, (state) => {
 				state.status = "loading";
 				state.error = null;
 			})
-			.addCase(fetchAllClassesAdmin.fulfilled, (state, action) => {
-				state.status = "succeeded";
-				state.allClasses = action.payload.classes;
-				state.adminPagination = {
-					currentPage: action.payload.page,
-					limit: action.payload.limit,
-					totalClasses: action.payload.total,
-					totalPages: action.payload.totalPages,
-				};
-			})
+			.addCase(
+				fetchAllClassesAdmin.fulfilled,
+				(state, action: PayloadAction<FetchAdminClassesResult>) => {
+					state.status = "succeeded";
+					state.allClasses = action.payload.classes;
+					state.adminPagination = {
+						currentPage: action.payload.page,
+						limit: action.payload.limit,
+						totalClasses: action.payload.total,
+						totalPages: action.payload.totalPages,
+					};
+				}
+			)
 			.addCase(fetchAllClassesAdmin.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Failed to fetch admin classes";
 			});
 
+		// Fetch Course Class Options For Scanner
+		builder
+			.addCase(fetchCourseClassOptionsForScanner.pending, (state) => {
+				state.courseClassOptionsStatus = "loading";
+				state.courseClassOptionsError = null;
+			})
+			.addCase(
+				fetchCourseClassOptionsForScanner.fulfilled,
+				(state, action: PayloadAction<CourseClassOption[]>) => {
+					state.courseClassOptionsStatus = "succeeded";
+					state.courseClassOptions = action.payload;
+				}
+			)
+			.addCase(fetchCourseClassOptionsForScanner.rejected, (state, action) => {
+				state.courseClassOptionsStatus = "failed";
+				state.courseClassOptionsError =
+					action.payload ?? "Failed to load class session options.";
+			});
+
 		// Fetch Class By ID
 		builder
 			.addCase(fetchClassById.pending, (state) => {
-				state.status = "loading";
+				state.operationStatus = "loading"; // Use operationStatus for single item fetch/CUD
 				state.currentClass = null;
-			}) // Clear previous while loading
-			.addCase(fetchClassById.fulfilled, (state, action) => {
-				state.status = "succeeded";
-				state.currentClass = action.payload;
+				state.error = null; // Clear general error
 			})
+			.addCase(
+				fetchClassById.fulfilled,
+				(state, action: PayloadAction<AdminClassView>) => {
+					state.operationStatus = "succeeded";
+					state.currentClass = action.payload;
+				}
+			)
 			.addCase(fetchClassById.rejected, (state, action) => {
-				state.status = "failed";
-				state.error = action.payload ?? "Failed to fetch class details";
+				state.operationStatus = "failed";
+				state.error = action.payload ?? "Failed to fetch class details"; // Set general error
 			});
 
 		// Create Class
 		builder
 			.addCase(createClass.pending, (state) => {
 				state.operationStatus = "loading";
+				state.error = null;
 			})
-			.addCase(createClass.fulfilled, (state, action) => {
-				state.operationStatus = "succeeded";
-				state.allClasses.unshift(action.payload); // Add to beginning of admin list
-				// Optionally update pagination or trigger refetch
-			})
+			.addCase(
+				createClass.fulfilled,
+				(state, action: PayloadAction<AdminClassView>) => {
+					state.operationStatus = "succeeded";
+					state.allClasses.unshift(action.payload);
+					if (state.adminPagination) {
+						// Increment total if pagination exists
+						state.adminPagination.totalClasses += 1;
+						state.adminPagination.totalPages = Math.ceil(
+							state.adminPagination.totalClasses / state.adminPagination.limit
+						);
+					}
+				}
+			)
 			.addCase(createClass.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to create class";
@@ -219,17 +199,32 @@ const classesSlice = createSlice({
 		builder
 			.addCase(updateClass.pending, (state) => {
 				state.operationStatus = "loading";
+				state.error = null;
 			})
-			.addCase(updateClass.fulfilled, (state, action) => {
-				state.operationStatus = "succeeded";
-				const index = state.allClasses.findIndex(
-					(c) => c.id === action.payload.id
-				);
-				if (index !== -1) state.allClasses[index] = action.payload; // Update in admin list
-				if (state.currentClass?.id === action.payload.id)
-					state.currentClass = action.payload; // Update current if viewing/editing
-				// Update myClasses if needed
-			})
+			.addCase(
+				updateClass.fulfilled,
+				(state, action: PayloadAction<AdminClassView>) => {
+					state.operationStatus = "succeeded";
+					const index = state.allClasses.findIndex(
+						(c) => c.id === action.payload.id
+					);
+					if (index !== -1) state.allClasses[index] = action.payload;
+					if (state.currentClass?.id === action.payload.id)
+						state.currentClass = action.payload;
+					// Also update in myClasses if the updated class is present there
+					const myClassIndex = state.myClasses.findIndex(
+						(c) => c.id === action.payload.id
+					);
+					if (myClassIndex !== -1) {
+						// Assuming AdminClassView can be cast or mapped to AuthCourse for myClasses
+						// This might need careful type handling or fetching AuthCourse again
+						state.myClasses[myClassIndex] = {
+							...state.myClasses[myClassIndex],
+							...action.payload,
+						};
+					}
+				}
+			)
 			.addCase(updateClass.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to update class";
@@ -239,62 +234,60 @@ const classesSlice = createSlice({
 		builder
 			.addCase(deleteClass.pending, (state) => {
 				state.operationStatus = "loading";
+				state.error = null;
 			})
-			.addCase(deleteClass.fulfilled, (state, action) => {
-				state.operationStatus = "succeeded";
-				state.allClasses = state.allClasses.filter(
-					(c) => c.id !== action.payload
-				); // Remove from admin list
-				// Update pagination or trigger refetch
-				// Remove from myClasses if needed
-			})
+			.addCase(
+				deleteClass.fulfilled,
+				(state, action: PayloadAction<string>) => {
+					// action.payload is classId
+					state.operationStatus = "succeeded";
+					state.allClasses = state.allClasses.filter(
+						(c) => c.id !== action.payload
+					);
+					state.myClasses = state.myClasses.filter(
+						(c) => c.id !== action.payload
+					); // Also remove from myClasses
+					if (state.currentClass?.id === action.payload)
+						state.currentClass = null;
+					if (
+						state.adminPagination &&
+						state.allClasses.length < state.adminPagination.totalClasses
+					) {
+						// Decrement total
+						state.adminPagination.totalClasses -= 1;
+						state.adminPagination.totalPages = Math.ceil(
+							state.adminPagination.totalClasses / state.adminPagination.limit
+						);
+						if (
+							state.adminPagination.currentPage >
+								state.adminPagination.totalPages &&
+							state.adminPagination.totalPages > 0
+						) {
+							state.adminPagination.currentPage =
+								state.adminPagination.totalPages;
+							// Optionally dispatch fetchAllClassesAdmin for the new current page here if items on current page became 0
+						}
+					}
+				}
+			)
 			.addCase(deleteClass.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to delete class";
 			});
-
-		// General Matchers (addMatcher) AFTER cases
-		builder
-			.addMatcher(
-				// Pending for fetchMy...
-				(action) =>
-					action.type.startsWith("classes/fetchMy") &&
-					action.type.endsWith("/pending"),
-				(state) => {
-					state.status = "loading";
-					state.error = null;
-				}
-			)
-			.addMatcher(
-				// Fulfilled for fetchMy...
-				(action): action is PayloadAction<AuthCourse[]> =>
-					action.type.startsWith("classes/fetchMy") &&
-					action.type.endsWith("/fulfilled"),
-				(state, action) => {
-					state.status = "succeeded";
-					// Decide how to handle myClasses: overwrite or merge?
-					// Overwrite seems reasonable if fetching specific role's list
-					state.myClasses = action.payload;
-				}
-			)
-			.addMatcher(
-				// Rejected for fetchMy...
-				(action): action is PayloadAction<string> =>
-					action.type.startsWith("classes/fetchMy") &&
-					action.type.endsWith("/rejected"),
-				(state, action) => {
-					state.status = "failed";
-					state.error = action.payload ?? "Failed to fetch classes";
-				}
-			);
 	},
 });
 
-// --- Actions & Selectors ---
-export const { clearClassesError, clearCurrentClass, resetOperationStatus } =
-	classesSlice.actions;
+// --- Actions & Selectors (Selectors remain the same, actions from reducers object) ---
+export const {
+	clearClassesError,
+	clearCurrentClass,
+	resetOperationStatus,
+	clearCourseClassOptions,
+	setCourseClassOptionStatus
+} = classesSlice.actions;
+
 export const selectCurrentClass = (state: RootState) =>
-	state.classes.currentClass; // Selector for single class
+	state.classes.currentClass;
 export const selectOperationStatus = (state: RootState) =>
 	state.classes.operationStatus;
 export const selectMyClasses = (state: RootState) => state.classes.myClasses;
@@ -302,7 +295,14 @@ export const selectAllAdminClasses = (state: RootState) =>
 	state.classes.allClasses;
 export const selectAdminPagination = (state: RootState) =>
 	state.classes.adminPagination;
-export const selectClassesStatus = (state: RootState) => state.classes.status;
-export const selectClassesError = (state: RootState) => state.classes.error;
+export const selectClassesStatus = (state: RootState) => state.classes.status; // General list status
+export const selectClassesError = (state: RootState) => state.classes.error; // General list error
+
+export const selectAllCourseClassOptions = (state: RootState) =>
+	state.classes.courseClassOptions;
+export const selectCourseClassOptionsStatus = (state: RootState) =>
+	state.classes.courseClassOptionsStatus;
+export const selectCourseClassOptionsError = (state: RootState) =>
+	state.classes.courseClassOptionsError;
 
 export default classesSlice.reducer;

@@ -5,7 +5,7 @@
 import { useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { ChatLayout } from "@/features/chat/components/ChatLayout"
-import { fetchChatRooms } from "@/features/chat/store/chatSlice"
+import { fetchChatRooms } from "@/features/chat/store/chat-thunks"
 
 export default function ChatPage() {
     const dispatch = useAppDispatch()

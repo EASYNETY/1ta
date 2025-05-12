@@ -10,7 +10,8 @@ import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import Link from 'next/link';
 import { BookOpen, AlertTriangle } from 'lucide-react';
 import { CourseCard } from '@/components/dashboard/course-card'; // Reuse dashboard card
-import { fetchMyEnrolledClasses, selectMyClasses, selectClassesStatus, selectClassesError } from '../store/classes-slice'; // Adjust path
+import { selectClassesError, selectClassesStatus, selectMyClasses } from '../store/classes-slice';
+import { fetchMyEnrolledClasses } from '../store/classes-thunks';
 
 const StudentClassesTab: React.FC = () => {
     const dispatch = useAppDispatch();

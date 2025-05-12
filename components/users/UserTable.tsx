@@ -1,41 +1,76 @@
-// components/users/UserTable.tsx
-import { UserTableRow, UserData } from './UserTableRow'; // Import UserData type
+import { type UserData, UserTableRow } from "./UserTableRow"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface UserTableProps {
-    users: UserData[];
-    onDeleteUser: (userId: string, userName: string) => void;
+    users: UserData[]
+    onDeleteUser: (userId: string, userName: string) => Promise<void>
+    isLoading?: boolean
+    error?: string | null
 }
 
-export function UserTable({ users, onDeleteUser }: UserTableProps) {
+export function UserTable({ users, onDeleteUser, isLoading = false, error = null }: UserTableProps) {
     return (
-        <div className="overflow-x-auto relative w-full border rounded-md bg-background/5 backdrop-blur-sm">
-            {/* Consider table-fixed if columns widths are set */}
-            <table className="w-full border-collapse">
-                <thead>
-                    <tr className="border-b bg-muted text-sm">
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">User</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Email</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Role</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Join Date</th>
-                        <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {users.length > 0 ? (
-                        users.map((user) => (
-                            <UserTableRow key={user.id} user={user} onDelete={onDeleteUser} />
-                        ))
-                    ) : (
+        <div className="rounded-md border bg-card/5 backdrop-blur-sm">
+            <div className="relative overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                    <thead className="text-xs uppercase bg-muted/50">
                         <tr>
-                            {/* Adjust colspan based on the final number of columns */}
-                            <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                                No users found matching your criteria.
-                            </td>
+                            <th className="py-3 px-4">User</th>
+                            <th className="py-3 px-4">Email</th>
+                            <th className="py-3 px-4">Role</th>
+                            <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4">Join Date</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
                         </tr>
-                    )}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {isLoading ? (
+                            // Loading state
+                            Array(5)
+                                .fill(0)
+                                .map((_, index) => (
+                                    <tr key={`skeleton-${index}`} className="border-b">
+                                        <td className="py-3 px-4">
+                                            <Skeleton className="h-10 w-full" />
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <Skeleton className="h-6 w-full" />
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <Skeleton className="h-6 w-20" />
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <Skeleton className="h-6 w-20" />
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <Skeleton className="h-6 w-24" />
+                                        </td>
+                                        <td className="py-3 px-4">
+                                            <Skeleton className="h-6 w-16 ml-auto" />
+                                        </td>
+                                    </tr>
+                                ))
+                        ) : error ? (
+                            // Error state
+                            <tr>
+                                <td colSpan={6} className="py-4 px-4 text-center text-red-500">
+                                    {error}
+                                </td>
+                            </tr>
+                        ) : users?.length === 0 ? (
+                            // Empty state
+                            <tr>
+                                <td colSpan={6} className="py-4 px-4 text-center text-muted-foreground">
+                                    No users found.
+                                </td>
+                            </tr>
+                        ) : (
+                            // Data state
+                            users?.map((user) => <UserTableRow key={user.id} user={user} onDelete={onDeleteUser} />)
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    );
+    )
 }

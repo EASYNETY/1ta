@@ -11,7 +11,8 @@ import Link from 'next/link';
 import { BookOpen, AlertTriangle, Users } from 'lucide-react';
 import { DyraneCard } from '@/components/dyrane-ui/dyrane-card'; // Use Card for list view
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Use Card for list view
-import { fetchMyTaughtClasses, selectMyClasses, selectClassesStatus, selectClassesError } from '../store/classes-slice'; // Adjust path
+import { fetchMyTaughtClasses } from '../store/classes-thunks';
+import { selectClassesError, selectClassesStatus, selectMyClasses } from '../store/classes-slice';
 
 const TeacherClassesTab: React.FC = () => {
     const dispatch = useAppDispatch();

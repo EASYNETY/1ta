@@ -2,117 +2,56 @@
 
 import {
 	createSlice,
-	createAsyncThunk,
 	type PayloadAction,
 	createSelector,
 } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import type {
-	ChatState,
-	ChatRoom,
-	ChatMessage,
-	FetchRoomsResponse,
-	FetchMessagesResponse,
-	SendMessageResponse,
-} from "../types/chat-types";
+import type { ChatState, ChatRoom, ChatMessage } from "../types/chat-types";
+import {
+	fetchChatRooms,
+	fetchChatMessages,
+	sendChatMessage,
+	createChatRoom,
+	markRoomAsRead,
+} from "./chat-thunks";
 
-// Import API client
-import { get, post } from "@/lib/api-client";
-
-// --- Async Thunks ---
-export const fetchChatRooms = createAsyncThunk<
-	ChatRoom[],
-	string, // userId
-	{ rejectValue: string }
->("chat/fetchRooms", async (userId, { rejectWithValue }) => {
-	try {
-		// In a real app, we'd use the API client to fetch rooms
-		const response = await get<FetchRoomsResponse>(
-			`/chat/rooms/user/${userId}`
-		);
-		return response.rooms;
-	} catch (e: any) {
-		return rejectWithValue(e.message || "Failed to fetch chat rooms");
-	}
-});
-
-interface FetchMessagesParams {
-	roomId: string;
-	page?: number;
-	limit?: number;
-}
-
-export const fetchChatMessages = createAsyncThunk<
-	ChatMessage[],
-	FetchMessagesParams,
-	{ rejectValue: string }
->(
-	"chat/fetchMessages",
-	async ({ roomId, page = 1, limit = 30 }, { rejectWithValue }) => {
-		try {
-			const response = await get<FetchMessagesResponse>(
-				`/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`
-			);
-			return response.messages;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to fetch messages");
-		}
-	}
-);
-
-interface SendMessageParams {
-	roomId: string;
-	senderId: string;
-	content: string;
-}
-
-export const sendChatMessage = createAsyncThunk<
-	ChatMessage,
-	SendMessageParams,
-	{ rejectValue: string }
->(
-	"chat/sendMessage",
-	async ({ roomId, senderId, content }, { rejectWithValue }) => {
-		try {
-			const response = await post<SendMessageResponse>("/chat/messages", {
-				roomId,
-				content,
-				// senderId is typically derived from the authenticated user on the server
-			});
-			return response.message;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to send message");
-		}
-	}
-);
-
-// --- Initial State ---
+// Initial state
 const initialState: ChatState = {
 	rooms: [],
 	messagesByRoom: {},
 	selectedRoomId: null,
 	roomStatus: "idle",
+	createRoomStatus: "idle",
 	messageStatus: {},
 	sendMessageStatus: "idle",
 	error: null,
+	createRoomError: null,
 };
 
-// --- Slice Definition ---
+// Slice definition
 const chatSlice = createSlice({
 	name: "chat",
 	initialState,
 	reducers: {
 		selectChatRoom: (state, action: PayloadAction<string | null>) => {
+			const previouslySelectedRoomId = state.selectedRoomId;
 			state.selectedRoomId = action.payload;
-			state.error = null; // Clear error when changing rooms
+			state.error = null;
 
 			if (action.payload && !state.messageStatus[action.payload]) {
-				state.messageStatus[action.payload] = "idle"; // Ensure status exists
+				state.messageStatus[action.payload] = "idle";
 			}
 
-			// Reset unread count locally on selection
-			const room = state.rooms.find((r) => r.id === action.payload);
-			if (room) room.unreadCount = 0;
+			// If a new room is selected, locally update its unread count to 0 immediately
+			// The thunk will confirm with the backend.
+			if (action.payload && action.payload !== previouslySelectedRoomId) {
+				const room = state.rooms.find((r) => r.id === action.payload);
+				if (room && room.unreadCount && room.unreadCount > 0) {
+					// We will dispatch markRoomAsRead thunk from the component
+					// but can optimistically update here for faster UI response
+					room.unreadCount = 0;
+				}
+			}
 		},
 
 		clearChatError: (state) => {
@@ -150,6 +89,10 @@ const chatSlice = createSlice({
 						(state.rooms[roomIndex].unreadCount || 0) + 1;
 				}
 			}
+		},
+		clearCreateRoomStatus: (state) => {
+			state.createRoomStatus = "idle";
+			state.createRoomError = null;
 		},
 	},
 	extraReducers: (builder) => {
@@ -248,12 +191,62 @@ const chatSlice = createSlice({
 				state.sendMessageStatus = "failed";
 				state.error = action.payload ?? "Failed to send message";
 			});
+		// VVVV NEW EXTRA REDUCERS FOR createChatRoom VVVV
+		builder
+			.addCase(createChatRoom.pending, (state) => {
+				state.createRoomStatus = "loading";
+				state.createRoomError = null;
+			})
+			.addCase(
+				createChatRoom.fulfilled,
+				(state, action: PayloadAction<ChatRoom>) => {
+					state.createRoomStatus = "succeeded";
+					// Add the new room to the list, avoid duplicates
+					if (!state.rooms.find((room) => room.id === action.payload.id)) {
+						state.rooms.unshift(action.payload); // Add to the beginning
+					}
+					// Optionally, auto-select the newly created room
+					// state.selectedRoomId = action.payload.id;
+				}
+			)
+			.addCase(createChatRoom.rejected, (state, action) => {
+				state.createRoomStatus = "failed";
+				state.createRoomError = action.payload ?? "Unknown error creating room";
+			});
+		builder
+			.addCase(markRoomAsRead.fulfilled, (state, action) => {
+				const { roomId, updatedRoom } = action.payload;
+				const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
+				if (roomIndex !== -1) {
+					// Update from server response if provided, otherwise just ensure unreadCount is 0
+					if (updatedRoom) {
+						state.rooms[roomIndex] = {
+							...state.rooms[roomIndex],
+							...updatedRoom,
+							unreadCount: updatedRoom.unreadCount ?? 0,
+						};
+					} else {
+						state.rooms[roomIndex].unreadCount = 0;
+					}
+				}
+				// If you were tracking individual message.isRead, you might update them here too
+				// based on what the backend confirms, or optimistically.
+			})
+			.addCase(markRoomAsRead.rejected, (state, action) => {
+				// Handle error, maybe revert optimistic update if you did one
+				console.error("Failed to mark room as read on server:", action.payload);
+				// You might want to add a specific error state for this if needed
+			});
 	},
 });
 
-// --- Actions & Selectors ---
-export const { selectChatRoom, clearChatError, messageReceived } =
-	chatSlice.actions;
+// Actions & Selectors
+export const {
+	selectChatRoom,
+	clearChatError,
+	messageReceived,
+	clearCreateRoomStatus,
+} = chatSlice.actions;
 
 // Basic selectors
 export const selectChatRooms = (state: RootState) => state.chat.rooms;
@@ -265,7 +258,11 @@ export const selectRoomStatus = (state: RootState) => state.chat.roomStatus;
 export const selectSendMessageStatus = (state: RootState) =>
 	state.chat.sendMessageStatus;
 export const selectChatError = (state: RootState) => state.chat.error;
-
+// New selectors for create room status
+export const selectCreateRoomStatus = (state: RootState) =>
+	state.chat.createRoomStatus;
+export const selectCreateRoomError = (state: RootState) =>
+	state.chat.createRoomError;
 // Derived selectors
 export const selectCurrentRoomMessages = createSelector(
 	[selectMessagesByRoom, selectSelectedRoomId],

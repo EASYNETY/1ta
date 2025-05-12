@@ -20,6 +20,9 @@ export interface ClassesState {
 	status: "idle" | "loading" | "succeeded" | "failed";
 	operationStatus: "idle" | "loading" | "succeeded" | "failed"; // For CUD operations
 	error: string | null;
+	courseClassOptions: CourseClassOption[]; // << NEW
+	courseClassOptionsStatus: "idle" | "loading" | "succeeded" | "failed"; // << NEW
+	courseClassOptionsError: string | null; // << NEW
 	adminPagination: {
 		// Keep pagination
 		currentPage: number;
@@ -28,3 +31,9 @@ export interface ClassesState {
 		totalPages: number;
 	} | null;
 }
+
+export type CourseClassOption = {
+	id: string; // This ID should likely be a unique identifier for the class *instance* or *session* 	// courseId?: string;
+	courseName: string;
+	sessionName: string; // e.g., "Morning", "Afternoon", "Batch A"
+};

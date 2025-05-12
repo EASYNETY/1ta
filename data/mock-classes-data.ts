@@ -1,6 +1,6 @@
 // data/mock-classes-data.ts
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
-import type { AdminClassView } from "@/features/classes/types/classes-types";
+import type { AdminClassView, CourseClassOption } from "@/features/classes/types/classes-types";
 import { mockAuthCourseData } from "./mock-auth-course-data";
 import { formatISO } from "date-fns"; // For generating consistent date strings
 
@@ -33,6 +33,20 @@ let mockAdminClasses: AdminClassView[] = mockAuthCourseData.map(
 	})
 );
 
+// VVVV NEW MOCK DATA AND FUNCTION FOR COURSE CLASS OPTIONS VVVV
+let mockCourseClassOptions: CourseClassOption[] = [
+    { id: "ccs_1_morn", courseName: "Frontend Web Development", sessionName: "Morning" },
+    { id: "ccs_1_aft", courseName: "Frontend Web Development", sessionName: "Afternoon" },
+    { id: "ccs_2_aft", courseName: "Backend API Engineering", sessionName: "Afternoon (Batch A)" },
+    { id: "ccs_2_eve", courseName: "Backend API Engineering", sessionName: "Evening" },
+    { id: "ccs_3_eve", courseName: "UI/UX Design Principles", sessionName: "Evening Intensive" },
+    { id: "ccs_4_morn", courseName: "Mobile App Development", sessionName: "Morning Full-time" },
+    { id: "ccs_5_wknd", courseName: "Data Structures & Algorithms", sessionName: "Weekend" },
+    { id: "ccs_6_morn", courseName: "Cybersecurity Fundamentals", sessionName: "Morning" },
+    { id: "ccs_physics_m", courseName: "Physics 101", sessionName: "Morning" }, // From your fetchStudentInfo
+    { id: "ccs_chem_aft", courseName: "Chemistry 101", sessionName: "Afternoon" }, // From your fetchStudentInfo
+    { id: "ccs_cs101_eve", courseName: "CS 101", sessionName: "Evening" }, // From your fetchStudentInfo
+];
 // --- Existing Mock API Functions ---
 
 export const getMockEnrolledClasses = async (
@@ -95,6 +109,19 @@ export const getMockAllClassesAdmin = async (
 	// Return a deep copy to prevent direct mutation of the mock store from outside
 	return { classes: JSON.parse(JSON.stringify(paginatedClasses)), total };
 };
+
+// Update the getMockCourseClassOptions function to properly handle the request
+export const getMockCourseClassOptions = async (): Promise<CourseClassOption[]> => {
+	console.log("MOCK: Fetching course class options for scanner")
+	// Add a delay to simulate network request
+	await new Promise((res) => setTimeout(res, 250))
+  
+	// Log the data being returned for debugging
+	console.log("MOCK: Returning course class options:", mockCourseClassOptions)
+  
+	// Return a deep copy of the mock data
+	return JSON.parse(JSON.stringify(mockCourseClassOptions))
+  }
 
 // --- NEW Mock CRUD Functions ---
 

@@ -64,8 +64,8 @@ export const ChatRoomItem: React.FC<ChatRoomItemProps> = ({ room, isSelected, on
     <button
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors",
-        isSelected ? "bg-primary/10 text-primary" : "text-foreground/80 hover:bg-muted/50 hover:text-foreground",
+        "flex w-full flex-wrap items-center gap-3 rounded-lg p-2.5 text-left transition-colors cursor-pointer",
+        isSelected ? "bg-primary/10 text-primary" : "bg-card/65 text-foreground/80 hover:bg-muted/50 hover:text-foreground",
       )}
       aria-current={isSelected ? "page" : undefined}
     >

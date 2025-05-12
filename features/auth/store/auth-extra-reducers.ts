@@ -7,8 +7,10 @@ import {
 	loginThunk,
 	signupThunk,
 	refreshTokenThunk,
+	createCorporateStudentSlotsThunk,
 } from "./auth-thunks";
 import type { AuthResponse } from "../types/auth-types";
+import { deleteUser, fetchAllUsers, fetchUsersByRole } from "./user-thunks";
 
 export const addAuthExtraReducers = (builder: any) => {
 	// --- Handle Login/Signup Success ---
@@ -97,12 +99,22 @@ export const addAuthExtraReducers = (builder: any) => {
 		fetchUserProfileThunk.fulfilled,
 		(state: AuthState, action: PayloadAction<User>) => {
 			state.isLoading = false;
-			state.user = {
-				...(state.user ?? {}),
-				...action.payload,
-				role: action.payload.role,
-			} as User;
-			state.isAuthenticated = true;
+
+			// Make sure we have a valid payload before trying to access properties
+			if (action.payload) {
+				state.user = {
+					...(state.user ?? {}),
+					...action.payload,
+					// Only set role if it exists in the payload
+					role: action.payload.role || state.user?.role || "student",
+				} as User;
+				state.isAuthenticated = true;
+			} else {
+				console.error(
+					"Received empty user payload in fetchUserProfileThunk.fulfilled"
+				);
+			}
+
 			state.isInitialized = true;
 		}
 	);
@@ -141,6 +153,106 @@ export const addAuthExtraReducers = (builder: any) => {
 		) => {
 			state.isLoading = false;
 			state.error = action.payload ?? "Failed to update profile";
+		}
+	);
+
+	// --- CREATE CORPORATE STUDENT SLOTS ---
+	builder.addCase(
+		createCorporateStudentSlotsThunk.pending,
+		(state: AuthState) => {
+			state.isLoading = true;
+			state.error = null;
+		}
+	);
+
+	builder.addCase(
+		createCorporateStudentSlotsThunk.fulfilled,
+		(state: AuthState) => {
+			state.isLoading = false;
+			// We don't need to update any state here as this doesn't directly affect the auth state
+		}
+	);
+
+	builder.addCase(
+		createCorporateStudentSlotsThunk.rejected,
+		(
+			state: AuthState,
+			action: ReturnType<typeof createCorporateStudentSlotsThunk.rejected>
+		) => {
+			state.isLoading = false;
+			state.error =
+				action.payload ?? "Failed to create corporate student slots";
+		}
+	);
+
+	// --- FETCH ALL USERS ---
+	builder.addCase(fetchAllUsers.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		fetchAllUsers.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ users: User[]; total: number }>
+		) => {
+			state.usersLoading = false;
+			state.users = action.payload.users;
+			state.totalUsers = action.payload.total;
+		}
+	);
+
+	builder.addCase(
+		fetchAllUsers.rejected,
+		(state: AuthState, action: ReturnType<typeof fetchAllUsers.rejected>) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to fetch users";
+		}
+	);
+
+	// --- FETCH USERS BY ROLE ---
+	builder.addCase(fetchUsersByRole.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		fetchUsersByRole.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ users: User[]; total: number }>
+		) => {
+			state.usersLoading = false;
+			state.users = action.payload.users;
+			state.totalUsers = action.payload.total;
+		}
+	);
+
+	builder.addCase(
+		fetchUsersByRole.rejected,
+		(
+			state: AuthState,
+			action: ReturnType<typeof fetchUsersByRole.rejected>
+		) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to fetch users by role";
+		}
+	);
+
+	// --- DELETE USER ---
+	builder.addCase(
+		deleteUser.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ success: boolean; id: string }>
+		) => {
+			if (action.payload.success) {
+				state.users = state.users.filter(
+					(user) => user.id !== action.payload.id
+				);
+				state.totalUsers = Math.max(0, state.totalUsers - 1);
+			}
 		}
 	);
 };

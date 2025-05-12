@@ -67,6 +67,7 @@ import {
 	deleteMockClass,
 	getMockAllClassesAdmin,
 	getMockClassById,
+	getMockCourseClassOptions,
 	getMockEnrolledClasses,
 	getMockTaughtClasses,
 	updateMockClass,
@@ -96,8 +97,10 @@ import {
 } from "@/data/mock-payment-data";
 import {
 	createMockChatMessage,
+	createMockChatRoom,
 	getMockChatMessages,
 	getMockChatRooms,
+	markMockRoomAsRead,
 } from "@/data/mock-chat-data";
 import {
 	deleteMockManagedStudent,
@@ -136,11 +139,15 @@ import {
 } from "./auth-service";
 import { store } from "@/store";
 import { refreshTokenThunk } from "@/features/auth/store/auth-thunks";
+import { UserData } from "@/components/users/UserTableRow";
 
 // --- Config ---
+// Base URL for the API
 const API_BASE_URL =
 	process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
-const IS_LIVE_API = false;
+
+// Determine if the API is in live mode or mock mode
+const IS_LIVE_API = process.env.NEXT_PUBLIC_API_IS_LIVE === "true";
 
 console.log(
 	`%cAPI Client Mode: ${IS_LIVE_API ? "LIVE" : "MOCK"}`,
@@ -325,7 +332,7 @@ async function apiClient<T>(
 }
 
 // --- Handle MOCK Requests ---
-async function handleMockRequest<T>(
+export async function handleMockRequest<T>(
 	endpoint: string,
 	options: FetchOptions
 ): Promise<T> {
@@ -341,6 +348,12 @@ async function handleMockRequest<T>(
 			body = JSON.parse(options.body);
 		} catch {}
 	}
+
+	// --- Primary Debug Log ---
+	console.log(
+		`%c[DEBUG] handleMockRequest: Entry\n  Endpoint: "${endpoint}"\n  Method: "${method}"\n  options.url: "${options.url}"`,
+		"color: blue; font-weight: bold;"
+	);
 
 	// --- Courses
 	if (endpoint === "/courses" && method === "get") {
@@ -735,24 +748,76 @@ async function handleMockRequest<T>(
 	// --- END: Schedule Event CRUD Mock Handlers ---
 
 	// --- Classes Mocks ---
-	// Example: Student getting their courses
-	if (endpoint === "/users/me/courses" && method === "get") {
-		const mockUserId = "student_123"; // Simulate logged-in user
-		return getMockEnrolledClasses(mockUserId) as unknown as T;
+	console.log(
+		"%c[DEBUG] handleMockRequest: Checking Classes Mocks...",
+		"color: magenta;"
+	);
+
+	// VVVV UPDATED STUDENT ENROLLED CLASSES HANDLER VVVV
+	const enrolledClassesMatch = endpoint.match(
+		/^\/users\/([\w-]+)\/enrolled-classes$/
+	);
+	if (enrolledClassesMatch && method === "get") {
+		const userId = enrolledClassesMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /users/${userId}/enrolled-classes`,
+			"color: orange;"
+		);
+		try {
+			const response = await getMockEnrolledClasses(userId);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /users/${userId}/enrolled-classes:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
-	// Example: Teacher getting their courses
-	if (endpoint === "/teachers/me/courses" && method === "get") {
-		const mockTeacherId = "teacher_1"; // Simulate logged-in user
-		return getMockTaughtClasses(mockTeacherId) as unknown as T;
+
+	// VVVV UPDATED TEACHER TAUGHT CLASSES HANDLER VVVV
+	const taughtClassesMatch = endpoint.match(
+		/^\/teachers\/([\w-]+)\/taught-classes$/
+	);
+	if (taughtClassesMatch && method === "get") {
+		const teacherId = taughtClassesMatch[1];
+		console.log(
+			`%cAPI Client MOCK: GET /teachers/${teacherId}/taught-classes`,
+			"color: orange;"
+		);
+		try {
+			const response = await getMockTaughtClasses(teacherId);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /teachers/${teacherId}/taught-classes:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
-	// Example: Admin getting all classes
-	if (endpoint === "/admin/classes" && method === "get") {
-		// Extract pagination/search from options.url query params if passed
+
+	// Example: Admin getting all classes with regex URL match
+	if (method === "get" && /^\/admin\/classes(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const page = parseInt(urlParams.get("page") || "1", 10);
 		const limit = parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
-		return getMockAllClassesAdmin(page, limit, search) as unknown as T;
+
+		console.log(
+			`%cAPI Client MOCK: GET /admin/classes?page=${page}&limit=${limit}&search=${search}`,
+			"color: orange;"
+		);
+
+		try {
+			const result = await getMockAllClassesAdmin(page, limit, search);
+			return result as unknown as T; // Expects { classes: [], total: number }
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/classes:", error.message);
+			throw {
+				response: { data: { message: error.message }, status: 500 },
+			};
+		}
 	}
 
 	// --- START: Class CRUD Mock Handlers ---
@@ -831,6 +896,29 @@ async function handleMockRequest<T>(
 		}
 	}
 
+	// VVVV NEW HANDLER FOR COURSE CLASS OPTIONS VVVV
+	if (endpoint === "/class-sessions/options" && method === "get") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Get Course Class Options (GET /class-sessions/options)`,
+			"color: green; font-weight: bold;"
+		);
+		try {
+			const response = await getMockCourseClassOptions();
+			console.log(
+				"MOCK API: Successfully fetched course class options:",
+				response
+			);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				"Mock API Error for GET /class-sessions/options:",
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+	// ^^^^ END OF NEW HANDLER ^^^^
+
 	// --- Attendance Mock Data ---
 	const studentAttendanceMatch = endpoint.match(
 		/^\/students\/(.+)\/attendance$/
@@ -890,35 +978,81 @@ async function handleMockRequest<T>(
 	}
 
 	// --- Chat Mocks ---
+	console.log(
+		"%c[DEBUG] handleMockRequest: Checking Chat Mocks...",
+		"color: blue;"
+	);
+
+	// Handler for GET /chat/rooms/user/:userId
 	const chatRoomsForUserMatch = endpoint.match(/^\/chat\/rooms\/user\/(.+)$/);
 	if (chatRoomsForUserMatch && method === "get") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Chat Rooms (GET /chat/rooms/user/:userId)`,
+			"color: green; font-weight: bold;"
+		);
 		const userId = chatRoomsForUserMatch[1];
 		console.log(
 			`%cAPI Client MOCK: GET /chat/rooms/user/${userId}`,
 			"color: orange;"
 		);
 		try {
-			const response = await getMockChatRooms(userId); // Calls updated mock
-			return response as unknown as T; // Returns { rooms: [], total: N }
+			const response = await getMockChatRooms(userId);
+			return response as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for GET /chat/rooms:", error.message);
 			throw { response: { data: { message: error.message }, status: 500 } };
 		}
+	} else {
+		console.log(
+			"%c[DEBUG] handleMockRequest: NO MATCH for Chat Rooms",
+			"color: gray;"
+		);
 	}
 
-	if (endpoint === "/chat/messages" && method === "get") {
-		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+	// Handler for GET /chat/messages
+	// Let's test both exact match and startsWith for the endpoint
+	const cleanEndpoint = endpoint.split("?")[0]; // Get path without query string
+
+	console.log(
+		`%c[DEBUG] handleMockRequest: Testing for GET /chat/messages. Cleaned endpoint: "${cleanEndpoint}"`,
+		"color: blue;"
+	);
+
+	if (cleanEndpoint === "/chat/messages" && method === "get") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Chat Messages (GET /chat/messages)`,
+			"color: green; font-weight: bold;"
+		);
+
+		// Use options.url for query params as it's generally more reliable if passed
+		const queryString = options.url?.includes("?")
+			? options.url.split("?")[1]
+			: endpoint.split("?")[1];
+		const urlParams = new URLSearchParams(queryString || "");
+
 		const roomId = urlParams.get("roomId");
 		const page = parseInt(urlParams.get("page") || "1", 10);
 		const limit = parseInt(urlParams.get("limit") || "30", 10);
-		if (!roomId) throw new Error("Mock Error: roomId required");
+
 		console.log(
-			`%cAPI Client MOCK: GET /chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`,
+			`%c[DEBUG] Parsed Params: roomId=${roomId}, page=${page}, limit=${limit} from queryString: "${queryString}"`,
+			"color: purple;"
+		);
+
+		if (!roomId) {
+			console.error(
+				"Mock API Error: roomId parameter is required for /chat/messages"
+			);
+			throw new Error("Mock Error: roomId required for fetching messages");
+		}
+
+		console.log(
+			`%cAPI Client MOCK: Calling getMockChatMessages for roomId=${roomId}, page=${page}, limit=${limit}`,
 			"color: orange;"
 		);
 		try {
-			const response = await getMockChatMessages(roomId, page, limit); // Calls updated mock
-			return response as unknown as T; // Returns { messages: [], total: N, hasMore: bool }
+			const response = await getMockChatMessages(roomId, page, limit);
+			return response as unknown as T;
 		} catch (error: any) {
 			console.error(
 				`Mock API Error for GET /chat/messages (Room ${roomId}):`,
@@ -926,12 +1060,43 @@ async function handleMockRequest<T>(
 			);
 			throw { response: { data: { message: error.message }, status: 500 } };
 		}
+	} else {
+		console.log(
+			`%c[DEBUG] handleMockRequest: NO MATCH for GET /chat/messages. (endpoint: "${endpoint}", cleanEndpoint: "${cleanEndpoint}", method: "${method}")`,
+			"color: gray;"
+		);
 	}
 
+	if (endpoint === "/chat/rooms" && method === "post") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Create Chat Room (POST /chat/rooms)`,
+			"color: green; font-weight: bold;"
+		);
+		if (!body) {
+			console.error("Mock API Error: Missing body for POST /chat/rooms");
+			throw new Error(
+				"Mock API Error: Missing request body for creating chat room."
+			);
+		}
+		try {
+			// body should be CreateRoomPayload
+			const response = await createMockChatRoom(body);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /chat/rooms:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	}
+
+	// Handler for POST /chat/messages
 	if (endpoint === "/chat/messages" && method === "post") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Chat Messages (POST /chat/messages)`,
+			"color: green; font-weight: bold;"
+		);
 		if (!body?.roomId || !body?.content)
 			throw new Error("Mock Error: roomId and content required");
-		const senderId = body.senderId || "unknown_mock_sender"; // Get senderId passed from thunk
+		const senderId = body.senderId || "unknown_mock_sender";
 		console.log(
 			`%cAPI Client MOCK: POST /chat/messages (Room: ${body.roomId}, Sender: ${senderId})`,
 			"color: orange;"
@@ -941,10 +1106,45 @@ async function handleMockRequest<T>(
 				body.roomId,
 				senderId,
 				body.content
-			); // Calls updated mock
-			return response as unknown as T; // Returns { message: {...}, success: true }
+			);
+			return response as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for POST /chat/messages:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
+		}
+	} else {
+		// Only log NO MATCH if it wasn't a GET request for /chat/messages either
+		if (!(cleanEndpoint === "/chat/messages" && method === "get")) {
+			console.log(
+				"%c[DEBUG] handleMockRequest: NO MATCH for POST /chat/messages",
+				"color: gray;"
+			);
+		}
+	}
+
+	// VVVV ADD THIS BLOCK FOR MARKING ROOM AS READ VVVV
+	if (endpoint === "/chat/rooms/mark-read" && method === "post") {
+		console.log(
+			`%c[DEBUG] handleMockRequest: MATCHED Mark Room Read (POST /chat/rooms/mark-read)`,
+			"color: green; font-weight: bold;"
+		);
+		if (!body) {
+			console.error(
+				"Mock API Error: Missing body for POST /chat/rooms/mark-read"
+			);
+			throw new Error(
+				"Mock API Error: Missing request body for marking room read."
+			);
+		}
+		try {
+			// body should be MarkRoomReadPayload
+			const response = await markMockRoomAsRead(body);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(
+				"Mock API Error for POST /chat/rooms/mark-read:",
+				error.message
+			);
 			throw { response: { data: { message: error.message }, status: 400 } };
 		}
 	}
@@ -1456,6 +1656,198 @@ async function handleMockRequest<T>(
 	}
 
 	// --- END: Grade Item CRUD Mock Handlers ---
+
+	// --- Admin Users Management Mock Handlers ---
+	// Use a regex to match "/admin/users" optionally followed by a query string
+	if (method === "get" && /^\/admin\/users(\?.*)?$/.test(endpoint)) {
+		// The 'endpoint' variable here might be just "/admin/users" if no query params were appended
+		// directly to it by the calling function.
+		// It's safer to parse query params from 'options.url' if available,
+		// or fall back to 'endpoint' if 'options.url' is not provided in FetchOptions.
+
+		const urlToParse = options.url || endpoint; // Prefer options.url for query params
+		const queryString = urlToParse.includes("?")
+			? urlToParse.split("?")[1]
+			: "";
+		const urlParams = new URLSearchParams(queryString);
+
+		const search = urlParams.get("search") || undefined;
+		const role = urlParams.get("role") || undefined;
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+
+		console.log(
+			`%cAPI Client MOCK: GET /admin/users with params: search=${search}, role=${role}, page=${page}, limit=${limit}`,
+			"color: orange;"
+		);
+		console.log(
+			`%cAPI Client MOCK: Original endpoint string was: "${endpoint}"`,
+			"color: gray;"
+		);
+		console.log(
+			`%cAPI Client MOCK: URL used for parsing params: "${urlToParse}"`,
+			"color: gray;"
+		);
+
+		try {
+			// Import the users array and the converter from mock-auth-data
+			const { users, convertToUserType } = await import(
+				"@/data/mock-auth-data"
+			);
+
+			// Filter users based on role and search
+			let filteredUsers = [...users]; // Start with a copy
+
+			if (role) {
+				console.log(
+					`%cAPI Client MOCK: Filtering by role: ${role}`,
+					"color: lightgreen;"
+				);
+				filteredUsers = filteredUsers.filter((user) => user.role === role);
+			}
+
+			if (search) {
+				const searchLower = search.toLowerCase();
+				console.log(
+					`%cAPI Client MOCK: Filtering by search: ${searchLower}`,
+					"color: lightgreen;"
+				);
+				filteredUsers = filteredUsers.filter(
+					(user) =>
+						user.name.toLowerCase().includes(searchLower) ||
+						user.email.toLowerCase().includes(searchLower)
+				);
+			}
+
+			const total = filteredUsers.length;
+			console.log(
+				`%cAPI Client MOCK: Total filtered users before pagination: ${total}`,
+				"color: lightgreen;"
+			);
+
+			// Apply pagination
+			const paginatedUsers = filteredUsers.slice(
+				(page - 1) * limit,
+				page * limit
+			);
+			console.log(
+				`%cAPI Client MOCK: Paginated users count: ${paginatedUsers.length}`,
+				"color: lightgreen;"
+			);
+
+			// Convert MockUser to User type for the paginated results
+			const formattedUsers = paginatedUsers.map((user) =>
+				convertToUserType(user)
+			);
+
+			return {
+				users: formattedUsers,
+				totalUsers: total,
+				currentPage: page,
+				totalPages: Math.ceil(total / limit),
+			} as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/users:", error.message);
+			throw new ApiError(error.message || "Failed to fetch admin users", 500, {
+				message: error.message || "Server error fetching admin users",
+			});
+		}
+	}
+
+	// NEW: PUT /admin/users/:id - Update User (Admin)
+	const updateUserAdminMatch = endpoint.match(/^\/admin\/users\/([\w-]+)$/);
+	if (updateUserAdminMatch && method === "put") {
+		const userId = updateUserAdminMatch[1];
+		const updateData = body as Partial<UserData>; // Data sent in the request body
+
+		console.log(
+			`%cAPI Client MOCK: PUT /admin/users/${userId} with data:`,
+			"color: orange;",
+			updateData
+		);
+
+		try {
+			// Import 'users' as 'let' and 'convertToUserType' from mock-auth-data
+			// Also import a way to update the mock user if you have one, or do it here.
+			// For this example, we'll re-import to get the latest 'users' array.
+			let {
+				users: currentMockUsers,
+				convertToUserType,
+				updateUserInMock,
+			} = await import("@/data/mock-auth-data"); // Assuming updateUserInMock exists
+
+			const userIndex = currentMockUsers.findIndex((u) => u.id === userId);
+
+			if (userIndex === -1) {
+				console.error(
+					`Mock API Error: User with ID ${userId} not found for update.`
+				);
+				throw new ApiError(`User with ID ${userId} not found`, 404);
+			}
+
+			// Perform the update on the mock user object
+			// This is a simplified update; a real mock might need more sophisticated merging.
+			const updatedMockUser = {
+				...currentMockUsers[userIndex],
+				...updateData, // Apply partial updates
+				updatedAt: new Date().toISOString(), // Update timestamp
+			};
+
+			// If you have an updateUserInMock function in mock-auth-data.ts:
+			updateUserInMock(userId, updateData as any);
+
+			console.log(
+				`%cAPI Client MOCK: User ${userId} updated in mock.`,
+				"color: lightgreen;"
+			);
+
+			// Return the updated user, converted to the canonical User type
+			return updatedMockUser as any;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for PUT /admin/users/${userId}:`,
+				error.message
+			);
+			if (error instanceof ApiError) throw error;
+			throw new ApiError(
+				error.message || "Failed to update user in mock",
+				error.status || 500
+			);
+		}
+	}
+
+	// Handle user deletion
+	const deleteUserMatch = endpoint.match(/^\/admin\/users\/([\w-]+)$/);
+	if (deleteUserMatch && method === "delete") {
+		const userId = deleteUserMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /admin/users/${userId}`,
+			"color: orange;"
+		);
+
+		try {
+			// Import the users array from mock-auth-data
+			const { users } = await import("@/data/mock-auth-data");
+
+			// Find the user index
+			const userIndex = users.findIndex((user) => user.id === userId);
+
+			if (userIndex === -1) {
+				throw new Error(`User with ID ${userId} not found`);
+			}
+
+			// In a real implementation, we would remove the user from the array
+			// For mock purposes, we'll just simulate success
+
+			return { success: true, id: userId } as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for DELETE /admin/users/${userId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
 
 	// --- Fallback ---
 	console.error(

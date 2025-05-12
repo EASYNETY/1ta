@@ -1,5 +1,4 @@
 // features/auth/hooks/use-auth.ts
-
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -11,8 +10,9 @@ import {
 } from "@/features/auth/store/auth-slice";
 import { parseCookies } from "nookies"; // Import nookies
 import { store } from "@/store";
+import { isProfileComplete } from "../utils/profile-completeness";
 
-// Timeout duration remains the same
+// Timeout duration
 const INITIALIZATION_TIMEOUT_MS = 3000;
 
 export function useAuth() {
@@ -84,15 +84,19 @@ export function useAuth() {
 				clearTimeout(timeoutRef.current);
 			}
 		};
-	}, [dispatch, store, auth.isInitialized]); // Dependencies remain the same
+	}, [dispatch, auth.isInitialized]); // Dependencies
 
 	const signOut = () => {
 		dispatch(logout());
-		// The logout action below will handle clearing cookies
+		// The logout action will handle clearing cookies
 	};
+
+	// Check if the user's profile is complete
+	const isProfileCompleted = auth.user ? isProfileComplete(auth.user) : false;
 
 	return {
 		...auth,
 		signOut,
+		isProfileCompleted,
 	};
 }

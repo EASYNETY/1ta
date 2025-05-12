@@ -16,12 +16,14 @@ import { DyraneButton } from '../dyrane-ui/dyrane-button';
 
 
 interface BarcodeDialogProps {
-    userId: string;
+    barcodeId?: string;
+    userId?: string;
     lineColor?: string;
     triggerLabel?: string;
 }
 
 export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
+    barcodeId,
     userId,
     lineColor = '#C99700',
     triggerLabel = 'View Barcode',
@@ -60,7 +62,7 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
 
                 // Trigger download
                 const link = document.createElement('a');
-                link.download = `barcode-${userId}.png`;
+                link.download = `barcode-${barcodeId || userId}.png`;
                 link.href = pngDataUrl;
                 link.click();
             } else {
@@ -90,7 +92,7 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
             <DialogContent className="bg-background/50 backdrop-blur-sm rounded-2xl shadow-xl px-6 py-4 w-auto w-full flex flex-col items-center justify-center gap-4 transition-all duration-300">
                 <DialogHeader className="mb-2 text-center">
                     <DialogTitle className="text-xl font-semibold">
-                        Scan User ID
+                        Scan Student ID
                     </DialogTitle>
                 </DialogHeader>
 
@@ -99,7 +101,7 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
                     className="bg-white p-2 rounded-md shadow-md border"
                 >
                     <Barcode
-                        value={userId}
+                        value={barcodeId || userId || 'invalidId'}
                         height={100}
                         width={2.5}
                         displayValue={false}

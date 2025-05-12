@@ -63,7 +63,7 @@ export interface ChatRoom {
 	createdAt: string;
 	updatedAt?: string;
 	createdBy?: string;
-    iconUrl?: string; // URL for the room icon
+	iconUrl?: string; // URL for the room icon
 }
 
 // State shape for the Redux chat slice
@@ -72,9 +72,11 @@ export interface ChatState {
 	messagesByRoom: Record<string, ChatMessage[]>; // Store messages keyed by roomId
 	selectedRoomId: string | null;
 	roomStatus: "idle" | "loading" | "succeeded" | "failed";
+	createRoomStatus: "idle" | "loading" | "succeeded" | "failed";
 	messageStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">; // Loading status per room
 	sendMessageStatus: "idle" | "loading" | "succeeded" | "failed";
 	error: string | null;
+	createRoomError: string | null;
 }
 
 // API response types
@@ -97,4 +99,19 @@ export interface SendMessageResponse {
 export interface CreateRoomResponse {
 	room: ChatRoom;
 	success: boolean;
+}
+
+export interface CreateRoomPayload {
+	name: string;
+	description?: string;
+	type: ChatRoomType;
+	contextId: string; // e.g., courseId, classId, eventId, or 'general' for announcement
+	participantIds: string[]; // Array of user IDs to be added as participants
+	createdBy: string; // ID of the user creating the room
+}
+
+export interface MarkReadResponse {
+	success: boolean;
+	message?: string;
+	updatedRoom?: ChatRoom; // Optionally return the updated room with new unreadCount
 }

@@ -96,13 +96,13 @@ export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 // Mock attendance data for teacher's class
 export const mockClassAttendance: TeacherAttendanceResponse[] = [
 	{
-		courseClassId: "webDevBootcamp",
+		courseClassId: "ccs_1_morn",
 		courseTitle: "Web Development Bootcamp",
 		totalStudents: 45,
 		dailyAttendances: [
 			{
-				date: "2023-12-20",
-				courseClassId: "webDevBootcamp",
+				date: "2025-05-11",
+				courseClassId: "ccs_1_morn",
 				attendances: [
 					{ studentId: "1", name: "John Smith", status: "present" },
 					{ studentId: "2", name: "Jane Doe", status: "present" },
@@ -119,13 +119,13 @@ export const mockClassAttendance: TeacherAttendanceResponse[] = [
 		],
 	},
 	{
-		courseClassId: "webDevBootcamp",
+		courseClassId: "ccs_1_aft",
 		courseTitle: "Web Development Bootcamp",
 		totalStudents: 45,
 		dailyAttendances: [
 			{
 				date: "2023-12-19",
-				courseClassId: "webDevBootcamp",
+				courseClassId: "ccs_1_aft",
 				attendances: [
 					{ studentId: "1", name: "John Smith", status: "present" },
 					{ studentId: "2", name: "Jane Doe", status: "present" },
