@@ -1,7 +1,7 @@
 // features/corporate/store/corporate-slice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import type { StudentUser } from "@/types/user.types"; // Use StudentUser type
+import { isStudent, type StudentUser } from "@/types/user.types"; // Use StudentUser type
 import { get, post, put, del } from "@/lib/api-client"; // Import CRUD methods
 
 // Import mock functions
@@ -150,6 +150,61 @@ export const deleteManagedStudent = createAsyncThunk<
 	}
 );
 
+// NEW THUNK: Find student in existing auth.users list and set as current
+export const findAndSetCurrentManagedStudent = createAsyncThunk<
+	StudentUser | null, // Returns the found StudentUser or null
+	string, // Takes the studentId to find
+	{ state: RootState; rejectValue: string } // Access full state, define rejection payload
+>(
+	"corporate/findAndSetCurrentManagedStudent",
+	async (studentId, { getState, rejectWithValue }) => {
+		console.log(`THUNK: Attempting to find student ${studentId} in auth.users`);
+		const state = getState();
+		const allUsers = state.auth.users; // Access the users list from the auth slice
+		const manager = state.auth.user as StudentUser; // Get the logged-in manager for permission check
+
+		if (!manager || !manager.isCorporateManager) {
+			// Should ideally not happen if page guards work, but good to check
+			return rejectWithValue("Action requires a corporate manager.");
+		}
+
+		if (!allUsers || allUsers.length === 0) {
+			console.warn("THUNK: auth.users list is empty. Cannot find student.");
+			// This indicates the user list wasn't loaded before this action was dispatched.
+			// Returning null might be acceptable, or rejecting. Let's reject for clarity.
+			return rejectWithValue("User list not available.");
+		}
+
+		const foundUser = allUsers.find((user) => user.id === studentId);
+
+		if (!foundUser) {
+			console.log(`THUNK: Student ${studentId} not found in auth.users.`);
+			return null; // Or rejectWithValue("Student not found in the list.");
+		}
+
+		// --- Permission & Type Check ---
+		// 1. Is the found user actually a student?
+		if (!isStudent(foundUser)) {
+			console.warn(
+				`THUNK: User ${studentId} found, but is not a student (role: ${foundUser.role}).`
+			);
+			return rejectWithValue("User found is not a student.");
+		}
+
+		// 2. Does the found student belong to the current manager?
+		if (foundUser.corporateId !== manager.corporateId) {
+			console.warn(
+				`THUNK: Manager ${manager.id} (Corp ${manager.corporateId}) does not manage student ${foundUser.id} (Corp ${foundUser.corporateId}).`
+			);
+			return rejectWithValue("Access denied: You do not manage this student.");
+		}
+
+		// If all checks pass, return the found student
+		console.log(`THUNK: Student ${studentId} found and validated:`, foundUser);
+		return foundUser; // Return the specific StudentUser object
+	}
+);
+
 // --- Slice Definition ---
 const corporateSlice = createSlice({
 	name: "corporate",
@@ -244,6 +299,29 @@ const corporateSlice = createSlice({
 			.addCase(deleteManagedStudent.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to remove student";
+			});
+
+		// --- Add Reducers for findAndSetCurrentManagedStudent ---
+		builder
+			.addCase(findAndSetCurrentManagedStudent.pending, (state) => {
+				state.status = "loading"; // Use the main status
+				state.currentManagedStudent = null;
+				state.error = null;
+			})
+			.addCase(findAndSetCurrentManagedStudent.fulfilled, (state, action) => {
+				state.status = "succeeded";
+				state.currentManagedStudent = action.payload; // Payload is StudentUser | null
+				state.error = null;
+				if (!action.payload) {
+					// Optional: Set a specific message if find returned null
+					// state.error = "Student details could not be found in the loaded list.";
+				}
+			})
+			.addCase(findAndSetCurrentManagedStudent.rejected, (state, action) => {
+				state.status = "failed";
+				state.currentManagedStudent = null;
+				state.error =
+					action.payload ?? "Failed to get student details from list.";
 			});
 	},
 });

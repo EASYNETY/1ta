@@ -19,7 +19,8 @@ import {
     // fetchManagedStudentById, // Need this thunk
     selectCurrentManagedStudent,
     selectCorporateStatus,
-    clearCurrentManagedStudent
+    clearCurrentManagedStudent,
+    findAndSetCurrentManagedStudent
 } from '@/features/corporate/store/corporate-slice'; // Adjust path
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { PageHeader } from '@/components/layout/auth/page-header';
@@ -68,17 +69,7 @@ export default function ViewManagedStudentPage() {
 
     useEffect(() => {
         if (studentId) {
-            // TODO: Dispatch action to fetch the specific student's details
-            // This might reuse a general fetchUserById if backend permissions allow,
-            // or require a specific endpoint like GET /corporate/students/:studentId
-            // dispatch(fetchManagedStudentById(studentId));
-            console.warn("TODO: Dispatch fetchManagedStudentById(" + studentId + ")");
-            // Mock fetch for now:
-            const mockStudent = user && isStudent(user) && user.isCorporateManager
-                ? user // Just show the manager for now as placeholder
-                : null; // Or fetch from a mock list
-            // Simulate setting the student after fetch:
-            // dispatch({ type: 'corporate/setCurrentManagedStudent', payload: mockStudent });
+            dispatch(findAndSetCurrentManagedStudent(studentId));
         }
         // Clear on unmount
         return () => { dispatch(clearCurrentManagedStudent()); }
