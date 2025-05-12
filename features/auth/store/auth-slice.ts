@@ -12,6 +12,10 @@ const initialState: AuthState = {
 	isLoading: false,
 	error: null,
 	skipOnboarding: false,
+	users: [],
+	totalUsers: 0,
+	usersLoading: false,
+	usersError: null,
 };
 
 export const authSlice = createSlice({

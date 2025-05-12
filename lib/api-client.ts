@@ -139,6 +139,7 @@ import {
 } from "./auth-service";
 import { store } from "@/store";
 import { refreshTokenThunk } from "@/features/auth/store/auth-thunks";
+import { UserData } from "@/components/users/UserTableRow";
 
 // --- Config ---
 // Base URL for the API
@@ -1655,6 +1656,198 @@ export async function handleMockRequest<T>(
 	}
 
 	// --- END: Grade Item CRUD Mock Handlers ---
+
+	// --- Admin Users Management Mock Handlers ---
+	// Use a regex to match "/admin/users" optionally followed by a query string
+	if (method === "get" && /^\/admin\/users(\?.*)?$/.test(endpoint)) {
+		// The 'endpoint' variable here might be just "/admin/users" if no query params were appended
+		// directly to it by the calling function.
+		// It's safer to parse query params from 'options.url' if available,
+		// or fall back to 'endpoint' if 'options.url' is not provided in FetchOptions.
+
+		const urlToParse = options.url || endpoint; // Prefer options.url for query params
+		const queryString = urlToParse.includes("?")
+			? urlToParse.split("?")[1]
+			: "";
+		const urlParams = new URLSearchParams(queryString);
+
+		const search = urlParams.get("search") || undefined;
+		const role = urlParams.get("role") || undefined;
+		const page = parseInt(urlParams.get("page") || "1", 10);
+		const limit = parseInt(urlParams.get("limit") || "10", 10);
+
+		console.log(
+			`%cAPI Client MOCK: GET /admin/users with params: search=${search}, role=${role}, page=${page}, limit=${limit}`,
+			"color: orange;"
+		);
+		console.log(
+			`%cAPI Client MOCK: Original endpoint string was: "${endpoint}"`,
+			"color: gray;"
+		);
+		console.log(
+			`%cAPI Client MOCK: URL used for parsing params: "${urlToParse}"`,
+			"color: gray;"
+		);
+
+		try {
+			// Import the users array and the converter from mock-auth-data
+			const { users, convertToUserType } = await import(
+				"@/data/mock-auth-data"
+			);
+
+			// Filter users based on role and search
+			let filteredUsers = [...users]; // Start with a copy
+
+			if (role) {
+				console.log(
+					`%cAPI Client MOCK: Filtering by role: ${role}`,
+					"color: lightgreen;"
+				);
+				filteredUsers = filteredUsers.filter((user) => user.role === role);
+			}
+
+			if (search) {
+				const searchLower = search.toLowerCase();
+				console.log(
+					`%cAPI Client MOCK: Filtering by search: ${searchLower}`,
+					"color: lightgreen;"
+				);
+				filteredUsers = filteredUsers.filter(
+					(user) =>
+						user.name.toLowerCase().includes(searchLower) ||
+						user.email.toLowerCase().includes(searchLower)
+				);
+			}
+
+			const total = filteredUsers.length;
+			console.log(
+				`%cAPI Client MOCK: Total filtered users before pagination: ${total}`,
+				"color: lightgreen;"
+			);
+
+			// Apply pagination
+			const paginatedUsers = filteredUsers.slice(
+				(page - 1) * limit,
+				page * limit
+			);
+			console.log(
+				`%cAPI Client MOCK: Paginated users count: ${paginatedUsers.length}`,
+				"color: lightgreen;"
+			);
+
+			// Convert MockUser to User type for the paginated results
+			const formattedUsers = paginatedUsers.map((user) =>
+				convertToUserType(user)
+			);
+
+			return {
+				users: formattedUsers,
+				totalUsers: total,
+				currentPage: page,
+				totalPages: Math.ceil(total / limit),
+			} as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/users:", error.message);
+			throw new ApiError(error.message || "Failed to fetch admin users", 500, {
+				message: error.message || "Server error fetching admin users",
+			});
+		}
+	}
+
+	// NEW: PUT /admin/users/:id - Update User (Admin)
+	const updateUserAdminMatch = endpoint.match(/^\/admin\/users\/([\w-]+)$/);
+	if (updateUserAdminMatch && method === "put") {
+		const userId = updateUserAdminMatch[1];
+		const updateData = body as Partial<UserData>; // Data sent in the request body
+
+		console.log(
+			`%cAPI Client MOCK: PUT /admin/users/${userId} with data:`,
+			"color: orange;",
+			updateData
+		);
+
+		try {
+			// Import 'users' as 'let' and 'convertToUserType' from mock-auth-data
+			// Also import a way to update the mock user if you have one, or do it here.
+			// For this example, we'll re-import to get the latest 'users' array.
+			let {
+				users: currentMockUsers,
+				convertToUserType,
+				updateUserInMock,
+			} = await import("@/data/mock-auth-data"); // Assuming updateUserInMock exists
+
+			const userIndex = currentMockUsers.findIndex((u) => u.id === userId);
+
+			if (userIndex === -1) {
+				console.error(
+					`Mock API Error: User with ID ${userId} not found for update.`
+				);
+				throw new ApiError(`User with ID ${userId} not found`, 404);
+			}
+
+			// Perform the update on the mock user object
+			// This is a simplified update; a real mock might need more sophisticated merging.
+			const updatedMockUser = {
+				...currentMockUsers[userIndex],
+				...updateData, // Apply partial updates
+				updatedAt: new Date().toISOString(), // Update timestamp
+			};
+
+			// If you have an updateUserInMock function in mock-auth-data.ts:
+			updateUserInMock(userId, updateData as any);
+
+			console.log(
+				`%cAPI Client MOCK: User ${userId} updated in mock.`,
+				"color: lightgreen;"
+			);
+
+			// Return the updated user, converted to the canonical User type
+			return updatedMockUser as any;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for PUT /admin/users/${userId}:`,
+				error.message
+			);
+			if (error instanceof ApiError) throw error;
+			throw new ApiError(
+				error.message || "Failed to update user in mock",
+				error.status || 500
+			);
+		}
+	}
+
+	// Handle user deletion
+	const deleteUserMatch = endpoint.match(/^\/admin\/users\/([\w-]+)$/);
+	if (deleteUserMatch && method === "delete") {
+		const userId = deleteUserMatch[1];
+		console.log(
+			`%cAPI Client MOCK: DELETE /admin/users/${userId}`,
+			"color: orange;"
+		);
+
+		try {
+			// Import the users array from mock-auth-data
+			const { users } = await import("@/data/mock-auth-data");
+
+			// Find the user index
+			const userIndex = users.findIndex((user) => user.id === userId);
+
+			if (userIndex === -1) {
+				throw new Error(`User with ID ${userId} not found`);
+			}
+
+			// In a real implementation, we would remove the user from the array
+			// For mock purposes, we'll just simulate success
+
+			return { success: true, id: userId } as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for DELETE /admin/users/${userId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
 
 	// --- Fallback ---
 	console.error(

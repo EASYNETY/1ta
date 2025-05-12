@@ -10,6 +10,7 @@ import {
 	createCorporateStudentSlotsThunk,
 } from "./auth-thunks";
 import type { AuthResponse } from "../types/auth-types";
+import { deleteUser, fetchAllUsers, fetchUsersByRole } from "./user-thunks";
 
 export const addAuthExtraReducers = (builder: any) => {
 	// --- Handle Login/Signup Success ---
@@ -181,6 +182,77 @@ export const addAuthExtraReducers = (builder: any) => {
 			state.isLoading = false;
 			state.error =
 				action.payload ?? "Failed to create corporate student slots";
+		}
+	);
+
+	// --- FETCH ALL USERS ---
+	builder.addCase(fetchAllUsers.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		fetchAllUsers.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ users: User[]; total: number }>
+		) => {
+			state.usersLoading = false;
+			state.users = action.payload.users;
+			state.totalUsers = action.payload.total;
+		}
+	);
+
+	builder.addCase(
+		fetchAllUsers.rejected,
+		(state: AuthState, action: ReturnType<typeof fetchAllUsers.rejected>) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to fetch users";
+		}
+	);
+
+	// --- FETCH USERS BY ROLE ---
+	builder.addCase(fetchUsersByRole.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		fetchUsersByRole.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ users: User[]; total: number }>
+		) => {
+			state.usersLoading = false;
+			state.users = action.payload.users;
+			state.totalUsers = action.payload.total;
+		}
+	);
+
+	builder.addCase(
+		fetchUsersByRole.rejected,
+		(
+			state: AuthState,
+			action: ReturnType<typeof fetchUsersByRole.rejected>
+		) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to fetch users by role";
+		}
+	);
+
+	// --- DELETE USER ---
+	builder.addCase(
+		deleteUser.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ success: boolean; id: string }>
+		) => {
+			if (action.payload.success) {
+				state.users = state.users.filter(
+					(user) => user.id !== action.payload.id
+				);
+				state.totalUsers = Math.max(0, state.totalUsers - 1);
+			}
 		}
 	);
 };

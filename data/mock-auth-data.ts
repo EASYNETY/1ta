@@ -23,6 +23,7 @@ export type MockUser = {
 	onboardingStatus: "incomplete" | "complete" | "pending_verification";
 	accountType: "individual" | "corporate" | "institutional";
 	isActive: boolean;
+	status: string;
 	createdAt: string;
 	updatedAt: string;
 	avatarUrl?: string | null;
@@ -56,6 +57,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-01-01T00:00:00.000Z",
 		updatedAt: "2023-01-01T00:00:00.000Z",
 		lastLogin: "2023-05-01T10:30:00.000Z",
@@ -74,13 +76,15 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-01-15T00:00:00.000Z",
 		updatedAt: "2023-01-15T00:00:00.000Z",
 		lastLogin: "2023-05-02T09:15:00.000Z",
 		subjects: ["Web Development", "JavaScript"],
 		officeHours: "Mon, Wed 2-4PM",
 	},
-	{ // ADDED/UPDATED TEACHER_2
+	{
+		// ADDED/UPDATED TEACHER_2
 		id: "teacher_2",
 		name: "Web Dev Teacher",
 		email: "teacher2@example.com",
@@ -93,6 +97,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-01-16T00:00:00.000Z",
 		updatedAt: "2023-01-16T00:00:00.000Z",
 		lastLogin: "2023-05-02T10:00:00.000Z",
@@ -112,6 +117,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-02-01T00:00:00.000Z",
 		updatedAt: "2023-02-01T00:00:00.000Z",
 		lastLogin: "2023-05-03T14:20:00.000Z",
@@ -130,11 +136,13 @@ export const users: MockUser[] = [
 		onboardingStatus: "incomplete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-04-15T00:00:00.000Z",
 		updatedAt: "2023-04-15T00:00:00.000Z",
 		isCorporateManager: false,
 	},
-	{ // ADDED STUDENT_3
+	{
+		// ADDED STUDENT_3
 		id: "student_3",
 		name: "Student Three",
 		email: "student3@example.com",
@@ -147,12 +155,14 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-03-01T00:00:00.000Z",
 		updatedAt: "2023-03-01T00:00:00.000Z",
 		lastLogin: "2023-05-03T15:00:00.000Z",
 		isCorporateManager: false,
 	},
-	{ // ADDED STUDENT_4
+	{
+		// ADDED STUDENT_4
 		id: "student_4",
 		name: "Student Four",
 		email: "student4@example.com",
@@ -165,6 +175,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "individual",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-03-05T00:00:00.000Z",
 		updatedAt: "2023-03-05T00:00:00.000Z",
 		lastLogin: "2023-05-03T16:00:00.000Z",
@@ -183,6 +194,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "corporate",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-03-10T00:00:00.000Z",
 		updatedAt: "2023-03-10T00:00:00.000Z",
 		lastLogin: "2023-05-01T11:45:00.000Z",
@@ -204,6 +216,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "complete",
 		accountType: "corporate",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-03-15T00:00:00.000Z",
 		updatedAt: "2023-03-15T00:00:00.000Z",
 		lastLogin: "2023-05-02T13:30:00.000Z",
@@ -224,6 +237,7 @@ export const users: MockUser[] = [
 		onboardingStatus: "incomplete",
 		accountType: "corporate",
 		isActive: true,
+		status: "active",
 		createdAt: "2023-04-20T00:00:00.000Z",
 		updatedAt: "2023-04-20T00:00:00.000Z",
 		corporateId: "corp_xyz123",
@@ -233,7 +247,7 @@ export const users: MockUser[] = [
 ];
 
 // Helper function to convert MockUser to proper User type
-function convertToUserType(mockUser: MockUser): User {
+export function convertToUserType(mockUser: MockUser): User {
 	const { password, ...baseUser } = mockUser;
 
 	switch (mockUser.role) {
@@ -339,6 +353,7 @@ export function register(userData: {
 		onboardingStatus: "incomplete",
 		accountType: accountType,
 		isActive: true,
+		status: "active",
 		createdAt: now,
 		updatedAt: now,
 		corporateId: userData.corporateId || null,
@@ -602,6 +617,7 @@ export function createCorporateStudentSlots(params: {
 			onboardingStatus: "incomplete",
 			accountType: "corporate",
 			isActive: true,
+			status: "active",
 			createdAt: now,
 			updatedAt: now,
 			corporateId: params.corporateId,
@@ -624,4 +640,28 @@ export function createCorporateStudentSlots(params: {
 			message: `Successfully created ${createdCount} student slots`,
 		},
 	};
+}
+
+export function updateUserInMock(
+	userId: string,
+	updateData: Partial<MockUser>
+): MockUser | null {
+	const userIndex = users.findIndex((u) => u.id === userId);
+	if (userIndex !== -1) {
+		users[userIndex] = {
+			...users[userIndex],
+			...updateData,
+			updatedAt: new Date().toISOString(),
+		};
+		console.log(
+			"MOCK_AUTH_DATA: User updated in mock array:",
+			users[userIndex]
+		);
+		return users[userIndex];
+	}
+	console.warn(
+		"MOCK_AUTH_DATA: User not found for update in mock array:",
+		userId
+	);
+	return null;
 }

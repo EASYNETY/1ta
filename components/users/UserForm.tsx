@@ -25,6 +25,7 @@ const defaultValues: Omit<UserData, 'id' | 'joinDate'> = {
     email: '',
     role: 'student', // Default role
     status: 'active', // Default status
+    createdAt: ''
     // Add other fields with defaults if necessary
 };
 
@@ -38,6 +39,8 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                 email: initialData.email,
                 role: initialData.role,
                 status: initialData.status,
+                createdAt : initialData.createdAt
+
                 // Map other initialData fields if they exist in UserData and the form
             }
             : defaultValues
@@ -52,6 +55,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                 email: initialData.email,
                 role: initialData.role,
                 status: initialData.status,
+                createdAt: initialData.createdAt
             });
         } else if (mode === 'create') {
             setFormData(defaultValues); // Reset to defaults for create mode

@@ -134,4 +134,9 @@ export interface AuthState {
 	error: string | null;
 	/** UI flag set if the user explicitly skips the onboarding prompt. */
 	skipOnboarding: boolean;
+	/** Users State Management */
+	users: User[];
+	totalUsers: number;
+	usersLoading: boolean;
+	usersError: string | null;
 }

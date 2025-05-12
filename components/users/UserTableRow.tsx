@@ -23,7 +23,7 @@ export interface UserData {
     role: "student" | "teacher" | "admin" | string; // Allow string for flexibility if roles expand
     status: "active" | "inactive" | string;
     barcodeId?: string; // Optional, only if applicable
-    joinDate: string;
+    createdAt: string;
     // Add other fields if needed by the row
 }
 
@@ -55,8 +55,6 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
             <strong>{user.name}</strong> and all associated data.
         </>
     );
-
-
     const getRoleBadgeClass = (role: string) => {
         switch (role) {
             case "admin": return "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-100";
@@ -102,17 +100,17 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
                     {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </Badge>
             </td>
-            {/* Status Cell */}
+            {/* Status Cell - Updated */}
             <td className="py-3 px-4 align-top">
                 <Badge variant="outline" className={`whitespace-nowrap ${getStatusBadgeClass(user.status)}`}>
-                    {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    {user.status}
                 </Badge>
             </td>
             {/* Join Date Cell */}
             <td className="py-3 px-4 align-top text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5 whitespace-nowrap">
                     <Calendar className="h-4 w-4 flex-shrink-0" />
-                    <span>{formatDate(user.joinDate)}</span>
+                    <span>{formatDate(user.createdAt)}</span>
                 </div>
             </td>
             {/* Actions Cell */}

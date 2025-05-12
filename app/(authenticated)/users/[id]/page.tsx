@@ -9,26 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserData } from '@/components/users/UserTableRow'; // Use shared type
 import Link from 'next/link';
-import { ArrowLeft, User, Mail, Calendar, CheckCircle, XCircle, Briefcase } from 'lucide-react'; // Icons for details
+import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchAllUsers } from '@/features/auth/store/user-thunks';
 
-// --- Mock Data Fetching (Replace with API/Store) ---
-const mockUsers: UserData[] = [ // Use UserData type
-    { id: "user-1", name: "John Smith", email: "john.smith@example.com", role: "student", status: "active", joinDate: "2023-10-15" },
-    { id: "user-2", name: "Sarah Johnson", email: "sarah.johnson@example.com", role: "teacher", status: "active", joinDate: "2023-09-05" },
-    { id: "user-3", name: "Michael Chen", email: "michael.chen@example.com", role: "teacher", status: "active", joinDate: "2023-08-20" },
-    { id: "user-4", name: "Emily Williams", email: "emily.williams@example.com", role: "student", status: "inactive", joinDate: "2023-11-10" },
-    { id: "user-5", name: "David Brown", email: "david.brown@example.com", role: "student", status: "active", joinDate: "2023-10-25" },
-    { id: "user-6", name: "Jennifer Moore", email: "jennifer.moore@example.com", role: "admin", status: "active", joinDate: "2023-07-15" },
-];
-
-const fetchMockUserById = async (id: string): Promise<UserData | null> => {
-    console.log(`Fetching mock user ${id}`);
-    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate delay
-    const user = mockUsers.find(u => u.id === id);
-    return user || null;
-};
-// --- End Mock Data Fetching ---
 
 // Helper to format date
 const formatDate = (dateString?: string) => {
@@ -40,44 +25,53 @@ const formatDate = (dateString?: string) => {
 export default function ViewUserPage() {
     const params = useParams();
     const router = useRouter();
+    const dispatch = useAppDispatch();
     const userId = params.id as string; // Get ID from route params
 
-    const [user, setUser] = useState<UserData | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    // --- Select relevant parts directly from the auth slice ---
+    const {
+        users: allUsers,      // state.auth.users
+        usersLoading: isLoadingUsers, // state.auth.usersLoading
+        usersError: fetchError // state.auth.usersError
+    } = useAppSelector((state) => state.auth);
 
+    const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
+
+    // useEffect for fetching users (remains the same)
     useEffect(() => {
-        if (userId) {
-            setIsLoading(true);
-            setError(null);
-            fetchMockUserById(userId) // Replace with actual fetch thunk later
-                .then(data => {
-                    if (data) {
-                        setUser(data);
-                    } else {
-                        setError("User not found.");
-                    }
-                })
-                .catch(err => {
-                    console.error("Error fetching user:", err);
-                    setError("Failed to load user data.");
-                })
-                .finally(() => setIsLoading(false));
-        } else {
-            setError("User ID is missing.");
-            setIsLoading(false);
+        if ((!allUsers || allUsers.length === 0) && !isLoadingUsers && !fetchError) {
+            console.log("ViewUserPage: No users in store or not loading/error, fetching all users.");
+            dispatch(fetchAllUsers());
         }
-    }, [userId]);
+    }, [dispatch, allUsers, isLoadingUsers, fetchError]);
 
-    if (isLoading) {
+    // useEffect for finding the current user (remains the same)
+    useEffect(() => {
+        if (userId && allUsers && allUsers.length > 0) {
+            console.log(`ViewUserPage: Searching for user ID '${userId}' in ${allUsers.length} users.`);
+            const foundUser = allUsers.find(u => u.id === userId);
+            if (foundUser) {
+                console.log("ViewUserPage: User found:", foundUser);
+                setCurrentUser(foundUser as any);
+            } else {
+                console.log("ViewUserPage: User not found in the list.");
+                setCurrentUser(null);
+            }
+        } else if (userId && !isLoadingUsers && allUsers && allUsers.length === 0 && !fetchError) {
+            console.log("ViewUserPage: All users fetched, but the list is empty. User not found.");
+            setCurrentUser(null);
+        }
+    }, [userId, allUsers, isLoadingUsers, fetchError]);
+
+    if (isLoadingUsers) {
         return <div className="p-6 text-center">Loading user details...</div>; // Add Skeleton loader later
     }
 
-    if (error) {
-        return <div className="p-6 text-center text-red-600">{error}</div>;
+    if (fetchError) {
+        return <div className="p-6 text-center text-red-600">{fetchError}</div>;
     }
 
-    if (!user) {
+    if (!currentUser) {
         // This case might be covered by the error state, but good to have
         return <div className="p-6 text-center">User data could not be loaded.</div>;
     }
@@ -106,38 +100,38 @@ export default function ViewUserPage() {
             <div className="mx-auto">
                 <PageHeader
                     heading={`User Details`}
-                    subheading={`Explore the details of the user ${user.name}`}
+                    subheading={`Explore the details of the user ${currentUser.name}`}
                 />
                 <DyraneCard>
                     <DyraneCardHeader>
                         <DyraneCardTitle className="flex items-center gap-3">
                             <User className="h-6 w-6" />
-                            {user.name}
+                            {currentUser.name}
                         </DyraneCardTitle>
                         <DyraneCardDescription>
-                            Viewing profile details for {user.name}.
+                            Viewing profile details for {currentUser.name}.
                         </DyraneCardDescription>
                     </DyraneCardHeader>
                     <DyraneCardContent className="space-y-4">
                         <div className="flex items-center gap-3 border-b pb-3">
                             <Mail className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm">{user.email}</span>
+                            <span className="text-sm">{currentUser.email}</span>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
                             <Briefcase className="h-5 w-5 text-muted-foreground" />
-                            <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(user.role)}`}>
-                                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                            <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(currentUser.role)}`}>
+                                {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
-                            {user.status === 'active' ? <CheckCircle className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
-                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(user.status)}`}>
-                                {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                            {currentUser.status === 'active' ? <CheckCircle className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
+                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.status)}`}>
+                                {currentUser.status.charAt(0).toUpperCase() + currentUser.status.slice(1)}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3">
                             <Calendar className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">Joined on {formatDate(user.joinDate)}</span>
+                            <span className="text-sm text-muted-foreground">Joined on {formatDate(currentUser.createdAt)}</span>
                         </div>
                         {/* Add more details fields here */}
                     </DyraneCardContent>
