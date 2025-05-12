@@ -18,6 +18,8 @@ import { formatISO, parseISO, setHours, setMinutes, isValid } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ScheduleEvent } from '../../types/schedule-types';
 import { CreateScheduleEventPayload, UpdateScheduleEventPayload } from '../../store/schedule-slice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchUsersByRole } from '@/features/auth/store/user-thunks';
 
 
 // --- Zod Schema ---
@@ -83,16 +85,21 @@ interface ScheduleEventFormProps {
 
 export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false, mode }: ScheduleEventFormProps) {
     const router = useRouter();
-    // TODO: Fetch dropdown data (courses, classes, teachers)
-    const mockCourses = [{ id: '1', title: 'PMP® Certification Training' }, { id: 'webdev_101', title: 'Web Development Bootcamp' }];
-    const mockTeachers = [{ id: 'teacher_1', name: 'Dr. Sarah Johnson' }, { id: 'teacher_2', name: 'Michael Chen' }];
-    const mockClasses = [{ id: `class_1_1`, title: 'PMP® - Fall' }, { id: `class_webdev_101_2`, title: 'WebDev - AM' }];
+    const dispatch = useAppDispatch();
+    const { users } = useAppSelector((state) => state.auth);
+    const { allCourses } = useAppSelector((state) => state.public_courses);
+    const { allClasses } = useAppSelector((state) => state.classes);
 
     const { toast } = useToast();
     const form = useForm<ScheduleEventFormValues>({
         resolver: zodResolver(scheduleEventFormSchema),
         defaultValues: mapEventToForm(initialData),
     });
+
+    useEffect(() => {
+        dispatch(fetchUsersByRole({ role: 'teacher' })); // Fetch teachers on mount
+    }
+        , []);
 
     useEffect(() => {
         form.reset(mapEventToForm(initialData));
@@ -226,17 +233,17 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
                         <FormField control={form.control} name="courseId" render={({ field }) => (
                             <FormItem><FormLabel>Link to Course (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select course" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{mockCourses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{allCourses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="classId" render={({ field }) => (
                             <FormItem><FormLabel>Link to Class Session (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select class session" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{mockClasses.map(c => (<SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{allClasses.map(c => (<SelectItem key={c.id} value={c.id}>{c.courseTitle}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                         )} />
                         <FormField control={form.control} name="instructorId" render={({ field }) => (
                             <FormItem><FormLabel>Assign Instructor (Optional)</FormLabel><Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Select instructor" /></SelectTrigger></FormControl>
-                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{mockTeachers.map(t => (<SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                                <SelectContent><SelectItem value="none">-- None --</SelectItem>{users.map(t => (<SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                         )} />
 
                     </CardContent>
