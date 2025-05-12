@@ -57,20 +57,28 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
     );
     const getRoleBadgeClass = (role: string) => {
         switch (role) {
-            case "admin": return "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-100";
-            case "teacher": return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-100";
-            case "student": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
-            default: return "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-100";
+            case "admin":
+                return "bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-100 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700 dark:hover:bg-purple-800";
+            case "teacher":
+                return "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-100 dark:border-blue-700 dark:hover:bg-blue-800";
+            case "student":
+                return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100 dark:bg-green-900 dark:text-green-100 dark:border-green-700 dark:hover:bg-green-800";
+            default:
+                return "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-100 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:hover:bg-gray-800";
         }
     };
 
     const getStatusBadgeClass = (status: string) => {
         switch (status) {
-            case "active": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
-            case "inactive": return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
-            default: return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100"; // Or handle unknown status
+            case "active":
+                return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100 dark:bg-green-900 dark:text-green-100 dark:border-green-700 dark:hover:bg-green-800";
+            case "inactive":
+                return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100 dark:bg-red-900 dark:text-red-100 dark:border-red-700 dark:hover:bg-red-800";
+            default:
+                return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-100 dark:border-yellow-700 dark:hover:bg-yellow-800";
         }
     };
+
 
     return (
         <tr className="border-b hover:bg-muted/50">
