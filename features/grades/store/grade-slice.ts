@@ -19,30 +19,17 @@ import type {
 	CalculateCourseGradesPayload,
 } from "../types/grade-types";
 
-// --- Mock Imports ---
-import {
-	getMockGradeItemsForCourse,
-	getMockGradeItemsForStudent,
-	getMockGradeItemById,
-	createMockGradeItem,
-	updateMockGradeItem,
-	deleteMockGradeItem,
-	getMockStudentGradesForGradeItem,
-	assignMockGrade,
-	updateMockGrade,
-	getMockCourseGrades,
-	calculateMockCourseGrades,
-	getMockStudentGradeById,
-} from "@/data/mock-grade-data";
+// --- Import API Client Helpers ---
+import { get, post, put, del } from "@/lib/api-client";
 
 // --- Thunks ---
 
-// Fetch grade items (adapt based on role needs)
+// Fetch grade items (Backend needs to determine response type based on user role/context)
 export const fetchGradeItems = createAsyncThunk<
-	GradeItem[] | StudentGradeItemView[] | TeacherGradeItemView[],
+	GradeItem[] | StudentGradeItemView[] | TeacherGradeItemView[], // Return type remains flexible
 	{
-		role: string;
-		userId?: string;
+		role: string; // Hint for backend, but backend should rely on auth token primarily
+		userId?: string; // Needed if role is student
 		courseId?: string;
 		classId?: string;
 	},
@@ -51,152 +38,255 @@ export const fetchGradeItems = createAsyncThunk<
 	"grades/fetchList",
 	async ({ role, userId, courseId, classId }, { rejectWithValue }) => {
 		try {
-			if (role === "student" && userId) {
-				return await getMockGradeItemsForStudent(userId, courseId);
-			} else if (role === "teacher" || role === "admin") {
-				return await getMockGradeItemsForCourse(courseId, classId);
-			}
-			return [];
-		} catch (e: any) {
-			return rejectWithValue(e.message);
+			const params = new URLSearchParams();
+			// Add params ONLY if they have values. Backend should handle context.
+			if (role) params.set("role", role); // Optional hint
+			if (userId) params.set("userId", userId);
+			if (courseId) params.set("courseId", courseId);
+			if (classId) params.set("classId", classId);
+
+			// Assumed Endpoint: GET /grade-items?courseId=...&classId=...&userId=...
+			const endpoint = `/grade-items?${params.toString()}`;
+			console.log(`Calling API: GET ${endpoint}`);
+
+			// The actual response type depends on backend logic based on the user's role (from token)
+			const response = await get<
+				GradeItem[] | StudentGradeItemView[] | TeacherGradeItemView[]
+			>(endpoint);
+			return response;
+		} catch (error: any) {
+			console.error("Error fetching grade items:", error);
+			return rejectWithValue(error.message || "Failed to fetch grade items");
 		}
 	}
 );
 
+// Fetch a specific grade item (Backend determines view based on role)
 export const fetchGradeItemById = createAsyncThunk<
-	GradeItem | StudentGradeItemView | TeacherGradeItemView,
-	{ gradeItemId: string; role: string; userId?: string },
+	GradeItem | StudentGradeItemView | TeacherGradeItemView, // Return type remains flexible
+	{ gradeItemId: string; role: string; userId?: string }, // role/userId might be hints or used for query params
 	{ rejectValue: string }
 >(
 	"grades/fetchById",
 	async ({ gradeItemId, role, userId }, { rejectWithValue }) => {
 		try {
-			return await getMockGradeItemById(gradeItemId, role, userId);
-		} catch (e: any) {
-			return rejectWithValue(e.message);
+			const params = new URLSearchParams();
+			// Pass context hints if needed by the backend for authorization/view type
+			params.set("role", role);
+			if (userId) params.set("userId", userId);
+
+			// Assumed Endpoint: GET /grade-items/{gradeItemId}?role=...&userId=...
+			const endpoint = `/grade-items/${gradeItemId}?${params.toString()}`;
+			console.log(`Calling API: GET ${endpoint}`);
+
+			const response = await get<
+				GradeItem | StudentGradeItemView | TeacherGradeItemView
+			>(endpoint);
+			return response;
+		} catch (error: any) {
+			console.error(`Error fetching grade item ${gradeItemId}:`, error);
+			return rejectWithValue(error.message || "Failed to fetch grade item");
 		}
 	}
 );
 
+// Create a grade item
 export const createGradeItem = createAsyncThunk<
 	GradeItem,
-	CreateGradeItemPayload,
+	CreateGradeItemPayload, // Payload contains { gradeItem: {...} }
 	{ rejectValue: string }
 >("grades/create", async (payload, { rejectWithValue }) => {
 	try {
-		return await createMockGradeItem(payload);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: POST /grade-items
+		const endpoint = "/grade-items";
+		console.log(`Calling API: POST ${endpoint}`, payload.gradeItem);
+
+		// Send only the gradeItem data in the body
+		const response = await post<GradeItem>(endpoint, payload.gradeItem);
+		return response;
+	} catch (error: any) {
+		console.error("Error creating grade item:", error);
+		return rejectWithValue(error.message || "Failed to create grade item");
 	}
 });
 
+// Update a grade item
 export const updateGradeItem = createAsyncThunk<
 	GradeItem,
-	UpdateGradeItemPayload,
+	UpdateGradeItemPayload, // Payload contains { gradeItemId: string, gradeItem: Partial<GradeItem> }
 	{ rejectValue: string }
 >("grades/update", async ({ gradeItemId, gradeItem }, { rejectWithValue }) => {
 	try {
-		return await updateMockGradeItem(gradeItemId, gradeItem);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: PUT /grade-items/{gradeItemId}
+		const endpoint = `/grade-items/${gradeItemId}`;
+		console.log(`Calling API: PUT ${endpoint}`, gradeItem);
+
+		// Send only the partial update data in the body
+		const response = await put<GradeItem>(endpoint, gradeItem);
+		return response;
+	} catch (error: any) {
+		console.error(`Error updating grade item ${gradeItemId}:`, error);
+		return rejectWithValue(error.message || "Failed to update grade item");
 	}
 });
 
+// Delete a grade item
 export const deleteGradeItem = createAsyncThunk<
-	string,
-	string,
+	string, // Return the ID on success for the reducer
+	string, // Argument is gradeItemId
 	{ rejectValue: string }
 >("grades/delete", async (gradeItemId, { rejectWithValue }) => {
 	try {
-		await deleteMockGradeItem(gradeItemId);
-		return gradeItemId;
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: DELETE /grade-items/{gradeItemId}
+		const endpoint = `/grade-items/${gradeItemId}`;
+		console.log(`Calling API: DELETE ${endpoint}`);
+
+		// Expecting 204 No Content or similar success response
+		await del<void>(endpoint);
+		return gradeItemId; // Return the ID for the reducer
+	} catch (error: any) {
+		console.error(`Error deleting grade item ${gradeItemId}:`, error);
+		return rejectWithValue(error.message || "Failed to delete grade item");
 	}
 });
 
-// Fetch student grades for a grade item (Teacher/Admin)
+// Fetch student grades for a specific grade item (Teacher/Admin view)
 export const fetchStudentGrades = createAsyncThunk<
 	StudentGrade[],
-	string,
+	string, // Argument is gradeItemId
 	{ rejectValue: string }
 >("grades/fetchStudentGrades", async (gradeItemId, { rejectWithValue }) => {
 	try {
-		return await getMockStudentGradesForGradeItem(gradeItemId);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: GET /grade-items/{gradeItemId}/grades
+		const endpoint = `/grade-items/${gradeItemId}/grades`;
+		console.log(`Calling API: GET ${endpoint}`);
+
+		const response = await get<StudentGrade[]>(endpoint);
+		return response;
+	} catch (error: any) {
+		console.error(
+			`Error fetching student grades for item ${gradeItemId}:`,
+			error
+		);
+		return rejectWithValue(error.message || "Failed to fetch student grades");
 	}
 });
 
-// Fetch a specific student grade
+// Fetch a specific student grade by its own ID
 export const fetchStudentGradeById = createAsyncThunk<
 	StudentGrade,
-	string,
+	string, // Argument is gradeId (the ID of the StudentGrade record)
 	{ rejectValue: string }
 >("grades/fetchStudentGradeById", async (gradeId, { rejectWithValue }) => {
 	try {
-		return await getMockStudentGradeById(gradeId);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: GET /grades/{gradeId}
+		const endpoint = `/grades/${gradeId}`;
+		console.log(`Calling API: GET ${endpoint}`);
+
+		const response = await get<StudentGrade>(endpoint);
+		return response;
+	} catch (error: any) {
+		console.error(`Error fetching student grade ${gradeId}:`, error);
+		return rejectWithValue(error.message || "Failed to fetch student grade");
 	}
 });
 
-// Assign a grade to a student
+// Assign a grade to a student for a grade item
 export const assignGrade = createAsyncThunk<
 	StudentGrade,
-	AssignGradePayload,
+	AssignGradePayload, // Payload contains studentId, gradeItemId, points, etc.
 	{ rejectValue: string }
 >("grades/assign", async (payload, { rejectWithValue }) => {
 	try {
-		return await assignMockGrade(payload);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: POST /grades
+		const endpoint = "/grades";
+		console.log(`Calling API: POST ${endpoint}`, payload);
+
+		const response = await post<StudentGrade>(endpoint, payload);
+		return response;
+	} catch (error: any) {
+		console.error("Error assigning grade:", error);
+		return rejectWithValue(error.message || "Failed to assign grade");
 	}
 });
 
-// Update an existing grade
+// Update an existing student grade
 export const updateGrade = createAsyncThunk<
 	StudentGrade,
-	UpdateGradePayload,
+	UpdateGradePayload, // Payload contains { gradeId: string, grade: Partial<StudentGrade> }
 	{ rejectValue: string }
 >("grades/updateGrade", async ({ gradeId, grade }, { rejectWithValue }) => {
 	try {
-		return await updateMockGrade(gradeId, grade);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: PUT /grades/{gradeId}
+		const endpoint = `/grades/${gradeId}`;
+		console.log(`Calling API: PUT ${endpoint}`, grade);
+
+		// Send only the partial grade update data
+		const response = await put<StudentGrade>(endpoint, grade);
+		return response;
+	} catch (error: any) {
+		console.error(`Error updating grade ${gradeId}:`, error);
+		return rejectWithValue(error.message || "Failed to update grade");
 	}
 });
 
-// Fetch course grades
+// Fetch calculated course grades
 export const fetchCourseGrades = createAsyncThunk<
 	CourseGrade[],
-	{ courseId: string; classId?: string; studentId?: string },
+	{ courseId: string; classId?: string; studentId?: string }, // Context parameters
 	{ rejectValue: string }
 >(
 	"grades/fetchCourseGrades",
 	async ({ courseId, classId, studentId }, { rejectWithValue }) => {
 		try {
-			return await getMockCourseGrades(courseId, classId, studentId);
-		} catch (e: any) {
-			return rejectWithValue(e.message);
+			const params = new URLSearchParams();
+			if (classId) params.set("classId", classId);
+			if (studentId) params.set("studentId", studentId); // Usually for fetching a single student's overall grade
+
+			// Assumed Endpoint: GET /courses/{courseId}/grades?classId=...&studentId=...
+			const endpoint = `/courses/${courseId}/grades?${params.toString()}`;
+			console.log(`Calling API: GET ${endpoint}`);
+
+			const response = await get<CourseGrade[]>(endpoint);
+			return response;
+		} catch (error: any) {
+			console.error(
+				`Error fetching course grades for course ${courseId}:`,
+				error
+			);
+			return rejectWithValue(error.message || "Failed to fetch course grades");
 		}
 	}
 );
 
-// Calculate course grades
+// Trigger calculation of course grades (and potentially publish)
 export const calculateCourseGrades = createAsyncThunk<
-	CourseGrade[],
-	CalculateCourseGradesPayload,
+	CourseGrade[], // Assuming API returns the updated/calculated course grades
+	CalculateCourseGradesPayload, // Payload contains courseId, maybe classId, publishImmediately flag
 	{ rejectValue: string }
 >("grades/calculateCourseGrades", async (payload, { rejectWithValue }) => {
 	try {
-		return await calculateMockCourseGrades(payload);
-	} catch (e: any) {
-		return rejectWithValue(e.message);
+		// Assumed Endpoint: POST /courses/{courseId}/calculate-grades
+		// (or PUT if it's idempotent, but POST often used for actions)
+		const endpoint = `/courses/${payload.courseId}/calculate-grades`;
+		console.log(`Calling API: POST ${endpoint}`, payload);
+
+		// Send the payload which might include filters or options
+		const response = await post<CourseGrade[]>(endpoint, payload);
+		return response;
+	} catch (error: any) {
+		console.error(
+			`Error calculating course grades for course ${payload.courseId}:`,
+			error
+		);
+		return rejectWithValue(
+			error.message || "Failed to calculate course grades"
+		);
 	}
 });
 
 // --- Initial State ---
+// (Initial state remains the same)
 const initialState: GradeState = {
 	gradeItems: [],
 	studentGradeItems: [],
@@ -211,6 +301,7 @@ const initialState: GradeState = {
 };
 
 // --- Slice ---
+// (Slice definition, reducers, and extraReducers remain exactly the same)
 const gradeSlice = createSlice({
 	name: "grades",
 	initialState,
@@ -224,7 +315,7 @@ const gradeSlice = createSlice({
 		},
 		clearCurrentGradeItem: (state) => {
 			state.currentGradeItem = null;
-			state.studentGrades = [];
+			state.studentGrades = []; // Also clear related student grades
 		},
 		clearCurrentGrade: (state) => {
 			state.currentGrade = null;
@@ -244,10 +335,16 @@ const gradeSlice = createSlice({
 			})
 			.addCase(fetchGradeItems.fulfilled, (state, action) => {
 				state.status = "succeeded";
+				// Logic to differentiate based on payload type might be needed
+				// if backend returns different structures predictably.
+				// This basic check might suffice if student view *always* has 'grade'.
 				if (action.payload.length > 0 && "grade" in action.payload[0]) {
 					state.studentGradeItems = action.payload as StudentGradeItemView[];
 				} else {
-					state.gradeItems = action.payload as GradeItem[];
+					// Could be GradeItem[] or TeacherGradeItemView[]
+					state.gradeItems = action.payload as
+						| GradeItem[]
+						| TeacherGradeItemView[];
 				}
 				state.error = null;
 			})
@@ -260,6 +357,7 @@ const gradeSlice = createSlice({
 		builder
 			.addCase(fetchGradeItemById.pending, (state) => {
 				state.status = "loading";
+				state.currentGradeItem = null; // Clear while loading
 			})
 			.addCase(fetchGradeItemById.fulfilled, (state, action) => {
 				state.status = "succeeded";
@@ -268,6 +366,7 @@ const gradeSlice = createSlice({
 			.addCase(fetchGradeItemById.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Failed to fetch grade item";
+				state.currentGradeItem = null;
 			});
 
 		// Create Grade Item
@@ -277,7 +376,10 @@ const gradeSlice = createSlice({
 			})
 			.addCase(createGradeItem.fulfilled, (state, action) => {
 				state.operationStatus = "succeeded";
-				state.gradeItems.unshift(action.payload);
+				// Only add if the current view is Teacher/Admin (GradeItem[])
+				if (Array.isArray(state.gradeItems)) {
+					state.gradeItems.unshift(action.payload);
+				}
 			})
 			.addCase(createGradeItem.rejected, (state, action) => {
 				state.operationStatus = "failed";
@@ -291,22 +393,37 @@ const gradeSlice = createSlice({
 			})
 			.addCase(updateGradeItem.fulfilled, (state, action) => {
 				state.operationStatus = "succeeded";
+				// Update in the main list (Teacher/Admin view)
 				const index = state.gradeItems.findIndex(
 					(item) => item.id === action.payload.id
 				);
 				if (index !== -1) state.gradeItems[index] = action.payload;
 
+				// Update in the student view list if present
 				const studentIndex = state.studentGradeItems.findIndex(
 					(item) => item.id === action.payload.id
 				);
-				if (studentIndex !== -1)
+				if (studentIndex !== -1) {
+					// Merge existing student grade info with updated item info
+					const existingGrade = state.studentGradeItems[studentIndex].grade;
 					state.studentGradeItems[studentIndex] = {
-						...state.studentGradeItems[studentIndex],
-						...action.payload,
+						...action.payload, // Base updated item
+						grade: existingGrade, // Keep the student's specific grade
 					};
+				}
 
-				if (state.currentGradeItem?.id === action.payload.id)
-					state.currentGradeItem = action.payload;
+				// Update the currently viewed item if it matches
+				if (state.currentGradeItem?.id === action.payload.id) {
+					// If currentGradeItem held student grade, preserve it
+					const currentIsStudentView =
+						state.currentGradeItem && "grade" in state.currentGradeItem;
+					state.currentGradeItem = {
+						...action.payload,
+						...(currentIsStudentView && {
+							grade: (state.currentGradeItem as StudentGradeItemView).grade,
+						}),
+					};
+				}
 			})
 			.addCase(updateGradeItem.rejected, (state, action) => {
 				state.operationStatus = "failed";
@@ -319,6 +436,7 @@ const gradeSlice = createSlice({
 				state.operationStatus = "loading";
 			})
 			.addCase(deleteGradeItem.fulfilled, (state, action) => {
+				// action.payload is gradeItemId
 				state.operationStatus = "succeeded";
 				state.gradeItems = state.gradeItems.filter(
 					(item) => item.id !== action.payload
@@ -326,18 +444,21 @@ const gradeSlice = createSlice({
 				state.studentGradeItems = state.studentGradeItems.filter(
 					(item) => item.id !== action.payload
 				);
-				if (state.currentGradeItem?.id === action.payload)
+				if (state.currentGradeItem?.id === action.payload) {
 					state.currentGradeItem = null;
+					state.studentGrades = []; // Clear related grades if viewing this item
+				}
 			})
 			.addCase(deleteGradeItem.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to delete grade item";
 			});
 
-		// Fetch Student Grades
+		// Fetch Student Grades (for a specific grade item)
 		builder
 			.addCase(fetchStudentGrades.pending, (state) => {
 				state.status = "loading";
+				state.studentGrades = []; // Clear while loading
 			})
 			.addCase(fetchStudentGrades.fulfilled, (state, action) => {
 				state.status = "succeeded";
@@ -346,12 +467,14 @@ const gradeSlice = createSlice({
 			.addCase(fetchStudentGrades.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Failed to fetch student grades";
+				state.studentGrades = [];
 			});
 
-		// Fetch Student Grade By ID
+		// Fetch Student Grade By ID (a single grade record)
 		builder
 			.addCase(fetchStudentGradeById.pending, (state) => {
 				state.status = "loading";
+				state.currentGrade = null;
 			})
 			.addCase(fetchStudentGradeById.fulfilled, (state, action) => {
 				state.status = "succeeded";
@@ -360,52 +483,67 @@ const gradeSlice = createSlice({
 			.addCase(fetchStudentGradeById.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Failed to fetch student grade";
+				state.currentGrade = null;
 			});
 
-		// Assign Grade
+		// Assign Grade (Creates/Updates a specific StudentGrade)
 		builder
 			.addCase(assignGrade.pending, (state) => {
 				state.operationStatus = "loading";
 			})
 			.addCase(assignGrade.fulfilled, (state, action) => {
 				state.operationStatus = "succeeded";
+				// Find if the grade exists in the list currently loaded (for the grade item view)
 				const index = state.studentGrades.findIndex(
-					(grade) => grade.id === action.payload.id
+					// Match by studentId AND gradeItemId (assuming grade IDs might not be stable before creation)
+					(grade) =>
+						grade.studentId === action.payload.studentId &&
+						grade.gradeItemId === action.payload.gradeItemId
 				);
 				if (index !== -1) {
-					state.studentGrades[index] = action.payload;
+					state.studentGrades[index] = action.payload; // Update existing
 				} else {
-					state.studentGrades.push(action.payload);
+					// Only add if it belongs to the currently viewed gradeItem
+					if (state.currentGradeItem?.id === action.payload.gradeItemId) {
+						state.studentGrades.push(action.payload); // Add new
+					}
 				}
-				state.currentGrade = action.payload;
+				// Update currentGrade only if explicitly viewing/editing THIS grade
+				// state.currentGrade = action.payload; // Maybe set this only via fetchStudentGradeById
 			})
 			.addCase(assignGrade.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to assign grade";
 			});
 
-		// Update Grade
+		// Update Grade (Updates a specific StudentGrade)
 		builder
 			.addCase(updateGrade.pending, (state) => {
 				state.operationStatus = "loading";
 			})
 			.addCase(updateGrade.fulfilled, (state, action) => {
 				state.operationStatus = "succeeded";
+				// Update in the list of grades for the current item
 				const index = state.studentGrades.findIndex(
 					(grade) => grade.id === action.payload.id
 				);
 				if (index !== -1) state.studentGrades[index] = action.payload;
-				state.currentGrade = action.payload;
+
+				// Update the currently selected grade if it matches
+				if (state.currentGrade?.id === action.payload.id) {
+					state.currentGrade = action.payload;
+				}
 			})
 			.addCase(updateGrade.rejected, (state, action) => {
 				state.operationStatus = "failed";
 				state.error = action.payload ?? "Failed to update grade";
 			});
 
-		// Fetch Course Grades
+		// Fetch Course Grades (Overall grades for students in a course)
 		builder
 			.addCase(fetchCourseGrades.pending, (state) => {
 				state.status = "loading";
+				state.courseGrades = [];
 			})
 			.addCase(fetchCourseGrades.fulfilled, (state, action) => {
 				state.status = "succeeded";
@@ -414,15 +552,17 @@ const gradeSlice = createSlice({
 			.addCase(fetchCourseGrades.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Failed to fetch course grades";
+				state.courseGrades = [];
 			});
 
-		// Calculate Course Grades
+		// Calculate Course Grades (Triggers calculation, returns updated grades)
 		builder
 			.addCase(calculateCourseGrades.pending, (state) => {
 				state.operationStatus = "loading";
 			})
 			.addCase(calculateCourseGrades.fulfilled, (state, action) => {
 				state.operationStatus = "succeeded";
+				// Replace the existing course grades with the newly calculated ones
 				state.courseGrades = action.payload;
 			})
 			.addCase(calculateCourseGrades.rejected, (state, action) => {
@@ -433,6 +573,7 @@ const gradeSlice = createSlice({
 });
 
 // --- Actions & Selectors ---
+// (Actions and Selectors remain the same)
 export const {
 	clearGradeError,
 	resetGradeOperationStatus,
@@ -441,7 +582,6 @@ export const {
 	setCurrentCourseGrade,
 } = gradeSlice.actions;
 
-// Selectors
 export const selectAllGradeItems = (state: RootState) =>
 	state.grades.gradeItems;
 export const selectStudentGradeItems = (state: RootState) =>
