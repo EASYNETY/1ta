@@ -1,4 +1,3 @@
-// features/assignments/store/assignment-slice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
@@ -13,20 +12,6 @@ import type {
 	SubmitAssignmentPayload,
 } from "../types/assignment-types"; // Adjust path
 import { get, post, put, del } from "@/lib/api-client"; // Import CRUD methods
-
-// --- Mock Imports ---
-import {
-	// TODO: Create mock functions for assignments
-	getMockAssignmentsForCourse, // Example fetch for teacher/admin
-	getMockAssignmentsForStudent, // Example fetch for student
-	getMockAssignmentById,
-	createMockAssignment,
-	updateMockAssignment,
-	deleteMockAssignment,
-	getMockSubmissionsForAssignment,
-	submitMockAssignment,
-	gradeMockSubmission,
-} from "@/data/mock-assignment-data"; // Adjust path
 
 // --- Thunks ---
 
@@ -44,17 +29,24 @@ export const fetchAssignments = createAsyncThunk<
 	"assignments/fetchList",
 	async ({ role, userId, courseId, classId }, { rejectWithValue }) => {
 		try {
-			// API call logic based on role:
+			// Construct query parameters
+			const params = new URLSearchParams();
+			params.append("role", role);
+			if (userId) params.append("userId", userId);
+			if (courseId) params.append("courseId", courseId);
+			if (classId) params.append("classId", classId);
+			
+			// API call based on role
 			if (role === "student" && userId) {
-				// API: GET /assignments/student/{userId}?courseId=...
-				return await getMockAssignmentsForStudent(userId, courseId);
+				// API: GET /assignments?role=student&userId=...
+				return await get<StudentAssignmentView[]>(`/assignments?${params.toString()}`);
 			} else if (role === "teacher" || role === "admin") {
-				// API: GET /assignments?courseId=...&classId=... (Teacher might be restricted to their courses)
-				return await getMockAssignmentsForCourse(courseId, classId); // Pass necessary IDs
+				// API: GET /assignments?role=teacher&courseId=...&classId=...
+				return await get<TeacherAssignmentView[]>(`/assignments?${params.toString()}`);
 			}
 			return []; // Default empty
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to fetch assignments");
 		}
 	}
 );
@@ -67,10 +59,17 @@ export const fetchAssignmentById = createAsyncThunk<
 	"assignments/fetchById",
 	async ({ assignmentId, role, userId }, { rejectWithValue }) => {
 		try {
-			// API Call: GET /assignments/{assignmentId} (adjust based on role/view needed)
-			return await getMockAssignmentById(assignmentId, role, userId);
+			// Construct query parameters
+			const params = new URLSearchParams();
+			params.append("role", role);
+			if (userId) params.append("userId", userId);
+			
+			// API Call: GET /assignments/{assignmentId}?role=...&userId=...
+			return await get<Assignment | StudentAssignmentView | TeacherAssignmentView>(
+				`/assignments/${assignmentId}?${params.toString()}`
+			);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to fetch assignment");
 		}
 	}
 );
@@ -82,29 +81,22 @@ export const createAssignment = createAsyncThunk<
 >("assignments/create", async (payload, { rejectWithValue }) => {
 	try {
 		// API Call: POST /assignments
-		return await createMockAssignment(payload);
+		return await post<Assignment>("/assignments", payload);
 	} catch (e: any) {
-		return rejectWithValue(e.message);
+		return rejectWithValue(e.message || "Failed to create assignment");
 	}
 });
 
-// --- updateAssignment Thunk ---
 export const updateAssignment = createAsyncThunk<
 	Assignment,
-	UpdateAssignmentPayload, // Argument type is { assignmentId: string, assignment: Partial<Omit<...>> }
+	UpdateAssignmentPayload, // Argument type is { assignmentId: string, assignment: Partial<...> }
 	{ rejectValue: string }
 >(
 	"assignments/update",
 	async ({ assignmentId, assignment }, { rejectWithValue }) => {
-		// Correct destructuring
 		try {
-			// API Call structure: return await put<Assignment>(`/assignments/${assignmentId}`, assignment);
-
-			// --- FIXED: Call mock with correctly destructured arguments ---
-			// Pass the destructured 'assignmentId' as the first arg
-			// Pass the destructured 'assignment' (which is the Partial<Omit<...>> data) as the second arg
-            // @ts-ignore
-			return await updateMockAssignment(assignmentId, assignment); // NO incorrect cast needed
+			// API Call: PUT /assignments/{assignmentId}
+			return await put<Assignment>(`/assignments/${assignmentId}`, assignment);
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to update assignment");
 		}
@@ -118,10 +110,10 @@ export const deleteAssignment = createAsyncThunk<
 >("assignments/delete", async (assignmentId, { rejectWithValue }) => {
 	try {
 		// API Call: DELETE /assignments/{assignmentId}
-		await deleteMockAssignment(assignmentId);
+		await del(`/assignments/${assignmentId}`);
 		return assignmentId;
 	} catch (e: any) {
-		return rejectWithValue(e.message);
+		return rejectWithValue(e.message || "Failed to delete assignment");
 	}
 });
 
@@ -133,9 +125,9 @@ export const submitAssignment = createAsyncThunk<
 >("assignments/submit", async (payload, { rejectWithValue }) => {
 	try {
 		// API Call: POST /assignments/{assignmentId}/submissions
-		return await submitMockAssignment(payload);
+		return await post<AssignmentSubmission>(`/assignments/${payload.assignmentId}/submissions`, payload);
 	} catch (e: any) {
-		return rejectWithValue(e.message);
+		return rejectWithValue(e.message || "Failed to submit assignment");
 	}
 });
 
@@ -147,9 +139,9 @@ export const fetchSubmissions = createAsyncThunk<
 >("assignments/fetchSubmissions", async (assignmentId, { rejectWithValue }) => {
 	try {
 		// API Call: GET /assignments/{assignmentId}/submissions
-		return await getMockSubmissionsForAssignment(assignmentId);
+		return await get<AssignmentSubmission[]>(`/assignments/${assignmentId}/submissions`);
 	} catch (e: any) {
-		return rejectWithValue(e.message);
+		return rejectWithValue(e.message || "Failed to fetch submissions");
 	}
 });
 
@@ -161,9 +153,9 @@ export const gradeSubmission = createAsyncThunk<
 >("assignments/grade", async (payload, { rejectWithValue }) => {
 	try {
 		// API Call: PUT /submissions/{submissionId}/grade
-		return await gradeMockSubmission(payload);
+		return await put<AssignmentSubmission>(`/submissions/${payload.submissionId}/grade`, payload);
 	} catch (e: any) {
-		return rejectWithValue(e.message);
+		return rejectWithValue(e.message || "Failed to grade submission");
 	}
 });
 
