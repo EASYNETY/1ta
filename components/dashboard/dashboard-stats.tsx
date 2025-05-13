@@ -8,17 +8,17 @@ import { fetchAssignments } from '@/features/assignments/store/assignment-slice'
 import { fetchGrades } from '@/features/grades/store/grade-slice'
 import { fetchSchedule } from '@/features/schedule/store/schedule-slice'
 import { fetchMyPaymentHistory } from '@/features/payment/store/payment-slice'
-import { fetchEnrolledClasses } from '@/features/classes/store/classes-slice'
+import { fetchMyEnrolledClasses } from '@/features/classes/store/classes-thunks'
 import { fetchAuthCourses } from '@/features/auth-course/store/auth-course-slice'
 import { fetchNotifications } from '@/features/notifications/store/notifications-slice'
-import { 
-  BookOpen, 
-  Calendar, 
-  GraduationCap, 
-  FileText, 
-  Users, 
-  CreditCard, 
-  Bell 
+import {
+  BookOpen,
+  Calendar,
+  GraduationCap,
+  FileText,
+  Users,
+  CreditCard,
+  Bell
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -52,44 +52,44 @@ const StatCard = ({ title, value, description, icon, loading = false, className 
 
 export function DashboardStats() {
   const dispatch = useAppDispatch()
-  
+
   // Selectors for different features
-  const { assignments, status: assignmentsStatus } = useAppSelector(state => state.assignments)
-  const { grades, status: gradesStatus } = useAppSelector(state => state.grades)
-  const { events, status: scheduleStatus } = useAppSelector(state => state.schedule)
-  const { myPayments, status: paymentsStatus } = useAppSelector(state => state.paymentHistory)
-  const { enrolledClasses, status: classesStatus } = useAppSelector(state => state.classes)
-  const { courses, status: coursesStatus } = useAppSelector(state => state.auth_courses)
-  const { unreadCount, status: notificationsStatus } = useAppSelector(state => state.notifications)
-  
+  const { assignments = [], status: assignmentsStatus } = useAppSelector(state => state.assignments || { assignments: [], status: 'idle' })
+  const { grades = [], status: gradesStatus } = useAppSelector(state => state.grades || { grades: [], status: 'idle' })
+  const { events = [], status: scheduleStatus } = useAppSelector(state => state.schedule || { events: [], status: 'idle' })
+  const { myPayments = [], status: paymentsStatus } = useAppSelector(state => state.paymentHistory || { myPayments: [], status: 'idle' })
+  const { enrolledClasses = [], status: classesStatus } = useAppSelector(state => state.classes || { enrolledClasses: [], status: 'idle' })
+  const { courses = [], status: coursesStatus } = useAppSelector(state => state.auth_courses || { courses: [], status: 'idle' })
+  const { unreadCount = 0, status: notificationsStatus } = useAppSelector(state => state.notifications || { unreadCount: 0, status: 'idle' })
+
   // Fetch data on component mount
   useEffect(() => {
     if (assignmentsStatus === 'idle') dispatch(fetchAssignments())
     if (gradesStatus === 'idle') dispatch(fetchGrades())
     if (scheduleStatus === 'idle') dispatch(fetchSchedule({ role: 'student' }))
     if (paymentsStatus === 'idle') dispatch(fetchMyPaymentHistory({ userId: 'student_123' }))
-    if (classesStatus === 'idle') dispatch(fetchEnrolledClasses({ userId: 'student_123' }))
+    if (classesStatus === 'idle') dispatch(fetchMyEnrolledClasses('student_123'))
     if (coursesStatus === 'idle') dispatch(fetchAuthCourses())
     if (notificationsStatus === 'idle') dispatch(fetchNotifications({}))
   }, [
-    dispatch, 
-    assignmentsStatus, 
-    gradesStatus, 
-    scheduleStatus, 
-    paymentsStatus, 
-    classesStatus, 
+    dispatch,
+    assignmentsStatus,
+    gradesStatus,
+    scheduleStatus,
+    paymentsStatus,
+    classesStatus,
     coursesStatus,
     notificationsStatus
   ])
-  
+
   // Calculate stats
-  const pendingAssignments = assignments.filter(a => a.status === 'pending').length
-  const upcomingEvents = events.filter(e => new Date(e.startTime) > new Date()).length
-  const completedCourses = courses.filter(c => c.enrollmentStatus === 'completed').length
-  const inProgressCourses = courses.filter(c => c.enrollmentStatus === 'in-progress').length
-  const totalClasses = enrolledClasses.length
-  const totalPayments = myPayments.length
-  
+  const pendingAssignments = assignments?.filter(a => a?.status === 'pending')?.length || 0
+  const upcomingEvents = events?.filter(e => e?.startTime && new Date(e.startTime) > new Date())?.length || 0
+  const completedCourses = courses?.filter(c => c?.enrollmentStatus === 'completed')?.length || 0
+  const inProgressCourses = courses?.filter(c => c?.enrollmentStatus === 'in-progress')?.length || 0
+  const totalClasses = enrolledClasses?.length || 0
+  const totalPayments = myPayments?.length || 0
+
   // Loading states
   const assignmentsLoading = assignmentsStatus === 'loading'
   const gradesLoading = gradesStatus === 'loading'
@@ -98,7 +98,7 @@ export function DashboardStats() {
   const classesLoading = classesStatus === 'loading'
   const coursesLoading = coursesStatus === 'loading'
   const notificationsLoading = notificationsStatus === 'loading'
-  
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatCard
@@ -117,7 +117,7 @@ export function DashboardStats() {
       />
       <StatCard
         title="Courses"
-        value={`${inProgressCourses}/${courses.length}`}
+        value={`${inProgressCourses}/${courses?.length || 0}`}
         description={`${completedCourses} completed`}
         icon={<BookOpen className="h-4 w-4" />}
         loading={coursesLoading}
@@ -132,8 +132,8 @@ export function DashboardStats() {
       />
       <StatCard
         title="Grades"
-        value={grades.length > 0 ? `${Math.round(grades.reduce((acc, grade) => acc + grade.score, 0) / grades.length)}%` : 'N/A'}
-        description={`${grades.length} graded items`}
+        value={grades?.length > 0 ? `${Math.round(grades.reduce((acc, grade) => acc + (grade?.score || 0), 0) / grades.length)}%` : 'N/A'}
+        description={`${grades?.length || 0} graded items`}
         icon={<GraduationCap className="h-4 w-4" />}
         loading={gradesLoading}
         className="bg-pink-50 dark:bg-pink-950/20"

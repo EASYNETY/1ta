@@ -33,6 +33,7 @@ import corporateReducer from "@/features/corporate/store/corporate-slice";
 import assignmentsReducer from "@/features/assignments/store/assignment-slice";
 import gradesReducer from "@/features/grades/store/grade-slice";
 import notificationsReducer from "@/features/notifications/store/notifications-slice";
+import searchReducer from "@/features/search/store/search-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -84,6 +85,7 @@ const persistConfig = {
 		"assignments",
 		"grades",
 		"notifications",
+		"search",
 	],
 };
 
@@ -108,6 +110,7 @@ const rootReducer = combineReducers({
 	assignments: assignmentsReducer,
 	grades: gradesReducer,
 	notifications: notificationsReducer,
+	search: searchReducer,
 });
 
 // --- Persisted Reducer ---
