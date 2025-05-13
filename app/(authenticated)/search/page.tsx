@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
