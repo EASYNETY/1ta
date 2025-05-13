@@ -116,82 +116,128 @@ export async function refreshAuthToken(): Promise<{
 		throw new Error("No refresh token available");
 	}
 
-	try {
-		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Accept: "application/json",
-				},
-				body: JSON.stringify({ refreshToken }),
+	// Track refresh attempts to prevent infinite loops
+	const MAX_REFRESH_ATTEMPTS = 3;
+	let attempts = 0;
+	let lastError: Error | null = null;
+
+	while (attempts < MAX_REFRESH_ATTEMPTS) {
+		attempts++;
+		try {
+			console.log(`Token refresh attempt ${attempts}/${MAX_REFRESH_ATTEMPTS}`);
+
+			const response = await fetch(
+				`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Accept: "application/json",
+					},
+					body: JSON.stringify({ refreshToken }),
+				}
+			);
+
+			if (!response.ok) {
+				let errorData = {
+					message: `Token refresh failed: ${response.status} ${response.statusText}`,
+				};
+				try {
+					errorData = await response.json();
+				} catch (e) {
+					/* non-json response */
+				}
+
+				// If we get a 401 or 403, the refresh token is invalid
+				if (response.status === 401 || response.status === 403) {
+					throw new Error("Invalid refresh token");
+				}
+
+				// For other errors, we might retry
+				lastError = new Error(errorData.message || "Failed to refresh token");
+
+				// For server errors (5xx), retry after a delay
+				if (response.status >= 500) {
+					const delay = Math.pow(2, attempts) * 1000; // Exponential backoff
+					console.log(`Server error during token refresh, retrying in ${delay}ms`);
+					await new Promise(resolve => setTimeout(resolve, delay));
+					continue;
+				}
+
+				throw lastError;
 			}
-		);
 
-		if (!response.ok) {
-			let errorData = {
-				message: `Token refresh failed: ${response.status} ${response.statusText}`,
-			};
-			try {
-				errorData = await response.json();
-			} catch (e) {
-				/* non-json response */
+			const data = await response.json();
+
+			// Extract tokens from the response structure
+			const accessToken =
+				data.data?.tokens?.accessToken ||
+				data.data?.accessToken ||
+				data.accessToken;
+			const newRefreshToken =
+				data.data?.tokens?.refreshToken ||
+				data.data?.refreshToken ||
+				data.refreshToken;
+
+			if (!accessToken) {
+				throw new Error("Invalid token response format");
 			}
 
-			throw new Error(errorData.message || "Failed to refresh token");
-		}
+			// Update stored tokens
+			const user = getAuthUser();
+			if (user) {
+				setAuthData(user, accessToken, newRefreshToken);
+			} else {
+				// Just update the tokens if we don't have user data
+				if (typeof window !== "undefined") {
+					localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+					if (newRefreshToken) {
+						localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+					}
+				}
 
-		const data = await response.json();
-
-		// Extract tokens from the response structure
-		const accessToken =
-			data.data?.tokens?.accessToken ||
-			data.data?.accessToken ||
-			data.accessToken;
-		const newRefreshToken =
-			data.data?.tokens?.refreshToken ||
-			data.data?.refreshToken ||
-			data.refreshToken;
-
-		if (!accessToken) {
-			throw new Error("Invalid token response format");
-		}
-
-		// Update stored tokens
-		const user = getAuthUser();
-		if (user) {
-			setAuthData(user, accessToken, newRefreshToken);
-		} else {
-			// Just update the tokens if we don't have user data
-			if (typeof window !== "undefined") {
-				localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+				setCookie(null, AUTH_TOKEN_KEY, accessToken, AUTH_COOKIE_OPTIONS);
 				if (newRefreshToken) {
-					localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+					setCookie(
+						null,
+						REFRESH_TOKEN_KEY,
+						newRefreshToken,
+						AUTH_COOKIE_OPTIONS
+					);
 				}
 			}
 
-			setCookie(null, AUTH_TOKEN_KEY, accessToken, AUTH_COOKIE_OPTIONS);
-			if (newRefreshToken) {
-				setCookie(
-					null,
-					REFRESH_TOKEN_KEY,
-					newRefreshToken,
-					AUTH_COOKIE_OPTIONS
-				);
-			}
-		}
+			console.log("Token refresh successful");
+			return {
+				token: accessToken,
+				refreshToken: newRefreshToken,
+			};
+		} catch (error) {
+			console.error(`Token refresh attempt ${attempts} failed:`, error);
+			lastError = error instanceof Error ? error : new Error(String(error));
 
-		return {
-			token: accessToken,
-			refreshToken: newRefreshToken,
-		};
-	} catch (error) {
-		console.error("Token refresh failed:", error);
-		// Clear auth data on refresh failure
-		clearAuthData();
-		throw error;
+			// If it's a network error, retry after a delay
+			if (error instanceof Error && error.message.includes("network")) {
+				const delay = Math.pow(2, attempts) * 1000; // Exponential backoff
+				console.log(`Network error during token refresh, retrying in ${delay}ms`);
+				await new Promise(resolve => setTimeout(resolve, delay));
+				continue;
+			}
+
+			// For other errors, don't retry
+			break;
+		}
 	}
+
+	// If we've exhausted all attempts or got a non-retryable error
+	console.error(`Token refresh failed after ${attempts} attempts`);
+
+	// Only clear auth data for auth-related errors, not network errors
+	if (lastError && !lastError.message.includes("network")) {
+		clearAuthData();
+	}
+
+	throw lastError || new Error("Failed to refresh token after multiple attempts");
 }
 
 // --- Auth Listener ---

@@ -155,7 +155,7 @@ export const fetchUserProfileThunk = createAsyncThunk<
 	}
 >(
 	"auth/fetchUserProfile",
-	async (_, { rejectWithValue, getState }) => {
+	async (_, { rejectWithValue, getState, dispatch }) => {
 		try {
 			const response = await get<{ success: boolean; data: User }>("/users/me");
 
@@ -166,32 +166,28 @@ export const fetchUserProfileThunk = createAsyncThunk<
 
 			return response.data;
 		} catch (error: any) {
+			// Note: We don't need to handle 401 errors here anymore since the API client
+			// will automatically attempt to refresh the token and retry the request.
+			// This is just a fallback in case that mechanism fails.
+
 			if (error.status === 401) {
-				// Try to refresh the token if we get a 401
-				try {
-					const { refreshAuthToken } = await import("@/lib/auth-service");
-					await refreshAuthToken();
-					// If refresh succeeds, retry the original request
-					const response = await get<{ success: boolean; data: User }>(
-						"/users/me"
-					);
+				// If we still get a 401 after the API client's refresh attempt,
+				// it means the refresh token is invalid or expired
+				console.error("Failed to authenticate user after token refresh attempt");
 
-					// Ensure we have valid data before returning
-					if (!response || !response.data) {
-						return rejectWithValue(
-							"Invalid response format from API after token refresh"
-						);
-					}
+				// Dispatch logout action to clear auth state
+				dispatch({ type: AUTH_ACTIONS.LOGOUT });
 
-					return response.data;
-				} catch (refreshError) {
-					// If refresh fails, reject with the original error
-					return rejectWithValue("Authentication required");
-				}
+				return rejectWithValue("Your session has expired. Please log in again.");
 			}
 
-			const errorMessage =
-				error instanceof Error ? error.message : "Failed to fetch user profile";
+			// For network errors, provide a more user-friendly message
+			if (error.isNetworkError) {
+				return rejectWithValue("Network error. Please check your internet connection and try again.");
+			}
+
+			// For other errors, use the error message from the API
+			const errorMessage = error.message || "Failed to fetch user profile";
 			return rejectWithValue(errorMessage);
 		}
 	},

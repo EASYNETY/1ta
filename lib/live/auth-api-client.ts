@@ -116,14 +116,20 @@ async function apiClient<T>(
 
 					// If refresh successful, retry the original request with the new token
 					if (token) {
+						console.log("Token refresh successful, retrying original request");
 						headers.set("Authorization", `Bearer ${token}`);
 						const retryConfig = { ...config, headers };
+
+						// Add a small delay before retrying to ensure token is properly stored
+						await new Promise(resolve => setTimeout(resolve, 100));
+
 						const retryResponse = await fetch(
 							`${API_BASE_URL}${endpoint}`,
 							retryConfig
 						);
 
 						if (retryResponse.ok) {
+							console.log("Retry successful after token refresh");
 							if (retryResponse.status === 204) return undefined as T;
 
 							const contentType = retryResponse.headers.get("content-type");
@@ -132,12 +138,38 @@ async function apiClient<T>(
 							}
 
 							return undefined as T;
+						} else {
+							// If retry fails, check if it's another 401
+							if (retryResponse.status === 401) {
+								console.error("Still getting 401 after token refresh, session may be invalid");
+								// Only logout if we're still getting 401 after refresh
+								handleUnauthorized();
+							}
+
+							// For other errors, throw normal error
+							let retryErrorData: any = {
+								message: `API Error after token refresh: ${retryResponse.status} ${retryResponse.statusText}`,
+							};
+
+							try {
+								retryErrorData = await retryResponse.json();
+							} catch (e) {
+								/* non-json response */
+							}
+
+							throw new ApiError(
+								retryErrorData.message || `Error ${retryResponse.status} after token refresh`,
+								retryResponse.status,
+								retryErrorData
+							);
 						}
 					}
 				} catch (refreshError) {
 					console.error("Token refresh failed:", refreshError);
-					// If refresh fails, proceed with logout
-					handleUnauthorized();
+					// Only logout if refresh explicitly failed, not for network errors
+					if (!(refreshError instanceof Error && refreshError.message.includes("network"))) {
+						handleUnauthorized();
+					}
 				}
 
 				// Throw a specific error for 401
