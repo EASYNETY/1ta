@@ -17,24 +17,24 @@ import { FacebookLogo, InstagramLogo, TiktokLogo } from 'phosphor-react';
 // --- Footer Link Constants (Example) ---
 const footerLinks = {
     product: [
-        { href: '#features', label: 'Features' },
-        { href: '#', label: 'Pricing' }, // Replace # with actual link
+        // { href: '#features', label: 'Features' },
+        // { href: '#', label: 'Pricing' }, // Replace # with actual link
         { href: '#courses', label: 'Courses' }, // Replace # with actual link
     ],
     resources: [
-        { href: '#', label: 'Documentation' },
-        { href: '#', label: 'Guides' },
+        // { href: '#', label: 'Documentation' },
+        // { href: '#', label: 'Guides' },
         { href: '#', label: 'Support' },
     ],
     company: [
-        { href: '#', label: 'About' },
-        { href: '#', label: 'Careers' },
+        // { href: '#', label: 'About' },
+        // { href: '#', label: 'Careers' },
         { href: '#', label: 'Contact' },
     ],
     legal: [
         { href: '#', label: 'Privacy Policy' },
-        { href: '#', label: 'Terms of Service' },
-        { href: '#', label: 'Cookie Policy' },
+        // { href: '#', label: 'Terms of Service' },
+        // { href: '#', label: 'Cookie Policy' },
     ],
 };
 
@@ -98,7 +98,7 @@ export function Footer() {
 
                         {/* Description */}
                         <p className={cn('text-sm mb-4', mutedTextColor)}>
-                            Empowering institutions with smart, real-time, engaging education solutions. Beyond Limits, Beyond Today.
+                        Beyond Limits, Beyond Today.
                         </p>
 
                         {/* Social Links */}

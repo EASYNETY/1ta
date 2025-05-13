@@ -59,6 +59,7 @@ export default function LandingPage() {
     title: "Our Vision",
     subtitle: "Shaping the Future of Tech in Africa",
     imageSrc: "https://img.freepik.com/free-photo/black-woman-experiencing-virtual-reality-with-vr-headset_53876-137559.jpg?t=st=1745919842~exp=1745923442~hmac=8f8854025973efa823ba857549a70fe3ff1fa013ad4c0225e4e81e97bc847092&w=740",
+    // imageSrc: "./vision.png",
     imageAlt: "Abstract representation of digital transformation in Africa",
     modalContent: {
       bio: "To shape Africa’s next generation of tech leaders by combining global expertise with local excellence — in a space built for bold ambition and real transformation.",
@@ -95,7 +96,7 @@ export default function LandingPage() {
                     </Link>
                   </DyraneButton>
                   <DyraneButton variant="outline" size="lg" asChild>
-                    <Link href="#features">Learn More</Link>
+                    <Link href="#courses">Learn More</Link>
                   </DyraneButton>
                 </div>
               </div>

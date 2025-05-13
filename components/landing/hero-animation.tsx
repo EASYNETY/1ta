@@ -40,9 +40,9 @@ const heroImages = [
     caption: "Mastering Data Insights",
   },
   {
-    src: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1374&auto=format&fit=crop",
+    src: "/cutting-edge.jpg",
     alt: "Abstract digital representation of a secure network structure",
-    caption: "Cutting-Edge Cybersecurity Training",
+    caption: "Cutting Edge Cloud Engineering Training.",
   },
 ]
 
