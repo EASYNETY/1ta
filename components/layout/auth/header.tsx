@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, Bell } from "lucide-react"
+import { LogOut, Bell, Loader2 } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -32,19 +32,20 @@ import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavIte
 import { getMobileNavItems } from "./mobile-nav"
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
 import { isStudent } from "@/types/user.types"
+import { NotificationList } from "@/features/notifications/components/NotificationList"
+import {
+    fetchNotifications,
+    selectUnreadCount,
+    selectNotificationsStatus
+} from "@/features/notifications/store/notifications-slice"
 
-
-// Mock notifications data
-export const notifications = [
-    { id: 1, title: "New Assignment Posted", message: "Web Dev assignment 3 is available.", time: "1h ago", read: false, href: "/assignments/webdev-3" },
-    { id: 2, title: "Grade Update", message: "Your Data Science Midterm grade is up.", time: "4h ago", read: false, href: "/grades" },
-    { id: 3, title: "Class Reminder", message: "Cybersecurity lecture starts in 15 mins.", time: "1d ago", read: true, href: "/timetable" },
-]
 
 export function Header() {
     // --- Hooks ---
     const { isAuthenticated, user } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
+    const unreadCount = useAppSelector(selectUnreadCount)
+    const notificationsStatus = useAppSelector(selectNotificationsStatus)
     const dispatch = useAppDispatch()
     const router = useRouter()
     const isMobile = useMobile()
@@ -54,7 +55,6 @@ export function Header() {
 
     // --- State ---
     const [isScrolled, setIsScrolled] = useState(false)
-    const [notificationCount, setNotificationCount] = useState(3)
     const [notificationsOpen, setNotificationsOpen] = useState(false)
     const [mounted, setMounted] = useState(false);
     const [mobileUserSheetOpen, setMobileUserSheetOpen] = useState(false);
@@ -72,6 +72,13 @@ export function Header() {
         window.addEventListener("scroll", handleScroll)
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
+
+    // Fetch notifications when component mounts
+    useEffect(() => {
+        if (isAuthenticated && user && notificationsStatus === "idle") {
+            dispatch(fetchNotifications({ limit: 20 }));
+        }
+    }, [dispatch, isAuthenticated, user, notificationsStatus]);
 
     // -- Handlers --
 
@@ -320,9 +327,9 @@ export function Header() {
                             <SheetTrigger asChild>
                                 <button className="relative rounded-full p-2 hover:bg-muted cursor-pointer">
                                     <Bell className="h-5 w-5" />
-                                    {notificationCount > 0 && (
+                                    {unreadCount > 0 && (
                                         <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                                            {notificationCount}
+                                            {unreadCount}
                                         </span>
                                     )}
                                 </button>
@@ -331,28 +338,7 @@ export function Header() {
                                 <SheetHeader className="px-4">
                                     <SheetTitle>Notifications</SheetTitle>
                                 </SheetHeader>
-                                <ScrollArea className="flex-1 overflow-y-scroll">
-                                    <div className="p-4 space-y-3">
-                                        {notifications.map((notification) => (
-                                            <Link href={notification.href || '#'} key={notification.id} className="block" onClick={() => setNotificationsOpen(false)}>
-                                                <div className={cn("rounded-lg border p-3 text-sm transition-colors hover:bg-muted/50 cursor-pointer", !notification.read ? "border-primary/20 bg-primary/5 dark:bg-primary/10" : "border-border/30")}>
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <h4 className="font-medium text-foreground">{notification.title}</h4>
-                                                        {!notification.read && <div aria-label="Unread" className="h-2 w-2 rounded-full bg-primary flex-shrink-0 ml-2" />}
-                                                    </div>
-                                                    <p className="text-muted-foreground text-xs leading-snug line-clamp-2">{notification.message}</p>
-                                                    <p className="mt-2 text-[10px] text-muted-foreground/80">{notification.time}</p>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                        {notifications.length === 0 && (
-                                            <div className="flex flex-col items-center justify-center py-12 text-center">
-                                                <Bell className="mb-2 size-10 text-muted-foreground/50" />
-                                                <p className="text-sm text-muted-foreground">You're all caught up!</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </ScrollArea>
+                                <NotificationList onNotificationClick={() => setNotificationsOpen(false)} />
                             </SheetContent>
                         </Sheet>
                     )}

@@ -73,6 +73,11 @@ import {
 	mockUpdateNotificationPreferences,
 } from "@/data/mock-settings-data";
 import {
+	mockFetchNotifications,
+	mockMarkNotificationAsRead,
+	mockMarkAllNotificationsAsRead,
+} from "@/data/mock-notification-data";
+import {
 	mockAddTicketResponse,
 	mockCreateTicket,
 	mockFetchAllFeedback,
@@ -1266,6 +1271,61 @@ export async function handleMockRequest<T>(
 		const userId = "user_123";
 		if (!body) throw new Error("Mock Error: Missing preferences data in body");
 		return mockUpdateNotificationPreferences(userId, body) as unknown as T;
+	}
+
+	// --- Notifications Mocks ---
+	if (method === "get" && /^\/notifications(\?.*)?$/.test(endpoint)) {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
+
+		console.log(`%cAPI Client MOCK: GET /notifications?page=${page}&limit=${limit}`, "color: orange;");
+
+		try {
+			const userId = "student_123"; // Simulate logged-in user ID
+			const response = await mockFetchNotifications(userId, page, limit);
+
+			return {
+				success: true,
+				data: {
+					notifications: response.notifications,
+					pagination: response.pagination
+				},
+				message: "Notifications fetched successfully"
+			} as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /notifications:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// Mark notification as read
+	const markNotificationAsReadMatch = endpoint.match(/^\/notifications\/([\w-]+)\/read$/);
+	if (markNotificationAsReadMatch && method === "post") {
+		const notificationId = markNotificationAsReadMatch[1];
+		console.log(`%cAPI Client MOCK: POST /notifications/${notificationId}/read`, "color: orange;");
+
+		try {
+			const response = await mockMarkNotificationAsRead(notificationId);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(`Mock API Error for POST /notifications/${notificationId}/read:`, error.message);
+			throw { response: { data: { message: error.message }, status: 404 } };
+		}
+	}
+
+	// Mark all notifications as read
+	if (endpoint === "/notifications/mark-all-read" && method === "post") {
+		console.log(`%cAPI Client MOCK: POST /notifications/mark-all-read`, "color: orange;");
+
+		try {
+			const userId = body?.userId || "student_123"; // Use provided userId or default
+			const response = await mockMarkAllNotificationsAsRead(userId);
+			return response as unknown as T;
+		} catch (error: any) {
+			console.error(`Mock API Error for POST /notifications/mark-all-read:`, error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
 	}
 
 	// --- Support Mocks ---
