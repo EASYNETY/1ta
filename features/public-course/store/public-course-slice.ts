@@ -37,98 +37,26 @@ export const fetchCourses = createAsyncThunk<
 		console.log("Dispatching fetchCourses: Calling API client...");
 
 		// Use the apiClient's get method with proper error handling
-		let courses: PublicCourse[] = [];
+		const response = await get<{
+			success: boolean;
+			data: PublicCourse[];
+			message?: string;
+		}>("/public_courses");
 
-		try {
-			const response = await get<{
-				success: boolean;
-				data: PublicCourse[];
-				message?: string;
-			}>("/public_courses");
-
-			// Check if the response has the expected structure
-			if (!response || !response.success) {
-				console.error("API Error:", response?.message || "Unknown error");
-				throw new Error(response?.message || "Failed to fetch courses");
-			}
-
-			courses = response.data;
-
-			if (!Array.isArray(courses)) {
-				console.error("Fetched courses data is not an array:", courses);
-				throw new Error("Invalid data format received for courses");
-			}
-
-			console.log(`Dispatching fetchCourses: Received ${courses.length} courses.`);
-
-		} catch (error) {
-			console.error("API Error:", error);
-
-			// Mock data for development when API is not available
-			console.log("Using mock data for public courses");
-
-			// Use mock data
-			courses = [
-				{
-					id: "1",
-					title: "Introduction to Web Development",
-					description: "Learn the basics of HTML, CSS, and JavaScript to build modern websites.",
-					category: "Web Development",
-					instructor: { name: "John Doe", title: "Senior Web Developer" },
-					image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-					level: "Beginner",
-					totalVideoDuration: "8 weeks",
-					priceUSD: 99.99,
-					discountPriceUSD: 79.99,
-					studentsEnrolled: 1250,
-					rating: 4.8,
-					reviewsCount: 320,
-					tags: ["HTML", "CSS", "JavaScript"],
-					slug: "intro-to-web-dev",
-					lessonCount: 24,
-					moduleCount: 6
-				},
-				{
-					id: "2",
-					title: "Advanced React Development",
-					description: "Master React.js and build complex single-page applications with modern practices.",
-					category: "Web Development",
-					instructor: { name: "Jane Smith", title: "React Specialist" },
-					image: "https://images.unsplash.com/photo-1633356122544-f134324a6cee",
-					level: "Intermediate",
-					totalVideoDuration: "10 weeks",
-					priceUSD: 149.99,
-					discountPriceUSD: 129.99,
-					studentsEnrolled: 850,
-					rating: 4.9,
-					reviewsCount: 210,
-					tags: ["React", "JavaScript", "Redux"],
-					slug: "advanced-react",
-					lessonCount: 32,
-					moduleCount: 8
-				},
-				{
-					id: "3",
-					title: "Data Science Fundamentals",
-					description: "Introduction to data analysis, visualization, and machine learning concepts.",
-					category: "Data Science",
-					instructor: { name: "Michael Johnson", title: "Data Scientist" },
-					image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71",
-					level: "Beginner",
-					totalVideoDuration: "12 weeks",
-					priceUSD: 199.99,
-					discountPriceUSD: 169.99,
-					studentsEnrolled: 720,
-					rating: 4.7,
-					reviewsCount: 180,
-					tags: ["Python", "Data Analysis", "Statistics"],
-					slug: "data-science-fundamentals",
-					lessonCount: 28,
-					moduleCount: 7
-				}
-			];
+		// Check if the response has the expected structure
+		if (!response || !response.success) {
+			console.error("API Error:", response?.message || "Unknown error");
+			throw new Error(response?.message || "Failed to fetch courses");
 		}
 
+		const courses = response.data;
+
+		if (!Array.isArray(courses)) {
+			console.error("Fetched courses data is not an array:", courses);
+			throw new Error("Invalid data format received for courses");
+		}
+
+		console.log(`Dispatching fetchCourses: Received ${courses.length} courses.`);
 		return courses;
 	} catch (error) {
 		const message =
