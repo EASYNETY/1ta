@@ -44,8 +44,20 @@
 			]
 		},
 		{
-			"name": "Discussions",
-			"short_name": "Chat",
+			"name": "Assignments",
+			"short_name": "Assignments",
+			"description": "View, create or submit assignments",
+			"url": "/assignments",
+			"icons": [
+				{
+					"src": "/icons/shortcuts/1tech-academy/assignment.svg",
+					"sizes": "192x192"
+				}
+			]
+		},
+		{
+			"name": "Class Chat",
+			"short_name": "Discussions",
 			"description": "Message your class or teachers",
 			"url": "/chat",
 			"icons": [
