@@ -46,10 +46,28 @@ export const fetchAuthCourses = createAsyncThunk<
 >("auth_courses/fetchAuthCourses", async (_, { rejectWithValue }) => {
 	try {
 		console.log("Dispatching fetchAuthCourses: Calling API client...");
-		const courses = await get<AuthCourse[]>("/auth_courses");
-		if (!Array.isArray(courses)) {
-			throw new Error("Invalid data format received for courses");
+
+		// Use the apiClient's get method with proper error handling
+		const response = await get<{
+			success: boolean;
+			data: AuthCourse[];
+			message?: string;
+		}>("/auth_courses");
+
+		// Check if the response has the expected structure
+		if (!response || !response.success) {
+			console.error("API Error:", response?.message || "Unknown error");
+			throw new Error(response?.message || "Failed to fetch auth courses");
 		}
+
+		// Extract the courses from the response
+		const courses = response.data;
+
+		if (!Array.isArray(courses)) {
+			console.error("Fetched auth courses data is not an array:", courses);
+			throw new Error("Invalid data format received for auth courses");
+		}
+
 		return courses;
 	} catch (error) {
 		const message =

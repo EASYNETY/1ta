@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { Check, X, GraduationCap, AlertCircle, Calendar } from "lucide-react"
+import { Check, X, GraduationCap, AlertCircle, Calendar, Loader2 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -391,13 +391,21 @@ export default function PricingPage() {
                     </DialogTitle>
                     {selectedPlan && (
                         <PaystackCheckout
-                            courseId={selectedPlan.id}
+                            invoiceId={`plan_subscription_${user?.id}_${selectedPlan.id}_${Date.now()}`}
                             courseTitle={`${selectedPlan.name} Plan Subscription`}
                             amount={selectedPlan.priceValue || 0}
                             email={user?.email || ""}
                             onSuccess={handlePaymentSuccess}
                             onCancel={() => dispatch(setShowPaymentModal(false))}
                         />
+                    )}
+                    {!selectedPlan && (
+                        <div className="flex flex-col items-center justify-center p-6">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                            <p className="text-center text-sm text-muted-foreground">
+                                Loading plan details...
+                            </p>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>

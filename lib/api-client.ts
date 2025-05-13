@@ -347,10 +347,32 @@ export async function handleMockRequest<T>(
 		return (await getMockCourses()) as unknown as T;
 	}
 	if (endpoint === "/public_courses" && method === "get") {
-		return (await getPublicMockCourses()) as unknown as T;
+		if (IS_LIVE_API) {
+			// In live mode, this will be handled by the real API
+			throw new Error("Mock API: This endpoint should be handled by the real API in live mode");
+		} else {
+			// Return mock data for public courses with proper API response structure
+			const courses = await getPublicMockCourses();
+			return {
+				success: true,
+				data: courses,
+				message: "Public courses fetched successfully"
+			} as unknown as T;
+		}
 	}
 	if (endpoint === "/auth_courses" && method === "get") {
-		return (await getAuthMockCourses()) as unknown as T;
+		if (IS_LIVE_API) {
+			// In live mode, this will be handled by the real API
+			throw new Error("Mock API: This endpoint should be handled by the real API in live mode");
+		} else {
+			// Return mock data for auth courses with proper API response structure
+			const courses = await getAuthMockCourses();
+			return {
+				success: true,
+				data: courses,
+				message: "Auth courses fetched successfully"
+			} as unknown as T;
+		}
 	}
 
 	const courseSlugMatch = endpoint.match(/^\/courses\/slug\/([\w-]+)$/);
@@ -592,25 +614,115 @@ export async function handleMockRequest<T>(
 		return mockCancelSubscription(subscriptionId) as unknown as T;
 	}
 
-	// --- Payment History Mocks ---
-	if (method === "get" && /^\/payments\/history(\?.*)?$/.test(endpoint)) {
-		const userId = "student_123"; // Simulate logged-in user
+	// --- Payment Endpoints ---
+	// GET /payments/user/history - Get user payment history
+	if (method === "get" && /^\/payments\/user\/history(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const page = Number.parseInt(urlParams.get("page") || "1", 10);
 		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
-		return mockFetchMyPaymentHistory(userId, page, limit) as unknown as T;
+
+		if (IS_LIVE_API) {
+			// In live mode, this will be handled by the real API
+			throw new Error("Mock API: This endpoint should be handled by the real API in live mode");
+		} else {
+			// In mock mode, use the mock function
+			return mockFetchMyPaymentHistory("student_123", page, limit) as unknown as T;
+		}
 	}
 
-	if (method === "get" && /^\/admin\/payments(\?.*)?$/.test(endpoint)) {
+	// GET /payments - Get all payments (admin)
+	if (method === "get" && /^\/payments(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
-		const status = urlParams.get("status") as
-			| PaymentRecord["status"]
-			| undefined;
+		const status = urlParams.get("status") as PaymentRecord["status"] | undefined;
 		const page = Number.parseInt(urlParams.get("page") || "1", 10);
 		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
-		// Ensure you return the object { payments: [], total: X } from the mock
-		return mockFetchAllPaymentsAdmin(status, page, limit) as unknown as T;
+
+		if (IS_LIVE_API) {
+			// In live mode, this will be handled by the real API
+			throw new Error("Mock API: This endpoint should be handled by the real API in live mode");
+		} else {
+			// In mock mode, use the mock function
+			return mockFetchAllPaymentsAdmin(status, page, limit, search) as unknown as T;
+		}
+	}
+
+	// POST /payments/initialize - Initialize payment
+	if (endpoint === "/payments/initialize" && method === "post") {
+		if (!body) {
+			throw new Error("Mock API Error: Missing body for POST /payments/initialize");
+		}
+
+		const { invoiceId, amount, paymentMethod } = body;
+
+		if (!invoiceId || amount === undefined || !paymentMethod) {
+			throw new Error("Mock API Error: Missing required fields for payment initialization");
+		}
+
+		// Generate a mock payment response
+		const mockPayment = {
+			id: `pay_${Date.now()}`,
+			userId: "student_123", // This would come from the authenticated user in a real API
+			amount,
+			currency: "NGN",
+			status: "pending",
+			provider: "paystack",
+			providerReference: `mock_ref_${Date.now()}`,
+			description: `Payment for invoice ${invoiceId}`,
+			createdAt: new Date().toISOString(),
+			paymentMethod,
+		};
+
+		// Generate a mock authorization URL
+		const authorizationUrl = `https://checkout.paystack.com/mock_${Date.now()}`;
+
+		return {
+			success: true,
+			message: "Payment initialized successfully",
+			data: {
+				payment: mockPayment,
+				authorizationUrl
+			}
+		} as unknown as T;
+	}
+
+	// GET /payments/verify/:reference - Verify payment
+	const verifyPaymentMatch = endpoint.match(/^\/payments\/verify\/([\w-]+)$/);
+	if (verifyPaymentMatch && method === "get") {
+		const reference = verifyPaymentMatch[1];
+
+		// Generate a mock verification response
+		const mockPayment = {
+			id: `pay_${Date.now()}`,
+			userId: "student_123", // This would come from the authenticated user in a real API
+			amount: 5000, // This would be the actual amount in a real API
+			currency: "NGN",
+			status: "succeeded",
+			provider: "paystack",
+			providerReference: reference,
+			description: "Payment verification",
+			createdAt: new Date().toISOString(),
+			paymentMethod: "card",
+		};
+
+		return {
+			success: true,
+			message: "Payment verified successfully",
+			data: {
+				payment: mockPayment,
+				verification: {
+					status: "success",
+					reference,
+					amount: 5000,
+					gateway_response: "Successful",
+					channel: "card",
+					currency: "NGN",
+					customer: {
+						email: "user@example.com",
+					}
+				}
+			}
+		} as unknown as T;
 	}
 
 	// --- Schedule Mock ---

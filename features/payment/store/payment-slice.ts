@@ -1,16 +1,14 @@
-// features/payment/store/paymentHistorySlice.ts
+// features/payment/store/payment-slice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
 	PaymentHistoryState,
 	PaymentRecord,
-} from "../types/payment-types"; // Use correct types
-
-// Import mocks (Replace with API client later)
-import {
-	mockFetchMyPaymentHistory,
-	mockFetchAllPaymentsAdmin,
-} from "@/data/mock-payment-data"; // Adjust path
+	InitiatePaymentPayload,
+	PaymentResponse,
+	VerifyPaymentResponse
+} from "../types/payment-types";
+import { get, post } from "@/lib/api-client";
 
 // --- Thunks ---
 interface FetchMyHistoryParams {
@@ -24,10 +22,29 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 	{ rejectValue: string }
 >(
 	"paymentHistory/fetchMy",
-	async ({ userId, page, limit }, { rejectWithValue }) => {
+	async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			// TODO: Replace with real API call: await get(`/payments/history?userId=${userId}&page=${page}&limit=${limit}`)
-			return await mockFetchMyPaymentHistory(userId, page, limit);
+			const response = await get<{
+				success: boolean;
+				data: {
+					payments: PaymentRecord[];
+					pagination: {
+						total: number;
+						page: number;
+						limit: number;
+						totalPages: number;
+					}
+				}
+			}>(`/payments/user/history?page=${page}&limit=${limit}`);
+
+			if (!response.success) {
+				throw new Error(response.data ? 'Server error' : 'Failed to fetch payment history');
+			}
+
+			return {
+				payments: response.data.payments,
+				total: response.data.pagination.total
+			};
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to fetch payment history");
 		}
@@ -46,12 +63,93 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 	{ rejectValue: string }
 >(
 	"paymentHistory/fetchAllAdmin",
-	async ({ status, page, limit, search }, { rejectWithValue }) => {
+	async ({ status, page = 1, limit = 10, search }, { rejectWithValue }) => {
 		try {
-			// TODO: Replace with real API call: await get(`/admin/payments?status=${status}&page=${page}&limit=${limit}&search=${search}`)
-			return await mockFetchAllPaymentsAdmin(status, page, limit, search);
+			let queryParams = `page=${page}&limit=${limit}`;
+			if (status) queryParams += `&status=${status}`;
+			if (search) queryParams += `&search=${search}`;
+
+			const response = await get<{
+				success: boolean;
+				data: {
+					payments: PaymentRecord[];
+					pagination: {
+						total: number;
+						page: number;
+						limit: number;
+						totalPages: number;
+					}
+				}
+			}>(`/payments?${queryParams}`);
+
+			if (!response.success) {
+				throw new Error(response.data ? 'Server error' : 'Failed to fetch payments');
+			}
+
+			return {
+				payments: response.data.payments,
+				total: response.data.pagination.total
+			};
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to fetch all payments");
+		}
+	}
+);
+
+// Initialize payment with Paystack
+export const initiatePayment = createAsyncThunk<
+	PaymentResponse,
+	InitiatePaymentPayload,
+	{ rejectValue: string }
+>(
+	"payment/initiate",
+	async (payload, { rejectWithValue }) => {
+		try {
+			const response = await post<{
+				success: boolean;
+				message: string;
+				data: {
+					payment: PaymentRecord;
+					authorizationUrl: string;
+				}
+			}>('/payments/initialize', payload);
+
+			if (!response.success) {
+				throw new Error(response.message || 'Failed to initialize payment');
+			}
+
+			return response.data;
+		} catch (e: any) {
+			return rejectWithValue(e.message || "Failed to initialize payment");
+		}
+	}
+);
+
+// Verify payment with Paystack
+export const verifyPayment = createAsyncThunk<
+	VerifyPaymentResponse,
+	{ reference: string },
+	{ rejectValue: string }
+>(
+	"payment/verify",
+	async ({ reference }, { rejectWithValue }) => {
+		try {
+			const response = await get<{
+				success: boolean;
+				message: string;
+				data: {
+					payment: PaymentRecord;
+					verification: any;
+				}
+			}>(`/payments/verify/${reference}`);
+
+			if (!response.success) {
+				throw new Error(response.message || 'Failed to verify payment');
+			}
+
+			return response.data;
+		} catch (e: any) {
+			return rejectWithValue(e.message || "Failed to verify payment");
 		}
 	}
 );
@@ -63,7 +161,10 @@ const initialState: PaymentHistoryState = {
 	status: "idle",
 	error: null,
 	adminPagination: null,
-	myPaymentsPagination: null, // Initialize if using
+	myPaymentsPagination: null,
+	currentPayment: null,
+	paymentInitialization: null,
+	verificationStatus: "idle"
 };
 
 // --- Slice ---
@@ -74,6 +175,12 @@ const paymentHistorySlice = createSlice({
 		clearPaymentHistoryError: (state) => {
 			state.error = null;
 		},
+		resetPaymentState: (state) => {
+			state.currentPayment = null;
+			state.paymentInitialization = null;
+			state.verificationStatus = "idle";
+			state.error = null;
+		}
 	},
 	extraReducers: (builder) => {
 		// Fetch My History
@@ -121,12 +228,50 @@ const paymentHistorySlice = createSlice({
 				state.status = "failed";
 				state.error = action.payload ?? "Error fetching all payments";
 			});
+
+		// Initialize Payment
+		builder
+			.addCase(initiatePayment.pending, (state) => {
+				state.status = "loading";
+				state.error = null;
+			})
+			.addCase(initiatePayment.fulfilled, (state, action) => {
+				state.status = "succeeded";
+				state.currentPayment = action.payload.payment;
+				state.paymentInitialization = {
+					authorizationUrl: action.payload.authorizationUrl
+				};
+			})
+			.addCase(initiatePayment.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Error initializing payment";
+			});
+
+		// Verify Payment
+		builder
+			.addCase(verifyPayment.pending, (state) => {
+				state.verificationStatus = "loading";
+				state.error = null;
+			})
+			.addCase(verifyPayment.fulfilled, (state, action) => {
+				state.verificationStatus = "succeeded";
+				state.currentPayment = action.payload.payment;
+				// If payment was successful, add it to the user's payment history
+				if (action.payload.payment.status === "succeeded") {
+					state.myPayments = [action.payload.payment, ...state.myPayments];
+				}
+			})
+			.addCase(verifyPayment.rejected, (state, action) => {
+				state.verificationStatus = "failed";
+				state.error = action.payload ?? "Error verifying payment";
+			});
 	},
 });
 
 // --- Actions & Selectors ---
-export const { clearPaymentHistoryError } = paymentHistorySlice.actions;
+export const { clearPaymentHistoryError, resetPaymentState } = paymentHistorySlice.actions;
 
+// History selectors
 export const selectMyPayments = (state: RootState) =>
 	state.paymentHistory.myPayments;
 export const selectAllAdminPayments = (state: RootState) =>
@@ -139,5 +284,13 @@ export const selectAdminPaymentsPagination = (state: RootState) =>
 	state.paymentHistory.adminPagination;
 export const selectMyPaymentsPagination = (state: RootState) =>
 	state.paymentHistory.myPaymentsPagination;
+
+// Payment processing selectors
+export const selectCurrentPayment = (state: RootState) =>
+	state.paymentHistory.currentPayment;
+export const selectPaymentInitialization = (state: RootState) =>
+	state.paymentHistory.paymentInitialization;
+export const selectVerificationStatus = (state: RootState) =>
+	state.paymentHistory.verificationStatus;
 
 export default paymentHistorySlice.reducer;

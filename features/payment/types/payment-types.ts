@@ -19,7 +19,26 @@ export interface PaymentRecord {
 	last4?: string;
 }
 
-// State for the payment *history* slice
+// Payload for initializing a payment
+export interface InitiatePaymentPayload {
+	invoiceId: string;
+	amount: number;
+	paymentMethod: string;
+}
+
+// Response from payment initialization
+export interface PaymentResponse {
+	payment: PaymentRecord;
+	authorizationUrl: string;
+}
+
+// Response from payment verification
+export interface VerifyPaymentResponse {
+	payment: PaymentRecord;
+	verification: any; // The verification data from Paystack
+}
+
+// State for the payment slice
 export interface PaymentHistoryState {
 	myPayments: PaymentRecord[];
 	allPayments: PaymentRecord[]; // For Admin view
@@ -32,11 +51,19 @@ export interface PaymentHistoryState {
 		totalItems: number;
 		limit: number;
 	} | null;
-	// Pagination for My Payments view (optional, add if needed)
+	// Pagination for My Payments view
 	myPaymentsPagination: {
 		currentPage: number;
 		totalPages: number;
 		totalItems: number;
 		limit: number;
 	} | null;
+	// Current payment being processed
+	currentPayment: PaymentRecord | null;
+	// Payment initialization data
+	paymentInitialization: {
+		authorizationUrl: string;
+	} | null;
+	// Status of payment verification
+	verificationStatus: "idle" | "loading" | "succeeded" | "failed";
 }

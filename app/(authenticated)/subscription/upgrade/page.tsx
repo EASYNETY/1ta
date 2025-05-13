@@ -227,7 +227,7 @@ export default function UpgradeSubscriptionPage() {
                     </DialogTitle>
                     {selectedPlanId && (
                         <PaystackCheckout
-                            courseId={selectedPlanId}
+                            invoiceId={`subscription_upgrade_${user?.id}_${selectedPlanId}_${Date.now()}`}
                             courseTitle={`Plan Upgrade: ${pricingState.allPlans.find((p) => p.id === selectedPlanId)?.name || "Subscription"}`}
                             amount={pricingState.allPlans.find((p) => p.id === selectedPlanId)?.priceValue || 0}
                             email={user?.email || ""}

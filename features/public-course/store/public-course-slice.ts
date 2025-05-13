@@ -35,15 +35,32 @@ export const fetchCourses = createAsyncThunk<
 >("courses/fetchCourses", async (_, { rejectWithValue }) => {
 	try {
 		console.log("Dispatching fetchCourses: Calling API client...");
-		// Use the apiClient's get method
-		const courses = await get<PublicCourse[]>("/public_courses");
+
+		// Use the apiClient's get method with proper error handling
+		const response = await get<{
+			success: boolean;
+			data: PublicCourse[];
+			message?: string;
+		}>("/public_courses");
+
+		// Check if the response has the expected structure
+		if (!response || !response.success) {
+			console.error("API Error:", response?.message || "Unknown error");
+			throw new Error(response?.message || "Failed to fetch courses");
+		}
+
+		// Extract the courses from the response
+		const courses = response.data;
+
 		if (!Array.isArray(courses)) {
 			console.error("Fetched courses data is not an array:", courses);
 			throw new Error("Invalid data format received for courses");
 		}
+
 		console.log(
 			`Dispatching fetchCourses: Received ${courses.length} courses.`
 		);
+
 		return courses;
 	} catch (error) {
 		const message =

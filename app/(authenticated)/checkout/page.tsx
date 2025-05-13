@@ -188,11 +188,11 @@ export default function CheckoutPage() {
             return
         }
 
-        if (totalAmount <= 0) {
+        if (totalAmount < 0) {
             toast({
                 variant: "default",
                 title: "Invalid Total Amount",
-                description: "Total amount must be greater than 0 to proceed with payment.",
+                description: "Total amount cannot be negative.",
             })
             return
         }
@@ -206,6 +206,7 @@ export default function CheckoutPage() {
             return
         }
 
+        // Allow zero amount payments (free items)
         dispatch(setShowPaymentModal(true)) // Open the Paystack modal
     }
 
@@ -384,12 +385,15 @@ export default function CheckoutPage() {
                                 size="lg"
                             >
                                 {(isLoading || isEnrolling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isEnrolling ? "Processing Enrollment..." : "Proceed to Payment"}
+                                {isEnrolling ? "Processing Enrollment..." :
+                                 totalAmount === 0 ? "Complete Free Enrollment" : "Proceed to Payment"}
                             </DyraneButton>
                             <p className="text-xs text-muted-foreground text-center">
                                 {isCorporateManager
                                     ? `You will be charged for ${corporateStudentCount} students.`
-                                    : "You will be redirected to our secure payment gateway."}
+                                    : totalAmount === 0
+                                        ? "Free items will be added to your account immediately."
+                                        : "You will be redirected to our secure payment gateway."}
                             </p>
                         </CardFooter>
                     </DyraneCard>
@@ -410,7 +414,7 @@ export default function CheckoutPage() {
                     <div className="py-2">
                         {user?.email && checkoutStatus === "ready" && (
                             <PaystackCheckout
-                                courseId={`cart_checkout_${user.id}`} // Unique identifier for this checkout type
+                                invoiceId={`cart_checkout_${user.id}_${Date.now()}`} // Generate a unique invoice ID
                                 courseTitle={
                                     isCorporateManager
                                         ? `Corporate Purchase (${checkoutItems.length} courses for ${corporateStudentCount} students)`

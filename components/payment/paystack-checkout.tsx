@@ -4,19 +4,30 @@
 import React, { useState, useEffect } from "react";
 import { usePaystackPayment } from "react-paystack";
 import type { PaystackProps } from "react-paystack/dist/types";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+    initiatePayment,
+    verifyPayment,
+    selectCurrentPayment,
+    selectPaymentInitialization,
+    selectVerificationStatus,
+    selectPaymentHistoryError,
+    resetPaymentState
+} from "@/features/payment/store/payment-slice";
 
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
 import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Loader2, CheckCircle, XCircle } from "lucide-react"; // Added icons
+import { Lock, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
-import { IS_LIVE_API } from "@/lib/api-client"; // <-- Import the flag
+import { IS_LIVE_API } from "@/lib/api-client";
 
 interface PaystackCheckoutProps {
-    courseId: string;
+    invoiceId?: string;
+    courseId?: string;
     courseTitle: string;
     amount: number;
     email: string;
@@ -31,6 +42,7 @@ interface InitializePaymentOptions {
 }
 
 export function PaystackCheckout({
+    invoiceId,
     courseId,
     courseTitle,
     amount,
@@ -39,18 +51,97 @@ export function PaystackCheckout({
     onCancel,
     userId,
 }: PaystackCheckoutProps) {
+    const dispatch = useAppDispatch();
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false); // Used for both real and mock
+    const [isLoading, setIsLoading] = useState(false);
     const [isPublicKeyAvailable, setIsPublicKeyAvailable] = useState(false);
     const [paystackBaseConfig, setPaystackBaseConfig] = useState<Omit<PaystackProps, 'onSuccess' | 'onClose'> | null>(null);
 
+    // Get payment state from Redux
+    const currentPayment = useAppSelector(selectCurrentPayment);
+    const paymentInitialization = useAppSelector(selectPaymentInitialization);
+    const verificationStatus = useAppSelector(selectVerificationStatus);
+    const paymentError = useAppSelector(selectPaymentHistoryError);
+
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
+
+    // Reset payment state on unmount
+    useEffect(() => {
+        return () => {
+            dispatch(resetPaymentState());
+        };
+    }, [dispatch]);
+
+    // Handle payment initialization
+    const handleInitiatePayment = async () => {
+        if (!email) {
+            toast({ title: "Error", description: "Email is required.", variant: "destructive" });
+            return;
+        }
+
+        // Handle zero amount payments differently
+        if (amount === 0) {
+            setIsLoading(true);
+            // For zero amount, we can skip the payment gateway and directly mark as successful
+            setTimeout(() => {
+                const mockReference = {
+                    message: 'Free Item Processed',
+                    reference: `free_item_${Date.now()}`,
+                    status: 'success',
+                    trans: `free_trans_${Date.now()}`,
+                    transaction: `free_trxref_${Date.now()}`,
+                    trxref: `free_trxref_${Date.now()}`
+                };
+                handleSuccess(mockReference);
+            }, 1000);
+            return;
+        }
+
+        // Handle negative amounts (shouldn't happen, but just in case)
+        if (amount < 0) {
+            toast({ title: "Error", description: "Invalid amount.", variant: "destructive" });
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+
+            // Create a payment ID if invoiceId is not provided
+            const paymentInvoiceId = invoiceId || `invoice_${courseId || 'general'}_${Date.now()}`;
+
+            // Dispatch the initiatePayment action
+            const result = await dispatch(initiatePayment({
+                invoiceId: paymentInvoiceId,
+                amount,
+                paymentMethod: 'card'
+            })).unwrap();
+
+            // If we're in LIVE mode, redirect to Paystack's authorization URL
+            if (IS_LIVE_API && result.authorizationUrl) {
+                window.location.href = result.authorizationUrl;
+            } else {
+                // For mock mode, simulate a successful payment
+                handleMockSuccess();
+            }
+        } catch (error: any) {
+            toast({
+                title: "Payment Initialization Failed",
+                description: error.message || "Could not initialize payment",
+                variant: "destructive"
+            });
+            setIsLoading(false);
+        }
+    };
 
     // Callbacks (used by both real and mock)
     const handleSuccess = (reference: any) => {
         console.log(`Payment Success (Mock=${!IS_LIVE_API}), Reference:`, reference);
         setIsLoading(false);
         toast({ title: "Payment Received", description: "Verifying...", variant: "success" });
+
+        // Verify the payment
+        dispatch(verifyPayment({ reference: reference.reference }));
+
         if (onSuccess) onSuccess(reference);
     };
 
@@ -62,56 +153,6 @@ export function PaystackCheckout({
         } else {
             toast({ title: "Payment Cancelled", variant: "default" });
         }
-    };
-
-    // Effect for real Paystack setup
-    useEffect(() => {
-        // Only run setup if LIVE
-        if (IS_LIVE_API) {
-            if (publicKey) {
-                setIsPublicKeyAvailable(true);
-                const generateReference = () => `dyrane_${userId ? userId + '_' : ''}${courseId}_${Date.now()}`;
-                const baseConfig: Omit<PaystackProps, 'onSuccess' | 'onClose'> = {
-                    reference: generateReference(),
-                    email: email,
-                    amount: Math.round(amount * 100),
-                    publicKey: publicKey,
-                    metadata: {
-                        user_id: userId || "", item_id: courseId, item_name: courseTitle,
-                        custom_fields: [
-                            { display_name: "Course Title", variable_name: "course_title", value: courseTitle },
-                            { display_name: "User ID", variable_name: "user_id", value: userId || "" },
-                            { display_name: "Course ID", variable_name: "course_id", value: courseId },
-                        ],
-                    },
-                };
-                setPaystackBaseConfig(baseConfig);
-            } else {
-                console.error("Paystack Public Key is not defined for LIVE mode.");
-                setIsPublicKeyAvailable(false);
-                setPaystackBaseConfig(null);
-            }
-        } else {
-            // In MOCK mode, we don't need the public key or base config for the hook
-            setIsPublicKeyAvailable(true); // Assume mock is always "available"
-            setPaystackBaseConfig(null);
-        }
-    }, [IS_LIVE_API, publicKey, userId, courseId, courseTitle, email, amount]); // Rerun if mode changes
-
-    // Initialize real Paystack hook (only if config is set - i.e., in LIVE mode)
-    const initializePayment = usePaystackPayment(paystackBaseConfig!); // Hook needs a valid config or throws error
-
-    const handleRealPaymentInitiation = () => {
-        if (!IS_LIVE_API || !isPublicKeyAvailable || !paystackBaseConfig) return; // Should not happen if button enabled
-        if (!email || amount <= 0) {
-            toast({ title: "Error", description: "Invalid email or amount.", variant: "destructive" }); return;
-        }
-        setIsLoading(true);
-        const paymentOptions: InitializePaymentOptions = {
-            onSuccess: handleSuccess,
-            onClose: handleCloseOrCancel,
-        };
-        initializePayment(paymentOptions);
     };
 
     // --- Mock Handlers ---
@@ -140,12 +181,11 @@ export function PaystackCheckout({
 
 
     // --- Conditional Rendering ---
-
-    // Render error if config failed in LIVE mode
-    if (IS_LIVE_API && !isPublicKeyAvailable) {
+    // Render error if there was a payment error
+    if (paymentError) {
         return (
             <Alert variant="destructive">
-                <AlertDescription>LIVE Payment configuration error. Please contact support.</AlertDescription>
+                <AlertDescription>{paymentError}</AlertDescription>
             </Alert>
         );
     }
@@ -158,52 +198,76 @@ export function PaystackCheckout({
                 <Separator />
                 <div className="flex justify-between font-bold text-xl">
                     <span>Total:</span>
-                    <span>₦{amount.toLocaleString()}</span>
+                    <span>{amount === 0 ? 'Free' : `₦${amount.toLocaleString()}`}</span>
                 </div>
             </div>
-            {/* Render real button or mock buttons */}
-            {IS_LIVE_API ? renderRealButton() : renderMockButtons()}
+
+            {/* Loading or verification in progress */}
+            {(isLoading || verificationStatus === "loading") && (
+                <div className="pt-2 flex flex-col items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                    <p className="text-center text-sm text-muted-foreground">
+                        {amount === 0 ? "Processing free item..." : "Processing payment..."}
+                    </p>
+                </div>
+            )}
+
+            {/* Ready to pay - not loading */}
+            {!isLoading && verificationStatus !== "loading" && (
+                <>
+                    {/* Free item (zero amount) */}
+                    {amount === 0 ? (
+                        <div className="pt-2">
+                            <DyraneButton
+                                onClick={handleInitiatePayment}
+                                className="w-full bg-green-600 hover:bg-green-700"
+                            >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Get Free Item
+                            </DyraneButton>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Paid item - Live mode */}
+                            {IS_LIVE_API ? (
+                                <div className="pt-2">
+                                    <DyraneButton
+                                        onClick={handleInitiatePayment}
+                                        className="w-full"
+                                    >
+                                        Pay ₦{amount.toLocaleString()} Now
+                                    </DyraneButton>
+                                </div>
+                            ) : (
+                                /* Paid item - Mock mode */
+                                <div className="pt-2 space-y-3">
+                                    <Alert variant="default" className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
+                                        <AlertDescription className="text-yellow-800 dark:text-yellow-300">
+                                            <span className="font-semibold">MOCK MODE:</span> Simulate payment outcome.
+                                        </AlertDescription>
+                                    </Alert>
+                                    <DyraneButton
+                                        onClick={handleInitiatePayment}
+                                        className="w-full bg-green-600 hover:bg-green-700" // Success color
+                                    >
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Simulate Success
+                                    </DyraneButton>
+                                    <DyraneButton
+                                        onClick={handleMockCancel}
+                                        className="w-full"
+                                        variant="outline" // Cancel style
+                                    >
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Simulate Cancel/Close
+                                    </DyraneButton>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </>
+            )}
         </CardContent>
-    );
-
-    const renderRealButton = () => (
-        <div className="pt-2">
-            <DyraneButton
-                onClick={handleRealPaymentInitiation}
-                className="w-full"
-                disabled={isLoading || !isPublicKeyAvailable || !paystackBaseConfig}
-            >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {isLoading ? "Processing..." : `Pay ₦${amount.toLocaleString()} Now`}
-            </DyraneButton>
-        </div>
-    );
-
-    const renderMockButtons = () => (
-        <div className="pt-2 space-y-3">
-            <Alert variant="default" className="bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800">
-                <AlertDescription className="text-yellow-800 dark:text-yellow-300">
-                    <span className="font-semibold">MOCK MODE:</span> Simulate payment outcome.
-                </AlertDescription>
-            </Alert>
-            <DyraneButton
-                onClick={handleMockSuccess}
-                className="w-full bg-green-600 hover:bg-green-700" // Success color
-                disabled={isLoading}
-            >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                Simulate Success
-            </DyraneButton>
-            <DyraneButton
-                onClick={handleMockCancel}
-                className="w-full"
-                variant="outline" // Cancel style
-                disabled={isLoading}
-            >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                Simulate Cancel/Close
-            </DyraneButton>
-        </div>
     );
 
     return (

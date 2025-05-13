@@ -8,6 +8,7 @@ import { z } from "zod"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { updateUserProfileThunk, createCorporateStudentSlotsThunk } from "@/features/auth/store/auth-thunks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
+import { fetchCourses } from "@/features/public-course/store/public-course-slice"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
@@ -53,6 +54,8 @@ export default function ProfilePage() {
     const { user, skipOnboarding } = useAppSelector((state) => state.auth)
     const cartItems = useAppSelector((state) => state.cart?.items ?? [])
     const allCourses = useAppSelector((state) => state.auth_courses?.courses ?? [])
+    const publicCourses = useAppSelector((state) => state.public_courses?.allCourses ?? [])
+    const publicCoursesStatus = useAppSelector((state) => state.public_courses?.status)
     const dispatch = useAppDispatch()
     const { toast } = useToast()
     const router = useRouter()
@@ -60,6 +63,13 @@ export default function ProfilePage() {
     const [isOnboarding, setIsOnboarding] = useState(false)
     const [isCorporateManager, setIsCorporateManager] = useState(false)
     const [isInitialized, setIsInitialized] = useState(false)
+
+    // Fetch public courses if not already loaded
+    useEffect(() => {
+        if (publicCoursesStatus === "idle") {
+            dispatch(fetchCourses())
+        }
+    }, [publicCoursesStatus, dispatch])
 
     // Determine if onboarding is needed
     useEffect(() => {
@@ -78,15 +88,32 @@ export default function ProfilePage() {
         setIsInitialized(true)
     }, [user, skipOnboarding])
 
-    // Prepare course options for the select dropdown
-    const courseOptions = useMemo(
-        () =>
-            allCourses.map((course) => ({
-                id: course.id,
-                name: course.title || course.slug || `Course ${course.id}`,
-            })),
-        [allCourses],
-    )
+    // Prepare course options for the select dropdown, combining auth courses and public courses
+    const courseOptions = useMemo(() => {
+        // Get courses from auth_courses
+        const authCourseOptions = allCourses.map((course) => ({
+            id: course.id,
+            name: course.title || course.slug || `Course ${course.id}`,
+        }));
+
+        // Get courses from public_courses
+        const publicCourseOptions = publicCourses.map((course) => ({
+            id: course.id,
+            name: course.title || course.slug || `Course ${course.id}`,
+        }));
+
+        // Combine both arrays and remove duplicates based on id
+        const combinedOptions = [...authCourseOptions];
+
+        // Add public courses that aren't already in the auth courses
+        publicCourseOptions.forEach(option => {
+            if (!combinedOptions.some(existing => existing.id === option.id)) {
+                combinedOptions.push(option);
+            }
+        });
+
+        return combinedOptions;
+    }, [allCourses, publicCourses])
 
     const hasItemsInCart = cartItems.length > 0
 
