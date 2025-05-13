@@ -24,6 +24,21 @@ import { get, post, put, del } from "@/lib/api-client";
 
 // --- Thunks ---
 
+// Simple fetchGrades function for dashboard
+export const fetchGrades = createAsyncThunk<
+    void,
+    void,
+    { rejectValue: string }
+>("grades/fetchGrades", async (_, { dispatch, rejectWithValue }) => {
+    try {
+        // Call the more specific fetchGradeItems function with default parameters
+        await dispatch(fetchGradeItems({ role: 'student' }));
+    } catch (error: any) {
+        console.error("Error fetching grades:", error);
+        return rejectWithValue(error.message || "Failed to fetch grades");
+    }
+});
+
 // Fetch grade items (Backend needs to determine response type based on user role/context)
 export const fetchGradeItems = createAsyncThunk<
 	GradeItem[] | StudentGradeItemView[] | TeacherGradeItemView[], // Return type remains flexible
