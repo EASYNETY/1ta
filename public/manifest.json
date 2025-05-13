@@ -4,8 +4,8 @@
 	"description": "A modern platform for online learning and course management.",
 	"start_url": "/",
 	"display": "standalone",
-	"background_color": "#ffffff",
-	"theme_color": "#28A745",
+	"background_color": "#000000",
+	"theme_color": "#000000",
 	"orientation": "portrait-primary",
 	"icons": [
 		{
@@ -27,28 +27,42 @@
 			"short_name": "Scan",
 			"description": "Quickly scan QR codes or barcodes for attendance",
 			"url": "/attendance/scan",
-			"icons": [{ "src": "/icons/shortcuts/1tech-academy/scan.svg", "sizes": "192x192" }]
+			"icons": [
+				{ "src": "/icons/shortcuts/1tech-academy/scan.svg", "sizes": "192x192" }
+			]
 		},
 		{
 			"name": "View Timetable",
 			"short_name": "Timetable",
 			"description": "Check your class schedule and timetable",
 			"url": "/timetable",
-			"icons": [{ "src": "/icons/shortcuts/1tech-academy/timetable.svg", "sizes": "192x192" }]
+			"icons": [
+				{
+					"src": "/icons/shortcuts/1tech-academy/timetable.svg",
+					"sizes": "192x192"
+				}
+			]
 		},
 		{
 			"name": "Assignments",
 			"short_name": "Assign",
 			"description": "View, create or submit assignments",
 			"url": "/assignments",
-			"icons": [{ "src": "/icons/shortcuts/1tech-academy/assignment.svg", "sizes": "192x192" }]
+			"icons": [
+				{
+					"src": "/icons/shortcuts/1tech-academy/assignment.svg",
+					"sizes": "192x192"
+				}
+			]
 		},
 		{
 			"name": "Class Chat",
 			"short_name": "Chat",
 			"description": "Message your class or teachers",
 			"url": "/chat",
-			"icons": [{ "src": "/icons/shortcuts/1tech-academy/chat.svg", "sizes": "192x192" }]
+			"icons": [
+				{ "src": "/icons/shortcuts/1tech-academy/chat.svg", "sizes": "192x192" }
+			]
 		}
 	]
 }
