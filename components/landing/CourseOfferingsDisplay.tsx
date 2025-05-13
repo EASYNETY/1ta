@@ -47,15 +47,15 @@ const mockCourseListingsData: CourseListing[] = [
     tags: ["Agile", "Scrum", "Leadership"],
   },
   {
-    id: "cybersecurity",
-    name: "Advanced Cybersecurity Defense",
+    id: "cloud-engineering",
+    name: "Cutting Edge Cloud Engineering Training",
     description:
-      "Become an expert in protecting digital assets. Dive deep into threat mitigation, ethical hacking, and security protocols.",
+      "Master cloud infrastructure, deployment strategies, and scalable architectures. Learn AWS, Azure, and Google Cloud platforms.",
     category: "future",
     waitlistCount: 127,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=Cyber+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=Cyber",
-    tags: ["Security", "Hacking", "Defense"],
+    imageUrl: "/placeholder.svg?height=400&width=600&text=Cloud+Hero",
+    iconUrl: "/placeholder.svg?height=64&width=64&text=Cloud",
+    tags: ["Cloud", "DevOps", "Infrastructure"],
   },
   {
     id: "devops",

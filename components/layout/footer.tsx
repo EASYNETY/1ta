@@ -17,24 +17,24 @@ import { FacebookLogo, InstagramLogo, TiktokLogo } from 'phosphor-react';
 // --- Footer Link Constants (Example) ---
 const footerLinks = {
     product: [
-        { href: '#features', label: 'Features' },
-        { href: '#', label: 'Pricing' }, // Replace # with actual link
+        // { href: '#features', label: 'Features' },
+        // { href: '#', label: 'Pricing' }, // Replace # with actual link
         { href: '#courses', label: 'Courses' }, // Replace # with actual link
     ],
     resources: [
-        { href: '#', label: 'Documentation' },
-        { href: '#', label: 'Guides' },
+        // { href: '#', label: 'Documentation' },
+        // { href: '#', label: 'Guides' },
         { href: '#', label: 'Support' },
     ],
     company: [
-        { href: '#', label: 'About' },
-        { href: '#', label: 'Careers' },
+        // { href: '#', label: 'About' },
+        // { href: '#', label: 'Careers' },
         { href: '#', label: 'Contact' },
     ],
     legal: [
         { href: '#', label: 'Privacy Policy' },
-        { href: '#', label: 'Terms of Service' },
-        { href: '#', label: 'Cookie Policy' },
+        // { href: '#', label: 'Terms of Service' },
+        // { href: '#', label: 'Cookie Policy' },
     ],
 };
 
@@ -60,20 +60,20 @@ export function Footer() {
     const mutedTextColor = 'text-muted-foreground';
 
     return (
-        <footer className="border-t border-border/40 bg-background py-12 md:py-16"> {/* Subtle bg, adjusted padding */}
+        <footer className="border-t border-border/40 bg-background py-8 md:py-10"> {/* Reduced padding */}
             <div className=" px-4 md:px-6">
                 {/* Top section: Logo, Description, Links Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 mb-12">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-8">
                     {/* Column 1: Logo, Description, Address, Socials */}
                     <div className="col-span-2 lg:col-span-2">
                         {/* Logo & Address */}
-                        <div className="flex flex-col items-start h-auto justify-between gap-6 mb-4">
+                        <div className="flex flex-col items-start h-auto justify-between gap-4 mb-3">
                             <Link href="/" className="">
                                 {mounted && currentTheme && (
                                     <Image
                                         src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
                                         alt="1techacademy Logo"
-                                        className="h-8 w-auto"
+                                        className="h-6 w-auto"
                                         priority
                                         width={80}
                                         height={14}
@@ -98,7 +98,7 @@ export function Footer() {
 
                         {/* Description */}
                         <p className={cn('text-sm mb-4', mutedTextColor)}>
-                            Empowering institutions with smart, real-time, engaging education solutions.
+                        Beyond Limits, Beyond Today.
                         </p>
 
                         {/* Social Links */}
@@ -143,7 +143,7 @@ export function Footer() {
                 {/* Bottom section: Copyright, Language */}
                 <div className="border-t border-border/40 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className={cn('text-xs', mutedTextColor)}> {/* Slightly smaller text */}
-                        © {new Date().getFullYear()} 1techacademy by EASYNET TELSURVE CO. All rights reserved.
+
                     </p>
                     {/* Optional: Language switcher or other links */}
                     <div className="mt-4 md:mt-0">

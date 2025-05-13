@@ -60,8 +60,7 @@ export function StandOutSlideshowSimple() {
     }
 
     return (
-        <div className="relative w-full max-w-2xl mx-auto mt-12 md:mt-16 min-h-[280px] flex items-center justify-center text-center px-4">
-            {/* AnimatePresence handles enter/exit animations when the key changes */}
+        <div className="relative w-full max-w-2xl mx-auto mt-8 md:mt-10 min-h-[220px] flex items-center justify-center text-center px-4">
             <AnimatePresence initial={false} mode="wait">
                 <motion.div
                     // Key prop is crucial for AnimatePresence to detect changes
@@ -91,8 +90,8 @@ export function StandOutSlideshowSimple() {
             </AnimatePresence>
 
             {/* Navigation Dots */}
-            <div className="absolute bottom-[-40px] left-1/2 -translate-x-1/2 z-10 flex space-x-2">
-                {/* Map over the data to create a dot for each item */}
+            <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 z-10 flex space-x-2">
+                {/* ... (dots logic remains the same) ... */}
                 {standOutPointsData.map((_, index) => (
                     <button
                         key={`dot-${index}`}
