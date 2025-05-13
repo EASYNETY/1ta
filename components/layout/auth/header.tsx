@@ -152,7 +152,7 @@ export function Header() {
                                 <SheetTrigger asChild>
                                     <Avatar>
                                         <AvatarImage
-                                            src={user?.name?.charAt(0) || "U"}
+                                            src={user?.avatarUrl || undefined}
                                             alt="User Avatar"
                                             className="h-7 w-7 rounded-full"
                                         />
@@ -240,7 +240,7 @@ export function Header() {
                                                     <SheetClose asChild >
                                                         <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
                                                             <Avatar className="size-10">
-                                                                <AvatarImage src={user.name || undefined} alt={user.name} />
+                                                                <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
                                                                 <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                                                             </Avatar>
                                                             <div className="overflow-hidden">

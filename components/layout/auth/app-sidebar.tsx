@@ -321,7 +321,7 @@ function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
             !isSidebarOpen && "justify-center w-auto px-1 py-1 h-8" // Adjust for collapsed state
         )}>
             <Avatar className={cn("size-7", !isSidebarOpen && "size-6")}>
-                <AvatarImage src={user.name || undefined} alt={user.name} />
+                <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
                 <AvatarFallback className="text-xs">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>

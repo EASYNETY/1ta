@@ -281,7 +281,7 @@ function SidebarTrigger({
       {/* <PanelLeftIcon /> */}
       <Avatar className="h-8 w-8">
         <AvatarImage
-          src={user?.name || ""}
+          src={user?.avatarUrl || undefined}
           alt={user?.name || "User"}
           className="h-full w-full rounded-full object-cover"
         />
