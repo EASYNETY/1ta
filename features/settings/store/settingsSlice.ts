@@ -1,17 +1,15 @@
 // features/settings/store/settingsSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
 	SettingsState,
 	NotificationPreferences,
 } from "../types/settings-types";
-
-// --- Mock Data Import (Replace with API Client later) ---
-// Assume mock functions exist in mock-settings-data.ts
-import {
-	mockGetNotificationPreferences,
-	mockUpdateNotificationPreferences,
-} from "@/data/mock-settings-data";
+import { get, put } from "@/lib/api-client"; // Import API client methods
 
 // --- Async Thunks ---
 
@@ -25,9 +23,12 @@ export const fetchNotificationPreferences = createAsyncThunk<
 	async (userId, { rejectWithValue }) => {
 		try {
 			console.log("Thunk: Fetching notification preferences...");
-			// TODO: Replace with real API call via apiClient
-			const preferences = await mockGetNotificationPreferences(userId);
-			if (!preferences) throw new Error("Preferences not found"); // Handle case where mock might return null/undefined
+			// Use API client to fetch notification preferences
+			// The endpoint matches the pattern in the API client for notification preferences
+			const preferences = await get<NotificationPreferences>(
+				`/users/me/notifications`
+			);
+			if (!preferences) throw new Error("Preferences not found"); // Handle case where API might return null/undefined
 			return preferences;
 		} catch (error: any) {
 			return rejectWithValue(
@@ -51,9 +52,10 @@ export const updateNotificationPreferences = createAsyncThunk<
 	async ({ userId, preferences }, { rejectWithValue }) => {
 		try {
 			console.log("Thunk: Updating notification preferences...");
-			// TODO: Replace with real API call via apiClient
-			const updatedPrefs = await mockUpdateNotificationPreferences(
-				userId,
+			// Use API client to update notification preferences
+			// The endpoint matches the pattern in the API client for updating notification preferences
+			const updatedPrefs = await put<NotificationPreferences>(
+				`/users/me/notifications`,
 				preferences
 			);
 			return updatedPrefs;

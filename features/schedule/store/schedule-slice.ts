@@ -1,24 +1,14 @@
 // features/schedule/store/schedule-slice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 // Import ScheduleState which now includes the new fields
-import {
-	ScheduleEvent,
-	ScheduleState,
-	ScheduleEventType,
-} from "../types/schedule-types";
-import { startOfWeek, formatISO, parseISO, isValid } from "date-fns";
+import type { ScheduleEvent, ScheduleState } from "../types/schedule-types";
+import { startOfWeek, formatISO } from "date-fns";
 import { get, post, put, del } from "@/lib/api-client"; // Import CRUD methods
-
-// Import mock functions
-import {
-	getMockSchedule, // Keep for week view
-	createMockScheduleEvent, // NEW MOCK
-	getMockScheduleEventById, // NEW MOCK
-	updateMockScheduleEvent, // NEW MOCK
-	deleteMockScheduleEvent, // NEW MOCK
-	getAllMockScheduleEvents, // NEW MOCK (for list view)
-} from "@/data/mock-schedule-data"; // Adjust path
 
 // --- Define Payload Types ---
 export type CreateScheduleEventPayload = Omit<ScheduleEvent, "id">;
@@ -35,7 +25,8 @@ interface FetchScheduleParams {
 }
 interface FetchAllEventsParams {
 	page?: number;
-	limit?: number /* Add filters: dateFrom?, dateTo?, type?, courseId? */;
+	limit?: number;
+	/* Add filters: dateFrom?, dateTo?, type?, courseId? */
 }
 interface FetchAllEventsResult {
 	events: ScheduleEvent[];
@@ -45,51 +36,57 @@ interface FetchAllEventsResult {
 	totalPages: number;
 }
 
-// Keep fetchSchedule for the week/calendar view
+// Fetch schedule for the week/calendar view
 export const fetchSchedule = createAsyncThunk<
 	ScheduleEvent[],
 	FetchScheduleParams,
 	{ state: RootState; rejectValue: string }
 >(
-	"schedule/fetchSchedule" /* ... implementation as before ... */,
+	"schedule/fetchSchedule",
 	async ({ role, userId, startDate, endDate }, { rejectWithValue }) => {
 		try {
 			console.log(`Fetching schedule from ${startDate} to ${endDate}`);
-			// API: return await get<ScheduleEvent[]>(`/schedule?role=${role}&userId=${userId}&startDate=${startDate}&endDate=${endDate}`);
-			const allMockEvents = await getMockSchedule(role, userId);
-			const start = parseISO(startDate);
-			const end = parseISO(endDate);
-			const filteredEvents = allMockEvents.filter((event) => {
-				try {
-					const eventDate = parseISO(event.startTime);
-					return isValid(eventDate) && eventDate >= start && eventDate <= end;
-				} catch {
-					return false;
-				}
-			});
-			return filteredEvents;
+
+			// Construct query parameters
+			const params = new URLSearchParams();
+			params.append("role", role);
+			if (userId) params.append("userId", userId);
+			params.append("startDate", startDate);
+			params.append("endDate", endDate);
+
+			// API call using the API client
+			return await get<ScheduleEvent[]>(`/schedule?${params.toString()}`);
 		} catch (error: any) {
 			return rejectWithValue(error.message || "Failed to fetch schedule");
 		}
 	}
 );
 
-// NEW: Fetch *all* events for the management table
+// Fetch all events for the management table
 export const fetchAllScheduleEvents = createAsyncThunk<
 	FetchAllEventsResult,
 	FetchAllEventsParams | void,
-	{ rejectValue: string } // Params are optional
+	{ rejectValue: string }
 >("schedule/fetchAllEvents", async (params, { rejectWithValue }) => {
 	try {
 		const page = params?.page ?? 1;
 		const limit = params?.limit ?? 10;
-		// API Call: const result = await get<FetchAllEventsResult>(`/schedule-events?page=${page}&limit=${limit}`); return result;
-		const { events, total } = await getAllMockScheduleEvents(
-			page,
-			limit /* pass filters */
+
+		// Construct query parameters
+		const queryParams = new URLSearchParams();
+		queryParams.append("page", page.toString());
+		queryParams.append("limit", limit.toString());
+
+		// Add optional filters if provided
+		if (params) {
+			// Example: if (params.dateFrom) queryParams.append("dateFrom", params.dateFrom)
+			// Example: if (params.type) queryParams.append("type", params.type)
+		}
+
+		// API call using the API client
+		return await get<FetchAllEventsResult>(
+			`/schedule-events?${queryParams.toString()}`
 		);
-		const totalPages = Math.ceil(total / limit);
-		return { events, total, page, limit, totalPages };
 	} catch (error: any) {
 		return rejectWithValue(
 			error.message || "Failed to fetch all schedule events"
@@ -97,35 +94,35 @@ export const fetchAllScheduleEvents = createAsyncThunk<
 	}
 });
 
-// NEW: Fetch Single Event by ID
+// Fetch single event by ID
 export const fetchScheduleEventById = createAsyncThunk<
 	ScheduleEvent,
 	string,
 	{ rejectValue: string }
 >("schedule/fetchEventById", async (eventId, { rejectWithValue }) => {
 	try {
-		// API Call: return await get<ScheduleEvent>(`/schedule-events/${eventId}`);
-		return await getMockScheduleEventById(eventId);
+		// API call using the API client
+		return await get<ScheduleEvent>(`/schedule-events/${eventId}`);
 	} catch (error: any) {
 		return rejectWithValue(error.message || `Failed to fetch event ${eventId}`);
 	}
 });
 
-// NEW: Create Schedule Event
+// Create schedule event
 export const createScheduleEvent = createAsyncThunk<
 	ScheduleEvent,
 	CreateScheduleEventPayload,
 	{ rejectValue: string }
 >("schedule/createEvent", async (eventData, { rejectWithValue }) => {
 	try {
-		// API Call: return await post<ScheduleEvent>('/schedule-events', eventData);
-		return await createMockScheduleEvent(eventData);
+		// API call using the API client
+		return await post<ScheduleEvent>("/schedule-events", eventData);
 	} catch (error: any) {
 		return rejectWithValue(error.message || "Failed to create schedule event");
 	}
 });
 
-// NEW: Update Schedule Event
+// Update schedule event
 export const updateScheduleEvent = createAsyncThunk<
 	ScheduleEvent,
 	UpdateScheduleEventPayload,
@@ -134,23 +131,23 @@ export const updateScheduleEvent = createAsyncThunk<
 	"schedule/updateEvent",
 	async ({ id, ...updateData }, { rejectWithValue }) => {
 		try {
-			// API Call: return await put<ScheduleEvent>(`/schedule-events/${id}`, updateData);
-			return await updateMockScheduleEvent(id, updateData);
+			// API call using the API client
+			return await put<ScheduleEvent>(`/schedule-events/${id}`, updateData);
 		} catch (error: any) {
 			return rejectWithValue(error.message || `Failed to update event ${id}`);
 		}
 	}
 );
 
-// NEW: Delete Schedule Event
+// Delete schedule event
 export const deleteScheduleEvent = createAsyncThunk<
 	string,
 	string,
 	{ rejectValue: string }
 >("schedule/deleteEvent", async (eventId, { rejectWithValue }) => {
 	try {
-		// API Call: await del<void>(`/schedule-events/${eventId}`);
-		await deleteMockScheduleEvent(eventId);
+		// API call using the API client
+		await del(`/schedule-events/${eventId}`);
 		return eventId; // Return ID for removal from state
 	} catch (error: any) {
 		return rejectWithValue(

@@ -9,9 +9,8 @@ import {
 } from "@/data/mock-course-data";
 
 import {
-	StudentAttendanceResponse,
-	TeacherAttendanceResponse,
-	TeacherAttendanceRecord,
+	type StudentAttendanceResponse,
+	type TeacherAttendanceResponse,
 	mockStudentAttendance,
 	mockClassAttendance,
 } from "@/data/mock-attendance-data";
@@ -37,11 +36,6 @@ import {
 	createSubscription as mockCreateSubscription,
 	updateSubscription as mockUpdateSubscription,
 	cancelSubscription as mockCancelSubscription,
-	getAllPlans as mockGetAllPlans,
-	createPlan as mockCreatePlan,
-	updatePlan as mockUpdatePlan,
-	deletePlan as mockDeletePlan,
-	togglePlanActive as mockTogglePlanActive,
 } from "@/data/mock-pricing-data";
 import {
 	AllPlansResponse,
@@ -73,7 +67,7 @@ import {
 	updateMockClass,
 } from "@/data/mock-classes-data";
 
-import { MarkAttendancePayload } from "@/features/attendance/store/attendance-slice";
+import type { MarkAttendancePayload } from "@/features/attendance/store/attendance-slice";
 import {
 	mockGetNotificationPreferences,
 	mockUpdateNotificationPreferences,
@@ -87,7 +81,7 @@ import {
 	mockFetchTicketById,
 	mockSubmitFeedback,
 } from "@/data/mock-support-data";
-import {
+import type {
 	FeedbackType,
 	TicketStatus,
 } from "@/features/support/types/support-types";
@@ -131,15 +125,8 @@ import {
 	updateMockGrade,
 	updateMockGradeItem,
 } from "@/data/mock-grade-data";
-import { logout } from "@/features/auth/store/auth-slice";
-import {
-	getAuthToken,
-	getRefreshToken,
-	handleUnauthorized,
-} from "./auth-service";
-import { store } from "@/store";
-import { refreshTokenThunk } from "@/features/auth/store/auth-thunks";
-import { UserData } from "@/components/users/UserTableRow";
+import { getAuthToken, handleUnauthorized } from "./auth-service";
+import type { UserData } from "@/components/users/UserTableRow";
 
 // --- Config ---
 // Base URL for the API
@@ -496,8 +483,8 @@ export async function handleMockRequest<T>(
 	if (getManagedStudentsMatch && method === "get") {
 		const corporateId = getManagedStudentsMatch[1];
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
 		console.log(
 			`%cAPI Client MOCK: GET /corporate/${corporateId}/students?page=${page}&limit=${limit}&search=${search}`,
@@ -517,6 +504,35 @@ export async function handleMockRequest<T>(
 				error.message
 			);
 			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /corporate/:corporateId/students/:studentId - Fetch Single Managed Student
+	const getManagedStudentByIdMatch = endpoint.match(
+		/^\/corporate\/([\w-]+)\/students\/([\w-]+)$/
+	);
+	if (getManagedStudentByIdMatch && method === "get") {
+		const corporateId = getManagedStudentByIdMatch[1];
+		const studentId = getManagedStudentByIdMatch[2];
+		console.log(
+			`%cAPI Client MOCK: GET /corporate/${corporateId}/students/${studentId}`,
+			"color: purple;"
+		);
+		try {
+			// This endpoint isn't implemented in the mock data yet
+			// For now, we'll simulate finding the student in the managed students list
+			const result = await getMockManagedStudents(corporateId, 1, 100);
+			const student = result.students.find((s) => s.id === studentId);
+			if (!student) {
+				throw new Error(`Student with ID ${studentId} not found`);
+			}
+			return student as unknown as T;
+		} catch (error: any) {
+			console.error(
+				`Mock API Error for GET /corporate/${corporateId}/students/${studentId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
 		}
 	}
 
@@ -576,76 +592,55 @@ export async function handleMockRequest<T>(
 		return mockCancelSubscription(subscriptionId) as unknown as T;
 	}
 
-	if (endpoint === "/plans" && method === "get") {
-		return mockGetAllPlans() as unknown as T;
-	}
-
-	if (endpoint === "/plans" && method === "post") {
-		return mockCreatePlan(body) as unknown as T;
-	}
-
-	const updatePlanMatch = endpoint.match(/^\/plans\/(.+)$/);
-	if (updatePlanMatch && method === "put") {
-		const planId = updatePlanMatch[1];
-		return mockUpdatePlan(planId, body) as unknown as T;
-	}
-
-	const deletePlanMatch = endpoint.match(/^\/plans\/(.+)$/);
-	if (deletePlanMatch && method === "delete") {
-		const planId = deletePlanMatch[1];
-		return mockDeletePlan(planId) as unknown as T;
-	}
-
-	const togglePlanActiveMatch = endpoint.match(
-		/^\/plans\/(.+)\/toggle-active$/
-	);
-	if (togglePlanActiveMatch && method === "post") {
-		const planId = togglePlanActiveMatch[1];
-		return mockTogglePlanActive(planId) as unknown as T;
-	}
-
 	// --- Payment History Mocks ---
-	if (endpoint === "/payments/history" && method === "get") {
+	if (method === "get" && /^\/payments\/history(\?.*)?$/.test(endpoint)) {
 		const userId = "student_123"; // Simulate logged-in user
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		return mockFetchMyPaymentHistory(userId, page, limit) as unknown as T;
 	}
 
-	if (endpoint === "/admin/payments" && method === "get") {
+	if (method === "get" && /^\/admin\/payments(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const status = urlParams.get("status") as
 			| PaymentRecord["status"]
 			| undefined;
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
 		// Ensure you return the object { payments: [], total: X } from the mock
-		return mockFetchAllPaymentsAdmin(
-			status,
-			page,
-			limit,
-			search
-		) as unknown as T;
+		return mockFetchAllPaymentsAdmin(status, page, limit) as unknown as T;
 	}
 
 	// --- Schedule Mock ---
-	if (endpoint === "/schedule" && method === "get") {
+	if (method === "get" && /^\/schedule(\?.*)?$/.test(endpoint)) {
 		// Note: In real API, role/userId would come from token/query params
 		// We might need to simulate getting the user ID here if the thunk doesn't pass it
-		const mockRole = "student"; // Or teacher/admin based on test case
-		const mockUserId = "student_123"; // Or teacher ID
-		return getMockSchedule(mockRole, mockUserId) as unknown as T;
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const role = urlParams.get("role") || "student";
+		const userId = urlParams.get("userId") || "student_123";
+		const startDate = urlParams.get("startDate");
+		const endDate = urlParams.get("endDate");
+
+		console.log(
+			`MOCK: Fetching schedule for Role: ${role}, UserID: ${userId}, Date Range: ${startDate} to ${endDate}`
+		);
+
+		return getMockSchedule(role, userId) as unknown as T;
 	}
 
 	// --- START: Schedule Event CRUD Mock Handlers ---
 
 	// GET /schedule-events - Fetch All Events (for management table)
-	if (endpoint === "/schedule-events" && method === "get") {
+	if (
+		endpoint.startsWith("/schedule-events") &&
+		!endpoint.match(/^\/schedule-events\/([\w-]+)$/) &&
+		method === "get"
+	) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		// Add parsing for filter params here if needed
 		console.log(
 			`%cAPI Client MOCK: GET /schedule-events?page=${page}&limit=${limit}`,
@@ -800,8 +795,8 @@ export async function handleMockRequest<T>(
 	// Example: Admin getting all classes with regex URL match
 	if (method === "get" && /^\/admin\/classes(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
 
 		console.log(
@@ -896,8 +891,7 @@ export async function handleMockRequest<T>(
 		}
 	}
 
-	// VVVV NEW HANDLER FOR COURSE CLASS OPTIONS VVVV
-	if (endpoint === "/class-sessions/options" && method === "get") {
+	if (method === "get" && /^\/class-sessions\/options(\?.*)?$/.test(endpoint)) {
 		console.log(
 			`%c[DEBUG] handleMockRequest: MATCHED Get Course Class Options (GET /class-sessions/options)`,
 			"color: green; font-weight: bold;"
@@ -1031,8 +1025,8 @@ export async function handleMockRequest<T>(
 		const urlParams = new URLSearchParams(queryString || "");
 
 		const roomId = urlParams.get("roomId");
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "30", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "30", 10);
 
 		console.log(
 			`%c[DEBUG] Parsed Params: roomId=${roomId}, page=${page}, limit=${limit} from queryString: "${queryString}"`,
@@ -1163,12 +1157,16 @@ export async function handleMockRequest<T>(
 	}
 
 	// --- Support Mocks ---
-	if (endpoint === "/support/my-tickets" && method === "get") {
+	if (
+		endpoint.startsWith("/support/my-tickets") &&
+		!endpoint.match(/^\/support\/my-tickets\/(.+)$/) &&
+		method === "get"
+	) {
 		const userId = "student_123"; // Simulate logged-in user
 		// Extract pagination from options.url query params
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		return mockFetchMyTickets(userId, page, limit) as unknown as T;
 	}
 	if (endpoint === "/support/ticket" && method === "post") {
@@ -1211,18 +1209,38 @@ export async function handleMockRequest<T>(
 	}
 
 	// --- Admin Support Mocks ---
-	if (endpoint === "/admin/support-tickets" && method === "get") {
+	if (method === "get" && /^\/admin\/support-tickets(\?.*)?$/.test(endpoint)) {
+		console.log(
+			`%cAPI Client MOCK: GET /admin/support-tickets matched with regex`,
+			"color: orange;"
+		);
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const status = urlParams.get("status") as TicketStatus | undefined; // Add type cast if needed
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		return mockFetchAllTickets(status, page, limit) as unknown as T;
 	}
-	if (endpoint === "/admin/feedback" && method === "get") {
+
+	// Mock for getting single admin ticket
+	const adminTicketDetailMatch = endpoint.match(
+		/^\/admin\/support-tickets\/(.+)$/
+	);
+	if (
+		adminTicketDetailMatch &&
+		method === "get" &&
+		!endpoint.includes("/responses")
+	) {
+		const ticketId = adminTicketDetailMatch[1];
+		const userId = "admin_001"; // Simulate admin user
+		const role = "admin";
+		return mockFetchTicketById(ticketId, userId, role) as unknown as T;
+	}
+
+	if (method === "get" && /^\/admin\/feedback(\?.*)?$/.test(endpoint)) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const type = urlParams.get("type") as FeedbackType | undefined; // Add type cast if needed
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		return mockFetchAllFeedback(type, page, limit) as unknown as T;
 	}
 	// Mock for admin adding response (example path)
@@ -1246,11 +1264,9 @@ export async function handleMockRequest<T>(
 
 	// GET /assignments (list - needs query params for role/context)
 	if (
-		endpoint.startsWith("/assignments") &&
-		!endpoint.match(/^\/assignments\/([\w-]+)$/) &&
-		!endpoint.includes("/submissions") &&
-		!endpoint.includes("/submit") &&
-		method === "get"
+		method === "get" &&
+		/^\/assignments(?!\/([\w-]+))(\?.*)?$/.test(endpoint) &&
+		!endpoint.includes("/submissions")
 	) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const role = urlParams.get("role") || "student"; // Assume role passed
@@ -1270,13 +1286,18 @@ export async function handleMockRequest<T>(
 			}
 			return result as unknown as T; // Returns array
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(`Mock API Error for GET /assignments:`, error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
 		}
 	}
 
 	// GET /assignments/:id - Fetch Single Assignment
 	const getAssignmentByIdMatch = endpoint.match(/^\/assignments\/([\w-]+)$/);
-	if (getAssignmentByIdMatch && method === "get") {
+	if (
+		getAssignmentByIdMatch &&
+		method === "get" &&
+		!endpoint.includes("/submissions")
+	) {
 		const assignmentId = getAssignmentByIdMatch[1];
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const role = urlParams.get("role") || "student"; // Assume role passed
@@ -1289,7 +1310,11 @@ export async function handleMockRequest<T>(
 			const data = await getMockAssignmentById(assignmentId, role, userId);
 			return data as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(
+				`Mock API Error for GET /assignments/${assignmentId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
 		}
 	}
 
@@ -1307,7 +1332,11 @@ export async function handleMockRequest<T>(
 			const data = await getMockSubmissionsForAssignment(assignmentId);
 			return data as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(
+				`Mock API Error for GET /assignments/${assignmentId}/submissions:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 500 } };
 		}
 	}
 
@@ -1320,7 +1349,8 @@ export async function handleMockRequest<T>(
 			const result = await createMockAssignment(body);
 			return result as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error("Mock API Error for POST /assignments:", error.message);
+			throw { response: { data: { message: error.message }, status: 400 } };
 		}
 	}
 
@@ -1340,7 +1370,11 @@ export async function handleMockRequest<T>(
 			const result = await updateMockAssignment(assignmentId, body);
 			return result as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(
+				`Mock API Error for PUT /assignments/${assignmentId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
 		}
 	}
 
@@ -1356,7 +1390,11 @@ export async function handleMockRequest<T>(
 			await deleteMockAssignment(assignmentId);
 			return { success: true, id: assignmentId } as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(
+				`Mock API Error for DELETE /assignments/${assignmentId}:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 404 } };
 		}
 	}
 
@@ -1376,7 +1414,11 @@ export async function handleMockRequest<T>(
 			const result = await submitMockAssignment({ assignmentId, ...body });
 			return result as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(
+				`Mock API Error for POST /assignments/${assignmentId}/submissions:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
 		}
 	}
 
@@ -1396,7 +1438,11 @@ export async function handleMockRequest<T>(
 			const result = await gradeMockSubmission({ submissionId, ...body });
 			return result as unknown as T;
 		} catch (error: any) {
-			/* ... error handling ... */ throw error;
+			console.error(
+				`Mock API Error for PUT /submissions/${submissionId}/grade:`,
+				error.message
+			);
+			throw { response: { data: { message: error.message }, status: 400 } };
 		}
 	}
 
@@ -1406,10 +1452,8 @@ export async function handleMockRequest<T>(
 
 	// GET /grade-items (list - needs query params for role/context)
 	if (
-		endpoint.startsWith("/grade-items") &&
-		!endpoint.match(/^\/grade-items\/([\w-]+)$/) &&
-		!endpoint.includes("/grades") &&
-		method === "get"
+		method === "get" &&
+		/^\/grade-items(?!\/([\w-]+)|\/student)(\?.*)?$/.test(endpoint)
 	) {
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const courseId = urlParams.get("courseId") || undefined;
@@ -1673,8 +1717,8 @@ export async function handleMockRequest<T>(
 
 		const search = urlParams.get("search") || undefined;
 		const role = urlParams.get("role") || undefined;
-		const page = parseInt(urlParams.get("page") || "1", 10);
-		const limit = parseInt(urlParams.get("limit") || "10", 10);
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 
 		console.log(
 			`%cAPI Client MOCK: GET /admin/users with params: search=${search}, role=${role}, page=${page}, limit=${limit}`,
@@ -1770,7 +1814,7 @@ export async function handleMockRequest<T>(
 			// Import 'users' as 'let' and 'convertToUserType' from mock-auth-data
 			// Also import a way to update the mock user if you have one, or do it here.
 			// For this example, we'll re-import to get the latest 'users' array.
-			let {
+			const {
 				users: currentMockUsers,
 				convertToUserType,
 				updateUserInMock,

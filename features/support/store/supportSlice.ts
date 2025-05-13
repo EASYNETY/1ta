@@ -1,5 +1,5 @@
 // features/support/store/supportSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
 	SupportState,
@@ -12,17 +12,7 @@ import type {
 	FeedbackType,
 	TicketStatus,
 } from "../types/support-types";
-
-// Import mocks (replace with API client later)
-import {
-	mockFetchMyTickets,
-	mockFetchAllTickets,
-	mockFetchTicketById,
-	mockCreateTicket,
-	mockAddTicketResponse,
-	mockSubmitFeedback,
-	mockFetchAllFeedback,
-} from "@/data/mock-support-data";
+import { get, post } from "@/lib/api-client"; // Import API client methods
 
 // --- Async Thunks ---
 
@@ -38,11 +28,19 @@ export const fetchMyTickets = createAsyncThunk<
 	{ rejectValue: string }
 >(
 	"support/fetchMyTickets",
-	async ({ userId, page, limit }, { rejectWithValue }) => {
+	async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			return await mockFetchMyTickets(userId, page, limit);
+			// Construct query parameters
+			const params = new URLSearchParams();
+			params.append("page", page.toString());
+			params.append("limit", limit.toString());
+
+			// API call using the API client
+			return await get<{ tickets: SupportTicket[]; total: number }>(
+				`/support/my-tickets?${params.toString()}`
+			);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to fetch tickets");
 		}
 	}
 );
@@ -58,11 +56,20 @@ export const fetchAllTickets = createAsyncThunk<
 	{ rejectValue: string }
 >(
 	"support/fetchAllTickets",
-	async ({ status, page, limit }, { rejectWithValue }) => {
+	async ({ status, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			return await mockFetchAllTickets(status, page, limit);
+			// Construct query parameters
+			const params = new URLSearchParams();
+			if (status) params.append("status", status);
+			params.append("page", page.toString());
+			params.append("limit", limit.toString());
+
+			// API call using the API client
+			return await get<{ tickets: SupportTicket[]; total: number }>(
+				`/admin/support-tickets?${params.toString()}`
+			);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to fetch all tickets");
 		}
 	}
 );
@@ -81,9 +88,15 @@ export const fetchTicketById = createAsyncThunk<
 	"support/fetchTicketById",
 	async ({ ticketId, userId, role }, { rejectWithValue }) => {
 		try {
-			return await mockFetchTicketById(ticketId, userId, role);
+			// API call using the API client
+			// The endpoint depends on the user's role
+			const endpoint =
+				role === "admin"
+					? `/admin/support-tickets/${ticketId}`
+					: `/support/my-tickets/${ticketId}`;
+			return await get<SupportTicket | null>(endpoint);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || `Failed to fetch ticket ${ticketId}`);
 		}
 	}
 );
@@ -100,9 +113,10 @@ export const createTicket = createAsyncThunk<
 	"support/createTicket",
 	async ({ userId, ...payload }, { rejectWithValue }) => {
 		try {
-			return await mockCreateTicket(userId, payload);
+			// API call using the API client
+			return await post<SupportTicket>("/support/ticket", payload);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to create ticket");
 		}
 	}
 );
@@ -118,11 +132,17 @@ export const addTicketResponse = createAsyncThunk<
 	{ rejectValue: string }
 >(
 	"support/addResponse",
-	async ({ senderId, senderRole, ...payload }, { rejectWithValue }) => {
+	async ({ senderId, senderRole, ticketId, message }, { rejectWithValue }) => {
 		try {
-			return await mockAddTicketResponse(payload, senderId, senderRole);
+			// API call using the API client
+			// The endpoint depends on the user's role
+			const endpoint =
+				senderRole === "admin"
+					? `/admin/support-tickets/${ticketId}/responses`
+					: `/support/my-tickets/${ticketId}/responses`;
+			return await post<TicketResponse>(endpoint, { message });
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to add response");
 		}
 	}
 );
@@ -139,9 +159,10 @@ export const submitFeedback = createAsyncThunk<
 	"support/submitFeedback",
 	async ({ userId, ...payload }, { rejectWithValue }) => {
 		try {
-			return await mockSubmitFeedback(userId, payload);
+			// API call using the API client
+			return await post<{ success: boolean }>("/support/feedback", payload);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to submit feedback");
 		}
 	}
 );
@@ -158,11 +179,20 @@ export const fetchAllFeedback = createAsyncThunk<
 	{ rejectValue: string }
 >(
 	"support/fetchAllFeedback",
-	async ({ type, page, limit }, { rejectWithValue }) => {
+	async ({ type, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			return await mockFetchAllFeedback(type, page, limit);
+			// Construct query parameters
+			const params = new URLSearchParams();
+			if (type) params.append("type", type);
+			params.append("page", page.toString());
+			params.append("limit", limit.toString());
+
+			// API call using the API client
+			return await get<{ feedback: FeedbackRecord[]; total: number }>(
+				`/admin/feedback?${params.toString()}`
+			);
 		} catch (e: any) {
-			return rejectWithValue(e.message);
+			return rejectWithValue(e.message || "Failed to fetch feedback");
 		}
 	}
 );
