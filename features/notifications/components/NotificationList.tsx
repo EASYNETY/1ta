@@ -5,8 +5,8 @@ import { Bell, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { 
-  fetchNotifications, 
+import {
+  fetchNotifications,
   markAllNotificationsAsRead,
   selectNotifications,
   selectNotificationsStatus,
@@ -23,7 +23,7 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
   const notifications = useAppSelector(selectNotifications);
   const status = useAppSelector(selectNotificationsStatus);
   const unreadCount = useAppSelector(selectUnreadCount);
-  
+
   // Fetch notifications when component mounts
   useEffect(() => {
     if (status === "idle") {
@@ -62,9 +62,9 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Bell className="mb-2 size-10 text-red-500/50" />
         <p className="text-sm text-muted-foreground">Failed to load notifications</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="mt-4"
           onClick={() => dispatch(fetchNotifications({ limit: 20 }))}
         >
@@ -78,9 +78,9 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
     <div className="flex flex-col h-full">
       {unreadCount > 0 && (
         <div className="px-4 py-2 border-b">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="w-full text-xs"
             onClick={handleMarkAllAsRead}
           >
@@ -88,9 +88,9 @@ export function NotificationList({ onNotificationClick }: NotificationListProps)
           </Button>
         </div>
       )}
-      
+
       <ScrollArea className="flex-1 overflow-y-scroll">
-        <div className="p-4 space-y-3">
+        <div className="p-4 pb-16 space-y-3">
           {notifications.map((notification) => (
             <NotificationItem
               key={notification.id}

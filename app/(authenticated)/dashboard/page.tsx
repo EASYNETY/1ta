@@ -16,7 +16,7 @@ import { OnboardingStatusCard } from "@/components/onboarding/onboarding-status"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 // Import our new modular components
-import { StatsCards } from "@/components/dashboard/stats-cards"
+import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { CourseCard } from "@/components/dashboard/course-card"
 import { GradesTab } from "@/components/dashboard/grades-tab"
 import { AssignmentsTab } from "@/components/dashboard/assignments-tab"
@@ -243,7 +243,7 @@ export default function DashboardPage() {
 
                 <TabsContent value="overview">
                     {/* Stats Cards */}
-                    <StatsCards />
+                    <DashboardStats />
 
                     {/* My Courses Section */}
                     <h2 className="text-2xl font-bold mt-8">

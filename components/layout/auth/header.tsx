@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, Bell, Loader2 } from "lucide-react"
+import { LogOut, Bell, Loader2, Search } from "lucide-react"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -323,6 +323,12 @@ export function Header() {
                     {/* <ThemeToggle /> */}
 
                     {isAuthenticated && (
+                        <Link href="/search" className="relative rounded-full p-2 hover:bg-muted cursor-pointer">
+                            <Search className="h-5 w-5" />
+                        </Link>
+                    )}
+
+                    {isAuthenticated && (
                         <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
                             <SheetTrigger asChild>
                                 <button className="relative rounded-full p-2 hover:bg-muted cursor-pointer">
@@ -334,7 +340,7 @@ export function Header() {
                                     )}
                                 </button>
                             </SheetTrigger>
-                            <SheetContent side="right" className="w-[320px] sm:w-[400px] rounded-l-3xl border-0 bg-background/65 backdrop-blur-md pb-4">
+                            <SheetContent side="right" className="w-[320px] sm:w-[400px] rounded-l-3xl border-0 bg-background/65 backdrop-blur-md pb-8">
                                 <SheetHeader className="px-4">
                                     <SheetTitle>Notifications</SheetTitle>
                                 </SheetHeader>

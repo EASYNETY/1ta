@@ -657,13 +657,29 @@ export async function handleMockRequest<T>(
 		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
 		const page = Number.parseInt(urlParams.get("page") || "1", 10);
 		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
+		const userId = urlParams.get("userId") || "student_123"; // Get userId from query params or default
 
-		if (IS_LIVE_API) {
-			// In live mode, this will be handled by the real API
-			throw new Error("Mock API: This endpoint should be handled by the real API in live mode");
-		} else {
-			// In mock mode, use the mock function
-			return mockFetchMyPaymentHistory("student_123", page, limit) as unknown as T;
+		console.log(`%cAPI Client MOCK: GET /payments/user/history for user ${userId}`, "color: orange;");
+
+		try {
+			// Always use mock function regardless of IS_LIVE_API to ensure it works in development
+			const result = await mockFetchMyPaymentHistory(userId, page, limit);
+			return {
+				success: true,
+				data: {
+					payments: result.payments,
+					pagination: {
+						total: result.total,
+						page: page,
+						limit: limit,
+						totalPages: Math.ceil(result.total / limit)
+					}
+				},
+				message: "Payment history fetched successfully"
+			} as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /payments/user/history:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
 		}
 	}
 
@@ -675,12 +691,27 @@ export async function handleMockRequest<T>(
 		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
 		const search = urlParams.get("search") || undefined;
 
-		if (IS_LIVE_API) {
-			// In live mode, this will be handled by the real API
-			throw new Error("Mock API: This endpoint should be handled by the real API in live mode");
-		} else {
-			// In mock mode, use the mock function
-			return mockFetchAllPaymentsAdmin(status, page, limit, search) as unknown as T;
+		console.log(`%cAPI Client MOCK: GET /payments (admin) with status=${status}, page=${page}, limit=${limit}, search=${search}`, "color: orange;");
+
+		try {
+			// Always use mock function regardless of IS_LIVE_API to ensure it works in development
+			const result = await mockFetchAllPaymentsAdmin(status, page, limit, search);
+			return {
+				success: true,
+				data: {
+					payments: result.payments,
+					pagination: {
+						total: result.total,
+						page: page,
+						limit: limit,
+						totalPages: Math.ceil(result.total / limit)
+					}
+				},
+				message: "All payments fetched successfully"
+			} as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /payments:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
 		}
 	}
 
