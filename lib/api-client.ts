@@ -30,6 +30,8 @@ import {
 	getAuthMockCourses,
 	markLessonCompleteMock,
 	deleteAuthMockCourse,
+	createAuthMockCourse,
+	updateAuthMockCourse,
 } from "@/data/mock-auth-course-data";
 import {
 	getUserSubscription as mockGetUserSubscription,
@@ -444,7 +446,61 @@ export async function handleMockRequest<T>(
 		return (await createMockCheckoutSession(body)) as unknown as T;
 	}
 
-	// --- NEW: Mock Handler for DELETE Course ---
+	// --- Mock Handler for CREATE Course ---
+	if (endpoint === "/auth_courses" && method === "post") {
+		console.log(
+			`%cAPI Client MOCK: Creating new course`,
+			"color: orange;"
+		);
+		try {
+			const newCourse = await createAuthMockCourse(body);
+			return {
+				success: true,
+				data: newCourse,
+				message: "Course created successfully"
+			} as unknown as T;
+		} catch (error) {
+			console.error("Mock API Error: Failed to create course", error);
+			throw {
+				response: {
+					data: { message: "Mock Error: Failed to create course" },
+					status: 500,
+				},
+			};
+		}
+	}
+
+	// --- Mock Handler for UPDATE Course ---
+	const updateAuthCourseMatch = endpoint.match(/^\/auth_courses\/([\w-]+)$/);
+	if (updateAuthCourseMatch && method === "put") {
+		const courseId = updateAuthCourseMatch[1];
+		console.log(
+			`%cAPI Client MOCK: Updating course ${courseId}`,
+			"color: orange;"
+		);
+		try {
+			const updatedCourse = await updateAuthMockCourse(courseId, body);
+			if (updatedCourse) {
+				return {
+					success: true,
+					data: updatedCourse,
+					message: "Course updated successfully"
+				} as unknown as T;
+			} else {
+				throw new Error(`Course with ID ${courseId} not found`);
+			}
+		} catch (error) {
+			console.error(`Mock API Error: Failed to update course ${courseId}`, error);
+			throw {
+				response: {
+					data: { message: `Mock Error: Failed to update course ${courseId}` },
+					status: 404,
+				},
+			};
+		}
+	}
+
+	// --- Mock Handler for DELETE Course ---
 	const deleteAuthCourseMatch = endpoint.match(/^\/auth_courses\/([\w-]+)$/);
 	if (deleteAuthCourseMatch && method === "delete") {
 		const courseId = deleteAuthCourseMatch[1];

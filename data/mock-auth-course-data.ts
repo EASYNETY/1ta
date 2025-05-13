@@ -1029,3 +1029,175 @@ export const submitQuizScoreMock = async (
 
 	return updatedCourseAfterCompletion; // Return the course state after completion marking
 };
+
+// Create a new course
+export const createAuthMockCourse = async (courseData: any): Promise<AuthCourse> => {
+	console.log(
+		`%c MOCK API: Creating new course`,
+		"background: #555; color: #eee"
+	);
+	await new Promise((resolve) =>
+		setTimeout(resolve, 300 + Math.random() * 300)
+	); // Simulate delay
+
+	// Generate a unique ID and slug
+	const courseId = `course-${Date.now()}`;
+	const slug = courseData.title ? slugify(courseData.title) : `course-${Date.now()}`;
+
+	// Create basic module and lesson structure if not provided
+	const modules = courseData.modules?.map((module: any, moduleIndex: number) => {
+		const moduleId = `module-${courseId}-${moduleIndex + 1}`;
+		return {
+			id: moduleId,
+			title: module.title || `Module ${moduleIndex + 1}`,
+			description: module.description || "",
+			order: moduleIndex + 1,
+			duration: "Multiple lessons",
+			lessons: module.lessons?.map((lesson: any, lessonIndex: number) => {
+				const lessonId = `lesson-${moduleId}-${lessonIndex + 1}`;
+				return {
+					id: lessonId,
+					title: lesson.title || `Lesson ${lessonIndex + 1}`,
+					type: lesson.type || "video",
+					duration: lesson.duration || "00:30:00",
+					isPreview: false,
+					isCompleted: false,
+					content: lesson.type === "video" ? { videoUrl: "" } : undefined,
+				};
+			}) || [],
+		};
+	}) || [];
+
+	// Create the new course object
+	const newCourse: AuthCourse = {
+		id: courseId,
+		slug: slug,
+		title: courseData.title || "New Course",
+		subtitle: courseData.subtitle || "",
+		description: courseData.description || "",
+		category: courseData.category || "Business",
+		image: courseData.image || "/placeholder.svg",
+		instructor: {
+			name: courseData.instructorId || "Instructor Name",
+			title: "Instructor",
+		},
+		level: courseData.level || "All Levels",
+		tags: Array.isArray(courseData.tags) ? courseData.tags : [],
+		priceUSD: typeof courseData.price === 'number' ? courseData.price : 0,
+		discountPriceUSD: typeof courseData.discountPrice === 'number' ? courseData.discountPrice : undefined,
+		learningOutcomes: Array.isArray(courseData.learningOutcomes) ? courseData.learningOutcomes : [],
+		prerequisites: Array.isArray(courseData.prerequisites) ? courseData.prerequisites : [],
+		modules: modules,
+		lessonCount: modules.reduce((count, module) => count + module.lessons.length, 0),
+		moduleCount: modules.length,
+		totalVideoDuration: "Approx. 10 hours",
+		language: courseData.language || "English",
+		certificate: courseData.certificate !== undefined ? courseData.certificate : true,
+		accessType: courseData.accessType || "Lifetime",
+		supportType: courseData.supportType || "Both",
+		enrollmentStatus: "enrolled",
+		progress: 0,
+		completedLessons: [],
+		quizScores: {},
+		notes: [],
+		discussions: [],
+		assignments: [],
+		enrollmentDate: new Date().toISOString(),
+		lastAccessed: new Date().toISOString(),
+	};
+
+	// Add the new course to the mock data
+	mockAuthCourseData.push(newCourse);
+
+	console.log(
+		`%c MOCK API: Created new course with ID ${courseId}`,
+		"background: #555; color: #eee"
+	);
+
+	// Return a deep copy of the new course
+	return JSON.parse(JSON.stringify(newCourse));
+};
+
+// Update an existing course
+export const updateAuthMockCourse = async (courseId: string, courseData: any): Promise<AuthCourse | null> => {
+	console.log(
+		`%c MOCK API: Updating course with ID ${courseId}`,
+		"background: #555; color: #eee"
+	);
+	await new Promise((resolve) =>
+		setTimeout(resolve, 300 + Math.random() * 300)
+	); // Simulate delay
+
+	// Find the course in our mock data
+	const courseIndex = mockAuthCourseData.findIndex((c) => c.id === courseId);
+	if (courseIndex === -1) {
+		console.error(`Mock API Error: Course with ID ${courseId} not found.`);
+		return null;
+	}
+
+	const existingCourse = mockAuthCourseData[courseIndex];
+
+	// Update modules if provided
+	const updatedModules = courseData.modules?.map((module: any, moduleIndex: number) => {
+		// Try to find existing module by index or create a new one
+		const existingModule = existingCourse.modules[moduleIndex] || { id: `module-${courseId}-${moduleIndex + 1}` };
+
+		return {
+			...existingModule,
+			title: module.title || existingModule.title,
+			description: module.description || existingModule.description,
+			order: moduleIndex + 1,
+			lessons: module.lessons?.map((lesson: any, lessonIndex: number) => {
+				// Try to find existing lesson by index or create a new one
+				const existingLesson = existingModule.lessons?.[lessonIndex] || {
+					id: `lesson-${existingModule.id}-${lessonIndex + 1}`,
+					isCompleted: false,
+					isPreview: false,
+				};
+
+				return {
+					...existingLesson,
+					title: lesson.title || existingLesson.title,
+					type: lesson.type || existingLesson.type,
+					duration: lesson.duration || existingLesson.duration,
+					// Preserve completion status and other auth-specific properties
+				};
+			}) || existingModule.lessons || [],
+		};
+	}) || existingCourse.modules;
+
+	// Create the updated course object
+	const updatedCourse: AuthCourse = {
+		...existingCourse,
+		title: courseData.title || existingCourse.title,
+		subtitle: courseData.subtitle || existingCourse.subtitle,
+		description: courseData.description || existingCourse.description,
+		category: courseData.category || existingCourse.category,
+		image: courseData.image || existingCourse.image,
+		level: courseData.level || existingCourse.level,
+		tags: Array.isArray(courseData.tags) ? courseData.tags : existingCourse.tags,
+		priceUSD: typeof courseData.price === 'number' ? courseData.price : existingCourse.priceUSD,
+		discountPriceUSD: typeof courseData.discountPrice === 'number' ? courseData.discountPrice : existingCourse.discountPriceUSD,
+		learningOutcomes: Array.isArray(courseData.learningOutcomes) ? courseData.learningOutcomes : existingCourse.learningOutcomes,
+		prerequisites: Array.isArray(courseData.prerequisites) ? courseData.prerequisites : existingCourse.prerequisites,
+		modules: updatedModules,
+		lessonCount: updatedModules.reduce((count, module) => count + module.lessons.length, 0),
+		moduleCount: updatedModules.length,
+		language: courseData.language || existingCourse.language,
+		certificate: courseData.certificate !== undefined ? courseData.certificate : existingCourse.certificate,
+		accessType: courseData.accessType || existingCourse.accessType,
+		supportType: courseData.supportType || existingCourse.supportType,
+		lastAccessed: new Date().toISOString(),
+	};
+
+	// Update the course in our mock data
+	mockAuthCourseData[courseIndex] = updatedCourse;
+
+	console.log(
+		`%c MOCK API: Updated course with ID ${courseId}`,
+		"background: #555; color: #eee"
+	);
+
+	// Return a deep copy of the updated course
+	return JSON.parse(JSON.stringify(updatedCourse));
+};

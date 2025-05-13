@@ -5,9 +5,10 @@ import {
 	createAsyncThunk,
 	type PayloadAction,
 } from "@reduxjs/toolkit";
-import { del, get, post } from "@/lib/api-client";
+import { del, get, post, put } from "@/lib/api-client";
 import type { RootState } from "@/store";
 import type { AuthCourse } from "../types/auth-course-interface";
+import type { CourseFormValues } from "@/lib/schemas/course.schema";
 
 // --- Types ---
 export interface AuthCoursesState {
@@ -140,6 +141,94 @@ export const markLessonComplete = createAsyncThunk<
 	}
 );
 
+export const createAuthCourse = createAsyncThunk<
+	AuthCourse, // Return the created course on success
+	CourseFormValues, // Expect the course form data as argument
+	{ rejectValue: string }
+>("auth_courses/createAuthCourse", async (courseData, { rejectWithValue }) => {
+	try {
+		console.log("Dispatching createAuthCourse with data:", courseData);
+
+		// Process the form data to match API expectations
+		const processedData = {
+			...courseData,
+			tags: Array.isArray(courseData.tags)
+				? courseData.tags
+				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
+			learningOutcomes: Array.isArray(courseData.learningOutcomes)
+				? courseData.learningOutcomes
+				: courseData.learningOutcomes ? courseData.learningOutcomes.split('\n').map(item => item.trim()).filter(Boolean) : [],
+			prerequisites: Array.isArray(courseData.prerequisites)
+				? courseData.prerequisites
+				: courseData.prerequisites ? courseData.prerequisites.split('\n').map(item => item.trim()).filter(Boolean) : [],
+		};
+
+		// Make the API call to create the course
+		const response = await post<{
+			success: boolean;
+			data: AuthCourse;
+			message?: string;
+		}>("/auth_courses", processedData);
+
+		// Check if the response has the expected structure
+		if (!response || !response.success) {
+			console.error("API Error:", response?.message || "Unknown error");
+			throw new Error(response?.message || "Failed to create course");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Failed to create course";
+		console.error("createAuthCourse Thunk Error:", message);
+		return rejectWithValue(message);
+	}
+});
+
+export const updateAuthCourse = createAsyncThunk<
+	AuthCourse, // Return the updated course on success
+	{ courseId: string; courseData: CourseFormValues }, // Expect the course ID and form data
+	{ rejectValue: string }
+>("auth_courses/updateAuthCourse", async ({ courseId, courseData }, { rejectWithValue }) => {
+	try {
+		console.log(`Dispatching updateAuthCourse for course ${courseId}`);
+
+		// Process the form data to match API expectations
+		const processedData = {
+			...courseData,
+			tags: Array.isArray(courseData.tags)
+				? courseData.tags
+				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
+			learningOutcomes: Array.isArray(courseData.learningOutcomes)
+				? courseData.learningOutcomes
+				: courseData.learningOutcomes ? courseData.learningOutcomes.split('\n').map(item => item.trim()).filter(Boolean) : [],
+			prerequisites: Array.isArray(courseData.prerequisites)
+				? courseData.prerequisites
+				: courseData.prerequisites ? courseData.prerequisites.split('\n').map(item => item.trim()).filter(Boolean) : [],
+		};
+
+		// Make the API call to update the course
+		const response = await put<{
+			success: boolean;
+			data: AuthCourse;
+			message?: string;
+		}>(`/auth_courses/${courseId}`, processedData);
+
+		// Check if the response has the expected structure
+		if (!response || !response.success) {
+			console.error("API Error:", response?.message || "Unknown error");
+			throw new Error(response?.message || "Failed to update course");
+		}
+
+		return response.data;
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Failed to update course";
+		console.error("updateAuthCourse Thunk Error:", message);
+		return rejectWithValue(message);
+	}
+});
+
 export const deleteAuthCourse = createAsyncThunk<
 	string, // Return the ID of the deleted course on success
 	string, // Expect the course ID as argument
@@ -237,6 +326,95 @@ export const authCourseSlice = createSlice({
 			.addCase(deleteAuthCourse.rejected, (state, action) => {
 				state.deleteStatus = "failed";
 				state.deleteError = action.payload ?? "Unknown error deleting course";
+			})
+			// Handle createAuthCourse
+			.addCase(createAuthCourse.pending, (state) => {
+				state.status = "loading";
+				state.error = null;
+			})
+			.addCase(createAuthCourse.fulfilled, (state, action) => {
+				state.status = "succeeded";
+				// Add the new course to the courses array
+				state.courses.push(action.payload);
+				// Update the coursesByCategory
+				const category = action.payload.category;
+				if (!state.coursesByCategory[category]) {
+					state.coursesByCategory[category] = [];
+				}
+				state.coursesByCategory[category].push(action.payload);
+				// Update categories if needed
+				if (!state.categories.includes(category)) {
+					state.categories.push(category);
+					state.categories.sort();
+				}
+			})
+			.addCase(createAuthCourse.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Unknown error creating course";
+			})
+			// Handle updateAuthCourse
+			.addCase(updateAuthCourse.pending, (state) => {
+				state.status = "loading";
+				state.error = null;
+			})
+			.addCase(updateAuthCourse.fulfilled, (state, action) => {
+				state.status = "succeeded";
+				// Find and update the course in the courses array
+				const index = state.courses.findIndex(course => course.id === action.payload.id);
+				if (index !== -1) {
+					// Update the course
+					state.courses[index] = action.payload;
+
+					// Update coursesByCategory
+					// First, remove the course from its old category if it changed
+					const oldCategory = state.courses[index].category;
+					const newCategory = action.payload.category;
+
+					if (oldCategory !== newCategory) {
+						// Remove from old category
+						if (state.coursesByCategory[oldCategory]) {
+							state.coursesByCategory[oldCategory] = state.coursesByCategory[oldCategory].filter(
+								course => course.id !== action.payload.id
+							);
+							// Clean up empty categories
+							if (state.coursesByCategory[oldCategory].length === 0) {
+								delete state.coursesByCategory[oldCategory];
+								state.categories = state.categories.filter(cat => cat !== oldCategory);
+							}
+						}
+
+						// Add to new category
+						if (!state.coursesByCategory[newCategory]) {
+							state.coursesByCategory[newCategory] = [];
+						}
+						state.coursesByCategory[newCategory].push(action.payload);
+
+						// Update categories if needed
+						if (!state.categories.includes(newCategory)) {
+							state.categories.push(newCategory);
+							state.categories.sort();
+						}
+					} else {
+						// Just update the course in its existing category
+						if (state.coursesByCategory[newCategory]) {
+							const catIndex = state.coursesByCategory[newCategory].findIndex(
+								course => course.id === action.payload.id
+							);
+							if (catIndex !== -1) {
+								state.coursesByCategory[newCategory][catIndex] = action.payload;
+							}
+						}
+					}
+
+					// If this is the current course, update it
+					if (state.currentCourse && state.currentCourse.id === action.payload.id) {
+						state.currentCourse = action.payload;
+					}
+				}
+			})
+			.addCase(updateAuthCourse.rejected, (state, action) => {
+				state.status = "failed";
+				state.error = action.payload ?? "Unknown error updating course";
 			});
 	},
 });

@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { useRouter, useParams } from "next/navigation"; // Import useParams
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { Form } from "@/components/ui/form";
@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, Loader2, Frown } from "lucide-react"; // Import icons
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { fetchAuthCourseBySlug, updateAuthCourse } from "@/features/auth-course/store/auth-course-slice";
 
 // Import Schemas and Types
 import { courseSchema, LessonFormValues, type CourseFormValues } from "@/lib/schemas/course.schema";
@@ -143,6 +144,7 @@ export default function EditCoursePage() {
     const { user } = useAppSelector((state) => state.auth as { user: User | null });
     const router = useRouter();
     const params = useParams(); // Get route parameters
+    const dispatch = useAppDispatch();
     const { toast } = useToast();
 
     const [courseData, setCourseData] = useState<AuthCourse | null>(null);
@@ -196,8 +198,8 @@ export default function EditCoursePage() {
             setIsLoading(true);
             setError(null);
             try {
-                // Replace with your actual API call
-                const data = await getAuthMockCourseBySlug(slug);
+                // Use the fetchAuthCourseBySlug thunk to get the course data
+                const data = await dispatch(fetchAuthCourseBySlug(slug)).unwrap();
 
                 if (!data) {
                     setError(`Course with slug "${slug}" not found.`);
@@ -205,7 +207,7 @@ export default function EditCoursePage() {
                 } else {
                     // Basic permission check (Example: only admin or instructor can edit)
                     // TODO: Add more specific permission logic if needed (e.g., only the specific instructor)
-                    if (user.role !== 'admin' && data.instructor?.name !== user.id /* Assuming instructor obj has id */) { // Adjust instructor check
+                    if (user.role !== 'admin' && data.instructor?.id !== user.id) { // Adjust instructor check
                         setError("You do not have permission to edit this course.");
                         setCourseData(null);
                     } else {
@@ -224,7 +226,7 @@ export default function EditCoursePage() {
         };
 
         fetchCourse();
-    }, [slug, form.reset, user]); // Add form.reset and user to dependency array
+    }, [slug, form.reset, user, dispatch]); // Add dispatch to dependency array
 
 
     // --- Permissions Check ---
@@ -261,31 +263,23 @@ export default function EditCoursePage() {
         console.log("Form Data Submitted for Update:", data);
 
         try {
-            // --- Data Processing (Same as create, ensure form data is correct) ---
-            const processedData = {
-                ...data,
-                tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-                learningOutcomes: data.learningOutcomes ? data.learningOutcomes.split('\n').map(item => item.trim()).filter(Boolean) : [],
-                prerequisites: data.prerequisites ? data.prerequisites.split('\n').map(item => item.trim()).filter(Boolean) : [],
-                instructorId: user.id, // Or keep original instructor? Depends on logic.
-                // Include course ID for the update call
+            // Add instructor ID to the form data
+            const updateData = {
                 courseId: courseData.id,
-                // Handle file uploads if they were changed
+                courseData: {
+                    ...data,
+                    instructorId: user.id,
+                    // Note: The thunk will handle the data processing (splitting tags, etc.)
+                }
             };
 
-            console.log("Processed Data for Update API:", processedData);
+            // Dispatch the updateAuthCourse thunk
+            const result = await dispatch(updateAuthCourse({
+                courseId: courseData.id,
+                courseData: data
+            })).unwrap();
 
-            // --- Replace with your actual UPDATE API call ---
-            console.log(`%c MOCK API: Updating course ${courseData.id}...`, "background: #555; color: #eee");
-            await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API delay
-            // const response = await fetch(`/api/courses/${courseData.id}`, { // Example endpoint
-            //   method: 'PUT', // or PATCH
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify(processedData),
-            // });
-            // if (!response.ok) throw new Error('Failed to update course.');
-            // const result = await response.json();
-            // --- End of API call ---
+            console.log("Course updated successfully:", result);
 
             toast({
                 title: isTeacher ? "Update Request Submitted" : "Course Updated",

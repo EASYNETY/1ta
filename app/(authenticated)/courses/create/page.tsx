@@ -4,7 +4,7 @@
 import React, { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAppSelector } from "@/store/hooks";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { useRouter } from "next/navigation";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { Form } from "@/components/ui/form";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { createAuthCourse } from "@/features/auth-course/store/auth-course-slice";
 
 // Import Schemas and Types
 import { courseSchema, type CourseFormValues } from "@/lib/schemas/course.schema";
@@ -50,6 +51,7 @@ const AccessDeniedMessage: React.FC = () => (
 export default function CreateCoursePage() {
   const { user } = useAppSelector((state) => state.auth as { user: User | null });
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<string>("basic");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -93,31 +95,16 @@ export default function CreateCoursePage() {
     console.log("Form Data Submitted:", data); // Log raw RHF data
 
     try {
-      // --- Data Processing (Example: Split comma/newline strings) ---
-      // Do this *before* sending to API
-      const processedData = {
+      // Add instructor ID to the form data
+      const courseData = {
         ...data,
-        tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-        learningOutcomes: data.learningOutcomes ? data.learningOutcomes.split('\n').map(item => item.trim()).filter(Boolean) : [],
-        prerequisites: data.prerequisites ? data.prerequisites.split('\n').map(item => item.trim()).filter(Boolean) : [],
-        // NOTE: Modules/Lessons are already structured correctly by RHF useFieldArray
-        instructorId: user.id, // Add instructor ID
-        // TODO: Add logic to handle actual file uploads (thumbnail, video)
-        //       and replace placeholders with URLs/IDs before API call.
+        instructorId: user.id,
+        // Note: The thunk will handle the data processing (splitting tags, etc.)
       };
 
-      console.log("Processed Data for API:", processedData);
-
-      // --- Replace with your actual API call ---
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API delay
-      // const response = await fetch('/api/courses', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(processedData), // Send processed data
-      // });
-      // if (!response.ok) throw new Error('Failed to create course.');
-      // const result = await response.json();
-      // --- End of API call ---
+      // Dispatch the createAuthCourse thunk
+      const result = await dispatch(createAuthCourse(courseData)).unwrap();
+      console.log("Course created successfully:", result);
 
       toast({
         title: isTeacher ? "Course Request Submitted" : "Course Created",
