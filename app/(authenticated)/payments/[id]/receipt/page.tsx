@@ -40,7 +40,7 @@ export default function PaymentReceiptPage() {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-6">
+    <div className="mx-auto py-6">
       <PageHeader
         heading="Payment Receipt"
         subheading="View and download your payment receipt"
