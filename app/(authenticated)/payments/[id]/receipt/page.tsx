@@ -45,14 +45,13 @@ export default function PaymentReceiptPage() {
       <PageHeader
         heading="Payment Receipt"
         subheading="View and download your payment receipt"
-        className="no-print" // Hide page header when printing
       />
 
       {payment && (
         <ReceiptActionsWithDom
           payment={payment}
           receiptElementId="payment-receipt-component" // Ensure this ID matches the one on PaymentReceipt's Card
-          className="flex justify-end mb-4 no-print" // Hide actions when printing
+          className="flex justify-end mb-4"
         />
       )}
 
@@ -70,8 +69,7 @@ export default function PaymentReceiptPage() {
         </Alert>
       )}
 
-      {/* This div acts as the main container for what gets printed */}
-      <div id="payment-receipt-container">
+      <div>
         {status === "succeeded" && payment && (
           <div className="mt-6 space-y-4"> {/* This div might be redundant if PaymentReceipt handles its own spacing */}
             {/* The PaymentReceipt component should have id="payment-receipt-component" */}

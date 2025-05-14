@@ -55,8 +55,8 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ payment, classNa
   }
 
   return (
-    <Card id="payment-receipt-component" className={`print:shadow-none print:border-none print:rounded-none ${className}`}>
-      <CardContent className="p-6 print:p-0">
+    <Card id="payment-receipt-component" className={className}>
+      <CardContent className="p-6">
         <div className="flex flex-col space-y-6">
           {/* Header with Logo */}
           <div className="flex justify-between items-center">
@@ -110,7 +110,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ payment, classNa
           <div>
             <h3 className="text-sm font-medium text-muted-foreground mb-2">Items</h3>
 
-            <div className="border rounded-md overflow-hidden print:rounded-none">
+            <div className="border rounded-md overflow-hidden">
               <table className="w-full">
                 <thead className="bg-muted">
                   <tr>
@@ -159,7 +159,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ payment, classNa
           </div>
 
           {/* Footer */}
-          <div className="text-center text-sm text-muted-foreground mt-6 print:mt-10">
+          <div className="text-center text-sm text-muted-foreground mt-6">
             <p>Thank you for your payment!</p>
             <p>For any questions, please contact support@1techacademy.com</p>
           </div>

@@ -19,15 +19,6 @@ interface ReceiptActionsProps {
 }
 
 export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, receiptElementId, className = "" }) => {
-    const handlePrint = () => {
-        const receiptElement = document.getElementById(receiptElementId);
-        if (!receiptElement) {
-            toast.error("Receipt element not found to print.");
-            return;
-        }
-        // Print-specific CSS will handle hiding other elements.
-        window.print();
-    }
 
     const handleDownloadHtml = async () => {
         const receiptNode = document.getElementById(receiptElementId);
@@ -147,16 +138,6 @@ export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, 
     return (
         <TooltipProvider>
             <div className={`flex gap-2 ${className}`}>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" onClick={handlePrint}>
-                            <Printer className="h-4 w-4" />
-                            <span className="sr-only">Print receipt</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Print receipt (or Save as PDF)</TooltipContent>
-                </Tooltip>
-
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant="outline" size="icon" onClick={handleDownloadHtml}>
