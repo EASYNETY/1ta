@@ -1,6 +1,6 @@
 "use client"
 
-import { PaymentRecord } from "../types/payment-types"
+import type { PaymentRecord } from "../types/payment-types"
 import type { DomToImage } from "../types/dom-to-image-types"
 
 interface DomToImageReceiptProps {
@@ -12,7 +12,10 @@ interface DomToImageReceiptProps {
 export const useDomToImageReceipt = ({ payment, receiptElementId }: DomToImageReceiptProps) => {
     const handleDownloadImage = async () => {
         const receiptElement = document.getElementById(receiptElementId)
-        if (!receiptElement) return
+        if (!receiptElement) {
+            console.error("Receipt element not found")
+            return
+        }
 
         try {
             // Dynamically import domtoimage library
@@ -27,22 +30,22 @@ export const useDomToImageReceipt = ({ payment, receiptElementId }: DomToImageRe
             clone.style.left = "-9999px"
             clone.style.width = `${receiptElement.offsetWidth}px`
             clone.style.background = "white"
+            clone.style.padding = "20px"
+            clone.style.boxSizing = "border-box"
 
             // Generate PNG blob
             const dataBlob = await domtoimage.toPng(clone, {
                 quality: 1,
                 bgcolor: "white",
+                height: clone.offsetHeight,
+                width: clone.offsetWidth,
                 style: {
                     transform: "scale(2)", // Increase quality
                 },
                 filter: (node: Node) => {
-                    // Fix for Tailwind CSS OKLCH colors
-                    if (node instanceof HTMLElement && node.tagName === 'STYLE') {
-                        // Keep all style nodes
-                        return true;
-                    }
-                    return true; // Keep all nodes
-                }
+                    // Keep all nodes
+                    return true
+                },
             })
 
             // Clean up the clone
@@ -81,12 +84,12 @@ export const useDomToImageReceipt = ({ payment, receiptElementId }: DomToImageRe
 
         // Convert receipt HTML to SVG data URL
         const data = `<svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
-      <foreignObject width="100%" height="100%">
-        <div xmlns="http://www.w3.org/1999/xhtml">
-          ${receiptElement.outerHTML}
-        </div>
-      </foreignObject>
-    </svg>`
+            <foreignObject width="100%" height="100%">
+                <div xmlns="http://www.w3.org/1999/xhtml">
+                    ${receiptElement.outerHTML}
+                </div>
+            </foreignObject>
+        </svg>`
 
         // Create SVG blob
         const svgBlob = new Blob([data], { type: "image/svg+xml;charset=utf-8" })
