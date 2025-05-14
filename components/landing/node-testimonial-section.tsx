@@ -90,7 +90,7 @@ const testimonials: Testimonial[] = [
     },
   ]
 const nodePositions: Record<ScreenSize, NodePosition[]> = { /* ... your positions ... */
-    desktop: [{ top: "5%", left: "60%" }, { top: "25%", left: "10%" }, { top: "50%", left: "85%" }, { top: "75%", left: "20%" }, { top: "15%", left: "95%" }, { top: "85%", left: "55%" }, { top: "50%", left: "50%", center: true },],
+    desktop: [{ top: "5%", left: "60%" }, { top: "25%", left: "10%" }, { top: "50%", left: "85%" }, { top: "75%", left: "20%" }, { top: "15%", left: "90%" }, { top: "85%", left: "55%" }, { top: "50%", left: "50%", center: true },],
     tablet: [{ top: "10%", left: "15%" }, { top: "15%", left: "85%" }, { top: "40%", left: "75%" }, { top: "70%", left: "10%" }, { top: "85%", left: "65%" }, { top: "50%", left: "5%" }, { top: "50%", left: "50%", center: true },],
     mobile: [{ top: "5%", left: "20%" }, { top: "10%", left: "80%" }, { top: "35%", left: "70%" }, { top: "65%", left: "15%" }, { top: "80%", left: "75%" }, { top: "90%", left: "30%" }, { top: "50%", left: "50%", center: true },],
 };
@@ -218,7 +218,7 @@ export function NodeTestimonialSection() {
 
     return (
         <div className="w-full overflow-hidden bg-transparent backdrop-blur-xs relative z-10">
-            <div className="relative min-h-[70vh] md:min-h-[65vh] py-16 md:py-20 px-4 md:px-6 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+            <div className="relative min-h-[70vh] md:min-h-[65vh] py-16 md:py-20 px-4 md:px-6 flex flex-col lg:flex-row items-center gap-12">
 
                 {/* Text Content Area */}
                 <div className="relative z-10 w-full lg:w-1/2 xl:w-[45%] text-center lg:text-left">
