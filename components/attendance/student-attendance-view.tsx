@@ -1,23 +1,37 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { useAppSelector } from "@/store/hooks"
+import { useState, useMemo, useEffect } from "react"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { format, parseISO, isToday } from "date-fns"
-import { Check, X, Clock, Calendar, Info } from "lucide-react"
+import { Check, X, Clock, Calendar, Info, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { selectStudentAttendanceRecords } from "@/features/attendance/store/attendance-slice"
+import {
+    selectStudentAttendanceRecords,
+    fetchStudentAttendance,
+    selectFetchingStudentAttendance
+} from "@/features/attendance/store/attendance-slice"
 import type { StudentAttendanceRecord, AttendanceStatus } from "@/data/mock-attendance-data"
 import { cn } from "@/lib/utils"
 import { isStudent } from "@/types/user.types"
 
 export function StudentAttendanceView() {
+    const dispatch = useAppDispatch()
     const { user } = useAppSelector((state) => state.auth)
     const [selectedRecord, setSelectedRecord] = useState<StudentAttendanceRecord | null>(null)
     const [isDetailsOpen, setIsDetailsOpen] = useState(false)
+    const isLoading = useAppSelector(selectFetchingStudentAttendance)
+
+    // Fetch attendance data when component mounts
+    useEffect(() => {
+        if (user?.id) {
+            console.log("StudentAttendanceView: Fetching attendance data for student", user.id)
+            dispatch(fetchStudentAttendance(String(user.id)))
+        }
+    }, [dispatch, user?.id])
 
     // Get attendance records for the current user
     const studentRecords = useAppSelector((state) =>
@@ -91,6 +105,18 @@ export function StudentAttendanceView() {
     }
 
     if (!user) return null
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-[50vh]">
+                <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Loading attendance records...</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">

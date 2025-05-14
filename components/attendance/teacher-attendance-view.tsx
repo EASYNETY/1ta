@@ -23,7 +23,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { selectCourseDailyAttendances } from "@/features/attendance/store/attendance-slice";
+import {
+  selectCourseDailyAttendances,
+  fetchCourseAttendance,
+  selectFetchingCourseAttendance
+} from "@/features/attendance/store/attendance-slice";
 import type { DailyAttendance, AttendanceStatus } from "@/data/mock-attendance-data";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -79,6 +83,7 @@ export function TeacherAttendanceView() {
   const classOptions = useAppSelector(selectAllCourseClassOptions);
   const classOptionsStatus = useAppSelector(selectCourseClassOptionsStatus);
   const classOptionsLoading = classOptionsStatus === 'loading';
+  const fetchingAttendance = useAppSelector(selectFetchingCourseAttendance);
 
   const initialFetchAttempted = useRef(false);
 
@@ -110,6 +115,13 @@ export function TeacherAttendanceView() {
   }, [user, dispatch, classOptionsStatus, classOptions]); // Removed fetchCourseClassOptionsForScanner from deps as it's a stable dispatch
   // --- End Fetch Class Options ---
 
+  // Fetch attendance data when a class is selected
+  useEffect(() => {
+    if (selectedClass?.id) {
+      console.log(`TeacherAttendanceView: Fetching attendance data for class ${selectedClass.id}`);
+      dispatch(fetchCourseAttendance(selectedClass.id));
+    }
+  }, [dispatch, selectedClass?.id]);
 
   const handleClassChange = useCallback((value: string) => {
     if (value === "select-a-class" || !value) {
@@ -415,7 +427,15 @@ export function TeacherAttendanceView() {
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.3 }}
           >
-            {selectedClass?.id ? (
+            {fetchingAttendance ? (
+              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
+                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
+                <h3 className="text-lg font-semibold mb-1">Loading Attendance Data</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Please wait while we fetch attendance records...
+                </p>
+              </div>
+            ) : selectedClass?.id ? (
               showDetailsPanel && selectedDayAttendanceDetails ? (
                 <Card className="shadow-sm h-full">
                   <CardHeader>
@@ -474,7 +494,7 @@ export function TeacherAttendanceView() {
                         Please select a class/session first to see attendance data.
                     </p>
                 </div>
-            )}
+            ))
           </motion.div>
         </div>
       </div>

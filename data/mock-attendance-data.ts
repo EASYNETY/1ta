@@ -1,4 +1,8 @@
 // data/mock-attendance-data.ts
+import { format } from 'date-fns';
+
+// Get today's date in YYYY-MM-DD format
+export const TODAY = format(new Date(), 'yyyy-MM-dd');
 
 // Attendance status type
 export type AttendanceStatus = "present" | "absent" | "late";
@@ -59,7 +63,9 @@ export interface AdminAttendanceResponse {
 export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 	{
 		"student_1": [
-			// <--- KEY IS NOW STRING "3"
+			// Always include today's date at the top
+			{ date: TODAY, status: "present" },
+			// Historical data
 			{ date: "2023-12-01", status: "present" },
 			{ date: "2023-12-02", status: "present" },
 			{ date: "2023-12-05", status: "present" },
@@ -76,7 +82,9 @@ export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 			{ date: "2023-12-20", status: "present" },
 		],
 		"student_2": [
-			// <--- KEY IS NOW STRING "4"
+			// Always include today's date at the top
+			{ date: TODAY, status: "late" },
+			// Historical data
 			{ date: "2023-12-01", status: "absent" },
 			{ date: "2023-12-02", status: "late" },
 			{ date: "2023-12-05", status: "present" },
@@ -92,6 +100,17 @@ export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 			{ date: "2023-12-19", status: "present" },
 			{ date: "2023-12-20", status: "present" },
 		],
+		// Add more students with today's attendance
+		"student_3": [
+			{ date: TODAY, status: "present" },
+			{ date: "2023-12-19", status: "present" },
+			{ date: "2023-12-20", status: "absent" },
+		],
+		"student_4": [
+			{ date: TODAY, status: "absent" },
+			{ date: "2023-12-19", status: "late" },
+			{ date: "2023-12-20", status: "present" },
+		],
 	};
 // Mock attendance data for teacher's class
 export const mockClassAttendance: TeacherAttendanceResponse[] = [
@@ -100,8 +119,26 @@ export const mockClassAttendance: TeacherAttendanceResponse[] = [
 		courseTitle: "Web Development Bootcamp",
 		totalStudents: 45,
 		dailyAttendances: [
+			// Always include today's attendance at the top
 			{
-				date: "2025-05-11",
+				date: TODAY,
+				courseClassId: "ccs_1_morn",
+				attendances: [
+					{ studentId: "1", name: "John Smith", status: "present" },
+					{ studentId: "2", name: "Jane Doe", status: "present" },
+					{ studentId: "3", name: "Michael Johnson", status: "absent" },
+					{ studentId: "4", name: "Emily Williams", status: "present" },
+					{ studentId: "5", name: "David Brown", status: "present" },
+					{ studentId: "6", name: "Sarah Miller", status: "late" },
+					{ studentId: "7", name: "Robert Wilson", status: "present" },
+					{ studentId: "8", name: "Jennifer Moore", status: "present" },
+					{ studentId: "9", name: "William Taylor", status: "absent" },
+					{ studentId: "10", name: "Elizabeth Anderson", status: "present" },
+				],
+			},
+			// Historical data
+			{
+				date: "2023-12-19",
 				courseClassId: "ccs_1_morn",
 				attendances: [
 					{ studentId: "1", name: "John Smith", status: "present" },
@@ -123,6 +160,24 @@ export const mockClassAttendance: TeacherAttendanceResponse[] = [
 		courseTitle: "Web Development Bootcamp",
 		totalStudents: 45,
 		dailyAttendances: [
+			// Always include today's attendance at the top
+			{
+				date: TODAY,
+				courseClassId: "ccs_1_aft",
+				attendances: [
+					{ studentId: "1", name: "John Smith", status: "present" },
+					{ studentId: "2", name: "Jane Doe", status: "present" },
+					{ studentId: "3", name: "Michael Johnson", status: "present" },
+					{ studentId: "4", name: "Emily Williams", status: "absent" },
+					{ studentId: "5", name: "David Brown", status: "present" },
+					{ studentId: "6", name: "Sarah Miller", status: "late" },
+					{ studentId: "7", name: "Robert Wilson", status: "present" },
+					{ studentId: "8", name: "Jennifer Moore", status: "present" },
+					{ studentId: "9", name: "William Taylor", status: "absent" },
+					{ studentId: "10", name: "Elizabeth Anderson", status: "late" },
+				],
+			},
+			// Historical data
 			{
 				date: "2023-12-19",
 				courseClassId: "ccs_1_aft",
@@ -139,6 +194,26 @@ export const mockClassAttendance: TeacherAttendanceResponse[] = [
 					{ studentId: "10", name: "Elizabeth Anderson", status: "late" },
 				],
 			},
+		],
+	},
+	// Add a new class with today's attendance
+	{
+		courseClassId: "ccs_2_morn",
+		courseTitle: "Advanced JavaScript",
+		totalStudents: 30,
+		dailyAttendances: [
+			{
+				date: TODAY,
+				courseClassId: "ccs_2_morn",
+				attendances: [
+					{ studentId: "student_1", name: "Alex Johnson", status: "present" },
+					{ studentId: "student_2", name: "Maria Garcia", status: "late" },
+					{ studentId: "student_3", name: "James Wilson", status: "present" },
+					{ studentId: "student_4", name: "Sophia Lee", status: "absent" },
+					{ studentId: "11", name: "Daniel Martinez", status: "present" },
+					{ studentId: "12", name: "Olivia Brown", status: "present" },
+				],
+			}
 		],
 	},
 ];
