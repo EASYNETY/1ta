@@ -40,15 +40,16 @@ export default function PaymentReceiptPage() {
   }
 
   return (
-    <div className="mx-auto py-6">
+    <div className="mx-auto">
       <PageHeader
         heading="Payment Receipt"
         subheading="View and download your payment receipt"
-        actions={
-          payment &&
-          <ReceiptActionsWithDom payment={payment} receiptElementId="payment-receipt" className="flex justify-end" />
-        }
       />
+
+      {
+        payment &&
+        <ReceiptActionsWithDom payment={payment} receiptElementId="payment-receipt" className="flex justify-end" />
+      }
 
       {isLoading && (
         <div className="mt-6">
