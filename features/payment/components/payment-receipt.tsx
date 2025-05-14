@@ -55,14 +55,14 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ payment, classNa
   }
 
   return (
-    <Card id="payment-receipt" className={`print:shadow-none print:rounded-none ${className}`}>
+    <Card id="payment-receipt-component" className={`print:shadow-none print:border-none print:rounded-none ${className}`}>
       <CardContent className="p-6 print:p-0">
         <div className="flex flex-col space-y-6">
           {/* Header with Logo */}
           <div className="flex justify-between items-center">
             <div className="flex items-center">
               <div className="relative h-12 w-12 mr-3">
-                <Image src="/icon.png" alt="1Tech Academy" fill className="object-contain" />
+                <Image src="http://onetechacademy.com/icon.png" alt="1Tech Academy" fill className="object-contain" />
               </div>
               <div>
                 <h2 className="text-xl font-bold">1Tech Academy</h2>

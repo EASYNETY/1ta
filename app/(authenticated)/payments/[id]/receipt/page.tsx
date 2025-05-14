@@ -1,3 +1,4 @@
+// src/app/payments/[id]/receipt/page.tsx (PaymentReceiptPage)
 "use client"
 
 import { useEffect } from "react"
@@ -11,15 +12,15 @@ import {
 } from "@/features/payment/store/payment-slice"
 import { PaymentReceipt } from "@/features/payment/components/payment-receipt"
 import { ReceiptActionsWithDom } from "@/features/payment/components/receipt-actions-with-dom"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, AlertTriangle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { PageHeader } from "@/components/layout/auth/page-header"
+import { PageHeader } from "@/components/layout/auth/page-header" // Assuming PageHeader can take a className
+import { AlertTriangle } from "lucide-react"
+
 
 export default function PaymentReceiptPage() {
   const params = useParams()
-  const router = useRouter()
+  const router = useRouter() // Keep if needed for other back navigation
   const dispatch = useAppDispatch()
 
   const paymentId = params.id as string
@@ -35,21 +36,25 @@ export default function PaymentReceiptPage() {
     }
   }, [dispatch, paymentId])
 
-  const handleBack = () => {
-    router.back()
-  }
+  // const handleBack = () => { // No explicit back button shown in snippet, PageHeader might handle
+  //   router.back()
+  // }
 
   return (
     <div className="mx-auto">
       <PageHeader
         heading="Payment Receipt"
         subheading="View and download your payment receipt"
+        className="no-print" // Hide page header when printing
       />
 
-      {
-        payment &&
-        <ReceiptActionsWithDom payment={payment} receiptElementId="payment-receipt" className="flex justify-end" />
-      }
+      {payment && (
+        <ReceiptActionsWithDom
+          payment={payment}
+          receiptElementId="payment-receipt-component" // Ensure this ID matches the one on PaymentReceipt's Card
+          className="flex justify-end mb-4 no-print" // Hide actions when printing
+        />
+      )}
 
       {isLoading && (
         <div className="mt-6">
@@ -65,11 +70,15 @@ export default function PaymentReceiptPage() {
         </Alert>
       )}
 
-      {status === "succeeded" && payment && (
-        <div className="mt-6 space-y-4">
-          <PaymentReceipt payment={payment} />
-        </div>
-      )}
+      {/* This div acts as the main container for what gets printed */}
+      <div id="payment-receipt-container">
+        {status === "succeeded" && payment && (
+          <div className="mt-6 space-y-4"> {/* This div might be redundant if PaymentReceipt handles its own spacing */}
+            {/* The PaymentReceipt component should have id="payment-receipt-component" */}
+            <PaymentReceipt payment={payment} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

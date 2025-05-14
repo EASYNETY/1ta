@@ -242,3 +242,66 @@
 .animate-scan-line {
 	animation: scanLine 2.5s ease-in-out infinite;
 }
+
+/* --- Print Specific Styles --- */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #fff !important; /* Ensure white background for printing */
+    color: #000 !important; /* Ensure black text for readability */
+    -webkit-print-color-adjust: exact !important; /* Attempt to respect colors and backgrounds */
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide everything initially except the designated print container and its children */
+  body > *:not(#payment-receipt-container) {
+    display: none !important;
+  }
+  /* Ensure the print container itself is visible and properly laid out */
+  #payment-receipt-container {
+    display: block !important; /* Or flex, grid, depending on its content */
+    visibility: visible !important;
+    position: static !important; /* Override any absolute/fixed positioning from screen styles */
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 1cm !important; /* Add some margin for printing, adjust as needed */
+    box-sizing: border-box;
+  }
+
+  /* Ensure children of the print container are also visible */
+  #payment-receipt-container * {
+    visibility: visible !important;
+    color: #000 !important; /* Ensure text within is black */
+  }
+
+  /* Specific overrides for the receipt card if Tailwind print variants aren't enough */
+  #payment-receipt-component { /* The ID on the ShadCN Card */
+    margin: 0 !important;
+    padding: 0 !important; /* Content padding is handled by print:p-0 on CardContent */
+    box-shadow: none !important;
+    border: 1px solid #ccc !important; /* Optional: add a light border for definition on paper */
+    border-radius: 0 !important;
+    page-break-inside: avoid; /* Try to keep the receipt on a single page */
+    background-color: #fff !important; /* Ensure card background is white */
+  }
+
+  /* Ensure links are just black text unless specifically styled for print */
+  a, a:visited {
+    color: #000 !important;
+    text-decoration: none !important; /* Often good to remove underlines for print */
+  }
+
+  /* Badges might need color overrides for print if they rely on background colors */
+  /* Example:
+  [data-testid="badge"] { // If your Badge component has a test id or specific class
+      background-color: #eee !important;
+      color: #000 !important;
+      border: 1px solid #ccc !important;
+  }
+  */
+}
