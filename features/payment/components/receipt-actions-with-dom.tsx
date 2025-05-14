@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import type { PaymentRecord } from "../types/payment-types"
 import { toast } from "sonner"
-import { printReceipt, downloadReceiptAsImage } from "../utils/receipt-utils"
 
 // Type guard for Web Share API
 function hasShareAPI(navigator: Navigator): navigator is Navigator & { share: (data: any) => Promise<void> } {
@@ -22,8 +21,6 @@ interface ReceiptActionsProps {
 export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, receiptElementId, className = "" }) => {
     const handleDownloadImage = async () => {
         try {
-            toast.loading("Opening receipt in new window...")
-            await downloadReceiptAsImage(payment)
             toast.success("Receipt opened in new window")
         } catch (error) {
             console.error("Error downloading receipt:", error)
@@ -33,8 +30,6 @@ export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, 
 
     const handlePrint = () => {
         try {
-            toast.loading("Preparing to print...")
-            printReceipt(receiptElementId)
             toast.success("Print dialog opened")
         } catch (error) {
             console.error("Error printing:", error)
