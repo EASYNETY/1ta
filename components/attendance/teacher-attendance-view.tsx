@@ -472,7 +472,7 @@ export function TeacherAttendanceView() {
                     )}
                   </CardContent>
                 </Card>
-              ) : ( // No specific day details to show (e.g. selected day has no data, or panel was closed)
+              ) : (
                 <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
                   <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-1">
@@ -486,15 +486,15 @@ export function TeacherAttendanceView() {
                   </p>
                 </div>
               )
-            ) : ( // No class selected
-                <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
-                    <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-semibold mb-1">Select a Class</h3>
-                    <p className="text-sm text-muted-foreground max-w-xs">
-                        Please select a class/session first to see attendance data.
-                    </p>
-                </div>
-            ))
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
+                <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-1">Select a Class</h3>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Please select a class/session first to see attendance data.
+                </p>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
