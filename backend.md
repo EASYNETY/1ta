@@ -174,6 +174,7 @@ The backend follows a standard layered or MVC-like architecture:
 | POST   | `/initiate`    | Initiate payment for an invoice | Required | Body: `{ invoiceId }` (Validation)                    | Controller logic (e.g., Stripe client secret) |
 | POST   | `/webhook`     | Handle payment provider webhook | No       | Body: (Specific to provider, e.g., Stripe event)      | Controller logic (200 OK) |
 | GET    | `/history`     | Get user's payment history      | Required | Query: `page?`, `limit?` (Validation)                 | Controller logic (`[Payment]`) |
+| GET    | `/:id`         | Get payment by ID               | Required | Param: `id`                                           | Controller logic (`Payment`) |
 
 #### 6.7. Student Routes (`/students`)
 

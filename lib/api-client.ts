@@ -95,6 +95,7 @@ import type {
 import {
 	mockFetchAllPaymentsAdmin,
 	mockFetchMyPaymentHistory,
+	mockFetchPaymentById,
 } from "@/data/mock-payment-data";
 import {
 	createMockChatMessage,
@@ -847,6 +848,33 @@ export async function handleMockRequest<T>(
 				}
 			}
 		} as unknown as T;
+	}
+
+	// GET /payments/:id - Get a single payment by ID
+	const paymentByIdMatch = endpoint.match(/^\/payments\/([\w-]+)$/);
+	if (paymentByIdMatch && method === "get") {
+		const paymentId = paymentByIdMatch[1];
+
+		console.log(`%cAPI Client MOCK: GET /payments/${paymentId}`, "color: orange;");
+
+		try {
+			// Use the mock function to fetch a payment by ID
+			const payment = await mockFetchPaymentById(paymentId);
+
+			return {
+				success: true,
+				message: "Payment fetched successfully",
+				data: payment
+			} as unknown as T;
+		} catch (error: any) {
+			console.error(`Mock API Error for GET /payments/${paymentId}:`, error.message);
+			throw {
+				response: {
+					data: { message: error.message },
+					status: error.message.includes("not found") ? 404 : 500
+				}
+			};
+		}
 	}
 
 	// --- Schedule Mock ---

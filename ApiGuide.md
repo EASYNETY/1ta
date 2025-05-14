@@ -275,17 +275,17 @@ API Approach Decision Tree.download-icon {
 // With useApi
 function UserProfile({ userId }) {
   const { data: user, isLoading, error } = useApi();
-  
+
   useEffect(() => {
     if (userId) {
       execute(() => get(`/users/${userId}`));
     }
   }, [userId, execute]);
-  
+
   if (isLoading) return <Skeleton />;
   if (error) return <ErrorDisplay message={error} />;
   if (!user) return <EmptyState />;
-  
+
   return <UserProfileDisplay user={user} />;
 }
 
@@ -293,17 +293,17 @@ function UserProfile({ userId }) {
 function UserProfile({ userId }) {
   const dispatch = useAppDispatch();
   const { user, status, error } = useAppSelector(selectUserById(userId));
-  
+
   useEffect(() => {
     if (userId && status === 'idle') {
       dispatch(fetchUserById(userId));
     }
   }, [userId, status, dispatch]);
-  
+
   if (status === 'loading') return <Skeleton />;
   if (status === 'failed') return <ErrorDisplay message={error} />;
   if (!user) return <EmptyState />;
-  
+
   return <UserProfileDisplay user={user} />;
 }
 ```
@@ -320,12 +320,12 @@ function CreateCourseForm() {
       router.push(`/courses/${data.id}`);
     }
   });
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     await execute(() => post('/courses', formData));
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       {/* Form fields */}
@@ -345,14 +345,14 @@ function CreateCourseForm() {
 function GradeEditor({ gradeId }) {
   const dispatch = useAppDispatch();
   const grade = useAppSelector(selectGradeById(gradeId));
-  
+
   // Use Redux for fetching
   useEffect(() => {
     if (gradeId) {
       dispatch(fetchGradeById(gradeId));
     }
   }, [gradeId, dispatch]);
-  
+
   // Use useApi for submission
   const { execute, isLoading, error } = useApi({
     onSuccess: () => {
@@ -361,13 +361,71 @@ function GradeEditor({ gradeId }) {
       dispatch(fetchGradeById(gradeId));
     }
   });
-  
+
   const handleSubmit = async (formData) => {
     await execute(() => put(`/grades/${gradeId}`, formData));
   };
-  
+
   // Component rendering...
 }
+```
+
+### Payment Receipt Example
+
+```typescriptreact
+// Payment Receipt Page
+function PaymentReceiptPage() {
+  const { id } = useParams();
+  const dispatch = useAppDispatch();
+  const payment = useAppSelector(selectSelectedPayment);
+  const status = useAppSelector(selectSelectedPaymentStatus);
+
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchPaymentById(id));
+    }
+  }, [dispatch, id]);
+
+  if (status === 'loading') return <Skeleton />;
+  if (status === 'failed') return <ErrorDisplay />;
+  if (!payment) return <EmptyState />;
+
+  return (
+    <div>
+      <PaymentReceipt payment={payment} />
+      <ReceiptActions
+        payment={payment}
+        receiptElementId="payment-receipt"
+      />
+    </div>
+  );
+}
+
+// Thunk implementation
+export const fetchPaymentById = createAsyncThunk<
+  PaymentRecord,
+  string,
+  { rejectValue: string }
+>(
+  "payment/fetchById",
+  async (paymentId, { rejectWithValue }) => {
+    try {
+      const response = await get<{
+        success: boolean;
+        message: string;
+        data: PaymentRecord;
+      }>(`/payments/${paymentId}`);
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch payment');
+      }
+
+      return response.data;
+    } catch (e: any) {
+      return rejectWithValue(e.message || "Failed to fetch payment details");
+    }
+  }
+);
 ```
 
 ---

@@ -17,6 +17,28 @@ export interface PaymentRecord {
 	// Optional: Basic card info for display (retrieved securely by backend from provider)
 	cardType?: string;
 	last4?: string;
+	// Optional: Receipt information
+	receiptNumber?: string;
+	receiptItems?: ReceiptItem[];
+	billingDetails?: BillingDetails;
+}
+
+// Represents an item in a receipt
+export interface ReceiptItem {
+	id: string;
+	name: string;
+	description?: string;
+	quantity: number;
+	unitPrice: number;
+	totalPrice: number;
+}
+
+// Represents billing details for a receipt
+export interface BillingDetails {
+	name: string;
+	email: string;
+	address?: string;
+	phone?: string;
 }
 
 // Payload for initializing a payment
@@ -66,4 +88,8 @@ export interface PaymentHistoryState {
 	} | null;
 	// Status of payment verification
 	verificationStatus: "idle" | "loading" | "succeeded" | "failed";
+	// Selected payment for receipt
+	selectedPayment: PaymentRecord | null;
+	// Status of fetching a single payment
+	selectedPaymentStatus: "idle" | "loading" | "succeeded" | "failed";
 }

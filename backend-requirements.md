@@ -73,6 +73,7 @@ Courses that a user has access to after authentication.
 | GET | `/payments/verify/:reference` | Verify payment | - | `{ success: boolean, message: string, data: { payment: PaymentRecord, verification: any } }` |
 | GET | `/payments/user/history` | Get user payment history | Query params: `page`, `limit` | `{ success: boolean, data: { payments: PaymentRecord[], pagination: { total, page, limit, totalPages } } }` |
 | GET | `/payments` | Admin: Get all payments | Query params: `status`, `page`, `limit`, `search` | `{ success: boolean, data: { payments: PaymentRecord[], pagination: { total, page, limit, totalPages } } }` |
+| GET | `/payments/:id` | Get payment by ID | - | `{ success: boolean, message: string, data: PaymentRecord }` |
 
 ### Payment Integration Requirements
 1. **Paystack Integration**:

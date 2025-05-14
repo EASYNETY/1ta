@@ -20,6 +20,23 @@ let mockPayments: PaymentRecord[] = [
 		relatedItemIds: [{ type: "course", id: "1" }], // Link to course ID '1'
 		cardType: "visa",
 		last4: "4081",
+		receiptNumber: "RCPT-1001-2023",
+		receiptItems: [
+			{
+				id: "item_1",
+				name: "PMP® Certification Training",
+				description: "Complete course with certification exam",
+				quantity: 1,
+				unitPrice: 4500000,
+				totalPrice: 4500000
+			}
+		],
+		billingDetails: {
+			name: "Alice Student",
+			email: "alice@example.com",
+			address: "123 Learning Street, Lagos",
+			phone: "+234 800 123 4567"
+		}
 	},
 	{
 		id: "pay_2",
@@ -84,6 +101,25 @@ let mockPayments: PaymentRecord[] = [
 ];
 
 // --- Mock API Functions ---
+
+/**
+ * Simulates fetching a single payment by ID.
+ */
+export const mockFetchPaymentById = async (
+	paymentId: string
+): Promise<PaymentRecord> => {
+	console.log(`MOCK: Fetching payment with ID ${paymentId}`);
+	await new Promise((res) => setTimeout(res, 200 + Math.random() * 200)); // Simulate delay
+
+	const payment = mockPayments.find((p) => p.id === paymentId);
+
+	if (!payment) {
+		throw new Error(`Payment with ID ${paymentId} not found`);
+	}
+
+	// Return a deep copy to prevent mutation issues
+	return JSON.parse(JSON.stringify(payment));
+};
 
 /**
  * Simulates fetching payment history for a specific user with pagination.

@@ -154,6 +154,32 @@ export const verifyPayment = createAsyncThunk<
 	}
 );
 
+// Fetch a single payment by ID
+export const fetchPaymentById = createAsyncThunk<
+	PaymentRecord,
+	string,
+	{ rejectValue: string }
+>(
+	"payment/fetchById",
+	async (paymentId, { rejectWithValue }) => {
+		try {
+			const response = await get<{
+				success: boolean;
+				message: string;
+				data: PaymentRecord;
+			}>(`/payments/${paymentId}`);
+
+			if (!response.success) {
+				throw new Error(response.message || 'Failed to fetch payment');
+			}
+
+			return response.data;
+		} catch (e: any) {
+			return rejectWithValue(e.message || "Failed to fetch payment details");
+		}
+	}
+);
+
 // --- Initial State ---
 const initialState: PaymentHistoryState = {
 	myPayments: [],
@@ -164,7 +190,9 @@ const initialState: PaymentHistoryState = {
 	myPaymentsPagination: null,
 	currentPayment: null,
 	paymentInitialization: null,
-	verificationStatus: "idle"
+	verificationStatus: "idle",
+	selectedPayment: null,
+	selectedPaymentStatus: "idle"
 };
 
 // --- Slice ---
@@ -265,6 +293,21 @@ const paymentHistorySlice = createSlice({
 				state.verificationStatus = "failed";
 				state.error = action.payload ?? "Error verifying payment";
 			});
+
+		// Fetch Payment by ID
+		builder
+			.addCase(fetchPaymentById.pending, (state) => {
+				state.selectedPaymentStatus = "loading";
+				state.error = null;
+			})
+			.addCase(fetchPaymentById.fulfilled, (state, action) => {
+				state.selectedPaymentStatus = "succeeded";
+				state.selectedPayment = action.payload;
+			})
+			.addCase(fetchPaymentById.rejected, (state, action) => {
+				state.selectedPaymentStatus = "failed";
+				state.error = action.payload ?? "Error fetching payment details";
+			});
 	},
 });
 
@@ -292,5 +335,11 @@ export const selectPaymentInitialization = (state: RootState) =>
 	state.paymentHistory.paymentInitialization;
 export const selectVerificationStatus = (state: RootState) =>
 	state.paymentHistory.verificationStatus;
+
+// Selected payment selectors
+export const selectSelectedPayment = (state: RootState) =>
+	state.paymentHistory.selectedPayment;
+export const selectSelectedPaymentStatus = (state: RootState) =>
+	state.paymentHistory.selectedPaymentStatus;
 
 export default paymentHistorySlice.reducer;
