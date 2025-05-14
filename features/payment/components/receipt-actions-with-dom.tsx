@@ -4,7 +4,7 @@ import type React from "react"
 import { Download, Printer, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
-import { DomToImageReceipt } from "./dom-to-image-receipt"
+import { useDomToImageReceipt } from "./dom-to-image-receipt"
 import { PaymentRecord } from "../types/payment-types"
 
 interface ReceiptActionsProps {
@@ -14,7 +14,7 @@ interface ReceiptActionsProps {
 }
 
 export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, receiptElementId, className = "" }) => {
-    const { handleDownloadImage } = DomToImageReceipt({
+    const { handleDownloadImage } = useDomToImageReceipt({
         payment,
         receiptElementId,
     })

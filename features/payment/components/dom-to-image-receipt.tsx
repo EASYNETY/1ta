@@ -1,23 +1,22 @@
 "use client"
 
-import type React from "react"
 import { PaymentRecord } from "../types/payment-types"
 import type { DomToImage } from "../types/dom-to-image-types"
-
 
 interface DomToImageReceiptProps {
     payment: PaymentRecord
     receiptElementId: string
 }
 
-export const DomToImageReceipt: React.FC<DomToImageReceiptProps> = ({ payment, receiptElementId }) => {
+// This is a custom hook, not a React component
+export const useDomToImageReceipt = ({ payment, receiptElementId }: DomToImageReceiptProps) => {
     const handleDownloadImage = async () => {
         const receiptElement = document.getElementById(receiptElementId)
         if (!receiptElement) return
 
         try {
             // Dynamically import domtoimage library
-            const domtoimage = (await import("dom-to-image")).default
+            const domtoimage = (await import("dom-to-image")).default as unknown as DomToImage
 
             // Create a clone of the receipt element to avoid modifying the original
             const clone = receiptElement.cloneNode(true) as HTMLElement
