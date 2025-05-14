@@ -44,6 +44,15 @@
 			]
 		},
 		{
+			"name": "Discussions",
+			"short_name": "Discussions",
+			"description": "Message your class or teachers",
+			"url": "/chat",
+			"icons": [
+				{ "src": "/icons/shortcuts/1tech-academy/chat.svg", "sizes": "192x192" }
+			]
+		},
+		{
 			"name": "Assignments",
 			"short_name": "Assignments",
 			"description": "View, create or submit assignments",
@@ -53,15 +62,6 @@
 					"src": "/icons/shortcuts/1tech-academy/assignment.svg",
 					"sizes": "192x192"
 				}
-			]
-		},
-		{
-			"name": "Discussions",
-			"short_name": "Discussions",
-			"description": "Message your class or teachers",
-			"url": "/chat",
-			"icons": [
-				{ "src": "/icons/shortcuts/1tech-academy/chat.svg", "sizes": "192x192" }
 			]
 		}
 	]
