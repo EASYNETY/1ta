@@ -78,11 +78,11 @@ export function Cart({ onClose }: CartProps) {
                             <div className="flex items-center mt-1">
                                 {item.discountPrice ? (
                                     <>
-                                        <span className="text-sm font-medium">${item.discountPrice.toFixed(2)}</span>
-                                        <span className="text-xs text-muted-foreground line-through ml-2">${item.price.toFixed(2)}</span>
+                                        <span className="text-sm font-bold text-primary">₦{item.discountPrice.toFixed(2)}</span>
+                                        <span className="text-xs text-muted-foreground line-through ml-2">₦{item.price.toFixed(2)}</span>
                                     </>
                                 ) : (
-                                    <span className="text-sm font-medium">${item.price.toFixed(2)}</span>
+                                    <span className="text-sm font-bold text-primary">₦{item.price.toFixed(2)}</span>
                                 )}
                             </div>
                         </div>
@@ -90,9 +90,10 @@ export function Cart({ onClose }: CartProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() => handleRemoveItem(item.courseId)}
-                            className="flex-shrink-0"
+                            className="flex-shrink-0 hover:bg-red-100 hover:text-red-600 transition-colors"
+                            aria-label="Remove item"
                         >
-                            <X className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                         </DyraneButton>
                     </div>
                 ))}
@@ -101,7 +102,7 @@ export function Cart({ onClose }: CartProps) {
 
                 <div className="flex justify-between items-center">
                     <span className="font-medium">Total</span>
-                    <span className="font-medium">${cart.total.toFixed(2)}</span>
+                    <span className="font-bold text-lg text-primary">₦{cart.total.toFixed(2)}</span>
                 </div>
             </CardContent>
             <CardFooter className="flex flex-col space-y-2">

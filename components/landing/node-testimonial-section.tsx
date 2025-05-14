@@ -331,7 +331,16 @@ export function NodeTestimonialSection() {
                                 <AnimatePresence>
                                     {activeNodeId === testimonial.id && (
                                         <motion.div className={cn( /* ... popup courses ... */
-                                            "absolute left-1/2 -translate-x-1/2 text-left", "min-w-[280px] max-w-[300px] sm:max-w-[320px]", "bg-background/80 dark:bg-slate-900/80 backdrop-blur-lg", "border border-border/50 rounded-lg p-4 shadow-xl z-[100]", parseInt(position.top) > 50 ? "bottom-[calc(100%+15px)]" : "top-[calc(100%+15px)]"
+                                            "absolute left-1/2 -translate-x-1/2 text-left",
+                                            "min-w-[280px] max-w-[300px] sm:max-w-[320px]",
+                                            "bg-background/80 dark:bg-slate-900/80 backdrop-blur-lg",
+                                            "border border-border/50 rounded-lg p-4 shadow-xl z-[100]",
+                                            // Adjust positioning based on position and screen edge proximity
+                                            parseInt(position.top) > 50 ? "bottom-[calc(100%+15px)]" : "top-[calc(100%+15px)]",
+                                            // Add overflow handling to prevent text clipping
+                                            "overflow-visible",
+                                            // Fix for rightmost cards
+                                            position.left.includes("75%") || position.left.includes("80%") || position.left.includes("90%") ? "-translate-x-[80%]" : ""
                                         )}
                                             initial={{ opacity: 0, y: parseInt(position.top) > 50 ? 10 : -10, scale: 0.9 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: parseInt(position.top) > 50 ? 10 : -10, scale: 0.9 }}

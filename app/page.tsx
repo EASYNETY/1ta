@@ -351,30 +351,30 @@ export default function LandingPage() {
           <AbstractBackground className="opacity-90 dark:opacity-80" />
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Get Started with 1Tech"
-              description="Join in minutes and start unlocking your academic potential."
+              title="Get Started with 1Tech Academy"
+              description="Follow these simple steps to begin your learning journey with us."
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 grid-rows-1">
               <OnboardingStep
                 number={1}
-                title="Create Your Account"
-                description="Sign up with your student ID or email in just a few taps."
+                title="Sign Up"
+                description="Create your account with your email address to join our learning platform."
               />
               <OnboardingStep
                 number={2}
-                title="Customize Your Dashboard"
-                description="Tailor your learning experience to fit your courses and schedule."
+                title="Explore Courses"
+                description="Browse our catalog of professional courses and select the ones that match your goals."
               />
               <OnboardingStep
                 number={3}
-                title="Connect with Your Class"
-                description="Instant access to classmates, group chats, and course materials."
+                title="Enroll in Session"
+                description="Choose an available session with open seats that fits your schedule."
               />
               <OnboardingStep
                 number={4}
-                title="Track Your Progress"
-                description="See your attendance, feedback, and learning milestones in real-time."
+                title="Learn"
+                description="Access course materials, participate in discussions, and track your progress."
               />
             </div>
 

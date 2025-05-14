@@ -90,6 +90,18 @@ export const ChatMessageList: React.FC = () => {
         }
     }, [messages, messageLoadingStatus, hasScrolledToBottom]);
 
+    // --- Effect 4: Force scroll to bottom when new messages are sent ---
+    useEffect(() => {
+        // Check if the last message is from the current user (indicating a sent message)
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.senderId === currentUser?.id) {
+            // Force scroll to bottom for user's own messages
+            setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 100); // Small delay to ensure DOM is updated
+        }
+    }, [messages, currentUser?.id]);
+
 
     // --- Load more messages ---
     const handleLoadMore = () => {

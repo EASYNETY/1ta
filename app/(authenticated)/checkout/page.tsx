@@ -43,7 +43,7 @@ export default function CheckoutPage() {
     const { toast } = useToast()
 
     // Selectors
-    const { user } = useAppSelector((state) => state.auth)
+    const { user, isAuthenticated } = useAppSelector((state) => state.auth)
     const cartItems = useAppSelector(selectCartItems)
     // Fetch public courses to get pricing info
     const { allCourses: publicCourses, status: courseStatus } = useAppSelector((state) => state.public_courses)
@@ -62,6 +62,18 @@ export default function CheckoutPage() {
 
     // Check if user is a corporate manager
     const isCorporateManager = user && isStudent(user) && Boolean(user.isCorporateManager)
+
+    // Redirect to signup if not authenticated
+    useEffect(() => {
+        if (!isAuthenticated) {
+            toast({
+                title: "Authentication Required",
+                description: "Please sign up or log in before proceeding to checkout.",
+                variant: "default",
+            })
+            router.push("/signup")
+        }
+    }, [isAuthenticated, router, toast])
 
     // Calculate student count for corporate managers
     const corporateStudentCount = useMemo(() => {
@@ -222,12 +234,14 @@ export default function CheckoutPage() {
         router.push("/dashboard") // Navigate to courses page (or dashboard)
     }
 
-    // If user is a corporate student, they shouldn't be here - handled by useEffect redirect
-    if (isCorporateStudent) {
+    // If user is not authenticated or is a corporate student, they shouldn't be here - handled by useEffect redirect
+    if (!isAuthenticated || isCorporateStudent) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Redirecting to dashboard...</p>
+                <p className="text-muted-foreground">
+                    {!isAuthenticated ? "Redirecting to signup..." : "Redirecting to dashboard..."}
+                </p>
             </div>
         )
     }

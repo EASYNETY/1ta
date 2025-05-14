@@ -255,7 +255,7 @@ export function CourseCards() {
       initial="hidden"
       animate="visible"
     >
-      {renderCourseSection("Currently Enrolling", currentCourses)}
+      {renderCourseSection("Current Enrolment", currentCourses)}
       {renderCourseSection("Future Courses", futureCourses)}
       {renderCourseSection("ISO Certifications", isoCourses, true)}
 
@@ -456,7 +456,13 @@ function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
       <motion.div layoutId={`card-header-${course.id}`} className="flex items-center mb-3">
         <motion.div layoutId={`card-icon-${course.id}`} className="w-10 h-10 relative mr-3 shrink-0">
           {course.iconUrl ? (
-            <Image src={course.iconUrl} alt={course.name} fill className="object-contain rounded-sm" />
+            <Image
+              src={course.iconUrl}
+              alt={course.name}
+              fill
+              className="object-contain rounded-sm"
+              title={course.name} // Add tooltip on hover
+            />
           ) : (
             <div className="w-10 h-10 bg-primary/10 rounded-md flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary" />
@@ -486,7 +492,7 @@ function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
         {course.category === "future" && (
           <div className="flex items-center text-xs text-muted-foreground">
             <Users className="w-3 h-3 mr-1.5 text-primary" />
-            <span className="font-medium">{course.waitlistCount}{' '} waiting</span>
+            <span className="font-medium">{course.waitlistCount}{' '} interested</span>
           </div>
         )}
 

@@ -48,6 +48,9 @@ export default function NavBar() {
     const cart = useAppSelector((state) => state.cart)
     const hasItems = cart.items.length > 0
 
+    // Get authentication status
+    const { isAuthenticated } = useAppSelector((state) => state.auth)
+
     useEffect(() => setMounted(true), []);
 
     // Determine the current theme, defaulting to light if not mounted or system theme is unclear
@@ -90,10 +93,9 @@ export default function NavBar() {
                 <div className="hidden lg:flex flex-1 items-center justify-center"> {/* Centering container */}
                     <NavigationMenu>
                         <NavigationMenuList className="space-x-6">
-                            {navLinks.map((link) => (
+                            {/* Only show public nav links when not authenticated */}
+                            {!isAuthenticated && navLinks.map((link) => (
                                 <NavigationMenuItem key={link.href}>
-                                    {/* Using Next Link directly within NavigationMenuLink requires care */}
-                                    {/* Often simpler to style the Link directly if NavigationMenuLink styling conflicts */}
                                     <Link
                                         href={link.href}
                                         className={cn(
@@ -101,12 +103,29 @@ export default function NavBar() {
                                             mutedTextColor,
                                             linkHoverColor
                                         )}
-                                        passHref // Important if wrapping Next Link
+                                        passHref
                                     >
                                         {link.label}
                                     </Link>
                                 </NavigationMenuItem>
                             ))}
+
+                            {/* Always show link to main website when authenticated */}
+                            {isAuthenticated && (
+                                <NavigationMenuItem>
+                                    <Link
+                                        href="/"
+                                        className={cn(
+                                            "text-sm font-medium transition-colors",
+                                            mutedTextColor,
+                                            linkHoverColor
+                                        )}
+                                        passHref
+                                    >
+                                        1Tech Academy
+                                    </Link>
+                                </NavigationMenuItem>
+                            )}
                         </NavigationMenuList>
 
                         {/* Cart Nav Item */}
@@ -194,7 +213,8 @@ export default function NavBar() {
 
                             {/* Mobile Navigation */}
                             <nav className="flex-1 flex flex-col space-y-4 p-4 overflow-y-auto"> {/* Use flex-1 to fill space, add padding */}
-                                {navLinks.map((link) => (
+                                {/* Only show public nav links when not authenticated */}
+                                {!isAuthenticated && navLinks.map((link) => (
                                     <SheetClose asChild key={link.href}>
                                         <Link
                                             href={link.href}
@@ -207,6 +227,21 @@ export default function NavBar() {
                                         </Link>
                                     </SheetClose>
                                 ))}
+
+                                {/* Always show link to main website when authenticated */}
+                                {isAuthenticated && (
+                                    <SheetClose asChild>
+                                        <Link
+                                            href="/"
+                                            className={cn(
+                                                "text-sm transition-colors text-foreground",
+                                                linkHoverColor
+                                            )}
+                                        >
+                                            1Tech Academy
+                                        </Link>
+                                    </SheetClose>
+                                )}
                             </nav>
 
                             {/* Mobile Cart Courses */}
