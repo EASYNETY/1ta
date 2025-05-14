@@ -18,103 +18,24 @@ export interface CourseListing {
   isIsoCertification?: boolean
   waitlistCount: number
   imageUrl?: string
-  iconUrl?: string // Changed from IconComponent to iconUrl to match your data
+  iconUrl?: string
   tags?: string[]
+  gradientColors?: {
+    from: string
+    to: string
+  }
 }
 
-// Mock Data
-const mockCourseListingsData: CourseListing[] = [
-  {
-    id: "pmp",
-    name: "PMP® Project Management",
-    description:
-      "Lead projects to success with globally recognized PMP certification. Master the art of efficient project delivery.",
-    category: "current",
-    waitlistCount: 0,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=PMP+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=PMP",
-    tags: ["Management", "Certification", "Leadership"],
-  },
-  {
-    id: "agile",
-    name: "Agile & Scrum Mastery",
-    description:
-      "Learn to implement agile methodologies and lead scrum teams effectively in modern development environments.",
-    category: "current",
-    waitlistCount: 0,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=Agile+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=Agile",
-    tags: ["Agile", "Scrum", "Leadership"],
-  },
-  {
-    id: "cloud-engineering",
-    name: "Cutting Edge Cloud Engineering Training",
-    description:
-      "Master cloud infrastructure, deployment strategies, and scalable architectures. Learn AWS, Azure, and Google Cloud platforms.",
-    category: "future",
-    waitlistCount: 127,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=Cloud+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=Cloud",
-    tags: ["Cloud", "DevOps", "Infrastructure"],
-  },
-  {
-    id: "devops",
-    name: "DevOps Engineering & Automation",
-    description:
-      "Bridge development and operations. Master CI/CD pipelines, infrastructure as code, and cloud-native practices.",
-    category: "future",
-    waitlistCount: 98,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=DevOps+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=DevOps",
-    tags: ["CI/CD", "Automation", "Cloud"],
-  },
-  // ... (rest of your mock data, ensure iconUrl and imageUrl are present or handled)
-  {
-    id: "data-science",
-    name: "Data Science & Big Data Analytics",
-    description:
-      "Unlock insights from data. Learn machine learning, statistical modeling, and data visualization techniques.",
-    category: "future",
-    waitlistCount: 215,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=DataSci+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=DataSci",
-    tags: ["Analytics", "ML", "Big Data"],
-  },
-  {
-    id: "ai-ml",
-    name: "AI & Machine Learning Mastery",
-    description:
-      "Explore the frontiers of Artificial Intelligence. Build intelligent systems with advanced ML algorithms and neural networks.",
-    category: "future",
-    waitlistCount: 183,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=AI/ML+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=AI/ML",
-    tags: ["AI", "Deep Learning", "NLP"],
-  },
-  {
-    id: "iso-27001",
-    name: "ISO 27001 Information Security",
-    description:
-      "Implement and manage an Information Security Management System (ISMS) based on the ISO 27001 standard.",
-    category: "future",
-    isIsoCertification: true,
-    waitlistCount: 76,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=ISO27001+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=ISO",
-    tags: ["ISO", "Security", "Compliance"],
-  },
-  {
-    id: "iso-9001",
-    name: "ISO 9001 Quality Management",
-    description: "Master Quality Management Systems (QMS) to enhance customer satisfaction and operational efficiency.",
-    category: "future",
-    isIsoCertification: true,
-    waitlistCount: 43,
-    imageUrl: "/placeholder.svg?height=400&width=600&text=ISO9001+Hero",
-    iconUrl: "/placeholder.svg?height=64&width=64&text=ISO",
-    tags: ["ISO", "Quality", "Standards"],
-  },
-]
+// API endpoint for course listings
+const API_ENDPOINT = process.env.NEXT_PUBLIC_API_BASE_URL
+  ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/publiclistings`
+  : "http://34.249.241.206:5000/api/publiclistings"
+
+// API response interface
+interface ApiResponse {
+  success: boolean
+  data: CourseListing[]
+}
 
 // Animation Variants
 const sectionContainerVariants = {
@@ -161,13 +82,44 @@ const modalContentVariants = {
 }
 
 export function CourseCards() {
-  const [courses] = useState<CourseListing[]>(mockCourseListingsData)
+  const [courses, setCourses] = useState<CourseListing[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<CourseListing | null>(null)
   const [showEmailForm, setShowEmailForm] = useState(false)
   const [email, setEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Fetch course data from API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true)
+        const response = await fetch(API_ENDPOINT)
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`)
+        }
+
+        const data: ApiResponse = await response.json()
+
+        if (data.success && Array.isArray(data.data)) {
+          setCourses(data.data)
+        } else {
+          throw new Error('Invalid API response format')
+        }
+      } catch (err) {
+        console.error('Error fetching courses:', err)
+        setFetchError(err instanceof Error ? err.message : 'Failed to fetch courses')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchCourses()
+  }, [])
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -255,9 +207,30 @@ export function CourseCards() {
       initial="hidden"
       animate="visible"
     >
-      {renderCourseSection("Current Enrolment", currentCourses)}
-      {renderCourseSection("Future Courses", futureCourses)}
-      {renderCourseSection("ISO Certifications", isoCourses, true)}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+          <p className="text-muted-foreground">Loading courses...</p>
+        </div>
+      ) : fetchError ? (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 my-8 text-center">
+          <h3 className="text-xl font-semibold text-destructive mb-2">Error Loading Courses</h3>
+          <p className="text-muted-foreground mb-4">{fetchError}</p>
+          <Button
+            variant="outline"
+            onClick={() => window.location.reload()}
+            className="mx-auto"
+          >
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <>
+          {renderCourseSection("Current Enrolment", currentCourses)}
+          {renderCourseSection("Future Courses", futureCourses)}
+          {renderCourseSection("ISO Certifications", isoCourses, true)}
+        </>
+      )}
 
       <AnimatePresence>
         {selectedCourse && (
@@ -273,7 +246,11 @@ export function CourseCards() {
             <motion.div
               // This layoutId is key for the "rolling card" (morphing) effect
               layoutId={`card-container-${selectedCourse.id}`}
-              className="bg-card/35 rounded-xl shadow-2xl backdrop-blur-sm max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              className={`bg-gradient-to-br ${
+                selectedCourse.gradientColors
+                  ? `${selectedCourse.gradientColors.from} ${selectedCourse.gradientColors.to}`
+                  : 'from-primary/20 to-primary/10'
+              } bg-card/35 rounded-xl shadow-2xl backdrop-blur-sm max-w-lg w-full max-h-[90vh] overflow-y-auto`}
               variants={modalContentVariants} // Separate animation for content appearance within the morph
               // initial="hidden" // Handled by layout animation or AnimatePresence
               // animate="visible"
@@ -443,12 +420,18 @@ interface CourseCardProps {
 }
 
 function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
+  // Generate gradient class based on course data or use default
+  const gradientClass = course.gradientColors
+    ? `${course.gradientColors.from} ${course.gradientColors.to}`
+    : 'from-primary/20 to-primary/10';
+
   return (
     <motion.div
       // Key for the "rolling card" (morphing) effect. Matches layoutId in modal.
       layoutId={`card-container-${course.id}`}
       variants={cardItemVariants} // From grid's staggerChildren
-      className="border border-border-10 hover:border-primary/50 rounded-xl p-4 cursor-pointer hover:shadow-xl transition-shadow duration-300 flex flex-col bg-card/5 backdrop-blur-sm group"
+      className={`border border-border-10 hover:border-primary/50 rounded-xl p-4 cursor-pointer hover:shadow-xl
+        transition-shadow duration-300 flex flex-col bg-gradient-to-br ${gradientClass} bg-card/5 backdrop-blur-sm group`}
       onClick={onClick}
       whileHover={{ y: -5, scale: 1.02, transition: { type: "spring", stiffness: 300, damping: 15 } }}
       whileTap={{ scale: 0.98 }}
