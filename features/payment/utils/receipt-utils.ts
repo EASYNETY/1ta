@@ -71,138 +71,356 @@ export const printReceipt = (receiptElementId: string): void => {
 		return;
 	}
 
-	const printWindow = window.open("", "_blank");
-	if (!printWindow) {
-		console.error("Could not open print window");
-		return;
-	}
+	// Create a new style element with print-specific styles
+	const printStyles = document.createElement("style");
+	printStyles.textContent = `
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #${receiptElementId}, #${receiptElementId} * {
+        visibility: visible;
+      }
+      #${receiptElementId} {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-full {
+        border-radius: 0 !important;
+      }
+      .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+        box-shadow: none !important;
+      }
+    }
+  `;
 
-	printWindow.document.write(`
-    <html>
-      <head>
-        <title>Payment Receipt</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-          .receipt-container { max-width: 800px; margin: 0 auto; }
-          table { width: 100%; border-collapse: collapse; }
-          th, td { padding: 8px; text-align: left; }
-          th { background-color: #f2f2f2; }
-          .text-right { text-align: right; }
-          .font-bold { font-weight: bold; }
-          .text-center { text-align: center; }
-          .mt-6 { margin-top: 24px; }
-        </style>
-      </head>
-      <body>
-        <div class="receipt-container">
-          ${receiptElement.innerHTML}
-        </div>
-        <script>
-          window.onload = function() { window.print(); window.close(); }
-        </script>
-      </body>
-    </html>
-  `);
+	// Add the style element to the document head
+	document.head.appendChild(printStyles);
 
-	printWindow.document.close();
+	// Print the document
+	window.print();
+
+	// Remove the style element after printing
+	document.head.removeChild(printStyles);
 };
 
 /**
- * Downloads the receipt as a PDF using html2pdf library
- * @param receiptElementId ID of the receipt element
- * @param payment Payment record for naming the file
+ * Creates a simplified version of the receipt for rendering
+ * @param payment Payment record
+ * @returns HTML string of the simplified receipt
  */
-export const downloadReceiptAsPDF = async (
-	receiptElementId: string,
-	payment: PaymentRecord
-): Promise<void> => {
-	const receiptElement = document.getElementById(receiptElementId);
-	if (!receiptElement) {
-		console.error("Receipt element not found");
-		return;
+export const createSimplifiedReceipt = (payment: PaymentRecord): string => {
+	const receiptNumber = getReceiptNumber(payment);
+	const formattedDate = formatDate(payment.createdAt);
+
+	// Helper for status badge
+	const getStatusText = (status: PaymentRecord["status"]) => {
+		switch (status) {
+			case "succeeded":
+				return "✓ Succeeded";
+			case "pending":
+				return "⟳ Pending";
+			case "failed":
+				return "✗ Failed";
+			case "refunded":
+				return "⚠ Refunded";
+			default:
+				return status;
+		}
+	};
+
+	// Format items
+	let itemsHtml = "";
+	if (payment.receiptItems && payment.receiptItems.length > 0) {
+		payment.receiptItems.forEach((item) => {
+			itemsHtml += `
+        <tr style="border-top: 1px solid #e2e8f0;">
+          <td style="padding: 12px; text-align: left;">
+            <div style="font-weight: 500;">${item.name}</div>
+            ${item.description ? `<div style="font-size: 0.875rem; color: #64748b;">${item.description}</div>` : ""}
+          </td>
+          <td style="padding: 12px; text-align: right;">${item.quantity}</td>
+          <td style="padding: 12px; text-align: right;">${formatCurrency(item.unitPrice, payment.currency)}</td>
+          <td style="padding: 12px; text-align: right;">${formatCurrency(item.totalPrice, payment.currency)}</td>
+        </tr>
+      `;
+		});
+	} else {
+		itemsHtml = `
+      <tr style="border-top: 1px solid #e2e8f0;">
+        <td style="padding: 12px; text-align: left;">
+          <div style="font-weight: 500;">${payment.description}</div>
+        </td>
+        <td style="padding: 12px; text-align: right;">1</td>
+        <td style="padding: 12px; text-align: right;">${formatCurrency(payment.amount, payment.currency)}</td>
+        <td style="padding: 12px; text-align: right;">${formatCurrency(payment.amount, payment.currency)}</td>
+      </tr>
+    `;
 	}
 
-	try {
-		// Dynamically import html2pdf.js
-		const html2pdf = (await import("html2pdf.js")).default;
-
-		const opt = {
-			margin: 10,
-			filename: `payment-receipt-${payment.id}.pdf`,
-			image: { type: "jpeg", quality: 0.98 },
-			html2canvas: { scale: 2, useCORS: true },
-			jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-		};
-
-		// Create a clone of the receipt element to avoid modifying the original
-		const clone = receiptElement.cloneNode(true) as HTMLElement;
-		document.body.appendChild(clone);
-		clone.style.position = "absolute";
-		clone.style.left = "-9999px";
-		clone.style.width = `${receiptElement.offsetWidth}px`;
-		clone.style.background = "white";
-
-		await html2pdf().from(clone).set(opt).save();
-
-		// Clean up the clone
-		document.body.removeChild(clone);
-	} catch (error) {
-		console.error("Error generating PDF:", error);
-		throw new Error("Failed to generate PDF");
+	// Create billing details
+	let billingDetailsHtml = "";
+	if (payment.billingDetails) {
+		billingDetailsHtml = `
+      <p style="font-weight: 500;">${payment.billingDetails.name}</p>
+      <p>${payment.billingDetails.email}</p>
+      ${payment.billingDetails.phone ? `<p>${payment.billingDetails.phone}</p>` : ""}
+      ${payment.billingDetails.address ? `<p>${payment.billingDetails.address}</p>` : ""}
+    `;
+	} else {
+		billingDetailsHtml = `<p>${payment.userName || payment.userId}</p>`;
 	}
+
+	// Create the full HTML
+	return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Payment Receipt - ${payment.id}</title>
+      <style>
+        body {
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+          line-height: 1.5;
+          color: #1e293b;
+          background-color: white;
+          margin: 0;
+          padding: 20px;
+        }
+        .receipt {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 24px;
+          border: 1px solid #e2e8f0;
+          background-color: white;
+        }
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+        .logo-container {
+          display: flex;
+          align-items: center;
+		  border-radius: 9999px;
+		  background-color: 'gold';
+        }
+        .logo {
+          width: 48px;
+          height: 48px;
+          margin-right: 12px;
+          background-color: #f1f5f9;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .separator {
+          height: 1px;
+          background-color: #e2e8f0;
+          margin: 24px 0;
+        }
+        .details-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        .details-section h3 {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin-bottom: 4px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        thead {
+          background-color: #f1f5f9;
+        }
+        th {
+          padding: 8px 16px;
+          text-align: left;
+          font-size: 0.875rem;
+        }
+        th:nth-child(2), th:nth-child(3), th:nth-child(4) {
+          text-align: right;
+        }
+        tfoot {
+          background-color: #f8fafc;
+        }
+        tfoot td {
+          padding: 8px 16px;
+        }
+        .footer {
+          text-align: center;
+          font-size: 0.875rem;
+          color: #64748b;
+          margin-top: 24px;
+        }
+        .status {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          background-color: #f1f5f9;
+        }
+        .status.succeeded { background-color: #dcfce7; color: #166534; }
+        .status.pending { background-color: #fef9c3; color: #854d0e; }
+        .status.failed { background-color: #fee2e2; color: #b91c1c; }
+        .status.refunded { background-color: #f3f4f6; color: #4b5563; }
+      </style>
+    </head>
+    <body>
+      <div class="receipt">
+        <div class="header">
+          <div class="logo-container">
+            <div class="logo">1T</div>
+            <div>
+              <h2 style="margin: 0; font-size: 1.25rem;">1Tech Academy</h2>
+              <p style="margin: 0; font-size: 0.875rem; color: #64748b;">Payment Receipt</p>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <p style="margin: 0; font-size: 0.875rem; font-weight: 500;">Receipt #: ${receiptNumber}</p>
+            <p style="margin: 0; font-size: 0.875rem; color: #64748b;">Date: ${formattedDate}</p>
+          </div>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <div class="details-grid">
+          <div class="details-section">
+            <h3>Payment Information</h3>
+            <p style="margin: 0; font-weight: 500;">Transaction ID: ${payment.providerReference}</p>
+            <p style="margin: 0;">Payment Method: ${payment.provider} ${
+							payment.cardType
+								? `(${payment.cardType}${payment.last4 ? ` **** ${payment.last4}` : ""})`
+								: ""
+						}</p>
+            <p style="margin: 0;">Status: <span class="status ${payment.status}">${getStatusText(payment.status)}</span></p>
+          </div>
+          
+          <div class="details-section">
+            <h3>Billing Details</h3>
+            ${billingDetailsHtml}
+          </div>
+        </div>
+        
+        <div class="separator"></div>
+        
+        <div>
+          <h3 style="font-size: 0.875rem; color: #64748b; margin-bottom: 8px;">Items</h3>
+          
+          <div style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Qty</th>
+                  <th>Unit Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+              <tfoot>
+                <tr style="border-top: 1px solid #e2e8f0;">
+                  <td colspan="3" style="text-align: right; font-weight: 500; padding: 8px 16px;">Total</td>
+                  <td style="text-align: right; font-weight: 700; padding: 8px 16px;">${formatCurrency(payment.amount, payment.currency)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p style="margin: 0;">Thank you for your payment!</p>
+          <p style="margin: 0;">For any questions, please contact support@1techacademy.com</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
 };
 
 /**
- * Downloads the receipt as an image using dom-to-image
- * @param receiptElementId ID of the receipt element
- * @param payment Payment record for naming the file
+ * Downloads the receipt as an image using a new window approach
+ * @param payment Payment record
  */
 export const downloadReceiptAsImage = async (
-	receiptElementId: string,
 	payment: PaymentRecord
 ): Promise<void> => {
-	const receiptElement = document.getElementById(receiptElementId);
-	if (!receiptElement) {
-		console.error("Receipt element not found");
-		return;
-	}
-
 	try {
-		// Dynamically import dom-to-image
-		const domtoimage = (await import("dom-to-image")).default;
+		// Create simplified HTML receipt
+		const receiptHtml = createSimplifiedReceipt(payment);
 
-		// Create a clone of the receipt element to avoid modifying the original
-		const clone = receiptElement.cloneNode(true) as HTMLElement;
-		document.body.appendChild(clone);
+		// Open a new window with the receipt
+		const receiptWindow = window.open("", "_blank");
+		if (!receiptWindow) {
+			throw new Error(
+				"Could not open receipt window. Please check if popup blocker is enabled."
+			);
+		}
 
-		// Set styles for the clone to ensure proper rendering
-		clone.style.position = "absolute";
-		clone.style.left = "-9999px";
-		clone.style.width = `${receiptElement.offsetWidth}px`;
-		clone.style.background = "white";
+		// Write the receipt HTML to the new window
+		receiptWindow.document.write(receiptHtml);
+		receiptWindow.document.close();
 
-		// Generate PNG blob
-		const dataUrl = await domtoimage.toPng(clone, {
-			quality: 1,
-			bgcolor: "white",
-			style: {
-				transform: "scale(2)", // Increase quality
-			},
-			filter: (node: Node) => {
-				return true; // Keep all nodes
-			},
-		});
-
-		// Clean up the clone
-		document.body.removeChild(clone);
-
-		// Create download link
-		const link = document.createElement("a");
-		link.download = `payment-receipt-${payment.id}.png`;
-		link.href = dataUrl;
-		link.click();
+		// Add script to handle download in the new window
+		receiptWindow.document.body.insertAdjacentHTML(
+			"beforeend",
+			`
+      <script>
+        // Wait for images to load
+        window.onload = function() {
+          // Add download instructions
+          const instructions = document.createElement('div');
+          instructions.style.position = 'fixed';
+          instructions.style.bottom = '0';
+          instructions.style.left = '0';
+          instructions.style.right = '0';
+          instructions.style.padding = '10px';
+          instructions.style.backgroundColor = '#f0f9ff';
+          instructions.style.borderTop = '1px solid #bae6fd';
+          instructions.style.textAlign = 'center';
+          instructions.style.zIndex = '9999';
+          instructions.innerHTML = '<p style="margin: 0; font-weight: bold;">To save as image: Right-click anywhere on the receipt and select "Save as..." or take a screenshot.</p>';
+          document.body.appendChild(instructions);
+          
+          // Add print button
+          const printButton = document.createElement('button');
+          printButton.innerText = 'Print Receipt';
+          printButton.style.position = 'fixed';
+          printButton.style.top = '10px';
+          printButton.style.right = '10px';
+          printButton.style.padding = '8px 16px';
+          printButton.style.backgroundColor = '#0ea5e9';
+          printButton.style.color = 'white';
+          printButton.style.border = 'none';
+          printButton.style.borderRadius = '4px';
+          printButton.style.cursor = 'pointer';
+          printButton.onclick = function() {
+            instructions.style.display = 'none';
+            printButton.style.display = 'none';
+            window.print();
+            setTimeout(() => {
+              instructions.style.display = 'block';
+              printButton.style.display = 'block';
+            }, 1000);
+          };
+          document.body.appendChild(printButton);
+        };
+      </script>
+    `
+		);
 	} catch (error) {
-		console.error("Error generating image:", error);
-		throw new Error("Failed to generate image");
+		console.error("Error generating receipt image:", error);
+		throw error;
 	}
 };

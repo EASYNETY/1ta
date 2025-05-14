@@ -4,9 +4,14 @@ import type React from "react"
 import { Download, Printer, Share2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
-import { useDomToImageReceipt } from "./dom-to-image-receipt"
 import type { PaymentRecord } from "../types/payment-types"
 import { toast } from "sonner"
+import { printReceipt, downloadReceiptAsImage } from "../utils/receipt-utils"
+
+// Type guard for Web Share API
+function hasShareAPI(navigator: Navigator): navigator is Navigator & { share: (data: any) => Promise<void> } {
+    return "share" in navigator
+}
 
 interface ReceiptActionsProps {
     payment: PaymentRecord
@@ -15,75 +20,22 @@ interface ReceiptActionsProps {
 }
 
 export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, receiptElementId, className = "" }) => {
-    const { handleDownloadImage } = useDomToImageReceipt({
-        payment,
-        receiptElementId,
-    })
+    const handleDownloadImage = async () => {
+        try {
+            toast.loading("Opening receipt in new window...")
+            await downloadReceiptAsImage(payment)
+            toast.success("Receipt opened in new window")
+        } catch (error) {
+            console.error("Error downloading receipt:", error)
+            toast.error(error instanceof Error ? error.message : "Failed to download receipt")
+        }
+    }
 
     const handlePrint = () => {
-        const receiptElement = document.getElementById(receiptElementId)
-        if (!receiptElement) {
-            toast.error("Receipt element not found")
-            return
-        }
-
         try {
-            const printWindow = window.open("", "_blank")
-            if (!printWindow) {
-                toast.error("Could not open print window")
-                return
-            }
-
-            // Get all stylesheets from the current document
-            const styleSheets = Array.from(document.styleSheets)
-            let styleContent = ""
-
-            // Extract CSS rules from stylesheets
-            styleSheets.forEach((sheet) => {
-                try {
-                    if (sheet.cssRules) {
-                        const cssRules = Array.from(sheet.cssRules)
-                        cssRules.forEach((rule) => {
-                            styleContent += rule.cssText + "\n"
-                        })
-                    }
-                } catch (e) {
-                    // Skip cross-origin stylesheets
-                    console.warn("Could not access stylesheet:", e)
-                }
-            })
-
-            printWindow.document.write(`
-                <html>
-                    <head>
-                        <title>Payment Receipt - ${payment.id}</title>
-                        <style>
-                            ${styleContent}
-                            @media print {
-                                body { margin: 0; padding: 20px; }
-                                .receipt-container { max-width: 800px; margin: 0 auto; }
-                            }
-                            body { font-family: system-ui, -apple-system, sans-serif; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="receipt-container">
-                            ${receiptElement.outerHTML}
-                        </div>
-                        <script>
-                            window.onload = function() { 
-                                setTimeout(function() { 
-                                    window.print(); 
-                                    setTimeout(function() { window.close(); }, 500);
-                                }, 500);
-                            }
-                        </script>
-                    </body>
-                </html>
-            `)
-
-            printWindow.document.close()
-            toast.success("Preparing to print...")
+            toast.loading("Preparing to print...")
+            printReceipt(receiptElementId)
+            toast.success("Print dialog opened")
         } catch (error) {
             console.error("Error printing:", error)
             toast.error("Failed to print receipt. Please try again.")
@@ -91,7 +43,7 @@ export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, 
     }
 
     const handleShare = async () => {
-        if (!navigator.share) {
+        if (!hasShareAPI(navigator)) {
             toast.error("Web Share API is not supported in your browser")
             return
         }
@@ -111,6 +63,9 @@ export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, 
         }
     }
 
+    // Check if Web Share API is available
+    const isShareAvailable = hasShareAPI(navigator)
+
     return (
         <TooltipProvider>
             <div className={`flex gap-2 ${className}`}>
@@ -128,13 +83,13 @@ export const ReceiptActionsWithDom: React.FC<ReceiptActionsProps> = ({ payment, 
                     <TooltipTrigger asChild>
                         <Button variant="outline" size="icon" onClick={handleDownloadImage}>
                             <Download className="h-4 w-4" />
-                            <span className="sr-only">Download receipt</span>
+                            <span className="sr-only">Download as image</span>
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Download receipt</TooltipContent>
+                    <TooltipContent>Download as image</TooltipContent>
                 </Tooltip>
 
-                {"share" in navigator && (
+                {isShareAvailable && (
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button variant="outline" size="icon" onClick={handleShare}>
