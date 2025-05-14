@@ -36,8 +36,12 @@ export const metadata: Metadata = {
   description: "A modern platform for online learning and course management.",
   manifest: "/manifest.json",
   icons: {
-    icon: [
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },    // Fallback
+    icon: "/favicon.ico",
+    apple: "/icons/icon-192x192.png",
+    shortcut: "/favicon.ico",
+    other: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
   },
 };

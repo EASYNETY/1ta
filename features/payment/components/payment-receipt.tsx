@@ -66,7 +66,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({
             <div className="flex items-center">
               <div className="relative h-12 w-12 mr-3">
                 <Image 
-                  src="/logo.png" 
+                  src="/icon.png" 
                   alt="1Tech Academy" 
                   fill 
                   className="object-contain"

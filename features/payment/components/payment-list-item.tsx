@@ -2,8 +2,10 @@ import type React from "react"
 import { format, parseISO, isValid } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, XCircle, RefreshCw, AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CheckCircle, XCircle, RefreshCw, AlertTriangle, Receipt } from "lucide-react"
 import type { PaymentRecord } from "../types/payment-types"
+import Link from "next/link"
 
 interface PaymentListItemProps {
   payment: PaymentRecord
@@ -81,9 +83,19 @@ export const PaymentListItem: React.FC<PaymentListItemProps> = ({ payment }) => 
             <p className="text-sm text-muted-foreground">{safeFormatDateTime(payment.createdAt)}</p>
             <div className="text-xs font-mono text-muted-foreground">Ref: {payment.providerReference}</div>
           </div>
-          <div className="flex flex-col items-end gap-1">
+          <div className="flex flex-col items-end gap-2">
             <div className="text-lg font-semibold">{formatAmount(payment.amount, payment.currency)}</div>
-            {getStatusBadge(payment.status)}
+            <div className="flex items-center gap-2">
+              {getStatusBadge(payment.status)}
+              {payment.status === "succeeded" && (
+                <Link href={`/payments/${payment.id}/receipt`} passHref>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <Receipt className="h-3 w-3" />
+                    <span>Receipt</span>
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

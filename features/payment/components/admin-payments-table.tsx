@@ -17,7 +17,9 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination"
-import { Search, AlertTriangle, CheckCircle, XCircle, RefreshCw, Filter } from "lucide-react"
+import { Search, AlertTriangle, CheckCircle, XCircle, RefreshCw, Filter, Receipt } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import { format, parseISO, isValid } from "date-fns"
 import { useDebounce } from "@/hooks/use-debounce"
 
@@ -207,12 +209,13 @@ const AdminPaymentsTable: React.FC = () => {
                                 <TableHead>Status</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Reference</TableHead>
+                                <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {payments.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="h-24 text-center">
+                                    <TableCell colSpan={7} className="h-24 text-center">
                                         No payments found matching criteria.
                                     </TableCell>
                                 </TableRow>
@@ -232,6 +235,16 @@ const AdminPaymentsTable: React.FC = () => {
                                         {safeFormatDateTime(payment.createdAt)}
                                     </TableCell>
                                     <TableCell className="text-xs font-mono text-muted-foreground">{payment.providerReference}</TableCell>
+                                    <TableCell>
+                                        {payment.status === "succeeded" && (
+                                            <Link href={`/payments/${payment.id}/receipt`} passHref>
+                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                    <Receipt className="h-4 w-4" />
+                                                    <span className="sr-only">View Receipt</span>
+                                                </Button>
+                                            </Link>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
