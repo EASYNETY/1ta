@@ -139,6 +139,7 @@ export default function CourseEnrollmentPage() {
           <Separator className="my-2" />
 
           <RoleContent
+            defaultTab="student"
             studentContent={
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">For Students</h3>

@@ -122,7 +122,7 @@ export default function HelpLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       {/* Mobile Navigation Trigger */}
-      <div className="lg:hidden p-4 border-b">
+      <div className="lg:hidden">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full cursor-pointer flex items-center justify-between">
