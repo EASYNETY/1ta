@@ -37,6 +37,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ScheduleEvent } from "@/features/schedule/types/schedule-types"; // Import type
+import { ensureArray, safeFilter, safeSort } from "@/lib/safe-utils"; // Import safe utility functions
 
 // Helper function to safely format time string
 const safeFormatTime = (dateString: string | undefined | null): string => {
@@ -106,12 +107,22 @@ export function ScheduleTab() {
     const eventsByDay = useMemo(() => {
         return weekDays.map(day => ({
             date: day,
-            events: events.filter(event => {
-                try {
-                    const eventDate = parseISO(event.startTime);
-                    return isValid(eventDate) && isSameDay(eventDate, day);
-                } catch { return false; }
-            }).sort((a, b) => parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime())
+            events: safeSort(
+                safeFilter<ScheduleEvent>(events, event => {
+                    try {
+                        if (!event || !event.startTime) return false;
+                        const eventDate = parseISO(event.startTime);
+                        return isValid(eventDate) && isSameDay(eventDate, day);
+                    } catch { return false; }
+                }),
+                (a, b) => {
+                    try {
+                        return parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime();
+                    } catch {
+                        return 0;
+                    }
+                }
+            )
         }));
     }, [events, weekDays]);
 
@@ -308,7 +319,7 @@ export function ScheduleTab() {
                         );
                     })}
                     {/* Message if no events in the whole week */}
-                    {events.length === 0 && status === 'succeeded' && (
+                    {safeLength(events) === 0 && status === 'succeeded' && (
                         <DyraneCard>
                             <CardContent className="p-8 text-center">
                                 <p className="text-muted-foreground">No classes found for this week.</p>

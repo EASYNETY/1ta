@@ -144,6 +144,17 @@ const API_BASE_URL =
 // Determine if the API is in live mode or mock mode
 const IS_LIVE_API = process.env.NEXT_PUBLIC_API_IS_LIVE === "true";
 
+// Import the API cache
+import { apiCache } from "./api-cache";
+
+// Configure the API cache
+apiCache.configure({
+	ttl: 60000, // 1 minute
+	maxEntries: 100,
+	cacheErrors: true,
+	debug: process.env.NODE_ENV === "development",
+});
+
 console.log(
 	`%cAPI Client Mode: ${IS_LIVE_API ? "LIVE" : "MOCK"}`,
 	"color: cyan; font-weight: bold;"
@@ -186,6 +197,16 @@ async function apiClient<T>(
 		skipAuthRefresh = false,
 		...fetchOptions
 	} = options;
+	const method = (options.method || "GET").toUpperCase();
+
+	// Check cache for GET requests
+	if (method === "GET") {
+		const cachedResponse = apiCache.get<T>(method, endpoint);
+		if (cachedResponse !== undefined) {
+			return cachedResponse;
+		}
+	}
+
 	const headers = new Headers(fetchOptions.headers);
 
 	if (!headers.has("Content-Type") && options.body)
@@ -208,16 +229,34 @@ async function apiClient<T>(
 	// --- MOCK Handling ---
 	if (!IS_LIVE_API) {
 		console.log(
-			`%cAPI Client: Using MOCK for ${options.method || "GET"} ${endpoint}`,
+			`%cAPI Client: Using MOCK for ${method} ${endpoint}`,
 			"color: orange;"
 		);
-		return handleMockRequest<T>(endpoint, options);
+
+		try {
+			const result = await handleMockRequest<T>(endpoint, options);
+
+			// Cache successful GET responses
+			if (method === "GET") {
+				apiCache.set(method, endpoint, result);
+			}
+
+			return result;
+		} catch (error: any) {
+			// For 404 errors, cache an empty response to prevent repeated calls
+			if (error?.response?.status === 404 && method === "GET") {
+				const emptyResponse = { success: false, data: [], message: "Resource not found" } as unknown as T;
+				apiCache.set(method, endpoint, emptyResponse, 404);
+				return emptyResponse;
+			}
+			throw error;
+		}
 	}
 
 	// --- LIVE Handling ---
 	try {
 		console.log(
-			`%cAPI Client: LIVE ${config.method || "GET"} ${API_BASE_URL}${endpoint}`,
+			`%cAPI Client: LIVE ${method} ${API_BASE_URL}${endpoint}`,
 			"color: lightblue;"
 		);
 
@@ -326,7 +365,14 @@ async function apiClient<T>(
 
 		const contentType = response.headers.get("content-type");
 		if (contentType && contentType.includes("application/json")) {
-			return await response.json();
+			const data = await response.json();
+
+			// Cache successful GET responses
+			if (method === "GET") {
+				apiCache.set(method, endpoint, data, response.status);
+			}
+
+			return data;
 		}
 
 		console.warn(`API Client: Non-JSON response received for ${endpoint}`);
@@ -1160,18 +1206,38 @@ export async function handleMockRequest<T>(
 			`%c[DEBUG] handleMockRequest: MATCHED Get Course Class Options (GET /class-sessions/options)`,
 			"color: green; font-weight: bold;"
 		);
+
+		// Check if we have a cached response from the global cache
+		const cachedResponse = apiCache.get<T>("GET", endpoint);
+		if (cachedResponse !== undefined) {
+			console.log("Using cached response for /class-sessions/options");
+			return cachedResponse;
+		}
+
 		try {
 			const response = await getMockCourseClassOptions();
 			console.log(
 				"MOCK API: Successfully fetched course class options:",
 				response
 			);
+
+			// Cache the successful response in the global cache
+			apiCache.set("GET", endpoint, response);
+
 			return response as unknown as T;
 		} catch (error: any) {
 			console.error(
 				"Mock API Error for GET /class-sessions/options:",
 				error.message
 			);
+
+			// For 404 errors, cache an empty response to prevent repeated calls
+			if (error.status === 404 || error.message?.includes("not found")) {
+				const emptyResponse = { success: false, data: [], message: "Resource not found" };
+				apiCache.set("GET", endpoint, emptyResponse, 404);
+				return emptyResponse as unknown as T;
+			}
+
 			throw { response: { data: { message: error.message }, status: 500 } };
 		}
 	}

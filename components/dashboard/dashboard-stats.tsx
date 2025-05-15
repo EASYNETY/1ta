@@ -21,6 +21,7 @@ import {
   Bell
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ensureArray, safeFilter, safeLength, safeReduce } from '@/lib/safe-utils'
 
 interface StatCardProps {
   title: string
@@ -83,12 +84,12 @@ export function DashboardStats() {
   ])
 
   // Calculate stats
-  const pendingAssignments = assignments?.filter(a => a?.status === 'pending')?.length || 0
-  const upcomingEvents = events?.filter(e => e?.startTime && new Date(e.startTime) > new Date())?.length || 0
-  const completedCourses = courses?.filter(c => c?.enrollmentStatus === 'completed')?.length || 0
-  const inProgressCourses = courses?.filter(c => c?.enrollmentStatus === 'in-progress')?.length || 0
-  const totalClasses = enrolledClasses?.length || 0
-  const totalPayments = myPayments?.length || 0
+  const pendingAssignments = safeFilter(assignments, a => a?.status === 'pending').length
+  const upcomingEvents = safeFilter(events, e => e?.startTime && new Date(e.startTime) > new Date()).length
+  const completedCourses = safeFilter(courses, c => c?.enrollmentStatus === 'completed').length
+  const inProgressCourses = safeFilter(courses, c => c?.enrollmentStatus === 'in-progress').length
+  const totalClasses = safeLength(enrolledClasses)
+  const totalPayments = safeLength(myPayments)
 
   // Loading states
   const assignmentsLoading = assignmentsStatus === 'loading'
@@ -132,8 +133,8 @@ export function DashboardStats() {
       />
       <StatCard
         title="Grades"
-        value={grades?.length > 0 ? `${Math.round(grades.reduce((acc, grade) => acc + (grade?.score || 0), 0) / grades.length)}%` : 'N/A'}
-        description={`${grades?.length || 0} graded items`}
+        value={safeLength(grades) > 0 ? `${Math.round(safeReduce(grades, (acc, grade) => acc + (grade?.score || 0), 0) / safeLength(grades))}%` : 'N/A'}
+        description={`${safeLength(grades)} graded items`}
         icon={<GraduationCap className="h-4 w-4" />}
         loading={gradesLoading}
         className="bg-pink-50 dark:bg-pink-950/20"
