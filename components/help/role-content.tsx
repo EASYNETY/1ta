@@ -3,7 +3,8 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GraduationCap, UserCog, ChalkboardTeacher } from 'lucide-react';
+import { GraduationCap, UserCog } from 'lucide-react';
+import { Presentation } from 'phosphor-react';
 
 interface RoleContentProps {
   studentContent?: React.ReactNode;
@@ -56,7 +57,7 @@ export function RoleContent({
           )}
           {teacherContent && (
             <TabsTrigger value="teacher" className="flex items-center gap-2">
-              <ChalkboardTeacher className="h-4 w-4" />
+              <Presentation className="h-4 w-4" />
               <span className="hidden sm:inline">For Teachers</span>
               <span className="sm:hidden">Teachers</span>
             </TabsTrigger>
