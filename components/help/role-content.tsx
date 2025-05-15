@@ -20,10 +20,33 @@ export function RoleContent({
   defaultTab = 'student',
   className
 }: RoleContentProps) {
+  // Determine the default tab based on available content
+  const determineDefaultTab = () => {
+    if (defaultTab === 'student' && !studentContent) {
+      if (teacherContent) return 'teacher';
+      if (adminContent) return 'admin';
+    }
+    if (defaultTab === 'teacher' && !teacherContent) {
+      if (studentContent) return 'student';
+      if (adminContent) return 'admin';
+    }
+    if (defaultTab === 'admin' && !adminContent) {
+      if (studentContent) return 'student';
+      if (teacherContent) return 'teacher';
+    }
+    return defaultTab;
+  };
+
+  const activeTab = determineDefaultTab();
+
+  // Count available tabs for grid columns
+  const tabCount = [studentContent, teacherContent, adminContent].filter(Boolean).length;
+  const gridCols = tabCount > 0 ? `grid-cols-${tabCount}` : 'grid-cols-1';
+
   return (
     <div className={cn("my-6", className)}>
-      <Tabs defaultValue={defaultTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue={activeTab} className="w-full">
+        <TabsList className={cn("grid w-full", gridCols)}>
           {studentContent && (
             <TabsTrigger value="student" className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
@@ -46,19 +69,19 @@ export function RoleContent({
             </TabsTrigger>
           )}
         </TabsList>
-        
+
         {studentContent && (
           <TabsContent value="student" className="p-4 border rounded-md mt-4">
             {studentContent}
           </TabsContent>
         )}
-        
+
         {teacherContent && (
           <TabsContent value="teacher" className="p-4 border rounded-md mt-4">
             {teacherContent}
           </TabsContent>
         )}
-        
+
         {adminContent && (
           <TabsContent value="admin" className="p-4 border rounded-md mt-4">
             {adminContent}
