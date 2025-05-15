@@ -19,7 +19,7 @@ const relatedTopics = [
 
 export default function PlatformOverviewPage() {
   return (
-    <div className="container mx-auto py-6 space-y-6 max-w-4xl">
+    <div className="mx-auto py-6 space-y-6">
       {/* Breadcrumb Navigation */}
       <Breadcrumb>
         <BreadcrumbList>

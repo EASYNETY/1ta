@@ -122,7 +122,7 @@ export default function HelpLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex flex-col md:flex-row min-h-screen">
       {/* Mobile Navigation Trigger */}
-      <div className="md:hidden p-4 border-b">
+      <div className="lg:hidden p-4 border-b">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" className="w-full cursor-pointer flex items-center justify-between">
@@ -213,7 +213,7 @@ export default function HelpLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex flex-col justify-between w-64 rounded-xl p-4 bg-card/5 backdrop-blur-sm shadow-sm border border-primary/10 gap-6">
+      <div className="hidden lg:flex flex-col justify-between w-64 rounded-xl p-4 bg-card/5 backdrop-blur-sm shadow-sm border border-primary/10 gap-6">
         <div className="flex items-center gap-2 mb-4">
           <CircleHelp className="h-6 w-6 text-primary" />
           <h2 className="text-xl font-bold">Help Topics</h2>

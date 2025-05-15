@@ -37,7 +37,7 @@ const relatedTopics = [
 
 export default function BarcodeScanningScanningPage() {
   return (
-    <div className="container mx-auto py-6 space-y-6 max-w-4xl">
+    <div className="mx-auto py-6 space-y-6">
       <ArticleHeader
         title="Using the Barcode Scanner"
         icon={Scan}

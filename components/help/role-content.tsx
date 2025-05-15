@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GraduationCap, UserCog } from 'lucide-react';
 import { Presentation } from 'phosphor-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface RoleContentProps {
   studentContent?: React.ReactNode;
@@ -40,36 +41,37 @@ export function RoleContent({
 
   const activeTab = determineDefaultTab();
 
-  // Count available tabs for grid columns
-  const tabCount = [studentContent, teacherContent, adminContent].filter(Boolean).length;
-  const gridCols = tabCount > 0 ? `grid-cols-${tabCount}` : 'grid-cols-1';
+  // No need to count tabs anymore
 
   return (
     <div className={cn("my-6", className)}>
       <Tabs defaultValue={activeTab} className="w-full">
-        <TabsList className={cn("grid w-full", gridCols)}>
-          {studentContent && (
-            <TabsTrigger value="student" className="flex items-center gap-2">
-              <GraduationCap className="h-4 w-4" />
-              <span className="hidden sm:inline">For Students</span>
-              <span className="sm:hidden">Students</span>
-            </TabsTrigger>
-          )}
-          {teacherContent && (
-            <TabsTrigger value="teacher" className="flex items-center gap-2">
-              <Presentation className="h-4 w-4" />
-              <span className="hidden sm:inline">For Teachers</span>
-              <span className="sm:hidden">Teachers</span>
-            </TabsTrigger>
-          )}
-          {adminContent && (
-            <TabsTrigger value="admin" className="flex items-center gap-2">
-              <UserCog className="h-4 w-4" />
-              <span className="hidden sm:inline">For Administrators</span>
-              <span className="sm:hidden">Admins</span>
-            </TabsTrigger>
-          )}
-        </TabsList>
+        <div className="relative">
+          <ScrollArea className="w-full">
+            <TabsList className="inline-flex w-max border-b-0 px-4">
+              {studentContent && (
+                <TabsTrigger value="student" className="flex items-center gap-2 whitespace-nowrap">
+                  <GraduationCap className="h-4 w-4 flex-shrink-0" />
+                  <span>For Students</span>
+                </TabsTrigger>
+              )}
+              {teacherContent && (
+                <TabsTrigger value="teacher" className="flex items-center gap-2 whitespace-nowrap">
+                  <Presentation className="h-4 w-4 flex-shrink-0" />
+                  <span>For Teachers</span>
+                </TabsTrigger>
+              )}
+              {adminContent && (
+                <TabsTrigger value="admin" className="flex items-center gap-2 whitespace-nowrap">
+                  <UserCog className="h-4 w-4 flex-shrink-0" />
+                  <span>For Administrators</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-border" />
+        </div>
 
         {studentContent && (
           <TabsContent value="student" className="p-4 border rounded-md mt-4">
