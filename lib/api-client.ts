@@ -599,8 +599,18 @@ export async function handleMockRequest<T>(
 	if (endpoint === "/users/me" && method === "get") {
 		return mockGetMyProfile() as unknown as T;
 	}
+
+	// Handle both /users/me and /users/:id for updating user profile
 	if (endpoint === "/users/me" && method === "put") {
-		return mockUpdateMyProfile(body) as unknown as T;
+		console.log(`%cAPI Client MOCK: PUT /users/me with data:`, "color: orange;", body);
+		return mockUpdateMyProfile(body, "me") as unknown as T;
+	}
+
+	const updateUserMatch = endpoint.match(/^\/users\/([\w-]+)$/);
+	if (updateUserMatch && method === "put") {
+		const userId = updateUserMatch[1];
+		console.log(`%cAPI Client MOCK: PUT /users/${userId} with data:`, "color: orange;", body);
+		return mockUpdateMyProfile(body, userId) as unknown as T;
 	}
 
 	// --- START: Corporate Slot Creation Mock Handler ---

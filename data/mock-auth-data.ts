@@ -494,16 +494,18 @@ export function mockGetMyProfile(): { success: boolean; data: User } {
 	};
 }
 
-export function mockUpdateMyProfile(profileData: Partial<User>): {
+export function mockUpdateMyProfile(profileData: Partial<User>, userId?: string): {
 	success: boolean;
 	data: User;
 } {
-	// For testing purposes, update a specific user
-	const mockUserId = "corp_manager_1"; // Using the incomplete profile user for testing
+	// Use the provided userId if available, otherwise use a default for testing
+	const mockUserId = userId && userId !== "me" ? userId : "corp_manager_1";
+	console.log(`MOCK: Updating profile for user ${mockUserId}`);
+
 	const userIndex = users.findIndex((u) => u.id === mockUserId);
 
 	if (userIndex === -1) {
-		throw new Error("User not found");
+		throw new Error(`User with ID ${mockUserId} not found`);
 	}
 
 	// Update the user with the new profile data

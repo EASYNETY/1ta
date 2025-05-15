@@ -203,11 +203,18 @@ export const fetchUserProfileThunk = createAsyncThunk<
 export const updateUserProfileThunk = createAsyncThunk<
 	User,
 	Partial<User>,
-	{ rejectValue: string }
->("auth/updateUserProfile", async (profileData, { rejectWithValue }) => {
+	{ rejectValue: string; state: { auth: AuthState } }
+>("auth/updateUserProfile", async (profileData, { rejectWithValue, getState }) => {
 	try {
+		// Get the current user ID from the state
+		const { user } = getState().auth;
+		if (!user || !user.id) {
+			return rejectWithValue("User not authenticated");
+		}
+
+		// Use the user ID in the endpoint path
 		const response = await put<{ success: boolean; data: User }>(
-			"/users/me",
+			`/users/${user.id}`,
 			profileData
 		);
 		return response.data;
