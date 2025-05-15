@@ -202,7 +202,7 @@ export function CourseCards() {
 
   return (
     <motion.div
-      className="min-h-screen bg-background/5 text-foreground max-w-7xl mx-auto" // Centered content
+      className="bg-background/5 text-foreground max-w-7xl mx-auto" // Centered content
       variants={sectionContainerVariants}
       initial="hidden"
       animate="visible"
