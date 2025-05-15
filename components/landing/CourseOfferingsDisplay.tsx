@@ -173,10 +173,10 @@ export function CourseCards() {
   }
 
   const currentCourses = courses.filter((course) => course.category === "current")
-  const futureCourses = courses.filter((course) => course.category === "future" && !course.isIsoCertification)
-  const isoCourses = courses.filter((course) => course.isIsoCertification)
+  // Combine all future courses including ISO certifications
+  const futureCourses = courses.filter((course) => course.category === "future" || course.isIsoCertification)
 
-  const renderCourseSection = (title: string, courseList: CourseListing[], isIsoSection = false) => {
+  const renderCourseSection = (title: string, courseList: CourseListing[]) => {
     if (courseList.length === 0) return null
     return (
       <motion.div className="mb-12" variants={sectionTitleVariants}> {/* Use sectionTitleVariants for the whole section block */}
@@ -192,7 +192,7 @@ export function CourseCards() {
               key={course.id}
               course={course}
               onClick={() => handleCardClick(course)}
-              isIso={isIsoSection || course.isIsoCertification}
+              isIso={course.isIsoCertification}
             />
           ))}
         </motion.div>
@@ -228,7 +228,6 @@ export function CourseCards() {
         <>
           {renderCourseSection("Current Enrolment", currentCourses)}
           {renderCourseSection("Future Courses", futureCourses)}
-          {renderCourseSection("ISO Certifications", isoCourses, true)}
         </>
       )}
 
