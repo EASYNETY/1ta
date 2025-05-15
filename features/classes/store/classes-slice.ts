@@ -80,7 +80,7 @@ const classesSlice = createSlice({
 				fetchMyEnrolledClasses.fulfilled,
 				(state, action: PayloadAction<AuthCourse[]>) => {
 					state.status = "succeeded";
-					state.myClasses = action.payload;
+					state.myClasses = action.payload || []; // Ensure it's never null/undefined
 				}
 			)
 			.addCase(fetchMyEnrolledClasses.rejected, (state, action) => {
@@ -100,7 +100,7 @@ const classesSlice = createSlice({
 					state.status = "succeeded";
 					// Assuming myClasses is used for both student and teacher contexts, overwrite it.
 					// If you need to store them separately, add another field to ClassesState.
-					state.myClasses = action.payload;
+					state.myClasses = action.payload || []; // Ensure it's never null/undefined
 				}
 			)
 			.addCase(fetchMyTaughtClasses.rejected, (state, action) => {
@@ -118,12 +118,12 @@ const classesSlice = createSlice({
 				fetchAllClassesAdmin.fulfilled,
 				(state, action: PayloadAction<FetchAdminClassesResult>) => {
 					state.status = "succeeded";
-					state.allClasses = action.payload.classes;
+					state.allClasses = action.payload.classes || []; // Ensure it's never null/undefined
 					state.adminPagination = {
-						currentPage: action.payload.page,
-						limit: action.payload.limit,
-						totalClasses: action.payload.total,
-						totalPages: action.payload.totalPages,
+						currentPage: action.payload.page || 1,
+						limit: action.payload.limit || 10,
+						totalClasses: action.payload.total || 0,
+						totalPages: action.payload.totalPages || 1,
 					};
 				}
 			)
@@ -142,7 +142,7 @@ const classesSlice = createSlice({
 				fetchCourseClassOptionsForScanner.fulfilled,
 				(state, action: PayloadAction<CourseClassOption[]>) => {
 					state.courseClassOptionsStatus = "succeeded";
-					state.courseClassOptions = action.payload;
+					state.courseClassOptions = action.payload || []; // Ensure it's never null/undefined
 				}
 			)
 			.addCase(fetchCourseClassOptionsForScanner.rejected, (state, action) => {
@@ -278,6 +278,8 @@ const classesSlice = createSlice({
 });
 
 // --- Actions & Selectors (Selectors remain the same, actions from reducers object) ---
+import { createSafeArraySelector, safeArray } from "@/lib/utils/safe-data";
+
 export const {
 	clearClassesError,
 	clearCurrentClass,
@@ -286,6 +288,7 @@ export const {
 	setCourseClassOptionStatus
 } = classesSlice.actions;
 
+// Basic selectors
 export const selectCurrentClass = (state: RootState) =>
 	state.classes.currentClass;
 export const selectOperationStatus = (state: RootState) =>
@@ -298,11 +301,19 @@ export const selectAdminPagination = (state: RootState) =>
 export const selectClassesStatus = (state: RootState) => state.classes.status; // General list status
 export const selectClassesError = (state: RootState) => state.classes.error; // General list error
 
-export const selectAllCourseClassOptions = (state: RootState) =>
+// Basic course class options selectors
+const selectCourseClassOptionsRaw = (state: RootState) =>
 	state.classes.courseClassOptions;
 export const selectCourseClassOptionsStatus = (state: RootState) =>
 	state.classes.courseClassOptionsStatus;
 export const selectCourseClassOptionsError = (state: RootState) =>
 	state.classes.courseClassOptionsError;
+
+// Safe selectors that handle null/undefined values
+export const selectAllCourseClassOptions = createSafeArraySelector(selectCourseClassOptionsRaw);
+
+// For backward compatibility, also export the raw selectors
+export const selectMyClassesSafe = createSafeArraySelector(selectMyClasses);
+export const selectAllAdminClassesSafe = createSafeArraySelector(selectAllAdminClasses);
 
 export default classesSlice.reducer;

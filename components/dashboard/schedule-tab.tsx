@@ -37,7 +37,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ScheduleEvent } from "@/features/schedule/types/schedule-types"; // Import type
-import { ensureArray, safeFilter, safeSort, safeLength } from "@/lib/safe-utils"; // Import safe utility functions
+import { safeArray, safeFilter, safeSort, safeLength } from "@/lib/utils/safe-data"; // Import safe utility functions
 
 // Helper function to safely format time string
 const safeFormatTime = (dateString: string | undefined | null): string => {

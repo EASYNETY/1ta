@@ -21,7 +21,7 @@ import {
   Bell
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ensureArray, safeFilter, safeLength, safeReduce } from '@/lib/safe-utils'
+import { safeArray, safeFilter, safeLength, safeReduce } from '@/lib/utils/safe-data'
 
 interface StatCardProps {
   title: string

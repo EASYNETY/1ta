@@ -22,7 +22,8 @@ import {
     Loader2,
     Barcode,
     AlertTriangle,
-    CreditCard // Added for payment status
+    CreditCard, // Added for payment status
+    ScanLine // Added for casual scan mode
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -49,6 +50,7 @@ interface StudentInfoModalProps {
     scannedId: string | null   // The ID that was scanned from the barcode
     apiStatus: "success" | "error" | "idle" | "loading" // Status of the markAttendance API call
     apiError: string | null    // Error message from the markAttendance API call
+    casualScanMode?: boolean   // Whether we're in casual scan mode (view only)
 }
 
 export function StudentInfoModal({
@@ -60,6 +62,7 @@ export function StudentInfoModal({
     scannedId,
     apiStatus,
     apiError,
+    casualScanMode = false,
 }: StudentInfoModalProps) {
 
     // This function handles closing the modal AND triggering the scan resumption
@@ -79,6 +82,11 @@ export function StudentInfoModal({
     const getDialogDescription = () => {
         if (isLoading) return `Looking up student with barcode: ${scannedId || 'N/A'}...`;
         if (apiStatus === 'loading') return "Submitting attendance record to the server...";
+
+        if (casualScanMode && studentInfo) {
+            return `Viewing details for ${studentInfo.name} (Casual scan mode - attendance not marked)`;
+        }
+
         if (studentInfo && apiStatus === 'success') return `Attendance successfully marked for ${studentInfo.name}.`;
         if (studentInfo && apiStatus === 'error') return `Failed to mark attendance for ${studentInfo.name}. Please try again.`;
         if (studentInfo) return `Details for student associated with barcode: ${scannedId || 'N/A'}`;
@@ -161,19 +169,25 @@ export function StudentInfoModal({
                             </div>
 
                             {/* API Status Feedback for Attendance Marking */}
-                            {apiStatus === "success" && !isLoading && (
+                            {casualScanMode && !isLoading && (
+                                <div className="p-3 mt-3 bg-purple-50 text-purple-700 rounded-md text-sm flex items-center gap-2 border border-purple-200 dark:bg-purple-700/10 dark:text-purple-300 dark:border-purple-600/30">
+                                    <ScanLine className="h-5 w-5 flex-shrink-0" />
+                                    Casual scan mode: Student details viewed only (attendance not marked).
+                                </div>
+                            )}
+                            {!casualScanMode && apiStatus === "success" && !isLoading && (
                                 <div className="p-3 mt-3 bg-green-50 text-green-700 rounded-md text-sm flex items-center gap-2 border border-green-200 dark:bg-green-700/10 dark:text-green-300 dark:border-green-600/30">
                                     <CheckCircle className="h-5 w-5 flex-shrink-0" />
                                     Attendance marked successfully.
                                 </div>
                             )}
-                            {apiStatus === "error" && !isLoading && (
+                            {!casualScanMode && apiStatus === "error" && !isLoading && (
                                 <div className="p-3 mt-3 bg-red-50 text-red-700 rounded-md text-sm flex items-center gap-2 border border-red-200 dark:bg-red-700/10 dark:text-red-300 dark:border-red-600/30">
                                     <XCircle className="h-5 w-5 flex-shrink-0" />
                                     Error: {apiError || "Could not mark attendance."}
                                 </div>
                             )}
-                            {apiStatus === "loading" && !isLoading && ( // Show if marking is in progress (after student info is loaded)
+                            {!casualScanMode && apiStatus === "loading" && !isLoading && ( // Show if marking is in progress (after student info is loaded)
                                 <div className="p-3 mt-3 bg-blue-50 text-blue-700 rounded-md text-sm flex items-center gap-2 border border-blue-200 dark:bg-blue-700/10 dark:text-blue-300 dark:border-blue-600/30">
                                     <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />
                                     Marking attendance, please wait...
@@ -199,9 +213,11 @@ export function StudentInfoModal({
                         disabled={apiStatus === 'loading'} // Disable button while attendance marking is in progress
                         className="w-full sm:w-auto"
                     >
-                        {apiStatus === 'success' || apiStatus === 'error' || (!studentInfo && scannedId)
-                            ? "Scan Next Student"
-                            : "Close"}
+                        {casualScanMode && studentInfo
+                            ? "Scan Another Student"
+                            : apiStatus === 'success' || apiStatus === 'error' || (!studentInfo && scannedId)
+                                ? "Scan Next Student"
+                                : "Close"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

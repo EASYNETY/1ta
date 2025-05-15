@@ -2,7 +2,7 @@
 // Utilities for working with Redux in a type-safe way
 
 import { RootState } from "@/store";
-import { ensureArray } from "./safe-utils";
+import { safeArray, safeString, safeNumber, safeBoolean, safeObject } from "./utils/safe-data";
 
 /**
  * Creates a type-safe selector that ensures the returned value is an array
@@ -12,7 +12,7 @@ import { ensureArray } from "./safe-utils";
 export function createArraySelector<T>(
   selector: (state: RootState) => T[] | undefined | null
 ): (state: RootState) => T[] {
-  return (state: RootState) => ensureArray<T>(selector(state));
+  return (state: RootState) => safeArray<T>(selector(state));
 }
 
 /**
@@ -25,10 +25,7 @@ export function createNumberSelector(
   selector: (state: RootState) => number | undefined | null,
   defaultValue = 0
 ): (state: RootState) => number {
-  return (state: RootState) => {
-    const value = selector(state);
-    return value === undefined || value === null ? defaultValue : value;
-  };
+  return (state: RootState) => safeNumber(selector(state), defaultValue);
 }
 
 /**
@@ -41,10 +38,7 @@ export function createStringSelector(
   selector: (state: RootState) => string | undefined | null,
   defaultValue = ""
 ): (state: RootState) => string {
-  return (state: RootState) => {
-    const value = selector(state);
-    return value === undefined || value === null ? defaultValue : value;
-  };
+  return (state: RootState) => safeString(selector(state), defaultValue);
 }
 
 /**
@@ -57,10 +51,7 @@ export function createBooleanSelector(
   selector: (state: RootState) => boolean | undefined | null,
   defaultValue = false
 ): (state: RootState) => boolean {
-  return (state: RootState) => {
-    const value = selector(state);
-    return value === undefined || value === null ? defaultValue : value;
-  };
+  return (state: RootState) => safeBoolean(selector(state), defaultValue);
 }
 
 /**
@@ -90,7 +81,7 @@ export function createMappedArraySelector<T, U>(
   mapFn: (item: T) => U
 ): (state: RootState) => U[] {
   return (state: RootState) => {
-    const array = ensureArray<T>(arraySelector(state));
+    const array = safeArray<T>(arraySelector(state));
     return array.map(mapFn);
   };
 }
@@ -106,7 +97,7 @@ export function createFilteredArraySelector<T>(
   filterFn: (item: T) => boolean
 ): (state: RootState) => T[] {
   return (state: RootState) => {
-    const array = ensureArray<T>(arraySelector(state));
+    const array = safeArray<T>(arraySelector(state));
     return array.filter(filterFn);
   };
 }

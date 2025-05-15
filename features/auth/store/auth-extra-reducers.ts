@@ -198,8 +198,9 @@ export const addAuthExtraReducers = (builder: any) => {
 			action: PayloadAction<{ users: User[]; total: number }>
 		) => {
 			state.usersLoading = false;
-			state.users = action.payload.users;
-			state.totalUsers = action.payload.total;
+			// Ensure users is always an array, even if API returns null/undefined
+			state.users = action.payload.users || [];
+			state.totalUsers = action.payload.total || 0;
 		}
 	);
 
@@ -224,8 +225,9 @@ export const addAuthExtraReducers = (builder: any) => {
 			action: PayloadAction<{ users: User[]; total: number }>
 		) => {
 			state.usersLoading = false;
-			state.users = action.payload.users;
-			state.totalUsers = action.payload.total;
+			// Ensure users is always an array, even if API returns null/undefined
+			state.users = action.payload.users || [];
+			state.totalUsers = action.payload.total || 0;
 		}
 	);
 

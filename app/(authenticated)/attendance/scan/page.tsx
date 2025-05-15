@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import BarcodeScanner from "@/lib/barcode-scanner";
 import { StudentInfoModal } from "@/components/students/student-info-modal";
+import { useExternalScannerSocket } from "@/hooks/use-external-scanner-socket";
+import { safeArray } from "@/lib/utils/safe-data";
 
 // Redux imports
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -19,6 +21,7 @@ import {
 } from "@/features/attendance/store/attendance-slice";
 
 import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice";
+import { selectSafeUsers, selectUsersLoading, selectUsersError } from "@/features/auth/store/auth-selectors";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -26,7 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle, ScanLine } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle, ScanLine, Wifi, WifiOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { selectAllCourseClassOptions, selectCourseClassOptionsStatus } from "@/features/classes/store/classes-slice";
@@ -35,6 +38,7 @@ import { CourseClassOption } from "@/features/classes/types/classes-types";
 import { PageHeader } from "@/components/layout/auth/page-header";
 import { fetchUsersByRole } from "@/features/auth/store/user-thunks";
 import { StudentUser, User } from "@/types/user.types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface StudentInfo {
     id: string;
@@ -47,6 +51,9 @@ interface StudentInfo {
     avatarUrl?: string | null;
 }
 
+// Scanner mode type
+type ScannerMode = "camera" | "external";
+
 
 export default function ScanPage() {
     const router = useRouter();
@@ -54,18 +61,16 @@ export default function ScanPage() {
     const dispatch = useAppDispatch();
 
     // Redux state
-    const {
-        user: loggedInUser, // Renamed to avoid conflict with student 'user' objects
-        users: allFetchedUsers, // This will store users fetched by fetchUsersByRole (mostly students)
-        usersLoading: isLoadingStudents,
-        usersError: studentsFetchError
-    } = useAppSelector((state) => state.auth);
+    const loggedInUser = useAppSelector((state) => state.auth.user); // Keep direct access for user
+    const allFetchedUsers = useAppSelector(selectSafeUsers); // Using safe selector for users array
+    const isLoadingStudents = useAppSelector(selectUsersLoading);
+    const studentsFetchError = useAppSelector(selectUsersError);
     const selectedClass = useAppSelector(selectCourseClass);
     const markingLoading = useAppSelector(selectAttendanceMarkingLoading);
     const apiError = useAppSelector(selectAttendanceMarkingError);
     const apiStatus = useAppSelector(selectAttendanceMarkingStatus);
 
-    const classOptions = useAppSelector(selectAllCourseClassOptions);
+    const classOptions = useAppSelector(selectAllCourseClassOptions); // Using safe selector that handles null/undefined
     const classOptionsStatus = useAppSelector(selectCourseClassOptionsStatus);
     const classOptionsLoading = classOptionsStatus === 'loading';
 
@@ -76,6 +81,8 @@ export default function ScanPage() {
     const [fetchingStudentInfo, setFetchingStudentInfo] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProcessingScan, setIsProcessingScan] = useState(false);
+    const [scannerMode, setScannerMode] = useState<ScannerMode>("camera"); // Default to camera scanner
+    const [casualScanMode, setCasualScanMode] = useState(false); // New state for casual scan mode
     const initialClassOptionsFetchAttempted = useRef(false);
     const initialStudentsFetchAttempted = useRef(false);
 
@@ -104,7 +111,10 @@ export default function ScanPage() {
     // Effect 2: Fetch all students (with role 'student') when component mounts or user changes
     // We only fetch students once, or if the fetch failed previously.
     useEffect(() => {
-        if (loggedInUser && (!allFetchedUsers || allFetchedUsers.length === 0) && !isLoadingStudents && !studentsFetchError && !initialStudentsFetchAttempted.current) {
+        // Use safeArray to ensure allFetchedUsers is always an array
+        const users = safeArray(allFetchedUsers);
+
+        if (loggedInUser && users.length === 0 && !isLoadingStudents && !studentsFetchError && !initialStudentsFetchAttempted.current) {
             console.log("ScanPage: Fetching all students for barcode lookup.");
             dispatch(fetchUsersByRole({ role: "student" })); // Fetch all students, high limit
             initialStudentsFetchAttempted.current = true;
@@ -129,20 +139,27 @@ export default function ScanPage() {
 
     // Control Scanner Activation
     useEffect(() => {
-        // Activate scanner if a class is selected, modal is closed, and student list is available (or loading is done)
-        const studentListReady = (allFetchedUsers && allFetchedUsers.length > 0) || (!isLoadingStudents && !studentsFetchError);
-        const shouldScan = !!selectedClass?.id && !isModalOpen && studentListReady;
+        // Use safeArray to ensure allFetchedUsers is always an array
+        const users = safeArray(allFetchedUsers);
+
+        // Activate scanner if (a class is selected OR in casual scan mode), modal is closed, and student list is available
+        const studentListReady = (users.length > 0) || (!isLoadingStudents && !studentsFetchError);
+        const shouldScan = (!!selectedClass?.id || casualScanMode) && !isModalOpen && studentListReady;
 
         if (shouldScan && !isScannerActive) {
             setIsScannerActive(true);
-            console.log("Scanner Activated for class:", selectedClass?.id);
+            if (casualScanMode) {
+                console.log(`${scannerMode} Scanner Activated in casual mode (view only)`);
+            } else {
+                console.log(`${scannerMode} Scanner Activated for class:`, selectedClass?.id);
+            }
         } else if ((!shouldScan || !studentListReady) && isScannerActive) {
             setIsScannerActive(false);
-            if (!selectedClass?.id) console.log("Scanner Paused: No class selected.");
-            if (isModalOpen) console.log("Scanner Paused: Modal is open.");
-            if (!studentListReady && selectedClass?.id) console.log("Scanner Paused: Student list not ready.");
+            if (!selectedClass?.id && !casualScanMode) console.log(`${scannerMode} Scanner Paused: No class selected and not in casual mode.`);
+            if (isModalOpen) console.log(`${scannerMode} Scanner Paused: Modal is open.`);
+            if (!studentListReady) console.log(`${scannerMode} Scanner Paused: Student list not ready.`);
         }
-    }, [selectedClass, isModalOpen, isScannerActive, allFetchedUsers, isLoadingStudents, studentsFetchError]);
+    }, [selectedClass, isModalOpen, isScannerActive, allFetchedUsers, isLoadingStudents, studentsFetchError, scannerMode, casualScanMode]);
 
 
     // Handle Class Selection
@@ -177,7 +194,7 @@ export default function ScanPage() {
         const potentialId = typeof scannedData === 'object' && scannedData?.text ? scannedData.text : String(scannedData ?? '');
         const scannedBarcodeId = potentialId.trim();
         setLastScannedId(scannedBarcodeId);
-        console.log(`Processed Barcode ID: "${scannedBarcodeId}"`);
+        console.log(`Processed Barcode ID: "${scannedBarcodeId}" from ${scannerMode} scanner`);
 
         if (!scannedBarcodeId) {
             setStudentInfo(null);
@@ -186,7 +203,10 @@ export default function ScanPage() {
             return;
         }
 
-        if (isLoadingStudents || !allFetchedUsers) {
+        // Use safeArray to ensure allFetchedUsers is always an array
+        const users = safeArray(allFetchedUsers);
+
+        if (isLoadingStudents || users.length === 0) {
             setStudentInfo(null);
             setIsProcessingScan(false);
             toast({ variant: "destructive", title: "Processing Error", description: "Student list not yet available. Please wait a moment and try again." });
@@ -195,8 +215,11 @@ export default function ScanPage() {
 
         // Find student in the locally stored Redux state (allFetchedUsers)
         // Ensure your CanonicalUser (StudentUser) has a barcodeId field!
-        const foundStudent = allFetchedUsers.find(
-            (student: User) => (student as StudentUser).barcodeId === scannedBarcodeId && student.role === 'student'
+        const foundStudent = users.find(
+            (student: any) => {
+                const studentUser = student as StudentUser;
+                return studentUser.barcodeId === scannedBarcodeId && studentUser.role === 'student';
+            }
         ) as StudentUser | undefined; // Cast to StudentUser
 
         console.log("Search result in allFetchedUsers for barcode", scannedBarcodeId, ":", foundStudent);
@@ -216,7 +239,8 @@ export default function ScanPage() {
             };
             setStudentInfo(studentDataForModal);
 
-            if (selectedClass?.id && loggedInUser?.id) {
+            if (selectedClass?.id && loggedInUser?.id && !casualScanMode) {
+                // Only mark attendance if not in casual scan mode
                 const payload = {
                     studentId: String(foundStudent.id),
                     classInstanceId: selectedClass.id, // The class session being scanned FOR
@@ -232,6 +256,10 @@ export default function ScanPage() {
                     console.error("Attendance marking failed via Redux:", reduxError);
                     // Error will be handled by apiError selector for display
                 }
+            } else if (casualScanMode) {
+                console.log("Casual scan mode: Student found but attendance not marked");
+                // In casual mode, we just display the student info without marking attendance
+                dispatch(resetMarkingStatus()); // Ensure we're in a clean state
             } else {
                 console.error("Missing data for marking attendance:", { studentId: foundStudent.id, selectedClass, loggedInUser });
                 // Potentially show a toast if class not selected, though scanner shouldn't be active then.
@@ -242,7 +270,15 @@ export default function ScanPage() {
             // Toast for student not found is implicitly handled by studentInfo being null in modal
         }
         setIsProcessingScan(false);
-    }, [allFetchedUsers, selectedClass, loggedInUser, dispatch, toast, isLoadingStudents]);
+    }, [allFetchedUsers, selectedClass, loggedInUser, dispatch, toast, isLoadingStudents, scannerMode, casualScanMode]);
+
+    // External Scanner WebSocket Integration
+    const { status: socketStatus, reconnect: reconnectSocket } = useExternalScannerSocket({
+        onBarcodeReceived: handleBarcodeDetected,
+        isEnabled: scannerMode === 'external' && isScannerActive,
+        classId: selectedClass?.id,
+        userId: loggedInUser?.id
+    });
 
 
     // Handle Modal Close
@@ -264,18 +300,19 @@ export default function ScanPage() {
 
     // Toggle scanner manually
     const toggleScanner = useCallback(() => {
-        if (!selectedClass?.id) {
-            toast({ title: "Select a Class", description: "Please select a class first." });
+        if (!selectedClass?.id && !casualScanMode) {
+            toast({ title: "Select a Class", description: "Please select a class first or enable casual scan mode." });
             return;
         }
 
-        dispatch(setCourseClass(
-            {
+        // Only clear class if we're not in casual mode
+        if (!casualScanMode && selectedClass?.id) {
+            dispatch(setCourseClass({
                 id: '',
                 courseName: "",
                 sessionName: "",
-            }
-        ));
+            }));
+        }
 
         // Toggling isScannerActive directly. The useEffect watching it will handle console logs.
         setIsScannerActive((prev) => {
@@ -283,7 +320,42 @@ export default function ScanPage() {
             toast({ title: `Scanner ${newState ? "Resumed" : "Paused"}` });
             return newState;
         });
-    }, [selectedClass, toast]); // Removed isScannerActive from deps as it's being set
+    }, [selectedClass, toast, casualScanMode]); // Added casualScanMode to deps
+
+    // Toggle casual scan mode
+    const toggleCasualScanMode = useCallback(() => {
+        // Reset scanner state
+        setIsScannerActive(false);
+        setLastScannedId(null);
+        setStudentInfo(null);
+        setIsModalOpen(false);
+        dispatch(resetMarkingStatus());
+
+        // Toggle casual mode
+        setCasualScanMode(prev => {
+            const newMode = !prev;
+            if (newMode) {
+                toast({
+                    title: "Casual Scan Mode Enabled",
+                    description: "Students will be identified but attendance won't be marked."
+                });
+                // Clear selected class when entering casual mode
+                if (selectedClass?.id) {
+                    dispatch(setCourseClass({
+                        id: '',
+                        courseName: "",
+                        sessionName: "",
+                    }));
+                }
+            } else {
+                toast({
+                    title: "Casual Scan Mode Disabled",
+                    description: "Select a class to mark attendance."
+                });
+            }
+            return newMode;
+        });
+    }, [dispatch, selectedClass, toast]);
 
 
     // Render Status Badge Logic
@@ -294,14 +366,51 @@ export default function ScanPage() {
             return <Badge variant="outline">Processing Scan...</Badge>
         }
 
-        if (isLoadingStudents && (!allFetchedUsers || allFetchedUsers.length === 0)) {
+        // Use safeArray to ensure allFetchedUsers is always an array
+        const users = safeArray(allFetchedUsers);
+
+        if (isLoadingStudents && users.length === 0) {
             return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Loading Students...</Badge>;
         }
-        if (studentsFetchError && (!allFetchedUsers || allFetchedUsers.length === 0)) {
+        if (studentsFetchError && users.length === 0) {
             return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" /> Students Failed to Load</Badge>;
         }
 
-        if (selectedClass?.id) {
+        // Casual scan mode badge
+        if (casualScanMode) {
+            if (isScannerActive) {
+                return <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-300"><ScanLine className="mr-1 h-3 w-3" /> Casual Scan Mode (View Only)</Badge>;
+            } else {
+                return <Badge variant="secondary" className="bg-purple-50/50 text-purple-700/70 border-purple-300/50"><PowerOff className="mr-1 h-3 w-3" /> Casual Scan Mode Paused</Badge>;
+            }
+        }
+
+        // External scanner WebSocket status badges
+        if (scannerMode === 'external' && selectedClass?.id) {
+            if (socketStatus === 'connecting') {
+                return <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Connecting to external scanner...</Badge>;
+            }
+            if (socketStatus === 'error') {
+                return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" /> External Scanner Connection Error</Badge>;
+            }
+            if (socketStatus === 'connected' && isScannerActive) {
+                if (apiStatus === 'success' && lastScannedId) {
+                    return (
+                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 animate-fade-out">
+                            <CheckCircle className="mr-1 h-3 w-3" /> Success: {lastScannedId}
+                        </Badge>
+                    );
+                }
+                return <Badge variant="secondary" className="border-green-500 bg-green-50 text-green-700"><Wifi className="mr-1 h-3 w-3" /> External Scanner Ready</Badge>;
+            }
+            if (socketStatus === 'connected' && !isScannerActive) {
+                return <Badge variant="secondary"><WifiOff className="mr-1 h-3 w-3" /> External Scanner Paused</Badge>;
+            }
+            return <Badge variant="secondary"><WifiOff className="mr-1 h-3 w-3" /> External Scanner Disconnected</Badge>;
+        }
+
+        // Camera scanner status badges
+        if (scannerMode === 'camera' && selectedClass?.id) {
             if (isScannerActive) {
                 if (apiStatus === 'success' && lastScannedId) {
                     return (
@@ -310,7 +419,7 @@ export default function ScanPage() {
                         </Badge>
                     );
                 }
-                return <Badge variant="secondary" className="border-green-500"><ScanLine className="mr-1 h-3 w-3" /> Ready to Scan</Badge>;
+                return <Badge variant="secondary" className="border-green-500"><ScanLine className="mr-1 h-3 w-3" /> Camera Ready</Badge>;
             } else {
                 if (apiStatus === 'error' && lastScannedId) {
                     return (
@@ -319,9 +428,10 @@ export default function ScanPage() {
                         </Badge>
                     );
                 }
-                return <Badge variant="secondary"><PowerOff className="mr-1 h-3 w-3" /> Scanner Paused</Badge>;
+                return <Badge variant="secondary"><PowerOff className="mr-1 h-3 w-3" /> Camera Paused</Badge>;
             }
         }
+
         return <Badge variant="secondary">Select a class to start</Badge>;
     };
 
@@ -337,15 +447,36 @@ export default function ScanPage() {
 
                     {/* Class Selection */}
                     <div className="space-y-1.5">
-                        <Label htmlFor="courseClassSelect">Select Class/Session</Label>
+                        <div className="flex justify-between items-center">
+                            <Label htmlFor="courseClassSelect">Select Class/Session</Label>
+
+                            {/* Casual Scan Mode Toggle */}
+                            <Button
+                                variant={casualScanMode ? "secondary" : "outline"}
+                                size="sm"
+                                onClick={toggleCasualScanMode}
+                                className={`text-xs ${casualScanMode ? 'bg-purple-50 text-purple-700 border-purple-300' : ''}`}
+                            >
+                                {casualScanMode ? (
+                                    <>
+                                        <ScanLine className="mr-1 h-3 w-3" /> Casual Mode: ON
+                                    </>
+                                ) : (
+                                    <>
+                                        <ScanLine className="mr-1 h-3 w-3" /> Casual Mode: OFF
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+
                         <div className="flex flex-col sm:flex-row gap-4 items-start">
                             <Select
                                 value={selectedClass?.id || ""}
                                 onValueChange={handleClassChange}
-                                disabled={classOptionsLoading || markingLoading || fetchingStudentInfo}
+                                disabled={classOptionsLoading || markingLoading || fetchingStudentInfo || casualScanMode}
                             >
                                 <SelectTrigger id="courseClassSelect" className="w-full sm:w-auto sm:min-w-[300px] flex-grow">
-                                    <SelectValue placeholder="Select a class to start scanning..." />
+                                    <SelectValue placeholder={casualScanMode ? "Casual scan mode active..." : "Select a class to start scanning..."} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {classOptionsLoading && !classOptions?.length && (
@@ -374,12 +505,12 @@ export default function ScanPage() {
                             </Select>
 
                             {/* Manual Pause/Resume Button */}
-                            {selectedClass?.id && (
+                            {(selectedClass?.id || casualScanMode) && (
                                 <Button
                                     variant="outline"
                                     size="default"
                                     onClick={toggleScanner}
-                                    disabled={!selectedClass?.id || markingLoading || fetchingStudentInfo}
+                                    disabled={(!selectedClass?.id && !casualScanMode) || markingLoading || fetchingStudentInfo}
                                     className="w-full sm:w-auto flex-shrink-0"
                                 >
                                     {isScannerActive ? <PowerOff className="mr-2 h-4 w-4" /> : <Power className="mr-2 h-4 w-4" />}
@@ -387,10 +518,18 @@ export default function ScanPage() {
                                 </Button>
                             )}
                         </div>
-                        {!selectedClass?.id && !classOptionsLoading && classOptionsStatus !== 'failed' && (
-                            <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning can begin.</p>
+                        {!selectedClass?.id && !casualScanMode && !classOptionsLoading && classOptionsStatus !== 'failed' && (
+                            <p className="text-xs text-muted-foreground pt-1">You must select a class before scanning can begin, or enable casual scan mode.</p>
                         )}
-                        {selectedClass?.id && (
+                        {casualScanMode && (
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 pt-2">
+                                <ScanLine className="h-4 w-4 text-purple-500" /> Casual scan mode:
+                                <span className="font-medium text-purple-700">
+                                    Students will be identified but attendance won't be marked
+                                </span>
+                            </p>
+                        )}
+                        {selectedClass?.id && !casualScanMode && (
                             <p className="text-sm text-muted-foreground flex items-center gap-1 pt-2">
                                 <UserCheck className="h-4 w-4" /> Scanning for:
                                 <span className="font-medium text-primary">
@@ -401,35 +540,105 @@ export default function ScanPage() {
                     </div>
 
 
-                    {/* Scanner Section */}
-                    <div className="space-y-4 pt-4">
-                        {selectedClass?.id ? (
-                            <div className="flex justify-center items-center w-full h-[350px]">
-                                <div className="w-full max-w-md">
-                                    <BarcodeScanner
-                                        width="100%"
-                                        height={300}
-                                        onDetected={handleBarcodeDetected}
-                                        isActive={isScannerActive}
-                                        scanDelay={750}
-                                    />
-                                </div>
-                            </div>
-                        ) : (
+                    {/* Scanner Mode Selection */}
+                    {(selectedClass?.id || casualScanMode) && (
+                        <div className="pt-4">
+                            <Label htmlFor="scannerMode">Scanner Mode</Label>
+                            <Tabs
+                                defaultValue="camera"
+                                value={scannerMode}
+                                onValueChange={(value) => setScannerMode(value as ScannerMode)}
+                                className="w-full mt-2"
+                            >
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="camera">Camera Scanner</TabsTrigger>
+                                    <TabsTrigger value="external">External Scanner</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="camera" className="mt-4">
+                                    <div className="flex justify-center items-center w-full h-[350px]">
+                                        <div className="w-full max-w-md">
+                                            <BarcodeScanner
+                                                width="100%"
+                                                height={300}
+                                                onDetected={handleBarcodeDetected}
+                                                isActive={scannerMode === 'camera' && isScannerActive}
+                                                scanDelay={750}
+                                            />
+                                        </div>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="external" className="mt-4">
+                                    <div className="flex flex-col justify-center items-center w-full h-[350px] border rounded-lg bg-muted p-6 text-center">
+                                        <div className="mb-4">
+                                            {socketStatus === 'connected' ? (
+                                                <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                                    <Wifi className="h-8 w-8 text-green-600" />
+                                                </div>
+                                            ) : socketStatus === 'connecting' ? (
+                                                <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
+                                                    <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                                                </div>
+                                            ) : (
+                                                <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                                                    <WifiOff className="h-8 w-8 text-gray-600" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <h3 className="text-lg font-semibold mb-2">
+                                            {socketStatus === 'connected'
+                                                ? 'External Scanner Connected'
+                                                : socketStatus === 'connecting'
+                                                ? 'Connecting to External Scanner...'
+                                                : socketStatus === 'error'
+                                                ? 'Connection Error'
+                                                : 'External Scanner Disconnected'}
+                                        </h3>
+
+                                        <p className="text-muted-foreground mb-4">
+                                            {socketStatus === 'connected'
+                                                ? 'Ready to receive scans from external barcode scanner.'
+                                                : socketStatus === 'connecting'
+                                                ? 'Attempting to establish connection to the external scanner service...'
+                                                : socketStatus === 'error'
+                                                ? 'Failed to connect to the external scanner service. Please check your connection and try again.'
+                                                : 'Waiting for connection to external scanner service.'}
+                                        </p>
+
+                                        {(socketStatus === 'disconnected' || socketStatus === 'error') && (
+                                            <Button
+                                                variant="outline"
+                                                onClick={reconnectSocket}
+                                                className="mt-2"
+                                            >
+                                                <Loader2 className="mr-2 h-4 w-4" /> Reconnect
+                                            </Button>
+                                        )}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </div>
+                    )}
+
+                    {/* Scanner Section - No Class Selected and Not in Casual Mode */}
+                    {!selectedClass?.id && !casualScanMode && (
+                        <div className="space-y-4 pt-4">
                             <Alert variant="default" className="mt-6">
                                 <AlertTriangle className="h-4 w-4" />
-                                <AlertTitle>Select a Class</AlertTitle>
+                                <AlertTitle>Select a Class or Enable Casual Mode</AlertTitle>
                                 <AlertDescription>
                                     {classOptionsLoading ? "Loading class list..." :
                                         classOptionsStatus === 'failed' ? "Could not load class list. Please try again." :
-                                            "Please choose a class or session from the dropdown above to begin scanning attendance."}
+                                            "Please choose a class from the dropdown above to mark attendance, or enable casual scan mode to just view student details without marking attendance."}
                                     {classOptionsStatus === 'failed' &&
                                         <Button variant="link" size="sm" onClick={handleRetryFetchOptions} className="p-0 h-auto text-xs mt-1">Retry loading classes</Button>
                                     }
                                 </AlertDescription>
                             </Alert>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -440,8 +649,9 @@ export default function ScanPage() {
                 studentInfo={studentInfo}
                 isLoading={fetchingStudentInfo}
                 scannedId={lastScannedId}
-                apiStatus={markingLoading ? 'loading' : apiStatus}
+                apiStatus={casualScanMode ? 'success' : (markingLoading ? 'loading' : apiStatus)}
                 apiError={apiError}
+                casualScanMode={casualScanMode}
             />
 
             <style jsx global>{`
