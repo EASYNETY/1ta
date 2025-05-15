@@ -10,4 +10,5 @@ export const AUTH_ACTIONS = {
 	UPDATE_PROFILE_FULFILLED: "auth/updateUserProfile/fulfilled",
 	UPDATE_PROFILE_REJECTED: "auth/updateUserProfile/rejected",
 	TOKEN_REFRESHED: "auth/tokenRefreshed",
+	LOGOUT: "auth/logout",
 };
