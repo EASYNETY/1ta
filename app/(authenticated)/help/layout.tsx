@@ -120,7 +120,7 @@ export default function HelpLayout({ children }: { children: React.ReactNode }) 
     : helpNavigation;
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
+    <div className="flex flex-col lg:flex-row min-h-screen">
       {/* Mobile Navigation Trigger */}
       <div className="lg:hidden p-4 border-b">
         <Sheet>
@@ -280,7 +280,7 @@ export default function HelpLayout({ children }: { children: React.ReactNode }) 
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto sm:px-4">
+      <div className="flex-1 overflow-auto lg:px-4">
         {children}
       </div>
     </div >
