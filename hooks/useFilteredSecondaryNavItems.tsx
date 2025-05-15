@@ -1,6 +1,6 @@
 import { NavItem } from '@/components/layout/auth/app-sidebar';
 import { isStudent, User as UserType } from '@/types/user.types';
-import { BarChart3, Settings } from 'lucide-react';
+import { BarChart3, CircleHelp, Settings } from 'lucide-react';
 import { Lifebuoy, ShoppingCart, User } from 'phosphor-react';
 import { useMemo } from 'react';
 
@@ -13,6 +13,7 @@ export const useFilteredSecondaryNavItems = (user: UserType | null): NavItem[] =
             { title: "Profile", href: "/profile", icon: User, roles: ["admin", "teacher", "student"] },
             { title: "Settings", href: "/settings", icon: Settings, roles: ["admin", "teacher", "student"] },
             { title: "Support", href: "/support", icon: Lifebuoy, roles: ["admin", "teacher", "student"] },
+            { title: "Help", href: "/help", icon: CircleHelp, roles: ["admin", "teacher", "student"] },
         ];
 
         // Add student-specific items, unless it's a corporate student
