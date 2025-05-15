@@ -37,7 +37,8 @@ Key requirements:
 | POST | `/auth/forgot-password` | Password reset request | `{ email }` | `{ success: boolean, message: string }` |
 | POST | `/auth/reset-password` | Reset password with token | `{ token, password }` | `{ success: boolean }` |
 | GET | `/users/me` | Get current user profile | - | `User` object |
-| PUT | `/users/me` | Update user profile | `Partial<User>` | Updated `User` object |
+| PUT | `/users/:id` | Update user profile | `Partial<User>` | Updated `User` object |
+| PUT | `/users/me` | Update current user profile (backward compatibility) | `Partial<User>` | Updated `User` object |
 
 ## Courses
 

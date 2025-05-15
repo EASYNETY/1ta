@@ -27,6 +27,17 @@ This document outlines the API requirements for the 1Tech Academy platform. It d
 | POST | `/auth/logout` | User logout | `{ refreshToken }` | `{ success, message? }` |
 | GET | `/auth/me` | Get current user | - | `{ success, data: { user }, message? }` |
 
+## Users
+
+### Endpoints
+
+| Method | Endpoint | Description | Request Body | Response |
+|--------|----------|-------------|--------------|----------|
+| GET | `/users/:id` | Get user by ID | - | `{ success, data: User, message? }` |
+| PUT | `/users/:id` | Update user profile | `Partial<User>` | `{ success, data: User, message? }` |
+| PUT | `/users/me` | Update current user profile (backward compatibility) | `Partial<User>` | `{ success, data: User, message? }` |
+| DELETE | `/users/:id` | Delete user | - | `{ success, id: string, message? }` |
+
 ### Authentication Response Format
 
 ```typescript
