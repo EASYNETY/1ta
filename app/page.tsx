@@ -28,7 +28,7 @@ import { useEffect } from "react"
 import { fetchCourses } from "@/features/public-course/store/public-course-slice"
 import { useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
-import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo } from "phosphor-react"
+import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo, YoutubeLogo } from "phosphor-react"
 import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
 import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
 import { CourseCards } from "@/components/landing/CourseOfferingsDisplay"
@@ -226,23 +226,7 @@ export default function LandingPage() {
         </section>
 
         <SectionDivider /> */}
-
-        {/* Courses Section */}
-        <section id="courses" className="py-16 relative overflow-hidden">
-          <AbstractBackground className="opacity-90 dark:opacity-80" />
-
-          <div className="px-4 md:px-6 relative">
-            <SectionHeader
-              title="Explore Our Courses"
-              description="Unlock your potential with industry-leading tech courses taught by experts."
-            />
-            <CoursesSection />
-          </div>
-        </section>
-
-        <SectionDivider />
-
-        {/* === UPDATED Why Choose Us Section === */}
+{/* === UPDATED Why Choose Us Section === */}
         <section id="why_us" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-60 dark:opacity-50" />
           <div className="px-4 md:px-6 relative">
@@ -275,74 +259,26 @@ export default function LandingPage() {
             <StandOutSlideshowSimple />
           </div>
         </section>
-        {/* === END UPDATED Why Choose Us Section === */}
+            {/* === END UPDATED Why Choose Us Section === */}
 
         <SectionDivider />
 
-        {/* Contact Us / Inquiry CTA */}
-        <section id="contact-us" className="py-16 relative overflow-hidden">
+        
+        {/* Courses Section */}
+        <section id="courses" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">
-            <div className="mx-auto grid md:grid-cols-2 gap-10 items-start">
-              {/* Left: Header + Info */}
-              <div className="space-y-8">
-                {/* Section Heading */}
-                <SectionHeader
-                  title="Ready to Get in Touch?"
-                  description="Fill out the form or reach out directly through any of the following methods."
-                  className="text-center md:text-left"
-                />
-
-                {/* Contact Info */}
-                <div className="space-y-3 text-muted-foreground w-full flex flex-col items-center md:items-start text-center md:text-left">
-                  <div className="flex items-center md: items-start gap-2">
-                    <MapPin size={20} />
-                    <span><strong>Address:</strong> 17 Aje Street, Sabo Yaba Lagos.</span>
-                  </div>
-                  <div className="flex items-center md: items-start gap-2">
-                    <Phone size={20} />
-                    <span>
-                      <strong>Phone:</strong>{" "}
-                      <a href="tel:+2347074693513">
-                        +2347074693513
-                      </a>
-                    </span>
-                  </div>
-                  <div className="flex items-center md: items-start gap-2">
-                    <Envelope size={20} />
-                    <span>
-                      <strong>Email:</strong>{" "}
-                      <a href="mailto:info@1techacademy.com">
-                        info@1techacademy.com
-                      </a>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Social Links */}
-                <div className="flex items-center justify-center md:justify-start w-full space-x-4 pt-4">
-                  <a href="https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr" aria-label="Facebook" className="hover:text-primary transition-colors">
-                    <FacebookLogo size={24} weight="bold" />
-                  </a>
-                  <a href="https://www.linkedin.com/company/1tech-academy/?viewAsMember=true" aria-label="LinkedIn" className="hover:text-primary transition-colors">
-                    <LinkedinIcon />
-                  </a>
-                  <a href="https://www.instagram.com/1tech_academy?igsh=ZmptMDJyemtjZ2lm&utm_source=qr" aria-label="Instagram" className="hover:text-primary transition-colors">
-                    <InstagramIcon />
-                  </a>
-                  <a href="https://www.tiktok.com/@1tech.academy?_t=ZM-8vuaPPKBpLR&_r=1" aria-label="Tiktok" className="hover:text-primary transition-colors">
-                    <TiktokLogo size={24} weight="bold" />
-                  </a>
-                </div>
-              </div>
-              {/* Right: Form */}
-              <DyraneCard>
-                <DemoRequestForm />
-              </DyraneCard>
-            </div>
+            <SectionHeader
+              title="Explore Our Courses"
+              description="Unlock your potential with industry-leading tech courses taught by experts."
+            />
+            <CoursesSection />
           </div>
         </section>
+    
+
+
 
         <SectionDivider />
 
@@ -418,6 +354,77 @@ export default function LandingPage() {
             />
             <NodeTestimonialSection />
             <TestimonialCarousel />
+          </div>
+        </section>
+
+                
+        <SectionDivider />
+
+        {/* Contact Us / Inquiry CTA */}
+        <section id="contact-us" className="py-16 relative overflow-hidden">
+          <AbstractBackground className="opacity-90 dark:opacity-80" />
+
+          <div className="px-4 md:px-6 relative">
+            <div className="mx-auto grid md:grid-cols-2 gap-10 items-start">
+              {/* Left: Header + Info */}
+              <div className="space-y-8">
+                {/* Section Heading */}
+                <SectionHeader
+                  title="Ready to Get in Touch?"
+                  description="Fill out the form or reach out directly through any of the following methods."
+                  className="text-center md:text-left"
+                />
+
+                {/* Contact Info */}
+                <div className="space-y-3 text-muted-foreground w-full flex flex-col items-center md:items-start text-center md:text-left">
+                  <div className="flex items-center md: items-start gap-2">
+                    <MapPin size={20} />
+                    <span><strong>Address:</strong> 17 Aje Street, Sabo Yaba Lagos.</span>
+                  </div>
+                  <div className="flex items-center md: items-start gap-2">
+                    <Phone size={20} />
+                    <span>
+                      <strong>Phone:</strong>{" "}
+                      <a href="tel:+2347074693513">
+                        +2347074693513
+                      </a>
+                    </span>
+                  </div>
+                  <div className="flex items-center md: items-start gap-2">
+                    <Envelope size={20} />
+                    <span>
+                      <strong>Email:</strong>{" "}
+                      <a href="mailto:info@1techacademy.com">
+                        info@1techacademy.com
+                      </a>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                <div className="flex items-center justify-center md:justify-start w-full space-x-4 pt-4">
+                  <a href="https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr" aria-label="Facebook" className="hover:text-primary transition-colors">
+                    <FacebookLogo size={24} weight="bold" />
+                  </a>
+                  <a href="https://www.linkedin.com/company/1tech-academy/?viewAsMember=true" aria-label="LinkedIn" className="hover:text-primary transition-colors">
+                    <LinkedinIcon />
+                  </a>
+                  <a href="https://www.instagram.com/1tech_academy?igsh=ZmptMDJyemtjZ2lm&utm_source=qr" aria-label="Instagram" className="hover:text-primary transition-colors">
+                    <InstagramIcon />
+                  </a>
+                  <a href="https://www.tiktok.com/@1tech.academy?_t=ZM-8vuaPPKBpLR&_r=1" aria-label="Tiktok" className="hover:text-primary transition-colors">
+                    <TiktokLogo size={24} weight="bold" />
+                  </a>
+                  <a href="https://www.youtube.com/@1techAcademy" aria-label="YouTube" className="hover:text-primary transition-colors">
+                    <YoutubeLogo size={24} weight="bold" />
+                  </a>
+                </div>
+              </div>
+              {/* Right: Form */}
+              <DyraneCard>
+                <DemoRequestForm />
+              </DyraneCard>
+            </div>
           </div>
         </section>
       </main>
