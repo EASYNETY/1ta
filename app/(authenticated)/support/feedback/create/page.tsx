@@ -15,7 +15,7 @@ import { Select } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { User } from '@/types/user.types'
 import { PageHeader } from '@/components/layout/auth/page-header'
@@ -80,82 +80,84 @@ export default function FeedbackCreatePage() {
         subheading="We value your feedback. Please share your thoughts with us."
       />
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="rating"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rating</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="rating"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Rating</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a rating" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="5">⭐⭐⭐⭐⭐ Excellent</SelectItem>
+                    <SelectItem value="4">⭐⭐⭐⭐ Good</SelectItem>
+                    <SelectItem value="3">⭐⭐⭐ Average</SelectItem>
+                    <SelectItem value="2">⭐⭐ Poor</SelectItem>
+                    <SelectItem value="1">⭐ Very Poor</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Feedback Type</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select feedback type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {Object.values(FeedbackType).map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="comment"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Comment</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a rating" />
-                  </SelectTrigger>
+                  <Textarea {...field} placeholder="Your honest feedback..." rows={5} />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="5">⭐⭐⭐⭐⭐ Excellent</SelectItem>
-                  <SelectItem value="4">⭐⭐⭐⭐ Good</SelectItem>
-                  <SelectItem value="3">⭐⭐⭐ Average</SelectItem>
-                  <SelectItem value="2">⭐⭐ Poor</SelectItem>
-                  <SelectItem value="1">⭐ Very Poor</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Feedback Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select feedback type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.values(FeedbackType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="comment"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Comment</FormLabel>
-              <FormControl>
-                <Textarea {...field} placeholder="Your honest feedback..." rows={5} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" disabled={status === 'loading'} className="w-full">
-          {status === 'loading' ? (
-            <>
-              <Loader2 className="animate-spin h-4 w-4 mr-2" />
-              Submitting...
-            </>
-          ) : (
-            'Submit Feedback'
-          )}
-        </Button>
-      </form>
+          <Button type="submit" disabled={status === 'loading'} className="w-full">
+            {status === 'loading' ? (
+              <>
+                <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Feedback'
+            )}
+          </Button>
+        </form>
+      </Form>
     </div>
   )
 }
