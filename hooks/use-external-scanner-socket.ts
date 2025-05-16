@@ -29,6 +29,16 @@ export function useExternalScannerSocket({
     // Default to environment variable or fallback URL
     const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
 
+    // Log the WebSocket URL when the hook is initialized (helpful for debugging)
+    useEffect(() => {
+        console.log('WebSocket server URL configured as:', wsServerUrl);
+
+        // Check if the URL is valid
+        if (!wsServerUrl.startsWith('ws://') && !wsServerUrl.startsWith('wss://')) {
+            console.warn('WebSocket URL may be invalid. It should start with ws:// or wss://');
+        }
+    }, [wsServerUrl]);
+
     // Track connection status
     const [status, setStatus] = useState<WebSocketStatus>('disconnected');
 
@@ -91,7 +101,34 @@ export function useExternalScannerSocket({
 
             // Connection closed
             socket.onclose = (event) => {
-                console.log('WebSocket connection closed:', event.code, event.reason);
+                // Log closure details with more context
+                const closeCodes = {
+                    1000: 'Normal Closure',
+                    1001: 'Going Away',
+                    1002: 'Protocol Error',
+                    1003: 'Unsupported Data',
+                    1005: 'No Status Received',
+                    1006: 'Abnormal Closure',
+                    1007: 'Invalid frame payload data',
+                    1008: 'Policy Violation',
+                    1009: 'Message too big',
+                    1010: 'Missing Extension',
+                    1011: 'Internal Error',
+                    1012: 'Service Restart',
+                    1013: 'Try Again Later',
+                    1014: 'Bad Gateway',
+                    1015: 'TLS Handshake'
+                };
+
+                const codeDescription = closeCodes[event.code as keyof typeof closeCodes] || 'Unknown';
+                console.log(`WebSocket connection closed: ${event.code} (${codeDescription})${event.reason ? `, Reason: ${event.reason}` : ''}`);
+
+                // If it's an abnormal closure (common when server is not available)
+                if (event.code === 1006) {
+                    console.log('This usually indicates the server is not available or not accepting WebSocket connections.');
+                    console.log('Check if the WebSocket server is running and accessible at:', wsServerUrl);
+                }
+
                 setStatus('disconnected');
 
                 // Attempt to reconnect if enabled and not a normal closure
@@ -108,14 +145,27 @@ export function useExternalScannerSocket({
                         }, delay);
                     } else {
                         console.error('Maximum reconnection attempts reached');
+                        console.log('You may need to check if the WebSocket server is running or if there are network issues.');
                     }
                 }
             };
 
             // Connection error
-            socket.onerror = (error) => {
-                console.error('WebSocket connection error:', error);
+            socket.onerror = () => {
+                // The error event doesn't contain detailed information in the browser
+                // Just log that an error occurred and set the status
+                console.error('WebSocket connection error occurred');
+                console.log('WebSocket server URL:', wsServerUrl);
+                console.log('Connection parameters:', {
+                    userId: userId || 'not provided',
+                    classId: classId || 'not provided',
+                    casualMode: casualMode || false
+                });
+
                 setStatus('error');
+
+                // The actual error handling will be done in the onclose handler
+                // which will be called automatically after an error
             };
 
             // Listen for messages
@@ -133,7 +183,19 @@ export function useExternalScannerSocket({
                 }
             };
         } catch (error) {
-            console.error('Error creating WebSocket connection:', error);
+            console.error('Error creating WebSocket connection');
+            console.log('WebSocket server URL:', wsServerUrl);
+            console.log('Connection parameters:', {
+                userId: userId || 'not provided',
+                classId: classId || 'not provided',
+                casualMode: casualMode || false
+            });
+
+            // Log additional details if available
+            if (error instanceof Error) {
+                console.error('Error details:', error.message);
+            }
+
             setStatus('error');
         }
     }, [wsServerUrl, isEnabled, userId, classId, casualMode, onBarcodeReceived, cleanupSocket]);
