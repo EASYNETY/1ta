@@ -277,7 +277,8 @@ export default function ScanPage() {
         onBarcodeReceived: handleBarcodeDetected,
         isEnabled: scannerMode === 'external' && isScannerActive,
         classId: selectedClass?.id,
-        userId: loggedInUser?.id
+        userId: loggedInUser?.id,
+        casualMode: casualScanMode
     });
 
 
@@ -386,7 +387,7 @@ export default function ScanPage() {
         }
 
         // External scanner WebSocket status badges
-        if (scannerMode === 'external' && selectedClass?.id) {
+        if (scannerMode === 'external' && (selectedClass?.id || casualScanMode)) {
             if (socketStatus === 'connecting') {
                 return <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Connecting to external scanner...</Badge>;
             }
@@ -410,7 +411,7 @@ export default function ScanPage() {
         }
 
         // Camera scanner status badges
-        if (scannerMode === 'camera' && selectedClass?.id) {
+        if (scannerMode === 'camera' && (selectedClass?.id || casualScanMode)) {
             if (isScannerActive) {
                 if (apiStatus === 'success' && lastScannedId) {
                     return (
