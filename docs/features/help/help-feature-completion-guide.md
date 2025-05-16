@@ -51,12 +51,12 @@ Based on the navigation structure defined in `app/(authenticated)/help/layout.ts
 - ✅ Tracking Your Progress (`/help/courses/progress`) - Implemented
 
 ### Attendance
-- ❌ Marking Attendance (`/help/attendance/marking`) - Missing
+- ✅ Marking Attendance (`/help/attendance/marking`) - Implemented
 - ✅ Using the Barcode Scanner (`/help/attendance/scanning`) - Implemented
-- ❌ Attendance Reports (`/help/attendance/reports`) - Missing
+- ✅ Attendance Reports (`/help/attendance/reports`) - Implemented
 
 ### Timetable
-- ❌ Viewing Your Schedule (`/help/timetable/viewing`) - Missing
+- ✅ Viewing Your Schedule (`/help/timetable/viewing`) - Implemented
 - ❌ Event Types (`/help/timetable/events`) - Missing
 - ❌ Schedule Notifications (`/help/timetable/notifications`) - Missing
 
@@ -142,14 +142,14 @@ Implement the missing pages in the following order:
    - ✅ Accessing Course Materials - Implemented
    - ✅ Tracking Your Progress - Implemented
 
-3. Complete the "Attendance" section
-   - Marking Attendance
-   - Attendance Reports
+3. ✅ Complete the "Attendance" section - COMPLETED
+   - ✅ Marking Attendance - Implemented
+   - ✅ Attendance Reports - Implemented
 
-4. Implement the "Timetable" section
-   - Viewing Your Schedule
-   - Event Types
-   - Schedule Notifications
+4. ⏳ Implement the "Timetable" section - IN PROGRESS
+   - ✅ Viewing Your Schedule - Implemented
+   - ❌ Event Types - Not implemented
+   - ❌ Schedule Notifications - Not implemented
 
 5. Implement the "Discussions" section
    - Using Chatrooms
@@ -294,6 +294,18 @@ Several help pages have been implemented as examples:
 4. **Tracking Your Progress**
    - Path: `app/(authenticated)/help/courses/progress/page.tsx`
    - Features: Progress tracking tools and goal setting
+
+5. **Marking Attendance**
+   - Path: `app/(authenticated)/help/attendance/marking/page.tsx`
+   - Features: Different methods for marking attendance with role-specific guidance
+
+6. **Attendance Reports**
+   - Path: `app/(authenticated)/help/attendance/reports/page.tsx`
+   - Features: Generating and analyzing attendance data
+
+7. **Viewing Your Schedule**
+   - Path: `app/(authenticated)/help/timetable/viewing/page.tsx`
+   - Features: Different ways to view and customize your timetable
 
 These pages demonstrate:
 - Proper use of the `ArticleHeader` component
