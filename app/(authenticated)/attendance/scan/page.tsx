@@ -275,10 +275,7 @@ export default function ScanPage() {
     // External Scanner WebSocket Integration
     const { status: socketStatus, reconnect: reconnectSocket } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
-        isEnabled: scannerMode === 'external' && isScannerActive,
-        classId: selectedClass?.id,
-        userId: loggedInUser?.id,
-        casualMode: casualScanMode
+        isEnabled: scannerMode === 'external' && isScannerActive
     });
 
 

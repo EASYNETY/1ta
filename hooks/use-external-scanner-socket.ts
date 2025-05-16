@@ -9,22 +9,17 @@ export type WebSocketStatus = 'disconnected' | 'connecting' | 'connected' | 'err
 interface UseExternalScannerSocketProps {
     onBarcodeReceived: (barcode: string) => void;
     isEnabled: boolean;
-    classId?: string;
-    userId?: string;
     serverUrl?: string;
-    casualMode?: boolean; // Flag to indicate casual scan mode (no attendance marking)
 }
 
 /**
  * Custom hook for connecting to an external barcode scanner via WebSocket
+ * This simplified version just connects to the socket without passing any parameters
  */
 export function useExternalScannerSocket({
     onBarcodeReceived,
     isEnabled,
-    classId,
-    userId,
-    serverUrl,
-    casualMode = false
+    serverUrl
 }: UseExternalScannerSocketProps) {
     // Default to environment variable or fallback URL
     const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://34.249.241.206:5000';
@@ -74,22 +69,15 @@ export function useExternalScannerSocket({
         // Clean up any existing connection first
         cleanupSocket();
 
-        // In casual mode, we only need userId, not classId
-        if (!isEnabled || !userId || (!casualMode && !classId)) {
+        if (!isEnabled) {
             return;
         }
 
         try {
             setStatus('connecting');
 
-            // Create WebSocket connection with query parameters
-            const queryParams = new URLSearchParams({
-                userId,
-                ...(classId ? { classId } : {}),
-                // No need to pass casualMode to backend as it's handled in frontend
-            }).toString();
-
-            const socket = new WebSocket(`${wsServerUrl}?${queryParams}`);
+            // Create WebSocket connection without any parameters
+            const socket = new WebSocket(wsServerUrl);
             socketRef.current = socket;
 
             // Connection opened
@@ -156,11 +144,6 @@ export function useExternalScannerSocket({
                 // Just log that an error occurred and set the status
                 console.error('WebSocket connection error occurred');
                 console.log('WebSocket server URL:', wsServerUrl);
-                console.log('Connection parameters:', {
-                    userId: userId || 'not provided',
-                    classId: classId || 'not provided'
-                    // casualMode is only used in frontend logic, not sent to backend
-                });
 
                 setStatus('error');
 
@@ -185,11 +168,6 @@ export function useExternalScannerSocket({
         } catch (error) {
             console.error('Error creating WebSocket connection');
             console.log('WebSocket server URL:', wsServerUrl);
-            console.log('Connection parameters:', {
-                userId: userId || 'not provided',
-                classId: classId || 'not provided'
-                // casualMode is only used in frontend logic, not sent to backend
-            });
 
             // Log additional details if available
             if (error instanceof Error) {
@@ -198,12 +176,11 @@ export function useExternalScannerSocket({
 
             setStatus('error');
         }
-    }, [wsServerUrl, isEnabled, userId, classId, casualMode, onBarcodeReceived, cleanupSocket]);
+    }, [wsServerUrl, isEnabled, onBarcodeReceived, cleanupSocket]);
 
     // Connect/disconnect based on isEnabled prop
     useEffect(() => {
-        // In casual mode, we only need userId, not classId
-        if (isEnabled && userId && (casualMode || classId)) {
+        if (isEnabled) {
             connectWebSocket();
         } else {
             cleanupSocket();
@@ -211,7 +188,7 @@ export function useExternalScannerSocket({
 
         // Cleanup on unmount
         return cleanupSocket;
-    }, [isEnabled, userId, classId, casualMode, connectWebSocket, cleanupSocket]);
+    }, [isEnabled, connectWebSocket, cleanupSocket]);
 
     // Return the connection status and a manual reconnect function
     return {
