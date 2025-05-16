@@ -1225,9 +1225,10 @@ export async function handleMockRequest<T>(
 		}
 
 		try {
+			// Get the mock response which now returns ClassOptionsResponse
 			const response = await getMockCourseClassOptions();
 			console.log(
-				"MOCK API: Successfully fetched course class options:",
+				"MOCK API: Successfully fetched class options response:",
 				response
 			);
 
@@ -1243,7 +1244,17 @@ export async function handleMockRequest<T>(
 
 			// For 404 errors, cache an empty response to prevent repeated calls
 			if (error.status === 404 || error.message?.includes("not found")) {
-				const emptyResponse = { success: false, data: [], message: "Resource not found" };
+				const emptyResponse = {
+					success: false,
+					data: {
+						classTypes: [],
+						locations: [],
+						instructors: [],
+						courses: [],
+						timeSlots: []
+					},
+					message: "Resource not found"
+				};
 				apiCache.set("GET", endpoint, emptyResponse, 404);
 				return emptyResponse as unknown as T;
 			}

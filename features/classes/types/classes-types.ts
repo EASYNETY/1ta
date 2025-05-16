@@ -32,8 +32,36 @@ export interface ClassesState {
 	} | null;
 }
 
+// Simple option type for dropdown selection
 export type CourseClassOption = {
-	id: string; // This ID should likely be a unique identifier for the class *instance* or *session* 	// courseId?: string;
+	id: string;
 	courseName: string;
 	sessionName: string; // e.g., "Morning", "Afternoon", "Batch A"
+};
+
+// Full class options response from backend
+export interface ClassOptionsResponse {
+	success: boolean;
+	data: {
+		classTypes: Array<{
+			id: string;
+			name: string;
+		}>;
+		locations: Array<{
+			id: string;
+			name: string;
+		}>;
+		instructors: Array<{
+			id: string;
+			name: string;
+		}>;
+		courses: Array<{
+			id: string;
+			name: string;
+		}>;
+		timeSlots: Array<{
+			id: string;
+			name: string;
+		}>;
+	};
 };

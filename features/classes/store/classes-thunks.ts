@@ -111,9 +111,36 @@ export const fetchCourseClassOptionsForScanner = createAsyncThunk<
 >("classes/fetchCourseClassOptions", async (_, { rejectWithValue }) => {
 	try {
 		console.log("Dispatching fetchCourseClassOptionsForScanner thunk");
-		const response = await get<CourseClassOption[]>("/class-sessions/options");
-		console.log("Received course class options:", response);
-		return response;
+
+		// Updated to handle the new response format
+		const response = await get<ClassOptionsResponse>("/class-sessions/options");
+		console.log("Received class options response:", response);
+
+		// Check if response has the expected structure
+		if (!response.success || !response.data) {
+			throw new Error("Invalid response format from class options API");
+		}
+
+		// Transform the response into CourseClassOption[] format for backward compatibility
+		// This combines courses and timeSlots to create options for the dropdown
+		const transformedOptions: CourseClassOption[] = [];
+
+		// Extract courses and timeSlots from the response
+		const { courses, timeSlots } = response.data;
+
+		// Create combinations of courses and timeSlots
+		courses.forEach(course => {
+			timeSlots.forEach(timeSlot => {
+				transformedOptions.push({
+					id: `${course.id}_${timeSlot.id}`, // Create a combined ID
+					courseName: course.name,
+					sessionName: timeSlot.name
+				});
+			});
+		});
+
+		console.log("Transformed course class options:", transformedOptions);
+		return transformedOptions;
 	} catch (e: any) {
 		console.error("Error fetching course class options:", e);
 		const errorMessage =
