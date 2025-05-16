@@ -2,7 +2,7 @@
 	"name": "1Tech Academy",
 	"short_name": "1Tech Academy",
 	"description": "A modern platform for online learning and course management",
-	"start_url": "/",
+	"start_url": "/dashboard",
 	"display": "standalone",
 	"background_color": "#000000",
 	"theme_color": "#000000",
