@@ -158,8 +158,8 @@ export function useExternalScannerSocket({
                 console.log('WebSocket server URL:', wsServerUrl);
                 console.log('Connection parameters:', {
                     userId: userId || 'not provided',
-                    classId: classId || 'not provided',
-                    casualMode: casualMode || false
+                    classId: classId || 'not provided'
+                    // casualMode is only used in frontend logic, not sent to backend
                 });
 
                 setStatus('error');
@@ -187,8 +187,8 @@ export function useExternalScannerSocket({
             console.log('WebSocket server URL:', wsServerUrl);
             console.log('Connection parameters:', {
                 userId: userId || 'not provided',
-                classId: classId || 'not provided',
-                casualMode: casualMode || false
+                classId: classId || 'not provided'
+                // casualMode is only used in frontend logic, not sent to backend
             });
 
             // Log additional details if available
