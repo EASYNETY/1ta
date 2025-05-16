@@ -7,7 +7,7 @@ import { CircleHelp, ChevronRight, BookOpen, GraduationCap, Users, Calendar, Che
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { HelpSearch } from '@/components/help';
@@ -178,18 +178,20 @@ export default function HelpLayout({ children }: { children: React.ReactNode }) 
                     {isSectionOpen(section.id) && (
                       <div className="pl-6 space-y-1">
                         {section.items.map((item, index) => (
-                          <Link
-                            key={index}
-                            href={item.href}
-                            className={cn(
-                              "block text-sm py-1 px-2 rounded-md",
-                              pathname === item.href
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:text-foreground"
-                            )}
-                          >
-                            {item.title}
-                          </Link>
+                          <SheetClose asChild key={item.href}>
+                            <Link
+                              key={index}
+                              href={item.href}
+                              className={cn(
+                                "block text-sm py-1 px-2 rounded-md",
+                                pathname === item.href
+                                  ? "bg-primary/10 text-primary font-medium"
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              {item.title}
+                            </Link>
+                          </SheetClose>
                         ))}
                       </div>
                     )}
