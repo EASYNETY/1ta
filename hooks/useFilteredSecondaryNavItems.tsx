@@ -12,8 +12,8 @@ export const useFilteredSecondaryNavItems = (user: UserType | null): NavItem[] =
         const defaultSecondaryNavItems: NavItem[] = [
             { title: "Profile", href: "/profile", icon: User, roles: ["admin", "teacher", "student"] },
             { title: "Settings", href: "/settings", icon: Settings, roles: ["admin", "teacher", "student"] },
-            { title: "Support", href: "/support", icon: Lifebuoy, roles: ["admin", "teacher", "student"] },
             { title: "Help", href: "/help", icon: CircleHelp, roles: ["admin", "teacher", "student"] },
+            { title: "Support", href: "/support", icon: Lifebuoy, roles: ["admin", "teacher", "student"] },
         ];
 
         // Add student-specific items, unless it's a corporate student
