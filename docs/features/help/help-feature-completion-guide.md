@@ -61,9 +61,9 @@ Based on the navigation structure defined in `app/(authenticated)/help/layout.ts
 - ✅ Schedule Notifications (`/help/timetable/notifications`) - Implemented
 
 ### Discussions
-- ❌ Using Chatrooms (`/help/discussions/chatrooms`) - Missing
-- ❌ Direct Messaging (`/help/discussions/messaging`) - Missing
-- ❌ Communication Guidelines (`/help/discussions/etiquette`) - Missing
+- ✅ Using Chatrooms (`/help/discussions/chatrooms`) - Implemented
+- ✅ Direct Messaging (`/help/discussions/messaging`) - Implemented
+- ✅ Communication Guidelines (`/help/discussions/etiquette`) - Implemented
 
 ### Payments
 - ❌ Payment Methods (`/help/payments/methods`) - Missing
@@ -151,10 +151,10 @@ Implement the missing pages in the following order:
    - ✅ Event Types - Implemented
    - ✅ Schedule Notifications - Implemented
 
-5. Implement the "Discussions" section
-   - Using Chatrooms
-   - Direct Messaging
-   - Communication Guidelines
+5. ✅ Implement the "Discussions" section - COMPLETED
+   - ✅ Using Chatrooms - Implemented
+   - ✅ Direct Messaging - Implemented
+   - ✅ Communication Guidelines - Implemented
 
 6. Implement the "Payments" section
    - Payment Methods
@@ -314,6 +314,18 @@ Several help pages have been implemented as examples:
 9. **Schedule Notifications**
    - Path: `app/(authenticated)/help/timetable/notifications/page.tsx`
    - Features: Setting up reminders and alerts for scheduled events
+
+10. **Using Chatrooms**
+   - Path: `app/(authenticated)/help/discussions/chatrooms/page.tsx`
+   - Features: Participating in group discussions and collaboration
+
+11. **Direct Messaging**
+   - Path: `app/(authenticated)/help/discussions/messaging/page.tsx`
+   - Features: Sending private messages to individuals
+
+12. **Communication Guidelines**
+   - Path: `app/(authenticated)/help/discussions/etiquette/page.tsx`
+   - Features: Best practices for respectful and effective communication
 
 These pages demonstrate:
 - Proper use of the `ArticleHeader` component
