@@ -57,8 +57,8 @@ Based on the navigation structure defined in `app/(authenticated)/help/layout.ts
 
 ### Timetable
 - ✅ Viewing Your Schedule (`/help/timetable/viewing`) - Implemented
-- ❌ Event Types (`/help/timetable/events`) - Missing
-- ❌ Schedule Notifications (`/help/timetable/notifications`) - Missing
+- ✅ Event Types (`/help/timetable/events`) - Implemented
+- ✅ Schedule Notifications (`/help/timetable/notifications`) - Implemented
 
 ### Discussions
 - ❌ Using Chatrooms (`/help/discussions/chatrooms`) - Missing
@@ -146,10 +146,10 @@ Implement the missing pages in the following order:
    - ✅ Marking Attendance - Implemented
    - ✅ Attendance Reports - Implemented
 
-4. ⏳ Implement the "Timetable" section - IN PROGRESS
+4. ✅ Implement the "Timetable" section - COMPLETED
    - ✅ Viewing Your Schedule - Implemented
-   - ❌ Event Types - Not implemented
-   - ❌ Schedule Notifications - Not implemented
+   - ✅ Event Types - Implemented
+   - ✅ Schedule Notifications - Implemented
 
 5. Implement the "Discussions" section
    - Using Chatrooms
@@ -306,6 +306,14 @@ Several help pages have been implemented as examples:
 7. **Viewing Your Schedule**
    - Path: `app/(authenticated)/help/timetable/viewing/page.tsx`
    - Features: Different ways to view and customize your timetable
+
+8. **Event Types**
+   - Path: `app/(authenticated)/help/timetable/events/page.tsx`
+   - Features: Understanding different event categories and their properties
+
+9. **Schedule Notifications**
+   - Path: `app/(authenticated)/help/timetable/notifications/page.tsx`
+   - Features: Setting up reminders and alerts for scheduled events
 
 These pages demonstrate:
 - Proper use of the `ArticleHeader` component
