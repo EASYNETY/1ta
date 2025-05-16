@@ -27,7 +27,7 @@ export function useExternalScannerSocket({
     casualMode = false
 }: UseExternalScannerSocketProps) {
     // Default to environment variable or fallback URL
-    const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
+    const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://34.249.241.206:5000';
 
     // Log the WebSocket URL when the hook is initialized (helpful for debugging)
     useEffect(() => {
