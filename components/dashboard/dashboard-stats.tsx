@@ -2,8 +2,7 @@
 
 import React, { useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fetchAssignments } from '@/features/assignments/store/assignment-slice'
 import { fetchGrades } from '@/features/grades/store/grade-slice'
 import { fetchSchedule } from '@/features/schedule/store/schedule-slice'
@@ -53,27 +52,39 @@ const StatCard = ({ title, value, description, icon, loading = false, className 
 
 export function DashboardStats() {
   const dispatch = useAppDispatch()
+  const { user } = useAppSelector(state => state.auth)
+  const userId = user?.id || ''
 
-  // Selectors for different features
-  const { assignments = [], status: assignmentsStatus } = useAppSelector(state => state.assignments || { assignments: [], status: 'idle' })
-  const { grades = [], status: gradesStatus } = useAppSelector(state => state.grades || { grades: [], status: 'idle' })
-  const { events = [], status: scheduleStatus } = useAppSelector(state => state.schedule || { events: [], status: 'idle' })
-  const { myPayments = [], status: paymentsStatus } = useAppSelector(state => state.paymentHistory || { myPayments: [], status: 'idle' })
-  const { enrolledClasses = [], status: classesStatus } = useAppSelector(state => state.classes || { enrolledClasses: [], status: 'idle' })
-  const { courses = [], status: coursesStatus } = useAppSelector(state => state.auth_courses || { courses: [], status: 'idle' })
-  const { unreadCount = 0, status: notificationsStatus } = useAppSelector(state => state.notifications || { unreadCount: 0, status: 'idle' })
+  // Selectors for different features with proper fallbacks
+  const { assignments = [], status: assignmentsStatus } = useAppSelector(state => state.assignments) || { assignments: [], status: 'idle' }
+  const { studentGradeItems = [], status: gradesStatus } = useAppSelector(state => state.grades) || { studentGradeItems: [], status: 'idle' }
+  const { events = [], status: scheduleStatus } = useAppSelector(state => state.schedule) || { events: [], status: 'idle' }
+  const { myPayments = [], status: paymentsStatus } = useAppSelector(state => state.paymentHistory) || { myPayments: [], status: 'idle' }
+  const { myClasses: enrolledClasses = [], status: classesStatus } = useAppSelector(state => state.classes) || { myClasses: [], status: 'idle' }
+  const { courses = [], status: coursesStatus } = useAppSelector(state => state.auth_courses) || { courses: [], status: 'idle' }
+  const { unreadCount = 0, status: notificationsStatus } = useAppSelector(state => state.notifications) || { unreadCount: 0, status: 'idle' }
 
-  // Fetch data on component mount
+  // Fetch data on component mount - only if user is logged in
   useEffect(() => {
-    if (assignmentsStatus === 'idle') dispatch(fetchAssignments())
+    if (!userId) return // Don't fetch data if user is not logged in
+
+    const today = new Date()
+    const weekLater = new Date(today)
+    weekLater.setDate(today.getDate() + 7)
+
+    const startDate = today.toISOString().split('T')[0]
+    const endDate = weekLater.toISOString().split('T')[0]
+
+    if (assignmentsStatus === 'idle') dispatch(fetchAssignments({ role: 'student', userId }))
     if (gradesStatus === 'idle') dispatch(fetchGrades())
-    if (scheduleStatus === 'idle') dispatch(fetchSchedule({ role: 'student' }))
-    if (paymentsStatus === 'idle') dispatch(fetchMyPaymentHistory({ userId: 'student_123' }))
-    if (classesStatus === 'idle') dispatch(fetchMyEnrolledClasses('student_123'))
+    if (scheduleStatus === 'idle') dispatch(fetchSchedule({ role: 'student', userId, startDate, endDate }))
+    if (paymentsStatus === 'idle') dispatch(fetchMyPaymentHistory({ userId }))
+    if (classesStatus === 'idle') dispatch(fetchMyEnrolledClasses(userId))
     if (coursesStatus === 'idle') dispatch(fetchAuthCourses())
-    if (notificationsStatus === 'idle') dispatch(fetchNotifications({}))
+    if (notificationsStatus === 'idle') dispatch(fetchNotifications({ page: 1, limit: 10 }))
   }, [
     dispatch,
+    userId,
     assignmentsStatus,
     gradesStatus,
     scheduleStatus,
@@ -83,13 +94,50 @@ export function DashboardStats() {
     notificationsStatus
   ])
 
-  // Calculate stats
-  const pendingAssignments = safeFilter(assignments, a => a?.status === 'pending').length
-  const upcomingEvents = safeFilter(events, e => e?.startTime && new Date(e.startTime) > new Date()).length
-  const completedCourses = safeFilter(courses, c => c?.enrollmentStatus === 'completed').length
-  const inProgressCourses = safeFilter(courses, c => c?.enrollmentStatus === 'in-progress').length
-  const totalClasses = safeLength(enrolledClasses)
-  const totalPayments = safeLength(myPayments)
+  // Calculate stats with proper type checking
+  // For assignments, we need to check the submission status, not the assignment status
+  // We need to cast assignments to StudentAssignmentView[] since that's what we're actually getting
+  const studentAssignments = assignments as any[];
+  const pendingAssignments = safeFilter(studentAssignments, a => {
+    // Check if it has a submission property with pending status
+    if (a?.submission?.status === 'pending') return true;
+    // Or check if it has a displayStatus property with pending value
+    if (a?.displayStatus === 'pending') return true;
+    return false;
+  }).length;
+
+  // For events, check if startTime is in the future
+  const upcomingEvents = safeFilter(events, e => {
+    if (!e?.startTime) return false;
+    return new Date(e.startTime) > new Date();
+  }).length;
+
+  // For courses, check the correct enrollment status values
+  const completedCourses = safeFilter(courses, c => {
+    if (c?.enrollmentStatus !== 'enrolled') return false;
+    return c.progress === 100;
+  }).length;
+
+  const inProgressCourses = safeFilter(courses, c => {
+    if (c?.enrollmentStatus !== 'enrolled') return false;
+    return (c.progress ?? 0) < 100;
+  }).length;
+
+  const totalClasses = safeLength(enrolledClasses);
+  const totalPayments = safeLength(myPayments);
+
+  // Calculate average grade percentage
+  const gradeItems = safeArray(studentGradeItems);
+  // StudentGradeItemView has a grade property which contains the StudentGrade
+  const validGradeItems = safeFilter(gradeItems, item => {
+    if (!item?.grade) return false;
+    if (typeof item.grade.percentage !== 'number') return false;
+    return !isNaN(item.grade.percentage);
+  });
+
+  const averageGradePercentage = validGradeItems.length > 0
+    ? Math.round(safeReduce(validGradeItems, (acc, item) => acc + (item.grade?.percentage || 0), 0) / validGradeItems.length)
+    : 0;
 
   // Loading states
   const assignmentsLoading = assignmentsStatus === 'loading'
@@ -107,14 +155,14 @@ export function DashboardStats() {
         value={pendingAssignments}
         icon={<FileText className="h-4 w-4" />}
         loading={assignmentsLoading}
-        className="bg-amber-50 dark:bg-amber-950/20"
+        className="bg-amber-50 dark:bg-amber-950/5"
       />
       <StatCard
         title="Upcoming Events"
         value={upcomingEvents}
         icon={<Calendar className="h-4 w-4" />}
         loading={scheduleLoading}
-        className="bg-blue-50 dark:bg-blue-950/20"
+        className="bg-blue-50 dark:bg-blue-950/5"
       />
       <StatCard
         title="Courses"
@@ -122,29 +170,29 @@ export function DashboardStats() {
         description={`${completedCourses} completed`}
         icon={<BookOpen className="h-4 w-4" />}
         loading={coursesLoading}
-        className="bg-green-50 dark:bg-green-950/20"
+        className="bg-green-50 dark:bg-green-950/5"
       />
       <StatCard
         title="Classes"
         value={totalClasses}
         icon={<Users className="h-4 w-4" />}
         loading={classesLoading}
-        className="bg-purple-50 dark:bg-purple-950/20"
+        className="bg-purple-50 dark:bg-purple-950/5"
       />
       <StatCard
         title="Grades"
-        value={safeLength(grades) > 0 ? `${Math.round(safeReduce(grades, (acc, grade) => acc + (grade?.score || 0), 0) / safeLength(grades))}%` : 'N/A'}
-        description={`${safeLength(grades)} graded items`}
+        value={validGradeItems.length > 0 ? `${averageGradePercentage}%` : 'N/A'}
+        description={`${validGradeItems.length} graded items`}
         icon={<GraduationCap className="h-4 w-4" />}
         loading={gradesLoading}
-        className="bg-pink-50 dark:bg-pink-950/20"
+        className="bg-pink-50 dark:bg-pink-950/5"
       />
       <StatCard
         title="Payments"
         value={totalPayments}
         icon={<CreditCard className="h-4 w-4" />}
         loading={paymentsLoading}
-        className="bg-yellow-50 dark:bg-yellow-950/20"
+        className="bg-yellow-50 dark:bg-yellow-950/5"
       />
       <StatCard
         title="Notifications"
@@ -152,7 +200,7 @@ export function DashboardStats() {
         description="Unread notifications"
         icon={<Bell className="h-4 w-4" />}
         loading={notificationsLoading}
-        className="bg-red-50 dark:bg-red-950/20"
+        className="bg-red-50 dark:bg-red-950/5"
       />
     </div>
   )
