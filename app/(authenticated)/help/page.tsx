@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { HelpSearch } from '@/components/help';
+// This import ensures the help content is properly indexed for search
 
 // Define the help categories and topics
 const helpCategories = [

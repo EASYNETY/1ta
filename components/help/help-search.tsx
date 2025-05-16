@@ -20,8 +20,9 @@ interface HelpArticle {
   keywords: string[];
 }
 
-// Sample help content database
+// Complete help content database for search indexing
 const helpArticles: HelpArticle[] = [
+  // Getting Started
   {
     title: 'Platform Overview',
     description: 'Learn about the core features and functionality of the platform.',
@@ -39,12 +40,48 @@ const helpArticles: HelpArticle[] = [
     keywords: ['navigation', 'interface', 'menu', 'sidebar', 'layout']
   },
   {
+    title: 'Setting Up Your Account',
+    description: 'Configure your account settings and profile information',
+    href: '/help/getting-started/account-setup',
+    category: 'Getting Started',
+    categoryIcon: BookOpen,
+    keywords: ['account', 'setup', 'profile', 'settings', 'configuration']
+  },
+
+  // Courses
+  {
     title: 'Course Enrollment',
     description: 'Learn how to browse, select, and enroll in courses on the platform.',
     href: '/help/courses/enrollment',
     category: 'Courses',
     categoryIcon: GraduationCap,
     keywords: ['courses', 'enrollment', 'register', 'sign up', 'join', 'class']
+  },
+  {
+    title: 'Accessing Course Materials',
+    description: 'Find and use course content, resources, and materials',
+    href: '/help/courses/materials',
+    category: 'Courses',
+    categoryIcon: GraduationCap,
+    keywords: ['materials', 'content', 'resources', 'lectures', 'readings']
+  },
+  {
+    title: 'Tracking Your Progress',
+    description: 'Monitor your course progress and achievements',
+    href: '/help/courses/progress',
+    category: 'Courses',
+    categoryIcon: GraduationCap,
+    keywords: ['progress', 'tracking', 'completion', 'achievements', 'grades']
+  },
+
+  // Attendance
+  {
+    title: 'Marking Attendance',
+    description: 'Learn different methods for marking attendance',
+    href: '/help/attendance/marking',
+    category: 'Attendance',
+    categoryIcon: CheckCircle,
+    keywords: ['attendance', 'marking', 'present', 'absent', 'record']
   },
   {
     title: 'Using the Barcode Scanner',
@@ -55,6 +92,16 @@ const helpArticles: HelpArticle[] = [
     keywords: ['barcode', 'scanner', 'scan', 'attendance', 'qr code', 'tracking']
   },
   {
+    title: 'Attendance Reports',
+    description: 'Generate and analyze attendance data',
+    href: '/help/attendance/reports',
+    category: 'Attendance',
+    categoryIcon: CheckCircle,
+    keywords: ['reports', 'analytics', 'statistics', 'attendance', 'data']
+  },
+
+  // Timetable
+  {
     title: 'Viewing Your Schedule',
     description: 'Find out how to view and manage your class schedule.',
     href: '/help/timetable/viewing',
@@ -62,6 +109,24 @@ const helpArticles: HelpArticle[] = [
     categoryIcon: Calendar,
     keywords: ['schedule', 'timetable', 'calendar', 'classes', 'events']
   },
+  {
+    title: 'Event Types',
+    description: 'Understand the different types of events in your schedule',
+    href: '/help/timetable/events',
+    category: 'Timetable',
+    categoryIcon: Calendar,
+    keywords: ['events', 'types', 'classes', 'meetings', 'exams', 'categories']
+  },
+  {
+    title: 'Schedule Notifications',
+    description: 'Set up reminders for your scheduled events',
+    href: '/help/timetable/notifications',
+    category: 'Timetable',
+    categoryIcon: Calendar,
+    keywords: ['notifications', 'reminders', 'alerts', 'schedule', 'timetable']
+  },
+
+  // Discussions
   {
     title: 'Using Chatrooms',
     description: 'Learn how to communicate with peers and instructors through chatrooms.',
@@ -71,13 +136,49 @@ const helpArticles: HelpArticle[] = [
     keywords: ['chat', 'message', 'discussion', 'communication', 'forum']
   },
   {
+    title: 'Direct Messaging',
+    description: 'Send private messages to individuals',
+    href: '/help/discussions/messaging',
+    category: 'Discussions',
+    categoryIcon: MessageSquare,
+    keywords: ['direct', 'message', 'private', 'DM', 'chat', 'communication']
+  },
+  {
+    title: 'Communication Guidelines',
+    description: 'Best practices for respectful and effective communication',
+    href: '/help/discussions/etiquette',
+    category: 'Discussions',
+    categoryIcon: MessageSquare,
+    keywords: ['etiquette', 'guidelines', 'rules', 'communication', 'behavior']
+  },
+
+  // Payments
+  {
     title: 'Payment Methods',
     description: 'Understand the available payment options for course enrollment.',
     href: '/help/payments/methods',
     category: 'Payments',
     categoryIcon: CreditCard,
-    keywords: ['payment', 'billing', 'credit card', 'transaction', 'checkout']
+    keywords: ['payment', 'billing', 'credit card', 'transaction', 'checkout', 'paystack']
   },
+  {
+    title: 'Payment History',
+    description: 'View and manage your payment records',
+    href: '/help/payments/history',
+    category: 'Payments',
+    categoryIcon: CreditCard,
+    keywords: ['history', 'records', 'transactions', 'payments', 'billing']
+  },
+  {
+    title: 'Receipts and Invoices',
+    description: 'Access and download payment documentation',
+    href: '/help/payments/receipts',
+    category: 'Payments',
+    categoryIcon: CreditCard,
+    keywords: ['receipts', 'invoices', 'documentation', 'proof', 'payment']
+  },
+
+  // Account Management
   {
     title: 'Updating Your Profile',
     description: 'Learn how to update your personal information and profile settings.',
@@ -86,6 +187,22 @@ const helpArticles: HelpArticle[] = [
     categoryIcon: User,
     keywords: ['profile', 'account', 'settings', 'personal', 'information']
   },
+  {
+    title: 'Account Settings',
+    description: 'Manage your account preferences and security options',
+    href: '/help/account/settings',
+    category: 'Account Management',
+    categoryIcon: User,
+    keywords: ['settings', 'preferences', 'security', 'account', 'options']
+  },
+  {
+    title: 'Notification Preferences',
+    description: 'Customize how you receive alerts and notifications',
+    href: '/help/account/notifications',
+    category: 'Account Management',
+    categoryIcon: User,
+    keywords: ['notifications', 'alerts', 'preferences', 'settings', 'communication']
+  }
 ];
 
 interface HelpSearchProps {
@@ -95,8 +212,8 @@ interface HelpSearchProps {
   onSearch?: (query: string) => void;
 }
 
-export function HelpSearch({ 
-  placeholder = "Search help topics...", 
+export function HelpSearch({
+  placeholder = "Search help topics...",
   className,
   variant = 'default',
   onSearch
@@ -115,18 +232,18 @@ export function HelpSearch({
     }
 
     setIsSearching(true);
-    
+
     // Simulate search delay
     const timer = setTimeout(() => {
       const query = searchQuery.toLowerCase();
-      
+
       // Search through help articles
-      const results = helpArticles.filter(article => 
-        article.title.toLowerCase().includes(query) || 
+      const results = helpArticles.filter(article =>
+        article.title.toLowerCase().includes(query) ||
         article.description.toLowerCase().includes(query) ||
         article.keywords.some(keyword => keyword.toLowerCase().includes(query))
       );
-      
+
       setSearchResults(results);
       setIsSearching(false);
     }, 300);
@@ -153,8 +270,8 @@ export function HelpSearch({
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className={cn("w-full justify-start text-muted-foreground", className)}
             onClick={() => setIsOpen(true)}
           >
@@ -167,8 +284,8 @@ export function HelpSearch({
             <DialogTitle>Search Help Center</DialogTitle>
           </DialogHeader>
           <Command className="rounded-lg border shadow-md">
-            <CommandInput 
-              placeholder="Type to search..." 
+            <CommandInput
+              placeholder="Type to search..."
               value={searchQuery}
               onValueChange={setSearchQuery}
             />
@@ -232,7 +349,7 @@ export function HelpSearch({
       {isSearching && (
         <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
       )}
-      
+
       {searchResults.length > 0 && searchQuery.trim() !== '' && (
         <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
           <ScrollArea className="h-[300px]">

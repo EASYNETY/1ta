@@ -1,6 +1,6 @@
 // features/search/types/search-types.ts
 
-export type SearchResultType = 'course' | 'user' | 'assignment' | 'grade' | 'event' | 'payment';
+export type SearchResultType = 'course' | 'user' | 'assignment' | 'grade' | 'event' | 'payment' | 'help';
 
 export interface SearchResult {
   id: string;

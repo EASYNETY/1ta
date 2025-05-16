@@ -10,8 +10,9 @@ import { formatDistanceToNow } from 'date-fns'
 import {
   BookOpen, User, FileText, GraduationCap, Calendar, CreditCard,
   ExternalLink, Eye, Edit, Download, Clock, CheckCircle, Play,
-  MessageSquare, BarChart, Share2
+  MessageSquare, BarChart, Share2, CircleHelp
 } from 'lucide-react'
+import { HelpSearchResultCard } from './HelpSearchResultCard'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
@@ -28,6 +29,11 @@ interface SearchResultCardProps {
 
 export function SearchResultCard({ result }: SearchResultCardProps) {
   const router = useRouter();
+
+  // For help results, use the specialized help card
+  if (result.type === 'help') {
+    return <HelpSearchResultCard result={result} />;
+  }
 
   // Handle click on the card (main action)
   const handleCardClick = (e: React.MouseEvent) => {
@@ -214,6 +220,8 @@ function getResultIcon(type: string) {
       return <Calendar className="h-4 w-4" />
     case 'payment':
       return <CreditCard className="h-4 w-4" />
+    case 'help':
+      return <CircleHelp className="h-4 w-4" />
     default:
       return null
   }
@@ -390,6 +398,28 @@ function getResultActions(result: SearchResult) {
           icon: <CreditCard className="h-4 w-4" />,
           action: () => {
             router.push(`/payments/${result.id}`);
+          }
+        }
+      ];
+      break;
+
+    case 'help':
+      // Primary action for help content
+      primaryAction = {
+        label: 'View Help Article',
+        icon: <CircleHelp className="h-3.5 w-3.5 mr-1" />,
+        action: () => {
+          router.push(result.href);
+        }
+      };
+
+      // Secondary actions for help
+      secondaryActions = [
+        {
+          label: 'Related Topics',
+          icon: <BookOpen className="h-4 w-4" />,
+          action: () => {
+            router.push(`/help`);
           }
         }
       ];

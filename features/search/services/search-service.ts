@@ -1,6 +1,7 @@
 // features/search/services/search-service.ts
 import { RootState } from "@/store";
 import { SearchResult } from "../types/search-types";
+import { helpSearchIndexer, enhanceSearchWithHelpContent } from "./help-search-indexer";
 
 /**
  * Search service that searches across the Redux store
@@ -161,7 +162,8 @@ export const searchService = {
       }
     });
 
-    return results;
+    // Enhance search results with help content
+    return enhanceSearchWithHelpContent(results, query);
   },
 
   /**

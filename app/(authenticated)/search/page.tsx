@@ -165,6 +165,7 @@ export default function SearchPage() {
             <TabsTrigger value="grade">Grades ({searchResults.filter(r => r.type === 'grade').length})</TabsTrigger>
             <TabsTrigger value="event">Events ({searchResults.filter(r => r.type === 'event').length})</TabsTrigger>
             <TabsTrigger value="payment">Payments ({searchResults.filter(r => r.type === 'payment').length})</TabsTrigger>
+            <TabsTrigger value="help">Help ({searchResults.filter(r => r.type === 'help').length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
@@ -208,6 +209,14 @@ export default function SearchPage() {
           </TabsContent>
 
           <TabsContent value="payment" className="mt-6">
+            <div className="grid gap-4">
+              {filteredResults.map(result => (
+                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="help" className="mt-6">
             <div className="grid gap-4">
               {filteredResults.map(result => (
                 <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
