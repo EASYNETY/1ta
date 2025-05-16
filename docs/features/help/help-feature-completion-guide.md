@@ -71,9 +71,9 @@ Based on the navigation structure defined in `app/(authenticated)/help/layout.ts
 - ✅ Receipts and Invoices (`/help/payments/receipts`) - Implemented
 
 ### Account Management
-- ❌ Updating Your Profile (`/help/account/profile`) - Missing
-- ❌ Account Settings (`/help/account/settings`) - Missing
-- ❌ Notification Preferences (`/help/account/notifications`) - Missing
+- ✅ Updating Your Profile (`/help/account/profile`) - Implemented
+- ✅ Account Settings (`/help/account/settings`) - Implemented
+- ✅ Notification Preferences (`/help/account/notifications`) - Implemented
 
 ## Implementation Guidelines
 
@@ -161,10 +161,10 @@ Implement the missing pages in the following order:
    - ✅ Payment History - Implemented
    - ✅ Receipts and Invoices - Implemented
 
-7. Implement the "Account Management" section
-   - Updating Your Profile
-   - Account Settings
-   - Notification Preferences
+7. ✅ Implement the "Account Management" section - COMPLETED
+   - ✅ Updating Your Profile - Implemented
+   - ✅ Account Settings - Implemented
+   - ✅ Notification Preferences - Implemented
 
 ## Template for New Help Pages
 
@@ -338,6 +338,18 @@ Several help pages have been implemented as examples:
 15. **Receipts and Invoices**
    - Path: `app/(authenticated)/help/payments/receipts/page.tsx`
    - Features: Accessing, downloading, and sharing payment documentation
+
+16. **Updating Your Profile**
+   - Path: `app/(authenticated)/help/account/profile/page.tsx`
+   - Features: Editing personal information and profile picture
+
+17. **Account Settings**
+   - Path: `app/(authenticated)/help/account/settings/page.tsx`
+   - Features: Managing account preferences and security options
+
+18. **Notification Preferences**
+   - Path: `app/(authenticated)/help/account/notifications/page.tsx`
+   - Features: Customizing notification delivery and frequency
 
 These pages demonstrate:
 - Proper use of the `ArticleHeader` component
