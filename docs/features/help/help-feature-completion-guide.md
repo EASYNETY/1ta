@@ -66,9 +66,9 @@ Based on the navigation structure defined in `app/(authenticated)/help/layout.ts
 - ✅ Communication Guidelines (`/help/discussions/etiquette`) - Implemented
 
 ### Payments
-- ❌ Payment Methods (`/help/payments/methods`) - Missing
-- ❌ Payment History (`/help/payments/history`) - Missing
-- ❌ Receipts and Invoices (`/help/payments/receipts`) - Missing
+- ✅ Payment Methods (`/help/payments/methods`) - Implemented
+- ✅ Payment History (`/help/payments/history`) - Implemented
+- ✅ Receipts and Invoices (`/help/payments/receipts`) - Implemented
 
 ### Account Management
 - ❌ Updating Your Profile (`/help/account/profile`) - Missing
@@ -156,10 +156,10 @@ Implement the missing pages in the following order:
    - ✅ Direct Messaging - Implemented
    - ✅ Communication Guidelines - Implemented
 
-6. Implement the "Payments" section
-   - Payment Methods
-   - Payment History
-   - Receipts and Invoices
+6. ✅ Implement the "Payments" section - COMPLETED
+   - ✅ Payment Methods - Implemented
+   - ✅ Payment History - Implemented
+   - ✅ Receipts and Invoices - Implemented
 
 7. Implement the "Account Management" section
    - Updating Your Profile
@@ -326,6 +326,18 @@ Several help pages have been implemented as examples:
 12. **Communication Guidelines**
    - Path: `app/(authenticated)/help/discussions/etiquette/page.tsx`
    - Features: Best practices for respectful and effective communication
+
+13. **Payment Methods**
+   - Path: `app/(authenticated)/help/payments/methods/page.tsx`
+   - Features: Available payment options and how to use them securely
+
+14. **Payment History**
+   - Path: `app/(authenticated)/help/payments/history/page.tsx`
+   - Features: Viewing, searching, and managing payment records
+
+15. **Receipts and Invoices**
+   - Path: `app/(authenticated)/help/payments/receipts/page.tsx`
+   - Features: Accessing, downloading, and sharing payment documentation
 
 These pages demonstrate:
 - Proper use of the `ArticleHeader` component
