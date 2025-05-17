@@ -10,21 +10,19 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
-import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase, AlertTriangle } from 'lucide-react'; // Icons for details
+import {
+    User as UserIcon, Mail, Calendar, CheckCircle, XCircle, Briefcase, AlertTriangle,
+    Phone, Building, Clock, RefreshCw, Barcode, CalendarDays, GraduationCap,
+    Building2, BookOpen, ShieldCheck, FileText
+} from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useSafeArraySelector } from '@/store/safe-hooks';
 import { fetchUserById } from '@/features/auth/store/user-thunks';
 import { safeString, safeFormatDate, safeBoolean } from '@/lib/utils/safe-data';
 
-// Extend the UserData type to include additional fields from the API
-import { UserData as BaseUserData } from '@/components/users/UserTableRow';
-
-// Extended interface with additional fields from the API
-interface ExtendedUserData extends BaseUserData {
-    onboardingStatus?: string;
-    accountType?: string;
-}
+// Import the User type from the types directory
+import type { User } from '@/types/user.types';
 
 
 // Helper to format date using safe utilities
@@ -46,7 +44,8 @@ export default function ViewUserPage() {
     const isLoadingUsers = useAppSelector((state) => state.auth.usersLoading) || false;
     const fetchError = useAppSelector((state) => state.auth.usersError);
 
-    const [currentUser, setCurrentUser] = useState<ExtendedUserData | null | undefined>(undefined);
+    // Use any for now to avoid type issues, we'll handle the proper typing in the component
+    const [currentUser, setCurrentUser] = useState<any>(undefined);
 
     // useEffect for fetching the specific user by ID
     useEffect(() => {
@@ -57,7 +56,7 @@ export default function ViewUserPage() {
                 .then(user => {
                     console.log("ViewUserPage: Successfully fetched user:", user);
                     // Directly set the user from the API response
-                    setCurrentUser(user as ExtendedUserData);
+                    setCurrentUser(user);
                 })
                 .catch(error => {
                     console.error("ViewUserPage: Error fetching user:", error);
@@ -77,9 +76,7 @@ export default function ViewUserPage() {
 
             if (foundUser) {
                 console.log("ViewUserPage: User found:", foundUser);
-                setCurrentUser({
-                    ...foundUser as ExtendedUserData
-                });
+                setCurrentUser(foundUser);
             } else if (!isLoadingUsers) {
                 // Only set to null if we're not loading and the user wasn't found
                 console.log("ViewUserPage: User not found in the list.");
@@ -166,7 +163,7 @@ export default function ViewUserPage() {
                 <DyraneCard>
                     <DyraneCardHeader>
                         <DyraneCardTitle className="flex items-center gap-3">
-                            <User className="h-6 w-6" />
+                            <UserIcon className="h-6 w-6" />
                             {safeString(currentUser.name, 'Unknown User')}
                         </DyraneCardTitle>
                         <DyraneCardDescription>
@@ -174,49 +171,216 @@ export default function ViewUserPage() {
                         </DyraneCardDescription>
                     </DyraneCardHeader>
                     <DyraneCardContent className="space-y-4">
-                        <div className="flex items-center gap-3 border-b pb-3">
-                            <Mail className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm">{safeString(currentUser.email, 'No email provided')}</span>
-                        </div>
-                        <div className="flex items-center gap-3 border-b pb-3">
-                            <Briefcase className="h-5 w-5 text-muted-foreground" />
-                            <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(safeString(currentUser.role))}`}>
-                                {safeString(currentUser.role)
-                                    ? `${safeString(currentUser.role).charAt(0).toUpperCase()}${safeString(currentUser.role).slice(1)}`
-                                    : 'Unknown'}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-3 border-b pb-3">
-                            {safeBoolean(currentUser.isActive)
-                                ? <CheckCircle className="h-5 w-5 text-green-600" />
-                                : <XCircle className="h-5 w-5 text-red-600" />}
-                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.isActive)}`}>
-                                {(() => {
-                                    const status = getStatusString(currentUser.isActive);
-                                    return status.charAt(0).toUpperCase() + status.slice(1);
-                                })()}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-3 border-b pb-3">
-                            <Calendar className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">Joined on {formatDate(currentUser.createdAt)}</span>
-                        </div>
-                        <div className="flex items-center gap-3 border-b pb-3">
-                            {safeString(currentUser.onboardingStatus) === 'complete'
-                                ? <CheckCircle className="h-5 w-5 text-green-600" />
-                                : <AlertTriangle className="h-5 w-5 text-amber-500" />}
-                            <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'} className="text-sm">
-                                Onboarding: {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() + safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <User className="h-5 w-5 text-muted-foreground" />
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium">Barcode ID</span>
-                                <span className="text-sm text-muted-foreground">{safeString(currentUser.barcodeId, 'Not assigned')}</span>
+                        {/* Basic User Information Section */}
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold mb-3 border-b pb-2">Basic Information</h3>
+
+                            {/* Email */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <Mail className="h-5 w-5 text-muted-foreground" />
+                                <span className="text-sm">{safeString(currentUser.email, 'No email provided')}</span>
+                            </div>
+
+                            {/* Role */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <Briefcase className="h-5 w-5 text-muted-foreground" />
+                                <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(safeString(currentUser.role))}`}>
+                                    {safeString(currentUser.role)
+                                        ? `${safeString(currentUser.role).charAt(0).toUpperCase()}${safeString(currentUser.role).slice(1)}`
+                                        : 'Unknown'}
+                                </Badge>
+                            </div>
+
+                            {/* Status */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                {safeBoolean(currentUser.isActive)
+                                    ? <CheckCircle className="h-5 w-5 text-green-600" />
+                                    : <XCircle className="h-5 w-5 text-red-600" />}
+                                <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.isActive)}`}>
+                                    {(() => {
+                                        const status = getStatusString(currentUser.isActive);
+                                        return status.charAt(0).toUpperCase() + status.slice(1);
+                                    })()}
+                                </Badge>
+                            </div>
+
+                            {/* Phone */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <Phone className="h-5 w-5 text-muted-foreground" />
+                                <span className="text-sm">{safeString(currentUser.phone, 'No phone number provided')}</span>
+                            </div>
+
+                            {/* Account Type */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <Building className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Account Type</span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {safeString(currentUser.accountType, 'individual')
+                                            .charAt(0).toUpperCase() + safeString(currentUser.accountType, 'individual').slice(1)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Dates Section */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <Calendar className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Joined</span>
+                                    <span className="text-sm text-muted-foreground">{formatDate(currentUser.createdAt)}</span>
+                                </div>
+                            </div>
+
+                            {/* Last Login */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <Clock className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Last Login</span>
+                                    <span className="text-sm text-muted-foreground">{formatDate(currentUser.lastLogin) || 'Never'}</span>
+                                </div>
+                            </div>
+
+                            {/* Last Updated */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                <RefreshCw className="h-5 w-5 text-muted-foreground" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Last Updated</span>
+                                    <span className="text-sm text-muted-foreground">{formatDate(currentUser.updatedAt)}</span>
+                                </div>
+                            </div>
+
+                            {/* Onboarding Status */}
+                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                {safeString(currentUser.onboardingStatus) === 'complete'
+                                    ? <CheckCircle className="h-5 w-5 text-green-600" />
+                                    : <AlertTriangle className="h-5 w-5 text-amber-500" />}
+                                <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'} className="text-sm">
+                                    Onboarding: {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() + safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
+                                </Badge>
                             </div>
                         </div>
-                        {/* Add more details fields here */}
+
+                        {/* Role-Specific Information */}
+                        {currentUser.role === 'student' && (
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold mb-3 border-b pb-2">Student Information</h3>
+
+                                {/* Barcode ID */}
+                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                    <Barcode className="h-5 w-5 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Barcode ID</span>
+                                        <span className="text-sm text-muted-foreground">{safeString(currentUser.barcodeId, 'Not assigned')}</span>
+                                    </div>
+                                </div>
+
+                                {/* Date of Birth */}
+                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Date of Birth</span>
+                                        <span className="text-sm text-muted-foreground">{formatDate(currentUser.dateOfBirth)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Class ID */}
+                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                    <GraduationCap className="h-5 w-5 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Class</span>
+                                        <span className="text-sm text-muted-foreground">{safeString(currentUser.classId, 'Not assigned')}</span>
+                                    </div>
+                                </div>
+
+                                {/* Corporate Information (if applicable) */}
+                                {safeString(currentUser.corporateId) && (
+                                    <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                        <Building2 className="h-5 w-5 text-muted-foreground" />
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium">Corporate Account</span>
+                                            <span className="text-sm text-muted-foreground">{safeString(currentUser.corporateAccountName, 'Unknown')}</span>
+                                            {safeBoolean(currentUser.isCorporateManager) && (
+                                                <Badge variant="outline" className="mt-1 bg-blue-100 text-blue-800 border-blue-300">Corporate Manager</Badge>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {currentUser.role === 'teacher' && (
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold mb-3 border-b pb-2">Teacher Information</h3>
+
+                                {/* Subjects */}
+                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                    <BookOpen className="h-5 w-5 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Subjects</span>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {currentUser.subjects && Array.isArray(currentUser.subjects) && currentUser.subjects.length > 0 ? (
+                                                currentUser.subjects.map((subject: string, index: number) => (
+                                                    <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700">
+                                                        {subject}
+                                                    </Badge>
+                                                ))
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground">No subjects assigned</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Office Hours */}
+                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                    <Clock className="h-5 w-5 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Office Hours</span>
+                                        <span className="text-sm text-muted-foreground">{safeString(currentUser.officeHours, 'Not specified')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {currentUser.role === 'admin' && (
+                            <div className="mb-6">
+                                <h3 className="text-lg font-semibold mb-3 border-b pb-2">Admin Information</h3>
+
+                                {/* Permissions */}
+                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
+                                    <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Permissions</span>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            {currentUser.permissions && Array.isArray(currentUser.permissions) && currentUser.permissions.length > 0 ? (
+                                                currentUser.permissions.map((permission: string, index: number) => (
+                                                    <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700">
+                                                        {permission}
+                                                    </Badge>
+                                                ))
+                                            ) : (
+                                                <span className="text-sm text-muted-foreground">All permissions (default admin)</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Bio Section (for all users) */}
+                        <div className="mb-6">
+                            <h3 className="text-lg font-semibold mb-3 border-b pb-2">Additional Information</h3>
+
+                            <div className="flex items-start gap-3 border-b pb-3 mb-3">
+                                <FileText className="h-5 w-5 text-muted-foreground mt-1" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Bio</span>
+                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                        {safeString(currentUser.bio, 'No bio provided')}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </DyraneCardContent>
                     <DyraneCardFooter className="flex justify-end">
                         <Button asChild>
