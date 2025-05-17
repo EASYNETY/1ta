@@ -48,9 +48,10 @@ export function ScannerModeSelector({
                 onValueChange={(value) => setScannerMode(value as ScannerMode)}
                 className="w-full mt-2"
             >
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="camera">Camera</TabsTrigger>
-                    <TabsTrigger value="external">WebSocket</TabsTrigger>
+                    {/* WebSocket scanner commented out for now - will be used in future
+                    <TabsTrigger value="external">WebSocket</TabsTrigger> */}
                     <TabsTrigger value="direct">USB/HID</TabsTrigger>
                 </TabsList>
 
@@ -68,7 +69,8 @@ export function ScannerModeSelector({
                     </div>
                 </TabsContent>
 
-                <TabsContent value="external" className="mt-4">
+                {/* WebSocket scanner content commented out for now - will be used in future */}
+                {/* <TabsContent value="external" className="mt-4">
                     <ExternalScannerStatus
                         socketStatus={socketStatus}
                         reconnectSocket={reconnectSocket}
@@ -77,7 +79,7 @@ export function ScannerModeSelector({
                         maxAttemptsReached={maxAttemptsReached}
                         isActive={isScannerActive}
                     />
-                </TabsContent>
+                </TabsContent> */}
 
                 <TabsContent value="direct" className="mt-4">
                     <DirectScannerStatus

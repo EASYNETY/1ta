@@ -57,7 +57,7 @@ export default function ScanPage() {
     const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
     const [fetchingStudentInfo, setFetchingStudentInfo] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [scannerMode, setScannerMode] = useState<"camera" | "external" | "direct">("camera");
+    const [scannerMode, setScannerMode] = useState<"camera" | "external" | "direct">("direct");
     const [casualScanMode, setCasualScanMode] = useState(false);
 
     // Refs to track initialization
@@ -126,10 +126,10 @@ export default function ScanPage() {
         setFetchingStudentInfo(true);
     }, [dispatch, scannerMode]);
 
-    // WebSocket for external scanner
-    const isWebSocketEnabled = scannerMode === 'external' && isScannerActive;
+    // WebSocket for external scanner - commented out for now, will be used in future
+    const isWebSocketEnabled = false; // scannerMode === 'external' && isScannerActive;
 
-    // Use the external scanner socket hook with verbose logging
+    // Use the external scanner socket hook with verbose logging - keeping the code but disabling it
     const {
         status: socketStatus,
         reconnect: reconnectSocket,
@@ -138,8 +138,8 @@ export default function ScanPage() {
         maxAttemptsReached
     } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
-        isEnabled: isWebSocketEnabled,
-        verbose: true // Enable verbose logging to help debug barcode scanning
+        isEnabled: isWebSocketEnabled, // Always disabled for now
+        verbose: false // Disable verbose logging since we're not using it
     });
 
     // Direct USB/HID scanner
@@ -161,14 +161,15 @@ export default function ScanPage() {
     });
 
     // Auto-connect when scanner mode changes to external and scanner is active
-    useEffect(() => {
+    // Commented out for now, will be used in future
+    /*useEffect(() => {
         if (scannerMode === 'external' && isScannerActive && socketStatus === 'disconnected') {
             if (process.env.NODE_ENV !== 'production') {
                 console.log('Auto-connecting to external scanner...');
             }
             reconnectSocket();
         }
-    }, [scannerMode, isScannerActive, socketStatus, reconnectSocket]);
+    }, [scannerMode, isScannerActive, socketStatus, reconnectSocket]);*/
 
     // Note: Modal close and resume scan are handled by ScanResultHandler component
 

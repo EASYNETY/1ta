@@ -3,11 +3,11 @@
 import { Badge } from "@/components/ui/badge";
 import {
     CheckCircle,
-    Loader2,
-    AlertTriangle,
+    Loader2,  // Still needed for loading state
+    AlertTriangle,  // Still needed for error state
     ScanLine,
-    Wifi,
-    WifiOff,
+    // Wifi,  // Commented out for now - will be used when WebSocket scanner is re-enabled
+    // WifiOff,  // Commented out for now - will be used when WebSocket scanner is re-enabled
     PowerOff,
     Keyboard
 } from "lucide-react";
@@ -23,7 +23,7 @@ interface ScannerStatusBadgeProps {
     isScannerActive: boolean;
     casualScanMode: boolean;
     scannerMode: string;
-    socketStatus: string;
+    socketStatus?: string; // Made optional since WebSocket scanner is commented out for now
     allFetchedUsers: any[];
 }
 
@@ -67,7 +67,8 @@ export function ScannerStatusBadge({
     // Regular mode with class selected
     if (selectedClass?.id) {
         if (isScannerActive) {
-            if (scannerMode === 'external') {
+            // WebSocket scanner mode commented out for now
+            /*if (scannerMode === 'external') {
                 if (socketStatus === 'connected') {
                     return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><Wifi className="mr-1 h-3 w-3" /> WebSocket Scanner Ready</Badge>;
                 } else if (socketStatus === 'connecting') {
@@ -77,7 +78,7 @@ export function ScannerStatusBadge({
                 } else {
                     return <Badge variant="outline"><WifiOff className="mr-1 h-3 w-3" /> Scanner Disconnected</Badge>;
                 }
-            } else if (scannerMode === 'direct') {
+            } else*/ if (scannerMode === 'direct') {
                 return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><Keyboard className="mr-1 h-3 w-3" /> USB Scanner Ready</Badge>;
             } else {
                 return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="mr-1 h-3 w-3" /> Camera Scanner Ready</Badge>;
