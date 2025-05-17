@@ -22,11 +22,32 @@ export function useExternalScannerSocket({
     serverUrl
 }: UseExternalScannerSocketProps) {
     // Default to environment variable or fallback URL
-    // Use secure WebSocket (wss://) if the page is served over HTTPS
+    // For development testing, we'll use a more reliable echo server if no specific URL is provided
     const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
-    const defaultProtocol = isSecure ? 'wss://' : 'ws://';
-    const defaultUrl = `${defaultProtocol}34.249.241.206:5000`;
-    const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || defaultUrl;
+
+    // Use environment variable first, then fallback to default
+    let wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+
+    if (!wsServerUrl) {
+        // If no URL is provided, use a public echo server for testing
+        // This helps isolate if the issue is with our server or the WebSocket implementation
+        wsServerUrl = isSecure
+            ? 'wss://echo.websocket.org'
+            : 'ws://echo.websocket.org';
+
+        console.log('No WebSocket URL provided, using echo server for testing:', wsServerUrl);
+    } else {
+        // Ensure the URL has the correct protocol
+        if (wsServerUrl.startsWith('http://')) {
+            wsServerUrl = wsServerUrl.replace('http://', 'ws://');
+        } else if (wsServerUrl.startsWith('https://')) {
+            wsServerUrl = wsServerUrl.replace('https://', 'wss://');
+        } else if (!wsServerUrl.startsWith('ws://') && !wsServerUrl.startsWith('wss://')) {
+            // Add the appropriate protocol if missing
+            const protocol = isSecure ? 'wss://' : 'ws://';
+            wsServerUrl = `${protocol}${wsServerUrl}`;
+        }
+    }
 
     // Log the WebSocket URL when the hook is initialized (helpful for debugging)
     useEffect(() => {
@@ -74,6 +95,7 @@ export function useExternalScannerSocket({
         cleanupSocket();
 
         if (!isEnabled) {
+            console.log('WebSocket connection disabled, not connecting');
             return;
         }
 
@@ -81,15 +103,27 @@ export function useExternalScannerSocket({
             setStatus('connecting');
             console.log(`Attempting to connect to WebSocket server at ${wsServerUrl}...`);
 
-            // Create WebSocket connection without any parameters
-            const socket = new WebSocket(wsServerUrl);
-            socketRef.current = socket;
+            // Create WebSocket connection
+            let socket: WebSocket;
+
+            try {
+                socket = new WebSocket(wsServerUrl);
+                socketRef.current = socket;
+            } catch (error) {
+                console.error('Error creating WebSocket instance:', error);
+                setStatus('error');
+                return;
+            }
 
             // Set a connection timeout
             const connectionTimeoutId = setTimeout(() => {
-                if (socket.readyState !== WebSocket.OPEN) {
-                    console.error('WebSocket connection timeout');
-                    socket.close();
+                if (socket && (socket.readyState === WebSocket.CONNECTING)) {
+                    console.error('WebSocket connection timeout after 10 seconds');
+                    try {
+                        socket.close();
+                    } catch (e) {
+                        console.error('Error closing socket after timeout:', e);
+                    }
                     setStatus('error');
                 }
             }, 10000); // 10 second timeout
@@ -100,6 +134,16 @@ export function useExternalScannerSocket({
                 console.log('Connected to external scanner WebSocket server');
                 setStatus('connected');
                 reconnectAttemptsRef.current = 0; // Reset reconnect attempts on successful connection
+
+                // Send a test message if using echo server
+                if (wsServerUrl.includes('echo.websocket.org')) {
+                    try {
+                        socket.send(JSON.stringify({ type: 'test', message: 'Connection test' }));
+                        console.log('Test message sent to echo server');
+                    } catch (e) {
+                        console.error('Error sending test message:', e);
+                    }
+                }
             };
 
             // Connection closed
@@ -168,16 +212,40 @@ export function useExternalScannerSocket({
 
             // Listen for messages
             socket.onmessage = (event) => {
+                console.log('WebSocket message received:', event.data);
+
                 try {
-                    const data = JSON.parse(event.data);
+                    // Handle echo server responses differently
+                    if (wsServerUrl.includes('echo.websocket.org')) {
+                        console.log('Echo response received:', event.data);
+                        // Don't process echo responses as barcodes
+                        return;
+                    }
+
+                    // Try to parse as JSON
+                    let data;
+                    try {
+                        data = JSON.parse(event.data);
+                    } catch (e) {
+                        // If not JSON, treat as plain text (might be just the barcode ID)
+                        console.log('Received non-JSON message, treating as barcode:', event.data);
+                        onBarcodeReceived(event.data);
+                        return;
+                    }
 
                     // Check if the message contains a barcode
                     if (data && data.barcodeId) {
                         console.log('Barcode received from external scanner:', data.barcodeId);
                         onBarcodeReceived(data.barcodeId);
+                    } else if (data && data.type === 'barcode' && data.value) {
+                        // Alternative format
+                        console.log('Barcode received in alternative format:', data.value);
+                        onBarcodeReceived(data.value);
+                    } else {
+                        console.log('Received message does not contain recognized barcode format:', data);
                     }
                 } catch (error) {
-                    console.error('Error parsing WebSocket message:', error);
+                    console.error('Error processing WebSocket message:', error);
                 }
             };
         } catch (error) {
@@ -193,27 +261,67 @@ export function useExternalScannerSocket({
         }
     }, [wsServerUrl, isEnabled, onBarcodeReceived, cleanupSocket]);
 
+    // Track if component is mounted to prevent state updates after unmount
+    const isMountedRef = useRef(true);
+
+    // Set up mount/unmount tracking
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     // Connect/disconnect based on isEnabled prop
     useEffect(() => {
         let timeoutId: NodeJS.Timeout | null = null;
+        let pingIntervalId: NodeJS.Timeout | null = null;
 
-        if (isEnabled) {
-            // Add a small delay before connecting to avoid React rendering issues
-            timeoutId = setTimeout(() => {
+        const setupConnection = () => {
+            if (!isMountedRef.current) return;
+
+            if (isEnabled) {
+                console.log('WebSocket connection enabled, connecting...');
                 connectWebSocket();
-            }, 100);
-        } else {
-            cleanupSocket();
-        }
+
+                // Set up a ping interval to keep the connection alive
+                // This helps with some servers that might close idle connections
+                pingIntervalId = setInterval(() => {
+                    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                        try {
+                            // Send a ping message
+                            if (wsServerUrl.includes('echo.websocket.org')) {
+                                socketRef.current.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+                            } else {
+                                // For our custom server, use a format it understands
+                                socketRef.current.send(JSON.stringify({ type: 'ping' }));
+                            }
+                            console.log('Ping sent to keep WebSocket connection alive');
+                        } catch (e) {
+                            console.error('Error sending ping:', e);
+                        }
+                    }
+                }, 30000); // Send a ping every 30 seconds
+            } else {
+                console.log('WebSocket connection disabled, cleaning up');
+                cleanupSocket();
+            }
+        };
+
+        // Add a small delay before connecting to avoid React rendering issues
+        timeoutId = setTimeout(setupConnection, 300);
 
         // Cleanup on unmount or when dependencies change
         return () => {
             if (timeoutId) {
                 clearTimeout(timeoutId);
             }
+            if (pingIntervalId) {
+                clearInterval(pingIntervalId);
+            }
             cleanupSocket();
         };
-    }, [isEnabled, connectWebSocket, cleanupSocket]);
+    }, [isEnabled, connectWebSocket, cleanupSocket, wsServerUrl]);
 
     // Return the connection status and a manual reconnect function
     return {

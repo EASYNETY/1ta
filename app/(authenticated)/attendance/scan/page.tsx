@@ -279,9 +279,14 @@ export default function ScanPage() {
     // Use a ref to track previous WebSocket status for debugging
     const prevSocketStatusRef = useRef<string | null>(null);
 
+    // Define a custom WebSocket URL for testing if needed
+    // You can uncomment and modify this to test with different WebSocket servers
+    // const testWebSocketUrl = 'wss://echo.websocket.org';
+
     const { status: socketStatus, reconnect: reconnectSocket } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
-        isEnabled: isWebSocketEnabled
+        isEnabled: isWebSocketEnabled,
+        // serverUrl: testWebSocketUrl // Uncomment to use a test server
     });
 
     // Log WebSocket status changes for debugging
@@ -289,8 +294,29 @@ export default function ScanPage() {
         if (prevSocketStatusRef.current !== socketStatus) {
             console.log(`WebSocket status changed: ${prevSocketStatusRef.current || 'initial'} -> ${socketStatus}`);
             prevSocketStatusRef.current = socketStatus;
+
+            // Show toast notifications for connection status changes
+            if (socketStatus === 'connected') {
+                toast({
+                    title: "External Scanner Connected",
+                    description: "Ready to receive barcode scans",
+                    variant: "default"
+                });
+            } else if (socketStatus === 'error' && prevSocketStatusRef.current !== 'error') {
+                toast({
+                    title: "Scanner Connection Error",
+                    description: "Could not connect to external scanner service",
+                    variant: "destructive"
+                });
+            } else if (socketStatus === 'disconnected' && prevSocketStatusRef.current === 'connected') {
+                toast({
+                    title: "Scanner Disconnected",
+                    description: "Connection to external scanner was lost",
+                    variant: "destructive"
+                });
+            }
         }
-    }, [socketStatus]);
+    }, [socketStatus, toast]);
 
 
     // Handle Modal Close
@@ -596,6 +622,10 @@ export default function ScanPage() {
                                                 <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
                                                     <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
                                                 </div>
+                                            ) : socketStatus === 'error' ? (
+                                                <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                                                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                                                </div>
                                             ) : (
                                                 <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
                                                     <WifiOff className="h-8 w-8 text-gray-600" />
@@ -623,6 +653,27 @@ export default function ScanPage() {
                                                 : 'Waiting for connection to external scanner service.'}
                                         </p>
 
+                                        {socketStatus === 'connected' && (
+                                            <div className="text-sm text-green-600 mb-4">
+                                                <p className="flex items-center justify-center">
+                                                    <CheckCircle className="h-4 w-4 mr-1" />
+                                                    Connection established. Scanner is active and ready.
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {socketStatus === 'error' && (
+                                            <div className="text-sm text-red-600 mb-4 max-w-md">
+                                                <p>Possible reasons for connection failure:</p>
+                                                <ul className="list-disc text-left pl-8 mt-2">
+                                                    <li>The scanner service is not running</li>
+                                                    <li>Network connectivity issues</li>
+                                                    <li>Firewall blocking WebSocket connections</li>
+                                                    <li>Server is using a different protocol (ws:// vs wss://)</li>
+                                                </ul>
+                                            </div>
+                                        )}
+
                                         {(socketStatus === 'disconnected' || socketStatus === 'error') && (
                                             <Button
                                                 variant="outline"
@@ -631,6 +682,12 @@ export default function ScanPage() {
                                             >
                                                 <Loader2 className="mr-2 h-4 w-4" /> Reconnect
                                             </Button>
+                                        )}
+
+                                        {socketStatus === 'connected' && (
+                                            <div className="mt-2 text-sm text-muted-foreground">
+                                                <p>Scan a barcode with your external scanner to identify a student</p>
+                                            </div>
                                         )}
                                     </div>
                                 </TabsContent>
