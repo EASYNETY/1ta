@@ -114,6 +114,13 @@ export function useExternalScannerSocket({
             return;
         }
 
+        // Check if we've already reached the maximum number of attempts
+        if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+            console.log(`Maximum connection attempts (${maxReconnectAttempts}) already reached`);
+            setStatus('error');
+            return;
+        }
+
         // Increment connection attempts
         reconnectAttemptsRef.current += 1;
         setConnectionAttempts(reconnectAttemptsRef.current);
@@ -313,6 +320,14 @@ export function useExternalScannerSocket({
 
             if (isEnabled) {
                 console.log('WebSocket connection enabled, connecting...');
+
+                // Reset connection attempts when initially enabling the connection
+                reconnectAttemptsRef.current = 0;
+                setConnectionAttempts(0);
+
+                // Re-enable auto-reconnect
+                autoReconnectEnabledRef.current = true;
+
                 connectWebSocket();
 
                 // Set up a ping interval to keep the connection alive
@@ -373,7 +388,7 @@ export function useExternalScannerSocket({
     return {
         status,
         reconnect: manualReconnect,
-        connectionAttempts: reconnectAttemptsRef.current,
+        connectionAttempts, // Use the state variable instead of the ref
         maxAttempts: maxReconnectAttempts
     };
 }
