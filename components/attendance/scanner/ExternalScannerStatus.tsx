@@ -74,10 +74,13 @@ export function ExternalScannerStatus({
                          'Scanner Disconnected'}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                        {socketStatus === 'connected' ? 'Ready to receive barcode scans' :
+                        {socketStatus === 'connected' ? 'Ready to receive barcode scans from external scanner' :
                          socketStatus === 'connecting' ? `Attempting to connect (${connectionAttempts}/${maxAttempts})` :
                          socketStatus === 'error' ? 'Failed to connect to the external scanner' :
                          'Waiting for connection to external barcode scanner'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                        WebSocket URL: {process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'Not configured'}
                     </p>
                 </div>
 
@@ -135,6 +138,19 @@ export function ExternalScannerStatus({
                             Resume the scanner to connect to the external device.
                         </AlertDescription>
                     </Alert>
+                )}
+
+                {/* Debug information - only show in development */}
+                {process.env.NODE_ENV !== 'production' && socketStatus === 'connected' && (
+                    <div className="mt-4 p-3 border border-dashed border-gray-300 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-900/50 text-xs">
+                        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Debug Information</h4>
+                        <p className="text-gray-600 dark:text-gray-400">
+                            Expected message format: <code className="bg-gray-200 dark:bg-gray-800 px-1 py-0.5 rounded">{"{ type: 'barcode_scan_received', data: { barcodeId: 'CODE123', timestamp: '...', status: 'received' } }"}</code>
+                        </p>
+                        <p className="text-gray-600 dark:text-gray-400 mt-1">
+                            Check browser console for detailed WebSocket message logs.
+                        </p>
+                    </div>
                 )}
             </div>
         </Card>

@@ -130,12 +130,15 @@ function processWebSocketMessage({
     if (parsedData && typeof parsedData.barcodeId === 'string') {
         barcodeValue = parsedData.barcodeId;
         formatMatched = 'Format 1 (barcodeId)';
+    } else if (parsedData && parsedData.type === 'barcode_scan_received' && parsedData.data && typeof parsedData.data.barcodeId === 'string') {
+        barcodeValue = parsedData.data.barcodeId;
+        formatMatched = 'Format 2 (type:barcode_scan_received, data.barcodeId)';
     } else if (parsedData && parsedData.type === 'barcode' && typeof parsedData.value === 'string') {
         barcodeValue = parsedData.value;
-        formatMatched = 'Format 2 (type:barcode, value)';
+        formatMatched = 'Format 3 (type:barcode, value)';
     } else if (parsedData && parsedData.barcode && typeof parsedData.barcode === 'string') {
         barcodeValue = parsedData.barcode;
-        formatMatched = 'Format 3 (barcode property)';
+        formatMatched = 'Format 4 (barcode property)';
     } else if (parsedData && parsedData.type === 'scan' && typeof parsedData.code === 'string') {
         barcodeValue = parsedData.code;
         formatMatched = 'Format 4 (type:scan, code)';
@@ -173,6 +176,11 @@ function processWebSocketMessage({
         if (verbose) console.log(`${logPrefix} Welcome message received:`, parsedData.message || parsedData.data || parsedData);
         return;
     }
+    if (parsedData?.type === 'barcode_scan_received' && parsedData?.data?.status === 'received') {
+        if (verbose) console.log(`${logPrefix} Barcode scan received confirmation:`, parsedData.data);
+        // We already processed this message type above for the barcode value
+        return;
+    }
     if (parsedData?.message && (
         parsedData.message.toString().toLowerCase().includes('welcome') ||
         parsedData.message.toString().toLowerCase().includes('connected')
@@ -183,7 +191,7 @@ function processWebSocketMessage({
 
     // If no specific barcode format matched, try heuristic search
     if (verbose) console.log(`${logPrefix} No known barcode format matched directly. Attempting heuristic search...`);
-    const commonBarcodeProps = ['code', 'barcode', 'id', 'value', 'scanData', 'dataString', 'text'];
+    const commonBarcodeProps = ['barcodeId', 'code', 'barcode', 'id', 'value', 'scanData', 'dataString', 'text'];
     for (const prop of commonBarcodeProps) {
         if (parsedData && typeof parsedData[prop] === 'string' && parsedData[prop].length > 0 && parsedData[prop].length < 200) {
             barcodeValue = parsedData[prop];
@@ -209,6 +217,12 @@ function processWebSocketMessage({
             console.log(`${logPrefix} Heuristic barcode from JSON was empty after trimming. Original: "${barcodeValue}"`);
         }
         return;
+    }
+
+    // Always log barcode_scan_received messages for debugging purposes
+    if (parsedData?.type === 'barcode_scan_received') {
+        console.log(`${logPrefix} Received barcode_scan_received message:`, parsedData);
+        console.log(`${logPrefix} Data structure:`, JSON.stringify(parsedData));
     }
 
     if (verbose) {
