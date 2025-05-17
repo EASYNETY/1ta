@@ -22,7 +22,11 @@ export function useExternalScannerSocket({
     serverUrl
 }: UseExternalScannerSocketProps) {
     // Default to environment variable or fallback URL
-    const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://34.249.241.206:5000';
+    // Use secure WebSocket (wss://) if the page is served over HTTPS
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+    const defaultProtocol = isSecure ? 'wss://' : 'ws://';
+    const defaultUrl = `${defaultProtocol}34.249.241.206:5000`;
+    const wsServerUrl = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL || defaultUrl;
 
     // Log the WebSocket URL when the hook is initialized (helpful for debugging)
     useEffect(() => {
@@ -75,13 +79,24 @@ export function useExternalScannerSocket({
 
         try {
             setStatus('connecting');
+            console.log(`Attempting to connect to WebSocket server at ${wsServerUrl}...`);
 
             // Create WebSocket connection without any parameters
             const socket = new WebSocket(wsServerUrl);
             socketRef.current = socket;
 
+            // Set a connection timeout
+            const connectionTimeoutId = setTimeout(() => {
+                if (socket.readyState !== WebSocket.OPEN) {
+                    console.error('WebSocket connection timeout');
+                    socket.close();
+                    setStatus('error');
+                }
+            }, 10000); // 10 second timeout
+
             // Connection opened
             socket.onopen = () => {
+                clearTimeout(connectionTimeoutId);
                 console.log('Connected to external scanner WebSocket server');
                 setStatus('connected');
                 reconnectAttemptsRef.current = 0; // Reset reconnect attempts on successful connection
@@ -180,14 +195,24 @@ export function useExternalScannerSocket({
 
     // Connect/disconnect based on isEnabled prop
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout | null = null;
+
         if (isEnabled) {
-            connectWebSocket();
+            // Add a small delay before connecting to avoid React rendering issues
+            timeoutId = setTimeout(() => {
+                connectWebSocket();
+            }, 100);
         } else {
             cleanupSocket();
         }
 
-        // Cleanup on unmount
-        return cleanupSocket;
+        // Cleanup on unmount or when dependencies change
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            cleanupSocket();
+        };
     }, [isEnabled, connectWebSocket, cleanupSocket]);
 
     // Return the connection status and a manual reconnect function

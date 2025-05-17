@@ -273,10 +273,24 @@ export default function ScanPage() {
     }, [allFetchedUsers, selectedClass, loggedInUser, dispatch, toast, isLoadingStudents, scannerMode, casualScanMode]);
 
     // External Scanner WebSocket Integration
+    // Only enable WebSocket when in external scanner mode and scanner is active
+    const isWebSocketEnabled = scannerMode === 'external' && isScannerActive;
+
+    // Use a ref to track previous WebSocket status for debugging
+    const prevSocketStatusRef = useRef<string | null>(null);
+
     const { status: socketStatus, reconnect: reconnectSocket } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
-        isEnabled: scannerMode === 'external' && isScannerActive
+        isEnabled: isWebSocketEnabled
     });
+
+    // Log WebSocket status changes for debugging
+    useEffect(() => {
+        if (prevSocketStatusRef.current !== socketStatus) {
+            console.log(`WebSocket status changed: ${prevSocketStatusRef.current || 'initial'} -> ${socketStatus}`);
+            prevSocketStatusRef.current = socketStatus;
+        }
+    }, [socketStatus]);
 
 
     // Handle Modal Close
@@ -330,30 +344,34 @@ export default function ScanPage() {
         dispatch(resetMarkingStatus());
 
         // Toggle casual mode
-        setCasualScanMode(prev => {
-            const newMode = !prev;
-            if (newMode) {
-                toast({
-                    title: "Casual Scan Mode Enabled",
-                    description: "Students will be identified but attendance won't be marked."
-                });
-                // Clear selected class when entering casual mode
-                if (selectedClass?.id) {
+        const newMode = !casualScanMode;
+        setCasualScanMode(newMode);
+
+        // Handle side effects after state update
+        if (newMode) {
+            toast({
+                title: "Casual Scan Mode Enabled",
+                description: "Students will be identified but attendance won't be marked."
+            });
+
+            // Clear selected class when entering casual mode
+            if (selectedClass?.id) {
+                // Use setTimeout to ensure this happens after render
+                setTimeout(() => {
                     dispatch(setCourseClass({
                         id: '',
                         courseName: "",
                         sessionName: "",
                     }));
-                }
-            } else {
-                toast({
-                    title: "Casual Scan Mode Disabled",
-                    description: "Select a class to mark attendance."
-                });
+                }, 0);
             }
-            return newMode;
-        });
-    }, [dispatch, selectedClass, toast]);
+        } else {
+            toast({
+                title: "Casual Scan Mode Disabled",
+                description: "Select a class to mark attendance."
+            });
+        }
+    }, [dispatch, selectedClass, toast, casualScanMode]);
 
 
     // Render Status Badge Logic
