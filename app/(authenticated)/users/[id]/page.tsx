@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { UserData } from '@/components/users/UserTableRow'; // Use shared type
 import Link from 'next/link';
-import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase } from 'lucide-react'; // Icons for details
+import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase, AlertTriangle } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
 import { useAppDispatch } from '@/store/hooks';
 import { useSafeArraySelector, useSafeObjectSelector } from '@/store/safe-hooks';
@@ -88,11 +88,22 @@ export default function ViewUserPage() {
         }
     };
 
-    const getStatusBadgeClass = (status: string) => {
+    // Convert boolean isActive to a status string for display
+    const getStatusString = (isActive: boolean | string | null | undefined): string => {
+        if (typeof isActive === 'boolean') {
+            return isActive ? 'active' : 'inactive';
+        } else if (typeof isActive === 'string') {
+            return isActive === 'true' ? 'active' : 'inactive';
+        }
+        return 'unknown';
+    };
+
+    const getStatusBadgeClass = (isActive: boolean | string | null | undefined) => {
+        const status = getStatusString(isActive);
         switch (status) {
             case "active": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100";
             case "inactive": return "bg-red-100 text-red-800 border-red-300 hover:bg-red-100";
-            default: return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100"; // Or handle unknown status
+            default: return "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100";
         }
     };
 
@@ -128,18 +139,31 @@ export default function ViewUserPage() {
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
-                            {safeString(currentUser.status) === 'active'
+                            {currentUser.isActive
                                 ? <CheckCircle className="h-5 w-5 text-green-600" />
                                 : <XCircle className="h-5 w-5 text-red-600" />}
-                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(safeString(currentUser.status))}`}>
-                                {safeString(currentUser.status)
-                                    ? `${safeString(currentUser.status).charAt(0).toUpperCase()}${safeString(currentUser.status).slice(1)}`
-                                    : 'Unknown'}
+                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.isActive)}`}>
+                                {getStatusString(currentUser.isActive).charAt(0).toUpperCase() + getStatusString(currentUser.isActive).slice(1)}
+                            </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 border-b pb-3">
+                            <Calendar className="h-5 w-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Joined on {formatDate(currentUser.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-3 border-b pb-3">
+                            {safeString(currentUser.onboardingStatus) === 'complete'
+                                ? <CheckCircle className="h-5 w-5 text-green-600" />
+                                : <AlertTriangle className="h-5 w-5 text-amber-500" />}
+                            <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'} className="text-sm">
+                                Onboarding: {safeString(currentUser.onboardingStatus).charAt(0).toUpperCase() + safeString(currentUser.onboardingStatus).slice(1)}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3">
-                            <Calendar className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">Joined on {formatDate(currentUser.createdAt)}</span>
+                            <User className="h-5 w-5 text-muted-foreground" />
+                            <div className="flex flex-col">
+                                <span className="text-sm font-medium">Barcode ID</span>
+                                <span className="text-sm text-muted-foreground">{safeString(currentUser.barcodeId, 'Not assigned')}</span>
+                            </div>
                         </div>
                         {/* Add more details fields here */}
                     </DyraneCardContent>
