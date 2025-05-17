@@ -15,6 +15,7 @@ interface UseExternalScannerSocketProps {
     pingInterval?: number;      // Interval for sending ping messages in ms
     reconnectDelayBase?: number;// Base delay for reconnection in ms
     reconnectDelayMax?: number; // Maximum delay for reconnection in ms
+    verbose?: boolean;          // Enable verbose logging for debugging
 }
 
 // Return type for the hook
@@ -37,7 +38,8 @@ export function useExternalScannerSocket({
     connectionTimeout = 10000,
     pingInterval = 30000,
     reconnectDelayBase = 1000,
-    reconnectDelayMax = 30000
+    reconnectDelayMax = 30000,
+    verbose = false
 }: UseExternalScannerSocketProps): UseExternalScannerSocketReturn {
     const derivedWsServerUrl = useMemo(() => {
         const isClient = typeof window !== 'undefined';
@@ -269,7 +271,11 @@ export function useExternalScannerSocket({
             socket.onmessage = (event) => {
                 if (socketRef.current !== socket) return; // Stale socket
 
-                // console.log('[WebSocket] Message received:', event.data); // Can be very noisy
+                // Log all messages if verbose mode is enabled
+                if (verbose) {
+                    console.log('[WebSocket] Message received:', event.data);
+                }
+
                 if (derivedWsServerUrl.includes('echo.websocket.org')) {
                     console.log('[WebSocket] Echo response:', event.data);
                     return;
@@ -289,14 +295,64 @@ export function useExternalScannerSocket({
                         return;
                     }
 
+                    // Handle different message formats
                     if (data && typeof data.barcodeId === 'string') {
+                        // Format 1: Direct barcodeId property
+                        console.log('[WebSocket] Received barcode format 1:', data.barcodeId);
                         onBarcodeReceived(data.barcodeId);
                     } else if (data && data.type === 'barcode' && typeof data.value === 'string') {
+                        // Format 2: {type: 'barcode', value: 'xxx'}
+                        console.log('[WebSocket] Received barcode format 2:', data.value);
                         onBarcodeReceived(data.value);
+                    } else if (data && data.barcode && typeof data.barcode === 'string') {
+                        // Format 3: {barcode: 'xxx'}
+                        console.log('[WebSocket] Received barcode format 3:', data.barcode);
+                        onBarcodeReceived(data.barcode);
+                    } else if (data && data.type === 'scan' && typeof data.code === 'string') {
+                        // Format 4: {type: 'scan', code: 'xxx'}
+                        console.log('[WebSocket] Received barcode format 4:', data.code);
+                        onBarcodeReceived(data.code);
                     } else if (data && data.type === 'pong') {
-                         // console.log('[WebSocket] Pong received.');
-                    }else {
+                        // Pong response - keep connection alive
+                        // console.log('[WebSocket] Pong received.');
+                    } else if (data && data.type === 'welcome') {
+                        // Welcome message from server
+                        console.log('[WebSocket] Welcome message received:',
+                            data.data?.socketId || 'unknown socket ID');
+                    } else if (data && data.message && (
+                        data.message.includes('Welcome') ||
+                        data.message.includes('working') ||
+                        data.message.includes('connected')
+                    )) {
+                        // Server status/welcome message
+                        console.log('[WebSocket] Server message:', data.message);
+                    } else if (data && data.type === 'scan-result' && data.success === true) {
+                        // Possible scan result format
+                        const barcodeValue = data.data?.barcode || data.data?.code || data.barcode || data.code;
+                        if (typeof barcodeValue === 'string') {
+                            console.log('[WebSocket] Received scan result with barcode:', barcodeValue);
+                            onBarcodeReceived(barcodeValue);
+                        } else {
+                            console.log('[WebSocket] Received scan result without valid barcode data:', data);
+                        }
+                    } else {
+                        // Unknown format - log for debugging
                         console.log('[WebSocket] Received message in unrecognized format:', data);
+
+                        // Check if this might be a barcode in a different format
+                        // Look for any property that might contain a barcode value
+                        const possibleBarcodeProps = ['code', 'barcode', 'id', 'value', 'data'];
+                        for (const prop of possibleBarcodeProps) {
+                            if (data && typeof data[prop] === 'string' && data[prop].length > 0) {
+                                console.log(`[WebSocket] Found possible barcode in property "${prop}":`, data[prop]);
+                                onBarcodeReceived(data[prop]);
+                                break;
+                            } else if (data && data.data && typeof data.data[prop] === 'string' && data.data[prop].length > 0) {
+                                console.log(`[WebSocket] Found possible barcode in data.${prop}:`, data.data[prop]);
+                                onBarcodeReceived(data.data[prop]);
+                                break;
+                            }
+                        }
                     }
                 } catch (error) {
                     console.error('[WebSocket] Error processing message:', error);

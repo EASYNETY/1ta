@@ -309,6 +309,9 @@ export default function ScanPage() {
     // You can uncomment and modify this to test with different WebSocket servers
     // const testWebSocketUrl = 'wss://echo.websocket.org';
 
+    // Debug mode state for WebSocket
+    const [debugMode, setDebugMode] = useState(false);
+
     const {
         status: socketStatus,
         reconnect: reconnectSocket,
@@ -323,6 +326,7 @@ export default function ScanPage() {
         pingInterval: 30000, // Send ping every 30 seconds
         reconnectDelayBase: 1000, // Start with 1 second delay
         reconnectDelayMax: 30000, // Maximum 30 seconds delay
+        verbose: debugMode, // Enable verbose logging when debug mode is on
         // serverUrl: testWebSocketUrl // Uncomment to use a test server
     });
 
@@ -787,6 +791,31 @@ export default function ScanPage() {
                                                 <p>Scan a barcode with your external scanner to identify a student</p>
                                             </div>
                                         )}
+
+                                        {/* Debug Mode Toggle */}
+                                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setDebugMode(!debugMode)}
+                                                className={`text-xs ${debugMode ? 'bg-yellow-50 text-yellow-700 border-yellow-300' : ''}`}
+                                            >
+                                                {debugMode ? (
+                                                    <>
+                                                        <AlertTriangle className="mr-1 h-3 w-3" /> Debug Mode: ON
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <AlertTriangle className="mr-1 h-3 w-3" /> Debug Mode: OFF
+                                                    </>
+                                                )}
+                                            </Button>
+                                            {debugMode && (
+                                                <p className="text-xs text-muted-foreground mt-2">
+                                                    Debug mode enabled. Check browser console for detailed WebSocket messages.
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </TabsContent>
                             </Tabs>
