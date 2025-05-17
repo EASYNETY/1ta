@@ -172,7 +172,7 @@ export default function ViewUserPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     {/* Left Column - User Summary */}
-                    <Card className="lg:col-span-1 h-fit">
+                    <Card className="lg:col-span-1 h-full">
                         <CardHeader className="pb-4">
                             <CardTitle className="text-xl flex items-center gap-2">
                                 <UserIcon className="h-5 w-5 text-primary" />
@@ -192,7 +192,7 @@ export default function ViewUserPage() {
                             {/* Key Information */}
                             <div className="space-y-3">
                                 {/* Role */}
-                                <div className="flex justify-between items-center py-2 border-b">
+                                <div className="flex justify-between items-center py-2 ">
                                     <span className="text-sm font-medium">Role</span>
                                     <Badge variant="outline" className={`${getRoleBadgeClass(safeString(currentUser.role))}`}>
                                         {safeString(currentUser.role)
@@ -202,7 +202,7 @@ export default function ViewUserPage() {
                                 </div>
 
                                 {/* Status */}
-                                <div className="flex justify-between items-center py-2 border-b">
+                                <div className="flex justify-between items-center py-2 ">
                                     <span className="text-sm font-medium">Status</span>
                                     <Badge variant="outline" className={`${getStatusBadgeClass(currentUser.isActive)}`}>
                                         {(() => {
@@ -213,7 +213,7 @@ export default function ViewUserPage() {
                                 </div>
 
                                 {/* Account Type */}
-                                <div className="flex justify-between items-center py-2 border-b">
+                                <div className="flex justify-between items-center py-2 ">
                                     <span className="text-sm font-medium">Account Type</span>
                                     <span className="text-sm">
                                         {safeString(currentUser.accountType, 'individual')
@@ -222,13 +222,13 @@ export default function ViewUserPage() {
                                 </div>
 
                                 {/* Joined Date */}
-                                <div className="flex justify-between items-center py-2 border-b">
+                                <div className="flex justify-between items-center py-2 ">
                                     <span className="text-sm font-medium">Joined</span>
                                     <span className="text-sm">{formatDate(currentUser.createdAt)}</span>
                                 </div>
 
                                 {/* Onboarding Status */}
-                                <div className="flex justify-between items-center py-2 border-b">
+                                <div className="flex justify-between items-center py-2 ">
                                     <span className="text-sm font-medium">Onboarding</span>
                                     <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'}>
                                         {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() +
