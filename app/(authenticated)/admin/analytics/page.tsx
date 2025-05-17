@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchAnalyticsDashboard, selectAnalyticsDashboardStats, selectAnalyticsStatus } from "@/features/analytics/store/analytics-slice";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeader } from "@/components/layout/auth/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -28,8 +28,8 @@ export default function AnalyticsDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytics Dashboard"
-        description="View key metrics and performance indicators"
+        heading="Analytics Dashboard"
+        subheading="View key metrics and performance indicators"
         actions={
           <div className="flex gap-2">
             <DyraneButton asChild>
@@ -230,11 +230,11 @@ export default function AnalyticsDashboard() {
                     }}
                   >
                     <BarChart
-                      data={stats.courseStats.categoryDistribution ? 
+                      data={stats.courseStats.categoryDistribution ?
                         Object.entries(stats.courseStats.categoryDistribution).map(([category, count]) => ({
                           category,
                           enrollments: count
-                        })) : 
+                        })) :
                         [
                           { category: "Web Dev", enrollments: 45 },
                           { category: "Data Science", enrollments: 30 },

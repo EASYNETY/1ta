@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchStudentBiodataStats, selectStudentBiodataStats, selectStudentBiodataStatus } from "@/features/analytics/store/student-biodata-slice";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeader } from "@/components/layout/auth/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -55,8 +55,8 @@ export default function StudentBiodataDashboard() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Student Demographics"
-        description="Analyze student demographics and enrollment patterns"
+        heading="Student Demographics"
+        subheading="Analyze student demographics and enrollment patterns"
         actions={
           <div className="flex gap-2">
             <DyraneButton asChild>

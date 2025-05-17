@@ -1,27 +1,29 @@
 // features/analytics/store/report-thunks.ts
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { get } from "@/lib/api-client";
-import type { 
-  ReportFilter, 
-  StudentBiodataFilter 
+import type { RootState } from "@/store";
+import type {
+  ReportFilter,
+  StudentBiodataFilter
 } from "../types/analytics-types";
-import type { 
-  StudentReport, 
-  StudentBiodataReport, 
-  CourseReport, 
-  PaymentReport, 
+import type {
+  StudentReport,
+  StudentBiodataReport,
+  CourseReport,
+  PaymentReport,
   AttendanceReport,
   ReportResponse
 } from "../types/report-types";
+import { deriveStudentReports } from "../utils/data-derivation";
+import { deriveStudentBiodataReports, deriveCourseReports } from "../utils/data-derivation-reports";
 
 // Helper function to build query string from filter
 const buildQueryString = (filter: ReportFilter | StudentBiodataFilter): string => {
   const queryParams = new URLSearchParams();
-  
+
   // Common parameters
   if (filter.startDate) queryParams.append("startDate", filter.startDate);
   if (filter.endDate) queryParams.append("endDate", filter.endDate);
-  
+
   // ReportFilter specific parameters
   if ('courseId' in filter && filter.courseId) queryParams.append("courseId", filter.courseId);
   if ('userId' in filter && filter.userId) queryParams.append("userId", filter.userId);
@@ -29,41 +31,35 @@ const buildQueryString = (filter: ReportFilter | StudentBiodataFilter): string =
   if ('searchTerm' in filter && filter.searchTerm) queryParams.append("search", filter.searchTerm);
   if ('page' in filter && filter.page !== undefined) queryParams.append("page", filter.page.toString());
   if ('limit' in filter && filter.limit !== undefined) queryParams.append("limit", filter.limit.toString());
-  
+
   // StudentBiodataFilter specific parameters
   if ('gender' in filter && filter.gender) queryParams.append("gender", filter.gender);
   if ('ageRange' in filter && filter.ageRange) queryParams.append("ageRange", filter.ageRange);
   if ('accountType' in filter && filter.accountType) queryParams.append("accountType", filter.accountType);
   if ('corporateId' in filter && filter.corporateId) queryParams.append("corporateId", filter.corporateId);
   if ('location' in filter && filter.location) queryParams.append("location", filter.location);
-  if ('completionRateMin' in filter && filter.completionRateMin !== undefined) 
+  if ('completionRateMin' in filter && filter.completionRateMin !== undefined)
     queryParams.append("completionRateMin", filter.completionRateMin.toString());
-  if ('completionRateMax' in filter && filter.completionRateMax !== undefined) 
+  if ('completionRateMax' in filter && filter.completionRateMax !== undefined)
     queryParams.append("completionRateMax", filter.completionRateMax.toString());
-  
+
   return queryParams.toString();
 };
 
 // Student Reports
 export const fetchStudentReports = createAsyncThunk(
   "reports/fetchStudentReports",
-  async (filter: ReportFilter, { rejectWithValue }) => {
+  async (filter: ReportFilter, { getState, rejectWithValue }) => {
     try {
-      const queryString = buildQueryString(filter);
-      
-      const response = await get<{
-        success: boolean;
-        data: ReportResponse<StudentReport>;
-        message?: string;
-      }>(`/admin/reports/students?${queryString}`);
+      // Get the current state
+      const state = getState() as RootState;
 
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch student reports");
-      }
+      // Derive student reports from the state
+      const studentReports = deriveStudentReports(state, filter);
 
-      return response.data;
+      return studentReports;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch student reports");
+      return rejectWithValue(error.message || "Failed to derive student reports");
     }
   }
 );
@@ -71,23 +67,17 @@ export const fetchStudentReports = createAsyncThunk(
 // Student Biodata Reports
 export const fetchStudentBiodataReports = createAsyncThunk(
   "reports/fetchStudentBiodataReports",
-  async (filter: StudentBiodataFilter, { rejectWithValue }) => {
+  async (filter: StudentBiodataFilter, { getState, rejectWithValue }) => {
     try {
-      const queryString = buildQueryString(filter);
-      
-      const response = await get<{
-        success: boolean;
-        data: ReportResponse<StudentBiodataReport>;
-        message?: string;
-      }>(`/admin/reports/student-biodata?${queryString}`);
+      // Get the current state
+      const state = getState() as RootState;
 
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch student biodata reports");
-      }
+      // Derive student biodata reports from the state
+      const studentBiodataReports = deriveStudentBiodataReports(state, filter);
 
-      return response.data;
+      return studentBiodataReports;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch student biodata reports");
+      return rejectWithValue(error.message || "Failed to derive student biodata reports");
     }
   }
 );
@@ -95,23 +85,17 @@ export const fetchStudentBiodataReports = createAsyncThunk(
 // Course Reports
 export const fetchCourseReports = createAsyncThunk(
   "reports/fetchCourseReports",
-  async (filter: ReportFilter, { rejectWithValue }) => {
+  async (filter: ReportFilter, { getState, rejectWithValue }) => {
     try {
-      const queryString = buildQueryString(filter);
-      
-      const response = await get<{
-        success: boolean;
-        data: ReportResponse<CourseReport>;
-        message?: string;
-      }>(`/admin/reports/courses?${queryString}`);
+      // Get the current state
+      const state = getState() as RootState;
 
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch course reports");
-      }
+      // Derive course reports from the state
+      const courseReports = deriveCourseReports(state, filter);
 
-      return response.data;
+      return courseReports;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch course reports");
+      return rejectWithValue(error.message || "Failed to derive course reports");
     }
   }
 );
@@ -119,23 +103,18 @@ export const fetchCourseReports = createAsyncThunk(
 // Payment Reports
 export const fetchPaymentReports = createAsyncThunk(
   "reports/fetchPaymentReports",
-  async (filter: ReportFilter, { rejectWithValue }) => {
+  async (filter: ReportFilter, { getState, rejectWithValue }) => {
     try {
-      const queryString = buildQueryString(filter);
-      
-      const response = await get<{
-        success: boolean;
-        data: ReportResponse<PaymentReport>;
-        message?: string;
-      }>(`/admin/reports/payments?${queryString}`);
-
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch payment reports");
-      }
-
-      return response.data;
+      // For now, return empty data since we don't have a derivation function yet
+      return {
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0
+      } as ReportResponse<PaymentReport>;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch payment reports");
+      return rejectWithValue(error.message || "Failed to derive payment reports");
     }
   }
 );
@@ -143,23 +122,18 @@ export const fetchPaymentReports = createAsyncThunk(
 // Attendance Reports
 export const fetchAttendanceReports = createAsyncThunk(
   "reports/fetchAttendanceReports",
-  async (filter: ReportFilter, { rejectWithValue }) => {
+  async (filter: ReportFilter, { getState, rejectWithValue }) => {
     try {
-      const queryString = buildQueryString(filter);
-      
-      const response = await get<{
-        success: boolean;
-        data: ReportResponse<AttendanceReport>;
-        message?: string;
-      }>(`/admin/reports/attendance?${queryString}`);
-
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch attendance reports");
-      }
-
-      return response.data;
+      // For now, return empty data since we don't have a derivation function yet
+      return {
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0
+      } as ReportResponse<AttendanceReport>;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch attendance reports");
+      return rejectWithValue(error.message || "Failed to derive attendance reports");
     }
   }
 );

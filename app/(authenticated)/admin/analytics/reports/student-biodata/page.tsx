@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeader } from "@/components/layout/auth/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,8 +55,8 @@ export default function StudentBiodataReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Student Biodata Reports"
-        description="Analyze student demographics and enrollment patterns"
+        heading="Student Biodata Reports"
+        subheading="Analyze student demographics and enrollment patterns"
         actions={
           <Button onClick={exportReport} className="flex items-center gap-2">
             <Download className="h-4 w-4" />

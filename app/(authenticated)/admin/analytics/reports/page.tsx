@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeader } from "@/components/layout/auth/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,23 +13,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Download, Filter, Search } from "lucide-react";
-import { 
-  fetchStudentReports, 
-  fetchCourseReports, 
-  fetchPaymentReports, 
-  fetchAttendanceReports 
+import {
+  fetchStudentReports,
+  fetchCourseReports,
+  fetchPaymentReports,
+  fetchAttendanceReports
 } from "@/features/analytics/store/report-thunks";
-import { 
-  selectStudentReports, 
-  selectCourseReports, 
-  selectPaymentReports, 
-  selectAttendanceReports 
+import {
+  selectStudentReports,
+  selectCourseReports,
+  selectPaymentReports,
+  selectAttendanceReports
 } from "@/features/analytics/store/reports-slice";
-import { 
-  exportStudentReports, 
-  exportCourseReports, 
-  exportPaymentReports, 
-  exportAttendanceReports 
+import {
+  exportStudentReports,
+  exportCourseReports,
+  exportPaymentReports,
+  exportAttendanceReports
 } from "@/features/analytics/utils/export-utils";
 import type { ReportFilter } from "@/features/analytics/types/analytics-types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -93,8 +93,8 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Reports"
-        description="Generate and export detailed reports"
+        heading="Reports"
+        subheading="Generate and export detailed reports"
         actions={
           <Button onClick={exportReport} className="flex items-center gap-2">
             <Download className="h-4 w-4" />

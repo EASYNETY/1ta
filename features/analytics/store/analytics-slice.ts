@@ -1,8 +1,8 @@
 // features/analytics/store/analytics-slice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { get } from "@/lib/api-client";
 import type { RootState } from "@/store";
 import type { AnalyticsState, DashboardStats } from "../types/analytics-types";
+import { deriveDashboardStats } from "../utils/data-derivation";
 
 // Initial state
 const initialState: AnalyticsState = {
@@ -37,21 +37,17 @@ const initialState: AnalyticsState = {
 // Async thunk to fetch dashboard analytics
 export const fetchAnalyticsDashboard = createAsyncThunk(
   "analytics/fetchDashboard",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      const response = await get<{
-        success: boolean;
-        data: DashboardStats;
-        message?: string;
-      }>("/admin/analytics/dashboard");
+      // Get the current state
+      const state = getState() as RootState;
 
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch analytics dashboard data");
-      }
+      // Derive dashboard stats from the state
+      const dashboardStats = deriveDashboardStats(state);
 
-      return response.data;
+      return dashboardStats;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch analytics dashboard data");
+      return rejectWithValue(error.message || "Failed to derive analytics dashboard data");
     }
   }
 );

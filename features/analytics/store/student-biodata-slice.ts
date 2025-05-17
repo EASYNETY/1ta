@@ -1,8 +1,8 @@
 // features/analytics/store/student-biodata-slice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { get } from "@/lib/api-client";
 import type { RootState } from "@/store";
 import type { StudentBiodataState, StudentBiodataStats } from "../types/student-biodata-types";
+import { deriveStudentBiodataStats } from "../utils/data-derivation";
 
 // Initial state
 const initialState: StudentBiodataState = {
@@ -35,21 +35,17 @@ const initialState: StudentBiodataState = {
 // Async thunk to fetch student biodata stats
 export const fetchStudentBiodataStats = createAsyncThunk(
   "studentBiodata/fetchStats",
-  async (_, { rejectWithValue }) => {
+  async (_, { getState, rejectWithValue }) => {
     try {
-      const response = await get<{
-        success: boolean;
-        data: StudentBiodataStats;
-        message?: string;
-      }>("/admin/analytics/student-biodata");
+      // Get the current state
+      const state = getState() as RootState;
 
-      if (!response || !response.success) {
-        throw new Error(response?.message || "Failed to fetch student biodata stats");
-      }
+      // Derive student biodata stats from the state
+      const studentBiodataStats = deriveStudentBiodataStats(state);
 
-      return response.data;
+      return studentBiodataStats;
     } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to fetch student biodata stats");
+      return rejectWithValue(error.message || "Failed to derive student biodata stats");
     }
   }
 );
