@@ -273,6 +273,9 @@ export default function ScanPage() {
                 console.log("Casual scan mode: Student found but attendance not marked");
                 // In casual mode, we just display the student info without marking attendance
                 dispatch(resetMarkingStatus()); // Ensure we're in a clean state
+                // Make sure the modal is open and student info is set
+                setIsModalOpen(true);
+                setIsProcessingScan(false);
             } else {
                 console.error("Missing data for marking attendance:", { studentId: foundStudent.id, selectedClass, loggedInUser });
                 // Potentially show a toast if class not selected, though scanner shouldn't be active then.

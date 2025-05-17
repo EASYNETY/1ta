@@ -4,7 +4,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch } from '@/store/hooks';
-import { createClass, resetOperationStatus } from '@/features/classes/store/classes-slice';
+import { resetOperationStatus } from '@/features/classes/store/classes-slice';
+import { createClass } from '@/features/classes/store/classes-thunks';
 import { ClassForm } from '@/features/classes/components/ClassForm'; // Adjust path
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
