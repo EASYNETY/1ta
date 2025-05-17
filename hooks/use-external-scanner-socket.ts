@@ -298,7 +298,7 @@ const useExternalScannerSocket = ({
             if (socketRef.current.readyState === WebSocket.OPEN ||
                 socketRef.current.readyState === WebSocket.CONNECTING) {
                 try {
-                    socketRef.current.close(1000, "Client initiated disconnect");
+                    socketRef.current.close();
                 } catch (e) {
                     console.warn('[WebSocket] Error closing socket during cleanup:', e);
                 }
@@ -343,7 +343,7 @@ const useExternalScannerSocket = ({
             connectionTimeoutIdRef.current = setTimeout(() => {
                 if (socketRef.current === socket && socket.readyState === WebSocket.CONNECTING) {
                     console.error(`[WebSocket] Connection timeout after ${connectionTimeout / 1000}s`);
-                    socket.close(1000, "Connection timeout");
+                    socket.close();
                 }
             }, connectionTimeout);
 
