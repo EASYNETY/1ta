@@ -84,7 +84,7 @@ export default function ScanPage() {
 
     // Handle barcode detection
     const handleBarcodeDetected = useCallback(async (scannedData: any) => {
-        console.log("--- Scan Detected ---");
+        console.log("--- Scan Detected ---", scannedData);
         setIsScannerActive(false);
         setIsModalOpen(true);
         dispatch(resetMarkingStatus());
@@ -92,10 +92,33 @@ export default function ScanPage() {
         // Play beep sound when barcode is detected
         beepSounds.scanner();
 
-        const potentialId = typeof scannedData === 'object' && scannedData?.text
-            ? scannedData.text
-            : String(scannedData ?? '');
-        const scannedBarcodeId = potentialId.trim();
+        // Handle different types of scanned data
+        let scannedBarcodeId: string;
+
+        if (typeof scannedData === 'object') {
+            if (scannedData?.text) {
+                // Camera scanner format
+                scannedBarcodeId = scannedData.text.trim();
+                console.log("Camera scanner format detected");
+            } else if (scannedData?.barcodeId) {
+                // Direct barcodeId property
+                scannedBarcodeId = scannedData.barcodeId.trim();
+                console.log("Direct barcodeId property detected");
+            } else if (scannedData?.data?.barcodeId) {
+                // Nested data.barcodeId property
+                scannedBarcodeId = scannedData.data.barcodeId.trim();
+                console.log("Nested data.barcodeId property detected");
+            } else {
+                // Unknown object format, convert to string
+                scannedBarcodeId = String(scannedData).trim();
+                console.log("Unknown object format, converted to string");
+            }
+        } else {
+            // Simple string format
+            scannedBarcodeId = String(scannedData ?? '').trim();
+            console.log("Simple string format detected");
+        }
+
         setLastScannedId(scannedBarcodeId);
         console.log(`Processed Barcode ID: "${scannedBarcodeId}" from ${scannerMode} scanner`);
 
@@ -115,7 +138,7 @@ export default function ScanPage() {
     } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
         isEnabled: isWebSocketEnabled,
-        verbose: process.env.NODE_ENV !== 'production' // Enable verbose logging only in development
+        verbose: true // Enable verbose logging to help debug barcode scanning
     });
 
     // Auto-connect when scanner mode changes to external and scanner is active
