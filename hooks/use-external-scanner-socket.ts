@@ -139,6 +139,9 @@ function processWebSocketMessage({
     } else if (parsedData && parsedData.type === 'scan' && typeof parsedData.code === 'string') {
         barcodeValue = parsedData.code;
         formatMatched = 'Format 4 (type:scan, code)';
+    } else if (parsedData && parsedData.type === 'barcode_scan_received' && parsedData.data && typeof parsedData.data.barcodeId === 'string') {
+        barcodeValue = parsedData.data.barcodeId;
+        formatMatched = 'Format 5 (type:barcode_scan_received, data.barcodeId)';
     } else if (parsedData && parsedData.type === 'scan-result' && parsedData.success === true) {
         const possibleBarcode = parsedData.data?.barcode || parsedData.data?.code || parsedData.barcode || parsedData.code;
         if (typeof possibleBarcode === 'string') {
