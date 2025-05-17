@@ -4,16 +4,15 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AuthorizationGuard } from "@/components/auth/AuthenticationGuard";
-import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription, DyraneCardFooter } from '@/components/dyrane-ui/dyrane-card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import {
-    User as UserIcon, Mail, Calendar, CheckCircle, XCircle, Briefcase, AlertTriangle,
-    Phone, Building, Clock, RefreshCw, Barcode, CalendarDays, GraduationCap,
-    Building2, BookOpen, ShieldCheck, FileText
+    User as UserIcon, Mail, Clock, GraduationCap,
+    BookOpen, ShieldCheck, FileText, Pencil
 } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -157,167 +156,174 @@ export default function ViewUserPage() {
         <AuthorizationGuard allowedRoles={['admin']}>
             <div className="mx-auto">
                 <PageHeader
-                    heading={`User Details`}
-                    subheading={`Explore the details of the user ${safeString(currentUser.name, 'Unknown')}`}
+                    heading={`User Profile`}
+                    subheading={`Viewing details for ${safeString(currentUser.name, 'Unknown User')}`}
+                    actions={
+                        <Button asChild variant="outline" className="gap-2">
+                            <Link href={`/users/${userId}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                                Edit Profile
+                            </Link>
+                        </Button>
+                    }
                 />
-                <DyraneCard>
-                    <DyraneCardHeader>
-                        <DyraneCardTitle className="flex items-center gap-3">
-                            <UserIcon className="h-6 w-6" />
-                            {safeString(currentUser.name, 'Unknown User')}
-                        </DyraneCardTitle>
-                        <DyraneCardDescription>
-                            Viewing profile details for {safeString(currentUser.name, 'Unknown User')}.
-                        </DyraneCardDescription>
-                    </DyraneCardHeader>
-                    <DyraneCardContent className="space-y-4">
-                        {/* Basic User Information Section */}
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-3 border-b pb-2">Basic Information</h3>
 
-                            {/* Email */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <Mail className="h-5 w-5 text-muted-foreground" />
-                                <span className="text-sm">{safeString(currentUser.email, 'No email provided')}</span>
+                {/* Main content with two-column layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    {/* Left Column - User Summary */}
+                    <Card className="lg:col-span-1 h-fit">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="text-xl flex items-center gap-2">
+                                <UserIcon className="h-5 w-5 text-primary" />
+                                Profile Summary
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {/* User Avatar & Name */}
+                            <div className="flex flex-col items-center justify-center pb-4 text-center">
+                                <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center mb-3">
+                                    <UserIcon className="h-12 w-12 text-muted-foreground" />
+                                </div>
+                                <h3 className="text-lg font-semibold">{safeString(currentUser.name, 'Unknown User')}</h3>
+                                <p className="text-sm text-muted-foreground">{safeString(currentUser.email, 'No email provided')}</p>
                             </div>
 
-                            {/* Role */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <Briefcase className="h-5 w-5 text-muted-foreground" />
-                                <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(safeString(currentUser.role))}`}>
-                                    {safeString(currentUser.role)
-                                        ? `${safeString(currentUser.role).charAt(0).toUpperCase()}${safeString(currentUser.role).slice(1)}`
-                                        : 'Unknown'}
-                                </Badge>
-                            </div>
+                            {/* Key Information */}
+                            <div className="space-y-3">
+                                {/* Role */}
+                                <div className="flex justify-between items-center py-2 border-b">
+                                    <span className="text-sm font-medium">Role</span>
+                                    <Badge variant="outline" className={`${getRoleBadgeClass(safeString(currentUser.role))}`}>
+                                        {safeString(currentUser.role)
+                                            ? `${safeString(currentUser.role).charAt(0).toUpperCase()}${safeString(currentUser.role).slice(1)}`
+                                            : 'Unknown'}
+                                    </Badge>
+                                </div>
 
-                            {/* Status */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                {safeBoolean(currentUser.isActive)
-                                    ? <CheckCircle className="h-5 w-5 text-green-600" />
-                                    : <XCircle className="h-5 w-5 text-red-600" />}
-                                <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.isActive)}`}>
-                                    {(() => {
-                                        const status = getStatusString(currentUser.isActive);
-                                        return status.charAt(0).toUpperCase() + status.slice(1);
-                                    })()}
-                                </Badge>
-                            </div>
+                                {/* Status */}
+                                <div className="flex justify-between items-center py-2 border-b">
+                                    <span className="text-sm font-medium">Status</span>
+                                    <Badge variant="outline" className={`${getStatusBadgeClass(currentUser.isActive)}`}>
+                                        {(() => {
+                                            const status = getStatusString(currentUser.isActive);
+                                            return status.charAt(0).toUpperCase() + status.slice(1);
+                                        })()}
+                                    </Badge>
+                                </div>
 
-                            {/* Phone */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <Phone className="h-5 w-5 text-muted-foreground" />
-                                <span className="text-sm">{safeString(currentUser.phone, 'No phone number provided')}</span>
-                            </div>
-
-                            {/* Account Type */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <Building className="h-5 w-5 text-muted-foreground" />
-                                <div className="flex flex-col">
+                                {/* Account Type */}
+                                <div className="flex justify-between items-center py-2 border-b">
                                     <span className="text-sm font-medium">Account Type</span>
-                                    <span className="text-sm text-muted-foreground">
+                                    <span className="text-sm">
                                         {safeString(currentUser.accountType, 'individual')
                                             .charAt(0).toUpperCase() + safeString(currentUser.accountType, 'individual').slice(1)}
                                     </span>
                                 </div>
-                            </div>
 
-                            {/* Dates Section */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <Calendar className="h-5 w-5 text-muted-foreground" />
-                                <div className="flex flex-col">
+                                {/* Joined Date */}
+                                <div className="flex justify-between items-center py-2 border-b">
                                     <span className="text-sm font-medium">Joined</span>
-                                    <span className="text-sm text-muted-foreground">{formatDate(currentUser.createdAt)}</span>
+                                    <span className="text-sm">{formatDate(currentUser.createdAt)}</span>
+                                </div>
+
+                                {/* Onboarding Status */}
+                                <div className="flex justify-between items-center py-2 border-b">
+                                    <span className="text-sm font-medium">Onboarding</span>
+                                    <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'}>
+                                        {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() +
+                                        safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
+                                    </Badge>
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
 
-                            {/* Last Login */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <Clock className="h-5 w-5 text-muted-foreground" />
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium">Last Login</span>
-                                    <span className="text-sm text-muted-foreground">{formatDate(currentUser.lastLogin) || 'Never'}</span>
+                    {/* Right Column - Detailed Information */}
+                    <div className="lg:col-span-2 space-y-6">
+
+                        {/* Contact Information */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Mail className="h-5 w-5 text-primary" />
+                                    Contact Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Email */}
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium">Email Address</p>
+                                        <p className="text-sm text-muted-foreground">{safeString(currentUser.email, 'No email provided')}</p>
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium">Phone Number</p>
+                                        <p className="text-sm text-muted-foreground">{safeString(currentUser.phone, 'No phone number provided')}</p>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* Last Updated */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                <RefreshCw className="h-5 w-5 text-muted-foreground" />
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium">Last Updated</span>
-                                    <span className="text-sm text-muted-foreground">{formatDate(currentUser.updatedAt)}</span>
-                                </div>
-                            </div>
-
-                            {/* Onboarding Status */}
-                            <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                {safeString(currentUser.onboardingStatus) === 'complete'
-                                    ? <CheckCircle className="h-5 w-5 text-green-600" />
-                                    : <AlertTriangle className="h-5 w-5 text-amber-500" />}
-                                <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'} className="text-sm">
-                                    Onboarding: {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() + safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
-                                </Badge>
-                            </div>
-                        </div>
+                            </CardContent>
+                        </Card>
 
                         {/* Role-Specific Information */}
                         {currentUser.role === 'student' && (
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold mb-3 border-b pb-2">Student Information</h3>
-
-                                {/* Barcode ID */}
-                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                    <Barcode className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">Barcode ID</span>
-                                        <span className="text-sm text-muted-foreground">{safeString(currentUser.barcodeId, 'Not assigned')}</span>
-                                    </div>
-                                </div>
-
-                                {/* Date of Birth */}
-                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">Date of Birth</span>
-                                        <span className="text-sm text-muted-foreground">{formatDate(currentUser.dateOfBirth)}</span>
-                                    </div>
-                                </div>
-
-                                {/* Class ID */}
-                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                    <GraduationCap className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">Class</span>
-                                        <span className="text-sm text-muted-foreground">{safeString(currentUser.classId, 'Not assigned')}</span>
-                                    </div>
-                                </div>
-
-                                {/* Corporate Information (if applicable) */}
-                                {safeString(currentUser.corporateId) && (
-                                    <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                        <Building2 className="h-5 w-5 text-muted-foreground" />
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-medium">Corporate Account</span>
-                                            <span className="text-sm text-muted-foreground">{safeString(currentUser.corporateAccountName, 'Unknown')}</span>
-                                            {safeBoolean(currentUser.isCorporateManager) && (
-                                                <Badge variant="outline" className="mt-1 bg-blue-100 text-blue-800 border-blue-300">Corporate Manager</Badge>
-                                            )}
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <GraduationCap className="h-5 w-5 text-primary" />
+                                        Student Information
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Barcode ID */}
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium">Barcode ID</p>
+                                            <p className="text-sm text-muted-foreground">{safeString(currentUser.barcodeId, 'Not assigned')}</p>
                                         </div>
+
+                                        {/* Date of Birth */}
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium">Date of Birth</p>
+                                            <p className="text-sm text-muted-foreground">{formatDate(currentUser.dateOfBirth)}</p>
+                                        </div>
+
+                                        {/* Class */}
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium">Class</p>
+                                            <p className="text-sm text-muted-foreground">{safeString(currentUser.classId, 'Not assigned')}</p>
+                                        </div>
+
+                                        {/* Corporate Information (if applicable) */}
+                                        {safeString(currentUser.corporateId) && (
+                                            <div className="space-y-1">
+                                                <p className="text-sm font-medium">Corporate Account</p>
+                                                <p className="text-sm text-muted-foreground">{safeString(currentUser.corporateAccountName, 'Unknown')}</p>
+                                                {safeBoolean(currentUser.isCorporateManager) && (
+                                                    <Badge variant="outline" className="mt-1 bg-blue-100 text-blue-800 border-blue-300">Corporate Manager</Badge>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
+                                </CardContent>
+                            </Card>
                         )}
 
                         {currentUser.role === 'teacher' && (
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold mb-3 border-b pb-2">Teacher Information</h3>
-
-                                {/* Subjects */}
-                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                    <BookOpen className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">Subjects</span>
-                                        <div className="flex flex-wrap gap-1 mt-1">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <BookOpen className="h-5 w-5 text-primary" />
+                                        Teacher Information
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {/* Subjects */}
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium">Subjects</p>
+                                        <div className="flex flex-wrap gap-1">
                                             {currentUser.subjects && Array.isArray(currentUser.subjects) && currentUser.subjects.length > 0 ? (
                                                 currentUser.subjects.map((subject: string, index: number) => (
                                                     <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700">
@@ -329,29 +335,29 @@ export default function ViewUserPage() {
                                             )}
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Office Hours */}
-                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                    <Clock className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">Office Hours</span>
-                                        <span className="text-sm text-muted-foreground">{safeString(currentUser.officeHours, 'Not specified')}</span>
+                                    {/* Office Hours */}
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium">Office Hours</p>
+                                        <p className="text-sm text-muted-foreground">{safeString(currentUser.officeHours, 'Not specified')}</p>
                                     </div>
-                                </div>
-                            </div>
+                                </CardContent>
+                            </Card>
                         )}
 
                         {currentUser.role === 'admin' && (
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold mb-3 border-b pb-2">Admin Information</h3>
-
-                                {/* Permissions */}
-                                <div className="flex items-center gap-3 border-b pb-3 mb-3">
-                                    <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium">Permissions</span>
-                                        <div className="flex flex-wrap gap-1 mt-1">
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <ShieldCheck className="h-5 w-5 text-primary" />
+                                        Admin Information
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {/* Permissions */}
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium">Permissions</p>
+                                        <div className="flex flex-wrap gap-1">
                                             {currentUser.permissions && Array.isArray(currentUser.permissions) && currentUser.permissions.length > 0 ? (
                                                 currentUser.permissions.map((permission: string, index: number) => (
                                                     <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700">
@@ -363,31 +369,53 @@ export default function ViewUserPage() {
                                             )}
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+                                </CardContent>
+                            </Card>
                         )}
 
-                        {/* Bio Section (for all users) */}
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold mb-3 border-b pb-2">Additional Information</h3>
+                        {/* System Information */}
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-primary" />
+                                    System Information
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* Last Login */}
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium">Last Login</p>
+                                        <p className="text-sm text-muted-foreground">{formatDate(currentUser.lastLogin) || 'Never'}</p>
+                                    </div>
 
-                            <div className="flex items-start gap-3 border-b pb-3 mb-3">
-                                <FileText className="h-5 w-5 text-muted-foreground mt-1" />
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-medium">Bio</span>
+                                    {/* Last Updated */}
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium">Last Updated</p>
+                                        <p className="text-sm text-muted-foreground">{formatDate(currentUser.updatedAt)}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Bio Section - Only if bio exists */}
+                        {safeString(currentUser.bio) && (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <FileText className="h-5 w-5 text-primary" />
+                                        Biography
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
                                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                         {safeString(currentUser.bio, 'No bio provided')}
                                     </p>
-                                </div>
-                            </div>
-                        </div>
-                    </DyraneCardContent>
-                    <DyraneCardFooter className="flex justify-end">
-                        <Button asChild>
-                            <Link href={`/users/${userId}/edit`}>Edit User</Link>
-                        </Button>
-                    </DyraneCardFooter>
-                </DyraneCard>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </div>
             </div>
         </AuthorizationGuard>
     );
