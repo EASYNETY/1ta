@@ -8,7 +8,8 @@ import {
     ScanLine,
     Wifi,
     WifiOff,
-    PowerOff
+    PowerOff,
+    Keyboard
 } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 import { selectCourseClass } from "@/features/classes/store/classSessionSlice";
@@ -68,7 +69,7 @@ export function ScannerStatusBadge({
         if (isScannerActive) {
             if (scannerMode === 'external') {
                 if (socketStatus === 'connected') {
-                    return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><Wifi className="mr-1 h-3 w-3" /> External Scanner Ready</Badge>;
+                    return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><Wifi className="mr-1 h-3 w-3" /> WebSocket Scanner Ready</Badge>;
                 } else if (socketStatus === 'connecting') {
                     return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Connecting Scanner...</Badge>;
                 } else if (socketStatus === 'error') {
@@ -76,6 +77,8 @@ export function ScannerStatusBadge({
                 } else {
                     return <Badge variant="outline"><WifiOff className="mr-1 h-3 w-3" /> Scanner Disconnected</Badge>;
                 }
+            } else if (scannerMode === 'direct') {
+                return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><Keyboard className="mr-1 h-3 w-3" /> USB Scanner Ready</Badge>;
             } else {
                 return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="mr-1 h-3 w-3" /> Camera Scanner Ready</Badge>;
             }

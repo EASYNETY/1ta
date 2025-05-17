@@ -4,19 +4,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import BarcodeScanner from "@/lib/barcode-scanner";
 import { ExternalScannerStatus } from "./ExternalScannerStatus";
+import { DirectScannerStatus } from "./DirectScannerStatus";
 
-export type ScannerMode = "camera" | "external";
+export type ScannerMode = "camera" | "external" | "direct";
 
 interface ScannerModeSelectorProps {
     scannerMode: ScannerMode;
     setScannerMode: (mode: ScannerMode) => void;
     isScannerActive: boolean;
     onBarcodeDetected: (barcode: any) => void;
+    // WebSocket external scanner props
     socketStatus: string;
     reconnectSocket: () => void;
     connectionAttempts: number;
     maxAttempts: number;
     maxAttemptsReached: boolean;
+    // Direct USB scanner props
+    directScannerStatus: string;
+    directScannerLastScanTime: number | null;
+    directScannerErrorMessage: string | null;
 }
 
 export function ScannerModeSelector({
@@ -28,7 +34,10 @@ export function ScannerModeSelector({
     reconnectSocket,
     connectionAttempts,
     maxAttempts,
-    maxAttemptsReached
+    maxAttemptsReached,
+    directScannerStatus,
+    directScannerLastScanTime,
+    directScannerErrorMessage
 }: ScannerModeSelectorProps) {
     return (
         <div className="pt-4">
@@ -39,9 +48,10 @@ export function ScannerModeSelector({
                 onValueChange={(value) => setScannerMode(value as ScannerMode)}
                 className="w-full mt-2"
             >
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="camera">Camera Scanner</TabsTrigger>
-                    <TabsTrigger value="external">External Scanner</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="camera">Camera</TabsTrigger>
+                    <TabsTrigger value="external">WebSocket</TabsTrigger>
+                    <TabsTrigger value="direct">USB/HID</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="camera" className="mt-4">
@@ -66,6 +76,15 @@ export function ScannerModeSelector({
                         maxAttempts={maxAttempts}
                         maxAttemptsReached={maxAttemptsReached}
                         isActive={isScannerActive}
+                    />
+                </TabsContent>
+
+                <TabsContent value="direct" className="mt-4">
+                    <DirectScannerStatus
+                        status={directScannerStatus}
+                        isActive={scannerMode === 'direct' && isScannerActive}
+                        lastScanTime={directScannerLastScanTime}
+                        errorMessage={directScannerErrorMessage}
                     />
                 </TabsContent>
             </Tabs>

@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import useExternalScannerSocket from "@/hooks/use-external-scanner-socket";
+import useDirectScanner from "@/hooks/use-direct-scanner";
 import { beepSounds } from "@/public/sound/beep";
 
 // Redux imports
@@ -56,7 +57,7 @@ export default function ScanPage() {
     const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
     const [fetchingStudentInfo, setFetchingStudentInfo] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [scannerMode, setScannerMode] = useState<"camera" | "external">("camera");
+    const [scannerMode, setScannerMode] = useState<"camera" | "external" | "direct">("camera");
     const [casualScanMode, setCasualScanMode] = useState(false);
 
     // Refs to track initialization
@@ -116,6 +117,24 @@ export default function ScanPage() {
         onBarcodeReceived: handleBarcodeDetected,
         isEnabled: isWebSocketEnabled,
         verbose: process.env.NODE_ENV !== 'production' // Enable verbose logging only in development
+    });
+
+    // Direct USB/HID scanner
+    const isDirectScannerEnabled = scannerMode === 'direct' && isScannerActive;
+
+    // Use the direct scanner hook
+    const {
+        status: directScannerStatus,
+        lastScanTime: directScannerLastScanTime,
+        errorMessage: directScannerErrorMessage
+    } = useDirectScanner({
+        onBarcodeReceived: handleBarcodeDetected,
+        isEnabled: isDirectScannerEnabled,
+        verbose: process.env.NODE_ENV !== 'production', // Enable verbose logging only in development
+        scanDelay: 500, // Minimum delay between scans in ms
+        minLength: 3,   // Minimum barcode length
+        maxLength: 100, // Maximum barcode length
+        timeout: 50     // Timeout for scan sequence in ms
     });
 
     // Auto-connect when scanner mode changes to external and scanner is active
@@ -187,6 +206,9 @@ export default function ScanPage() {
                             connectionAttempts={connectionAttempts}
                             maxAttempts={maxAttempts}
                             maxAttemptsReached={maxAttemptsReached}
+                            directScannerStatus={directScannerStatus}
+                            directScannerLastScanTime={directScannerLastScanTime}
+                            directScannerErrorMessage={directScannerErrorMessage}
                         />
                     )}
 
