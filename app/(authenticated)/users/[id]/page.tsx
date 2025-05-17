@@ -1,7 +1,7 @@
 // app/(authenticated)/users/[id]/page.tsx
 "use client";
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AuthorizationGuard } from "@/components/auth/AuthenticationGuard";
 import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription, DyraneCardFooter } from '@/components/dyrane-ui/dyrane-card';
@@ -9,14 +9,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { UserData } from '@/components/users/UserTableRow'; // Use shared type
 import Link from 'next/link';
 import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase, AlertTriangle } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useSafeArraySelector } from '@/store/safe-hooks';
 import { fetchUserById } from '@/features/auth/store/user-thunks';
-import { safeString, safeFormatDate } from '@/lib/utils/safe-data';
+import { safeString, safeFormatDate, safeBoolean } from '@/lib/utils/safe-data';
+
+// Extend the UserData type to include additional fields from the API
+import { UserData as BaseUserData } from '@/components/users/UserTableRow';
+
+// Extended interface with additional fields from the API
+interface ExtendedUserData extends BaseUserData {
+    onboardingStatus?: string;
+    accountType?: string;
+}
 
 
 // Helper to format date using safe utilities
@@ -30,7 +38,6 @@ const formatDate = (dateString?: string) => {
 
 export default function ViewUserPage() {
     const params = useParams();
-    const router = useRouter();
     const dispatch = useAppDispatch();
     const userId = params.id as string; // Get ID from route params
 
@@ -39,15 +46,24 @@ export default function ViewUserPage() {
     const isLoadingUsers = useAppSelector((state) => state.auth.usersLoading) || false;
     const fetchError = useAppSelector((state) => state.auth.usersError);
 
-    const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
+    const [currentUser, setCurrentUser] = useState<ExtendedUserData | null | undefined>(undefined);
 
     // useEffect for fetching the specific user by ID
     useEffect(() => {
-        if (userId && !isLoadingUsers) {
+        if (userId) {
             console.log(`ViewUserPage: Fetching user with ID '${userId}'`);
-            dispatch(fetchUserById(userId));
+            dispatch(fetchUserById(userId))
+                .unwrap()
+                .then(user => {
+                    console.log("ViewUserPage: Successfully fetched user:", user);
+                    // Directly set the user from the API response
+                    setCurrentUser(user as ExtendedUserData);
+                })
+                .catch(error => {
+                    console.error("ViewUserPage: Error fetching user:", error);
+                });
         }
-    }, [dispatch, userId, isLoadingUsers]);
+    }, [dispatch, userId]);
 
     // useEffect for finding the current user in the store
     useEffect(() => {
@@ -56,11 +72,14 @@ export default function ViewUserPage() {
 
         if (userId && allUsers) {
             console.log(`ViewUserPage: Searching for user ID '${userId}' in ${allUsers.length} users.`);
-            const foundUser = allUsers.find(u => u.id === userId);
+            // add type assertion
+            const foundUser = allUsers.find((u: any) => u.id === userId);
 
             if (foundUser) {
                 console.log("ViewUserPage: User found:", foundUser);
-                setCurrentUser(foundUser);
+                setCurrentUser({
+                    ...foundUser as ExtendedUserData
+                });
             } else if (!isLoadingUsers) {
                 // Only set to null if we're not loading and the user wasn't found
                 console.log("ViewUserPage: User not found in the list.");
@@ -142,22 +161,22 @@ export default function ViewUserPage() {
             <div className="mx-auto">
                 <PageHeader
                     heading={`User Details`}
-                    subheading={`Explore the details of the user ${currentUser.name}`}
+                    subheading={`Explore the details of the user ${safeString(currentUser.name, 'Unknown')}`}
                 />
                 <DyraneCard>
                     <DyraneCardHeader>
                         <DyraneCardTitle className="flex items-center gap-3">
                             <User className="h-6 w-6" />
-                            {currentUser.name}
+                            {safeString(currentUser.name, 'Unknown User')}
                         </DyraneCardTitle>
                         <DyraneCardDescription>
-                            Viewing profile details for {currentUser.name}.
+                            Viewing profile details for {safeString(currentUser.name, 'Unknown User')}.
                         </DyraneCardDescription>
                     </DyraneCardHeader>
                     <DyraneCardContent className="space-y-4">
                         <div className="flex items-center gap-3 border-b pb-3">
                             <Mail className="h-5 w-5 text-muted-foreground" />
-                            <span className="text-sm">{currentUser.email}</span>
+                            <span className="text-sm">{safeString(currentUser.email, 'No email provided')}</span>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
                             <Briefcase className="h-5 w-5 text-muted-foreground" />
@@ -168,11 +187,14 @@ export default function ViewUserPage() {
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
-                            {currentUser.isActive
+                            {safeBoolean(currentUser.isActive)
                                 ? <CheckCircle className="h-5 w-5 text-green-600" />
                                 : <XCircle className="h-5 w-5 text-red-600" />}
                             <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.isActive)}`}>
-                                {getStatusString(currentUser.isActive).charAt(0).toUpperCase() + getStatusString(currentUser.isActive).slice(1)}
+                                {(() => {
+                                    const status = getStatusString(currentUser.isActive);
+                                    return status.charAt(0).toUpperCase() + status.slice(1);
+                                })()}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
@@ -184,7 +206,7 @@ export default function ViewUserPage() {
                                 ? <CheckCircle className="h-5 w-5 text-green-600" />
                                 : <AlertTriangle className="h-5 w-5 text-amber-500" />}
                             <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'} className="text-sm">
-                                Onboarding: {safeString(currentUser.onboardingStatus).charAt(0).toUpperCase() + safeString(currentUser.onboardingStatus).slice(1)}
+                                Onboarding: {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() + safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3">
