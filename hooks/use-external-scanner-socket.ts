@@ -44,7 +44,10 @@ function processWebSocketMessage({
     const logPrefix = '[WebSocket-MessageHandler]';
 
     if (verbose) {
-        console.log(`${logPrefix} Raw data received:`, typeof rawData === 'string' ? rawData.substring(0, 200) + (rawData.length > 200 ? '...' : '') : rawData);
+        const preview = typeof rawData === 'string'
+            ? rawData.substring(0, 200) + (rawData.length > 200 ? '...' : '')
+            : String(rawData).substring(0, 200) + (String(rawData).length > 200 ? '...' : '');
+        console.log(`${logPrefix} Raw data received (type: ${typeof rawData}):`, preview);
     }
 
     if (isEchoServer) {
@@ -52,26 +55,72 @@ function processWebSocketMessage({
         return;
     }
 
-    if (typeof rawData !== 'string') {
-        console.warn(`${logPrefix} Received binary data or non-string data type, not processed as barcode:`, typeof rawData);
+    let messageString: string;
+    if (typeof rawData === 'string') {
+        messageString = rawData;
+    } else if (rawData instanceof ArrayBuffer) {
+        if (verbose) console.log(`${logPrefix} Received ArrayBuffer, attempting to decode as UTF-8 text.`);
+        try {
+            messageString = new TextDecoder().decode(rawData);
+        } catch (decodeError) {
+            console.error(`${logPrefix} Error decoding ArrayBuffer:`, decodeError);
+            return;
+        }
+    } else if (rawData instanceof Blob) {
+        console.warn(`${logPrefix} Received Blob data. Direct processing not supported in this synchronous handler.`);
+        return;
+    } else {
+        console.warn(`${logPrefix} Received unexpected data type (${typeof rawData}), not processed as barcode.`);
         return;
     }
 
-    const messageString = rawData;
-    let parsedData: any;
+    const trimmedMessage = messageString.trim(); // Trim once upfront for plain text checks
 
+    if (verbose) {
+        console.log(`${logPrefix} Effective message string (trimmed): "${trimmedMessage.replace(/\r?\n|\r/g, "\\n")}" (newlines escaped for logging)`);
+    }
+
+    // --- Plain Text Pre-Check ---
+    // Heuristic: If it's not empty and doesn't start with '{', '[', or '"',
+    // assume it's a raw barcode.
+    if (trimmedMessage.length > 0 &&
+        !trimmedMessage.startsWith('{') &&
+        !trimmedMessage.startsWith('[') &&
+        !trimmedMessage.startsWith('"')) {
+
+        if (verbose) {
+            console.log(`${logPrefix} Plain text pre-check PASSED. Assuming plain text barcode: "${trimmedMessage}"`);
+        }
+        onBarcodeReceived(trimmedMessage);
+        console.log(`${logPrefix} CALLED onBarcodeReceived (pre-check): "${trimmedMessage}"`);
+        return;
+    }
+
+    // If pre-check didn't handle it (e.g., it might be JSON, or a plain text string that starts with a quote),
+    // proceed to JSON parsing attempt.
+    let parsedData: any;
     try {
-        parsedData = JSON.parse(messageString);
+        parsedData = JSON.parse(messageString); // Use original (untrimmed for parsing) messageString
         if (verbose) {
             console.log(`${logPrefix} Successfully parsed JSON data:`, parsedData);
         }
     } catch (e) {
-        if (verbose) {
-            console.log(`${logPrefix} Data is not valid JSON. Treating as raw barcode: "${messageString}"`);
+        // JSON.parse FAILED. This is the fallback for plain text if the pre-check
+        // didn't catch it (e.g., a plain text barcode that *did* start with '{' but wasn't valid JSON)
+        // or if the message was a JSON string literal like "\"12345\"" that the pre-check skipped.
+        // We use the `trimmedMessage` we got earlier.
+        if (trimmedMessage.length > 0) {
+            if (verbose) {
+                console.log(`${logPrefix} JSON.parse FAILED. Fallback to plain text barcode: "${trimmedMessage}"`);
+            }
+            onBarcodeReceived(trimmedMessage);
+            console.log(`${logPrefix} CALLED onBarcodeReceived (JSON parse failed fallback): "${trimmedMessage}"`);
+        } else {
+            if (verbose) {
+                console.log(`${logPrefix} JSON.parse FAILED and message was empty after trimming. Original: "${messageString}"`);
+            }
         }
-        onBarcodeReceived(messageString);
-        console.log(`${logPrefix} CALLED onBarcodeReceived with raw string: "${messageString}"`);
-        return;
+        return; // Return after handling as plain text fallback
     }
 
     let barcodeValue: string | undefined = undefined;
@@ -92,7 +141,10 @@ function processWebSocketMessage({
         formatMatched = 'Format 4 (barcode property)';
     } else if (parsedData && parsedData.type === 'scan' && typeof parsedData.code === 'string') {
         barcodeValue = parsedData.code;
-        formatMatched = 'Format 5 (type:scan, code)';
+        formatMatched = 'Format 4 (type:scan, code)';
+    } else if (parsedData && parsedData.type === 'barcode_scan_received' && parsedData.data && typeof parsedData.data.barcodeId === 'string') {
+        barcodeValue = parsedData.data.barcodeId;
+        formatMatched = 'Format 5 (type:barcode_scan_received, data.barcodeId)';
     } else if (parsedData && parsedData.type === 'scan-result' && parsedData.success === true) {
         const possibleBarcode = parsedData.data?.barcode || parsedData.data?.code || parsedData.barcode || parsedData.code;
         if (typeof possibleBarcode === 'string') {
@@ -104,9 +156,14 @@ function processWebSocketMessage({
     }
 
     if (barcodeValue) {
-        if (verbose) console.log(`${logPrefix} Found barcode in ${formatMatched}: "${barcodeValue}"`);
-        onBarcodeReceived(barcodeValue);
-        console.log(`${logPrefix} CALLED onBarcodeReceived with extracted barcode: "${barcodeValue}"`);
+        const trimmedJsonBarcode = barcodeValue.trim();
+        if (trimmedJsonBarcode.length > 0) {
+            if (verbose) console.log(`${logPrefix} Found barcode in ${formatMatched}: "${trimmedJsonBarcode}"`);
+            onBarcodeReceived(trimmedJsonBarcode);
+            console.log(`${logPrefix} CALLED onBarcodeReceived (from JSON): "${trimmedJsonBarcode}"`);
+        } else if (verbose) {
+            console.log(`${logPrefix} Barcode from JSON was empty after trimming. Original: "${barcodeValue}"`);
+        }
         return;
     }
 
@@ -151,9 +208,14 @@ function processWebSocketMessage({
     }
 
     if (barcodeValue) {
-        if (verbose) console.log(`${logPrefix} Found barcode via ${formatMatched}: "${barcodeValue}"`);
-        onBarcodeReceived(barcodeValue);
-        console.log(`${logPrefix} CALLED onBarcodeReceived with heuristically found barcode: "${barcodeValue}"`);
+        const trimmedHeuristicBarcode = barcodeValue.trim();
+        if (trimmedHeuristicBarcode.length > 0) {
+            if (verbose) console.log(`${logPrefix} Found barcode via heuristic in JSON (${formatMatched}): "${trimmedHeuristicBarcode}"`);
+            onBarcodeReceived(trimmedHeuristicBarcode);
+            console.log(`${logPrefix} CALLED onBarcodeReceived (heuristic from JSON): "${trimmedHeuristicBarcode}"`);
+        } else if (verbose) {
+            console.log(`${logPrefix} Heuristic barcode from JSON was empty after trimming. Original: "${barcodeValue}"`);
+        }
         return;
     }
 
@@ -164,10 +226,10 @@ function processWebSocketMessage({
     }
 
     if (verbose) {
-        console.log(`${logPrefix} Message processed, but no barcode identified. Full data:`, parsedData);
+        console.log(`${logPrefix} JSON message processed, but no barcode identified within its structure. Full data:`, parsedData);
     } else {
         // Default log for unrecognized format when not verbose
-        console.log('[WebSocket] Received message in unrecognized format:', parsedData);
+        console.log('[WebSocket] Received JSON message, but no recognized barcode format found within it:', parsedData);
     }
 }
 
@@ -253,7 +315,7 @@ const useExternalScannerSocket = ({
             if (socketRef.current.readyState === WebSocket.OPEN ||
                 socketRef.current.readyState === WebSocket.CONNECTING) {
                 try {
-                    socketRef.current.close(isGracefulShutdown ? 1000 : undefined, "Client initiated disconnect");
+                    socketRef.current.close();
                 } catch (e) {
                     console.warn('[WebSocket] Error closing socket during cleanup:', e);
                 }
@@ -292,12 +354,13 @@ const useExternalScannerSocket = ({
 
         try {
             const socket = new WebSocket(derivedWsServerUrl);
+            socket.binaryType = "arraybuffer"; // Support binary frames for scanners that might send binary data
             socketRef.current = socket;
 
             connectionTimeoutIdRef.current = setTimeout(() => {
                 if (socketRef.current === socket && socket.readyState === WebSocket.CONNECTING) {
                     console.error(`[WebSocket] Connection timeout after ${connectionTimeout / 1000}s`);
-                    socket.close(1006, "Connection timeout");
+                    socket.close();
                 }
             }, connectionTimeout);
 
