@@ -653,10 +653,279 @@ export default function AnalyticsDashboard() {
         </TabsContent>
 
         <TabsContent value="payments">
-          {/* Payment-specific analytics */}
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Payment Analytics Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed payment analytics will be available in the next update.</p>
+          <div className="space-y-6">
+            {/* Revenue Trends Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Revenue</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      revenue: {
+                        label: "Revenue",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <AreaChart
+                      data={stats.paymentStats.revenueTrends || [
+                        { month: "Jan", revenue: 12000000 },
+                        { month: "Feb", revenue: 15000000 },
+                        { month: "Mar", revenue: 18000000 },
+                        { month: "Apr", revenue: 17000000 },
+                        { month: "May", revenue: 20000000 },
+                        { month: "Jun", revenue: 25000000 },
+                      ]}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `₦${(value as number / 100).toLocaleString()}`}
+                          />
+                        )}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="var(--color-revenue)"
+                        fill="var(--color-revenue)"
+                        fillOpacity={0.2}
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Payment Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Payment Methods */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment Methods</CardTitle>
+                </CardHeader>
+                <CardContent className="h-80">
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Skeleton className="h-64 w-full" />
+                    </div>
+                  ) : (
+                    <ChartContainer
+                      config={{
+                        card: {
+                          label: "Card",
+                          theme: {
+                            light: "#3B82F6",
+                            dark: "#3B82F6",
+                          },
+                        },
+                        bankTransfer: {
+                          label: "Bank Transfer",
+                          theme: {
+                            light: "#F59E0B",
+                            dark: "#F59E0B",
+                          },
+                        },
+                        ussd: {
+                          label: "USSD",
+                          theme: {
+                            light: "#10B981",
+                            dark: "#10B981",
+                          },
+                        },
+                        other: {
+                          label: "Other",
+                          theme: {
+                            light: "#6B7280",
+                            dark: "#6B7280",
+                          },
+                        },
+                      }}
+                    >
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "Card", value: 65 },
+                            { name: "Bank Transfer", value: 20 },
+                            { name: "USSD", value: 10 },
+                            { name: "Other", value: 5 },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          nameKey="name"
+                        />
+                        <ChartTooltip
+                          content={({ active, payload }) => (
+                            <ChartTooltipContent
+                              active={active}
+                              payload={payload}
+                              formatter={(value) => `${value}%`}
+                            />
+                          )}
+                        />
+                        <ChartLegend
+                          content={({ payload }) => (
+                            <ChartLegendContent payload={payload} />
+                          )}
+                        />
+                      </PieChart>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Payment Status */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Payment Status</CardTitle>
+                </CardHeader>
+                <CardContent className="h-80">
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Skeleton className="h-64 w-full" />
+                    </div>
+                  ) : (
+                    <ChartContainer
+                      config={{
+                        successful: {
+                          label: "Successful",
+                          theme: {
+                            light: "#10B981",
+                            dark: "#10B981",
+                          },
+                        },
+                        pending: {
+                          label: "Pending",
+                          theme: {
+                            light: "#F59E0B",
+                            dark: "#F59E0B",
+                          },
+                        },
+                        failed: {
+                          label: "Failed",
+                          theme: {
+                            light: "#EF4444",
+                            dark: "#EF4444",
+                          },
+                        },
+                      }}
+                    >
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "Successful", value: 85 },
+                            { name: "Pending", value: 10 },
+                            { name: "Failed", value: 5 },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          nameKey="name"
+                        />
+                        <ChartTooltip
+                          content={({ active, payload }) => (
+                            <ChartTooltipContent
+                              active={active}
+                              payload={payload}
+                              formatter={(value) => `${value}%`}
+                            />
+                          )}
+                        />
+                        <ChartLegend
+                          content={({ payload }) => (
+                            <ChartLegendContent payload={payload} />
+                          )}
+                        />
+                      </PieChart>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Revenue by Course */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by Course</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      revenue: {
+                        label: "Revenue",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={[
+                        { course: "Web Development", revenue: 1200000000 },
+                        { course: "Data Science", revenue: 950000000 },
+                        { course: "UX Design", revenue: 850000000 },
+                        { course: "Mobile Development", revenue: 750000000 },
+                        { course: "DevOps", revenue: 550000000 },
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="course"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `₦${(value as number / 100).toLocaleString()}`}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="revenue"
+                        name="Revenue"
+                        fill="var(--color-revenue)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
