@@ -34,6 +34,9 @@ import assignmentsReducer from "@/features/assignments/store/assignment-slice";
 import gradesReducer from "@/features/grades/store/grade-slice";
 import notificationsReducer from "@/features/notifications/store/notifications-slice";
 import searchReducer from "@/features/search/store/search-slice";
+import analyticsReducer from "@/features/analytics/store/analytics-slice";
+import reportsReducer from "@/features/analytics/store/reports-slice";
+import studentBiodataReducer from "@/features/analytics/store/student-biodata-slice";
 
 // --- Custom Cookie Storage ---
 const cookieStorage = {
@@ -86,6 +89,9 @@ const persistConfig = {
 		"grades",
 		"notifications",
 		"search",
+		"analytics",
+		"reports",
+		"studentBiodata",
 	],
 };
 
@@ -111,6 +117,9 @@ const rootReducer = combineReducers({
 	grades: gradesReducer,
 	notifications: notificationsReducer,
 	search: searchReducer,
+	analytics: analyticsReducer,
+	reports: reportsReducer,
+	studentBiodata: studentBiodataReducer,
 });
 
 // --- Persisted Reducer ---

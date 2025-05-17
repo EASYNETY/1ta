@@ -9,6 +9,14 @@ import {
 } from "@/data/mock-course-data";
 
 import {
+	getMockAnalyticsDashboard,
+	getMockStudentBiodataAnalytics,
+	getMockStudentReportsData,
+	getMockStudentBiodataReportsData,
+	getMockCourseReportsData,
+} from "@/data/mock-analytics-data";
+
+import {
 	type StudentAttendanceResponse,
 	type TeacherAttendanceResponse,
 	mockStudentAttendance,
@@ -734,6 +742,83 @@ export async function handleMockRequest<T>(
 	}
 
 	// --- END: Corporate Student Management Mock Handlers ---
+
+	// --- Analytics Mock Handlers ---
+
+	// GET /admin/analytics/dashboard - Fetch Dashboard Analytics
+	if (endpoint === "/admin/analytics/dashboard" && method === "get") {
+		console.log("%cAPI Client MOCK: GET /admin/analytics/dashboard", "color: orange;");
+		try {
+			const result = await getMockAnalyticsDashboard();
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/analytics/dashboard:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /admin/analytics/student-biodata - Fetch Student Biodata Analytics
+	if (endpoint === "/admin/analytics/student-biodata" && method === "get") {
+		console.log("%cAPI Client MOCK: GET /admin/analytics/student-biodata", "color: orange;");
+		try {
+			const result = await getMockStudentBiodataAnalytics();
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/analytics/student-biodata:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /admin/reports/students - Fetch Student Reports
+	if (method === "get" && /^\/admin\/reports\/students(\?.*)?$/.test(endpoint)) {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
+
+		console.log(`%cAPI Client MOCK: GET /admin/reports/students?page=${page}&limit=${limit}`, "color: orange;");
+
+		try {
+			const result = await getMockStudentReportsData(page, limit);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/reports/students:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /admin/reports/student-biodata - Fetch Student Biodata Reports
+	if (method === "get" && /^\/admin\/reports\/student-biodata(\?.*)?$/.test(endpoint)) {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
+
+		console.log(`%cAPI Client MOCK: GET /admin/reports/student-biodata?page=${page}&limit=${limit}`, "color: orange;");
+
+		try {
+			const result = await getMockStudentBiodataReportsData(page, limit);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/reports/student-biodata:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
+
+	// GET /admin/reports/courses - Fetch Course Reports
+	if (method === "get" && /^\/admin\/reports\/courses(\?.*)?$/.test(endpoint)) {
+		const urlParams = new URLSearchParams(options.url?.split("?")[1] || "");
+		const page = Number.parseInt(urlParams.get("page") || "1", 10);
+		const limit = Number.parseInt(urlParams.get("limit") || "10", 10);
+
+		console.log(`%cAPI Client MOCK: GET /admin/reports/courses?page=${page}&limit=${limit}`, "color: orange;");
+
+		try {
+			const result = await getMockCourseReportsData(page, limit);
+			return result as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for GET /admin/reports/courses:", error.message);
+			throw { response: { data: { message: error.message }, status: 500 } };
+		}
+	}
 
 	// --- Pricing and Subscriptions
 	const userSubscriptionMatch = endpoint.match(/^\/users\/(.+)\/subscription$/);
