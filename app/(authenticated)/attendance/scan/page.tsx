@@ -300,11 +300,16 @@ export default function ScanPage() {
         status: socketStatus,
         reconnect: reconnectSocket,
         connectionAttempts,
-        maxAttempts
+        maxAttempts,
+        maxAttemptsReached
     } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
         isEnabled: isWebSocketEnabled,
         maxReconnectAttempts: 5, // Set maximum reconnection attempts
+        connectionTimeout: 10000, // 10 seconds timeout for initial connection
+        pingInterval: 30000, // Send ping every 30 seconds
+        reconnectDelayBase: 1000, // Start with 1 second delay
+        reconnectDelayMax: 30000, // Maximum 30 seconds delay
         // serverUrl: testWebSocketUrl // Uncomment to use a test server
     });
 
@@ -460,7 +465,7 @@ export default function ScanPage() {
                 return (
                     <Badge variant="destructive">
                         <AlertTriangle className="mr-1 h-3 w-3" />
-                        {connectionAttempts >= maxAttempts
+                        {maxAttemptsReached
                             ? 'Connection Failed (Max Attempts)'
                             : 'Scanner Connection Error'}
                     </Badge>
@@ -711,7 +716,11 @@ export default function ScanPage() {
                                                     ) : (
                                                         <AlertTriangle className="h-4 w-4 mr-1" />
                                                     )}
-                                                    Connection attempt {connectionAttempts} of {maxAttempts}
+                                                    {maxAttemptsReached ? (
+                                                        <>Maximum connection attempts reached ({maxAttempts})</>
+                                                    ) : (
+                                                        <>Connection attempt {connectionAttempts} of {maxAttempts}</>
+                                                    )}
                                                 </p>
                                             </div>
                                         )}
@@ -735,7 +744,12 @@ export default function ScanPage() {
                                                 onClick={reconnectSocket}
                                                 className={`mt-2 ${socketStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : ''}`}
                                             >
-                                                {connectionAttempts >= maxAttempts ? (
+                                                {maxAttemptsReached ? (
+                                                    <>
+                                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                                        Reset & Try Again
+                                                    </>
+                                                ) : socketStatus === 'error' ? (
                                                     <>
                                                         <RefreshCw className="mr-2 h-4 w-4" />
                                                         Try Again
