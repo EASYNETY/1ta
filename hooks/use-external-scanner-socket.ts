@@ -10,6 +10,15 @@ interface UseExternalScannerSocketProps {
     onBarcodeReceived: (barcode: string) => void;
     isEnabled: boolean;
     serverUrl?: string;
+    maxReconnectAttempts?: number;
+}
+
+// Return type for the hook
+interface UseExternalScannerSocketReturn {
+    status: WebSocketStatus;
+    reconnect: () => void;
+    connectionAttempts: number;
+    maxAttempts: number;
 }
 
 /**
@@ -19,8 +28,9 @@ interface UseExternalScannerSocketProps {
 export function useExternalScannerSocket({
     onBarcodeReceived,
     isEnabled,
-    serverUrl
-}: UseExternalScannerSocketProps) {
+    serverUrl,
+    maxReconnectAttempts = 5 // Default to 5 reconnection attempts
+}: UseExternalScannerSocketProps): UseExternalScannerSocketReturn {
     // Default to environment variable or fallback URL
     // For development testing, we'll use a more reliable echo server if no specific URL is provided
     const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
@@ -62,12 +72,17 @@ export function useExternalScannerSocket({
     // Track connection status
     const [status, setStatus] = useState<WebSocketStatus>('disconnected');
 
+    // Track connection attempts for UI display
+    const [connectionAttempts, setConnectionAttempts] = useState(0);
+
     // Store WebSocket instance in a ref to persist across renders
     const socketRef = useRef<WebSocket | null>(null);
 
     // Track reconnection attempts
     const reconnectAttemptsRef = useRef(0);
-    const maxReconnectAttempts = 5;
+
+    // Track if automatic reconnection is enabled
+    const autoReconnectEnabledRef = useRef(true);
 
     // Cleanup function to close the WebSocket connection
     const cleanupSocket = useCallback(() => {
@@ -98,6 +113,12 @@ export function useExternalScannerSocket({
             console.log('WebSocket connection disabled, not connecting');
             return;
         }
+
+        // Increment connection attempts
+        reconnectAttemptsRef.current += 1;
+        setConnectionAttempts(reconnectAttemptsRef.current);
+
+        console.log(`Connection attempt ${reconnectAttemptsRef.current} of ${maxReconnectAttempts}`);
 
         try {
             setStatus('connecting');
@@ -178,21 +199,31 @@ export function useExternalScannerSocket({
 
                 setStatus('disconnected');
 
-                // Attempt to reconnect if enabled and not a normal closure
-                if (isEnabled && event.code !== 1000) {
+                // Attempt to reconnect if enabled, not a normal closure, and auto-reconnect is enabled
+                if (isEnabled && event.code !== 1000 && autoReconnectEnabledRef.current) {
                     const shouldReconnect = reconnectAttemptsRef.current < maxReconnectAttempts;
 
                     if (shouldReconnect) {
-                        const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 30000);
-                        console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current + 1}/${maxReconnectAttempts})`);
+                        // Calculate exponential backoff delay (1s, 2s, 4s, 8s, 16s, etc.)
+                        // but cap it at 30 seconds maximum
+                        const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current - 1), 30000);
+                        console.log(`Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
 
                         setTimeout(() => {
-                            reconnectAttemptsRef.current += 1;
-                            connectWebSocket();
+                            if (isEnabled && autoReconnectEnabledRef.current) {
+                                connectWebSocket();
+                            }
                         }, delay);
                     } else {
-                        console.error('Maximum reconnection attempts reached');
+                        console.error(`Maximum reconnection attempts (${maxReconnectAttempts}) reached`);
                         console.log('You may need to check if the WebSocket server is running or if there are network issues.');
+                        console.log('Auto-reconnect disabled. User can manually reconnect if needed.');
+
+                        // Disable auto-reconnect after max attempts
+                        autoReconnectEnabledRef.current = false;
+
+                        // Set status to error to show the reconnect button
+                        setStatus('error');
                     }
                 }
             };
@@ -323,9 +354,26 @@ export function useExternalScannerSocket({
         };
     }, [isEnabled, connectWebSocket, cleanupSocket, wsServerUrl]);
 
-    // Return the connection status and a manual reconnect function
+    // Manual reconnect function that resets the connection attempts
+    const manualReconnect = useCallback(() => {
+        console.log('Manual reconnection initiated by user');
+
+        // Reset connection attempts
+        reconnectAttemptsRef.current = 0;
+        setConnectionAttempts(0);
+
+        // Re-enable auto-reconnect
+        autoReconnectEnabledRef.current = true;
+
+        // Connect
+        connectWebSocket();
+    }, [connectWebSocket]);
+
+    // Return the connection status, attempts, and reconnect function
     return {
         status,
-        reconnect: connectWebSocket
+        reconnect: manualReconnect,
+        connectionAttempts: reconnectAttemptsRef.current,
+        maxAttempts: maxReconnectAttempts
     };
 }

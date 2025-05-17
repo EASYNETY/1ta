@@ -29,7 +29,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CheckCircle, XCircle, Loader2, UserCheck, Power, PowerOff, AlertTriangle, ScanLine, Wifi, WifiOff } from "lucide-react";
+import {
+    ArrowLeft,
+    CheckCircle,
+    XCircle,
+    Loader2,
+    UserCheck,
+    Power,
+    PowerOff,
+    AlertTriangle,
+    ScanLine,
+    Wifi,
+    WifiOff,
+    RefreshCw
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { selectAllCourseClassOptions, selectCourseClassOptionsStatus } from "@/features/classes/store/classes-slice";
@@ -283,9 +296,15 @@ export default function ScanPage() {
     // You can uncomment and modify this to test with different WebSocket servers
     // const testWebSocketUrl = 'wss://echo.websocket.org';
 
-    const { status: socketStatus, reconnect: reconnectSocket } = useExternalScannerSocket({
+    const {
+        status: socketStatus,
+        reconnect: reconnectSocket,
+        connectionAttempts,
+        maxAttempts
+    } = useExternalScannerSocket({
         onBarcodeReceived: handleBarcodeDetected,
         isEnabled: isWebSocketEnabled,
+        maxReconnectAttempts: 5, // Set maximum reconnection attempts
         // serverUrl: testWebSocketUrl // Uncomment to use a test server
     });
 
@@ -430,10 +449,22 @@ export default function ScanPage() {
         // External scanner WebSocket status badges
         if (scannerMode === 'external' && (selectedClass?.id || casualScanMode)) {
             if (socketStatus === 'connecting') {
-                return <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Connecting to external scanner...</Badge>;
+                return (
+                    <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        Connecting to scanner... ({connectionAttempts}/{maxAttempts})
+                    </Badge>
+                );
             }
             if (socketStatus === 'error') {
-                return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" /> External Scanner Connection Error</Badge>;
+                return (
+                    <Badge variant="destructive">
+                        <AlertTriangle className="mr-1 h-3 w-3" />
+                        {connectionAttempts >= maxAttempts
+                            ? 'Connection Failed (Max Attempts)'
+                            : 'Scanner Connection Error'}
+                    </Badge>
+                );
             }
             if (socketStatus === 'connected' && isScannerActive) {
                 if (apiStatus === 'success' && lastScannedId) {
@@ -655,9 +686,32 @@ export default function ScanPage() {
 
                                         {socketStatus === 'connected' && (
                                             <div className="text-sm text-green-600 mb-4">
-                                                <p className="flex items-center justify-center">
+                                                <div className="flex items-center justify-center mb-2">
                                                     <CheckCircle className="h-4 w-4 mr-1" />
                                                     Connection established. Scanner is active and ready.
+                                                </div>
+
+                                                {/* Live connection indicator */}
+                                                <div className="flex items-center justify-center mt-2">
+                                                    <span className="relative flex h-3 w-3 mr-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                                    </span>
+                                                    <span>Live connection</span>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Connection Attempts Indicator */}
+                                        {(socketStatus === 'connecting' || socketStatus === 'error') && (
+                                            <div className={`text-sm mb-2 ${socketStatus === 'error' ? 'text-red-600' : 'text-blue-600'}`}>
+                                                <p className="flex items-center justify-center">
+                                                    {socketStatus === 'connecting' ? (
+                                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                                    ) : (
+                                                        <AlertTriangle className="h-4 w-4 mr-1" />
+                                                    )}
+                                                    Connection attempt {connectionAttempts} of {maxAttempts}
                                                 </p>
                                             </div>
                                         )}
@@ -674,13 +728,24 @@ export default function ScanPage() {
                                             </div>
                                         )}
 
+                                        {/* Reconnect Button */}
                                         {(socketStatus === 'disconnected' || socketStatus === 'error') && (
                                             <Button
-                                                variant="outline"
+                                                variant={socketStatus === 'error' ? "default" : "outline"}
                                                 onClick={reconnectSocket}
-                                                className="mt-2"
+                                                className={`mt-2 ${socketStatus === 'error' ? 'bg-red-600 hover:bg-red-700' : ''}`}
                                             >
-                                                <Loader2 className="mr-2 h-4 w-4" /> Reconnect
+                                                {connectionAttempts >= maxAttempts ? (
+                                                    <>
+                                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                                        Try Again
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Loader2 className="mr-2 h-4 w-4" />
+                                                        Reconnect
+                                                    </>
+                                                )}
                                             </Button>
                                         )}
 
