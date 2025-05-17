@@ -85,7 +85,7 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
                         onValueChange={handleClassChange}
                         disabled={classOptionsLoading || casualScanMode}
                     >
-                        <SelectTrigger id="classSelect" className="w-full">
+                        <SelectTrigger id="classSelect" className="w-full mt-2">
                             <SelectValue placeholder="Select a class to mark attendance" />
                         </SelectTrigger>
                         <SelectContent>
