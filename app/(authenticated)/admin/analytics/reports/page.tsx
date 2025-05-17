@@ -53,7 +53,9 @@ export default function ReportsPage() {
   });
 
   const handleFilterChange = (key: keyof ReportFilter, value: string | undefined) => {
-    setFilter({ ...filter, [key]: value });
+    // Convert "all" value to undefined for filter
+    const filterValue = value === "all" ? undefined : value;
+    setFilter({ ...filter, [key]: filterValue });
   };
 
   const applyFilter = () => {
@@ -150,7 +152,7 @@ export default function ReportsPage() {
                     <SelectValue placeholder="All Courses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Courses</SelectItem>
+                    <SelectItem value="all">All Courses</SelectItem>
                     <SelectItem value="course1">Web Development</SelectItem>
                     <SelectItem value="course2">Data Science</SelectItem>
                     <SelectItem value="course3">UX Design</SelectItem>
@@ -167,7 +169,7 @@ export default function ReportsPage() {
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>

@@ -39,7 +39,9 @@ export default function StudentBiodataReportsPage() {
   }, [dispatch]);
 
   const handleFilterChange = (key: keyof StudentBiodataFilter, value: any) => {
-    setFilter({ ...filter, [key]: value });
+    // Convert "all" value to undefined for filter
+    const filterValue = value === "all" ? undefined : value;
+    setFilter({ ...filter, [key]: filterValue });
   };
 
   const applyFilter = () => {
@@ -85,7 +87,7 @@ export default function StudentBiodataReportsPage() {
                   <SelectValue placeholder="All Genders" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Genders</SelectItem>
+                  <SelectItem value="all">All Genders</SelectItem>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
@@ -102,7 +104,7 @@ export default function StudentBiodataReportsPage() {
                   <SelectValue placeholder="All Ages" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Ages</SelectItem>
+                  <SelectItem value="all">All Ages</SelectItem>
                   <SelectItem value="under18">Under 18</SelectItem>
                   <SelectItem value="18-24">18-24</SelectItem>
                   <SelectItem value="25-34">25-34</SelectItem>
@@ -121,7 +123,7 @@ export default function StudentBiodataReportsPage() {
                   <SelectValue placeholder="All Account Types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Account Types</SelectItem>
+                  <SelectItem value="all">All Account Types</SelectItem>
                   <SelectItem value="individual">Individual</SelectItem>
                   <SelectItem value="corporate">Corporate</SelectItem>
                 </SelectContent>
@@ -137,7 +139,7 @@ export default function StudentBiodataReportsPage() {
                   <SelectValue placeholder="All Locations" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Locations</SelectItem>
+                  <SelectItem value="all">All Locations</SelectItem>
                   <SelectItem value="Lagos">Lagos</SelectItem>
                   <SelectItem value="Abuja">Abuja</SelectItem>
                   <SelectItem value="Port Harcourt">Port Harcourt</SelectItem>
