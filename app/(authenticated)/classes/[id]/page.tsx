@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchClassById, selectCurrentClass, selectClassesStatus, clearCurrentClass } from '@/features/classes/store/classes-slice';
+import { selectCurrentClass, selectClassesStatus, clearCurrentClass } from '@/features/classes/store/classes-slice';
+import { fetchClassById } from '@/features/classes/store/classes-thunks';
 import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription, DyraneCardFooter } from '@/components/dyrane-ui/dyrane-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
