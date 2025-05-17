@@ -7,12 +7,14 @@ import { AuthorizationGuard } from "@/components/auth/AuthenticationGuard";
 import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription, DyraneCardFooter } from '@/components/dyrane-ui/dyrane-card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { UserData } from '@/components/users/UserTableRow'; // Use shared type
 import Link from 'next/link';
 import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase, AlertTriangle } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
-import { useAppDispatch } from '@/store/hooks';
-import { useSafeArraySelector, useSafeObjectSelector } from '@/store/safe-hooks';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useSafeArraySelector } from '@/store/safe-hooks';
 import { fetchUserById } from '@/features/auth/store/user-thunks';
 import { safeString, safeFormatDate } from '@/lib/utils/safe-data';
 
@@ -34,48 +36,75 @@ export default function ViewUserPage() {
 
     // --- Select relevant parts using safe selectors ---
     const allUsers = useSafeArraySelector((state) => state.auth.users);
-    const isLoadingUsers = useSafeObjectSelector((state) => state.auth.usersLoading);
-    const fetchError = useSafeObjectSelector((state) => state.auth.usersError);
+    const isLoadingUsers = useAppSelector((state) => state.auth.usersLoading) || false;
+    const fetchError = useAppSelector((state) => state.auth.usersError);
 
     const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
 
     // useEffect for fetching the specific user by ID
     useEffect(() => {
-        if (userId && !isLoadingUsers && !fetchError) {
+        if (userId && !isLoadingUsers) {
             console.log(`ViewUserPage: Fetching user with ID '${userId}'`);
             dispatch(fetchUserById(userId));
         }
-    }, [dispatch, userId, isLoadingUsers, fetchError]);
+    }, [dispatch, userId, isLoadingUsers]);
 
     // useEffect for finding the current user in the store
     useEffect(() => {
-        if (userId && allUsers && allUsers.length > 0) {
+        // Skip if we're still loading
+        if (isLoadingUsers) return;
+
+        if (userId && allUsers) {
             console.log(`ViewUserPage: Searching for user ID '${userId}' in ${allUsers.length} users.`);
             const foundUser = allUsers.find(u => u.id === userId);
+
             if (foundUser) {
                 console.log("ViewUserPage: User found:", foundUser);
-                setCurrentUser(foundUser as any);
-            } else {
+                setCurrentUser(foundUser);
+            } else if (!isLoadingUsers) {
+                // Only set to null if we're not loading and the user wasn't found
                 console.log("ViewUserPage: User not found in the list.");
                 setCurrentUser(null);
             }
-        } else if (userId && !isLoadingUsers && allUsers && allUsers.length === 0 && !fetchError) {
-            console.log("ViewUserPage: All users fetched, but the list is empty. User not found.");
-            setCurrentUser(null);
         }
-    }, [userId, allUsers, isLoadingUsers, fetchError]);
+    }, [userId, allUsers, isLoadingUsers]);
 
     if (isLoadingUsers) {
-        return <div className="p-6 text-center">Loading user details...</div>; // Add Skeleton loader later
+        return (
+            <div className="p-6 space-y-6">
+                <div className="flex items-center space-x-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-[250px]" />
+                        <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                </div>
+                <Skeleton className="h-[300px] w-full rounded-lg" />
+            </div>
+        );
     }
 
     if (fetchError) {
-        return <div className="p-6 text-center text-red-600">{fetchError}</div>;
+        return (
+            <Alert variant="destructive" className="m-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Error Loading User</AlertTitle>
+                <AlertDescription>{fetchError}</AlertDescription>
+            </Alert>
+        );
     }
 
     if (!currentUser) {
         // This case might be covered by the error state, but good to have
-        return <div className="p-6 text-center">User data could not be loaded.</div>;
+        return (
+            <Alert variant="default" className="m-6">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>User Not Found</AlertTitle>
+                <AlertDescription>
+                    The requested user could not be found. Please check the user ID and try again.
+                </AlertDescription>
+            </Alert>
+        );
     }
 
     // Badge styling logic (can be extracted)

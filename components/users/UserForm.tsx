@@ -5,6 +5,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Use your Card
 import { useRouter } from 'next/navigation';
@@ -24,7 +25,7 @@ const defaultValues: Omit<UserData, 'id' | 'joinDate'> = {
     name: '',
     email: '',
     role: 'student', // Default role
-    status: 'active', // Default status
+    isActive: true, // Default to active
     createdAt: ''
     // Add other fields with defaults if necessary
 };
@@ -38,7 +39,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                 name: initialData.name,
                 email: initialData.email,
                 role: initialData.role,
-                status: initialData.status,
+                isActive: initialData.isActive,
                 createdAt : initialData.createdAt
 
                 // Map other initialData fields if they exist in UserData and the form
@@ -54,7 +55,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                 name: initialData.name,
                 email: initialData.email,
                 role: initialData.role,
-                status: initialData.status,
+                isActive: initialData.isActive,
                 createdAt: initialData.createdAt
             });
         } else if (mode === 'create') {
@@ -88,7 +89,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
             newErrors.email = 'Invalid email format';
         }
         if (!formData.role) newErrors.role = 'Role is required';
-        if (!formData.status) newErrors.status = 'Status is required';
+        // isActive is a boolean, so no validation needed
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0; // True if no errors
@@ -166,25 +167,24 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                         {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
                     </div>
 
-                    {/* Status Select */}
+                    {/* Active Status Switch */}
                     <div className="grid gap-1.5">
-                        <Label htmlFor="status">Status</Label>
-                        <Select
-                            name="status"
-                            value={formData.status}
-                            onValueChange={handleSelectChange('status')}
-                            disabled={isSubmitting}
-                        >
-                            <SelectTrigger id="status" aria-invalid={!!errors.status}>
-                                <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive">Inactive</SelectItem>
-                                {/* Add other statuses if needed */}
-                            </SelectContent>
-                        </Select>
-                        {errors.status && <p className="text-sm text-red-600">{errors.status}</p>}
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="isActive">Status</Label>
+                            <div className="flex items-center space-x-2">
+                                <Switch
+                                    id="isActive"
+                                    checked={formData.isActive}
+                                    onCheckedChange={(checked) => {
+                                        setFormData(prev => ({ ...prev, isActive: checked }));
+                                    }}
+                                    disabled={isSubmitting}
+                                />
+                                <Label htmlFor="isActive" className="text-sm">
+                                    {formData.isActive ? 'Active' : 'Inactive'}
+                                </Label>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Add other fields like Phone Number, Password (for create) etc. here */}

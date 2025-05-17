@@ -36,7 +36,12 @@ export default function UsersPage() {
     // Filter users based on status filter (client-side filtering)
     const filteredUsers = useMemo(() => {
         if (statusFilter === "all") return users
-        return users.filter((user: User) => user.isActive === (statusFilter === "active"))
+        // Convert string status filter to boolean isActive
+        const isActiveFilter = statusFilter === "active"
+        // Use safe filter to prevent errors
+        return Array.isArray(users)
+            ? users.filter((user: User) => user.isActive === isActiveFilter)
+            : []
     }, [users, statusFilter])
 
     // Handle tab change

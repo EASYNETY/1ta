@@ -21,7 +21,7 @@ export interface UserData {
     name: string;
     email: string;
     role: "student" | "teacher" | "admin" | string; // Allow string for flexibility if roles expand
-    status: "active" | "inactive" | string;
+    isActive: boolean;
     barcodeId?: string; // Optional, only if applicable
     createdAt: string;
     // Add other fields if needed by the row
@@ -68,7 +68,13 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
         }
     };
 
-    const getStatusBadgeClass = (status: string) => {
+    // Convert boolean isActive to a status string for display
+    const getStatusString = (isActive: boolean): string => {
+        return isActive ? 'active' : 'inactive';
+    };
+
+    const getStatusBadgeClass = (isActive: boolean) => {
+        const status = getStatusString(isActive);
         switch (status) {
             case "active":
                 return "bg-green-100 text-green-800 border-green-300 hover:bg-green-100 dark:bg-green-900 dark:text-green-100 dark:border-green-700 dark:hover:bg-green-800";
@@ -108,10 +114,10 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
                     {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                 </Badge>
             </td>
-            {/* Status Cell - Updated */}
+            {/* Status Cell - Updated to use isActive */}
             <td className="py-3 px-4 align-top">
-                <Badge variant="outline" className={`whitespace-nowrap ${getStatusBadgeClass(user.status)}`}>
-                    {user.status}
+                <Badge variant="outline" className={`whitespace-nowrap ${getStatusBadgeClass(user.isActive)}`}>
+                    {getStatusString(user.isActive).charAt(0).toUpperCase() + getStatusString(user.isActive).slice(1)}
                 </Badge>
             </td>
             {/* Join Date Cell */}

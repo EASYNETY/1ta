@@ -8,7 +8,7 @@ interface UserFiltersProps {
     onSearchChange: (value: string) => void;
     roleFilter: string | "all";
     onRoleChange: (value: string | "all") => void;
-    statusFilter: string | "all";
+    statusFilter: string | "all"; // We'll keep the same interface for compatibility
     onStatusChange: (value: string | "all") => void;
 }
 
