@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 
 // --- Import Redux hooks and actions/selectors ---
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchAllUsers, updateUserAdmin } from '@/features/auth/store/user-thunks';
+import { fetchAllUsers, fetchUserById, updateUserAdmin } from '@/features/auth/store/user-thunks';
 import type { User } from '@/types/user.types'; // Your canonical User type
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 // No need for specific selectors if accessing directly from state.auth for the list
@@ -39,13 +39,13 @@ export default function EditUserPage() {
     const [pageError, setPageError] = useState<string | null>(null);
 
 
-    // Effect 1: Ensure the user list is loaded or being loaded
+    // Effect 1: Fetch the specific user by ID
     useEffect(() => {
-        if ((!allUsers || allUsers.length === 0) && !isLoadingList && !listFetchError) {
-            console.log("EditUserPage: User list not available, dispatching fetchAllUsers.");
-            dispatch(fetchAllUsers());
+        if (userId && !isLoadingList && !listFetchError) {
+            console.log(`EditUserPage: Fetching user with ID '${userId}'`);
+            dispatch(fetchUserById(userId));
         }
-    }, [dispatch, allUsers, isLoadingList, listFetchError]);
+    }, [dispatch, userId, isLoadingList, listFetchError]);
 
 
     // Effect 2: Find and set the initialUserData for the form once the list is available

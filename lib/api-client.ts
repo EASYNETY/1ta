@@ -2204,6 +2204,37 @@ export async function handleMockRequest<T>(
 		}
 	}
 
+	// GET /admin/users/:id - Get a single user by ID
+	const getUserByIdMatch = endpoint.match(/^\/admin\/users\/([\w-]+)$/);
+	if (getUserByIdMatch && method === "get") {
+		const userId = getUserByIdMatch[1];
+
+		console.log(
+			`%cAPI Client MOCK: GET /admin/users/${userId}`,
+			"color: orange;"
+		);
+
+		try {
+			// Import the users array and the converter from mock-auth-data
+			const { users, convertToUserType } = await import(
+				"@/data/mock-auth-data"
+			);
+
+			// Find the user by ID
+			const user = users.find(u => u.id === userId);
+
+			if (!user) {
+				throw new Error(`User with ID ${userId} not found`);
+			}
+
+			// Convert to User type and return
+			return convertToUserType(user) as unknown as T;
+		} catch (error: any) {
+			console.error(`Mock API Error for GET /admin/users/${userId}:`, error.message);
+			throw new ApiError(error.message || `Failed to fetch user with ID ${userId}`, 404);
+		}
+	}
+
 	// NEW: PUT /admin/users/:id - Update User (Admin)
 	const updateUserAdminMatch = endpoint.match(/^\/admin\/users\/([\w-]+)$/);
 	if (updateUserAdminMatch && method === "put") {

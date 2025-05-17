@@ -9,6 +9,7 @@ import { Calendar as CalendarIcon, AlertTriangle, Loader2 } from 'lucide-react';
 import { format, startOfWeek, addDays, isSameDay, addWeeks, subWeeks, parseISO, isValid, formatISO, endOfWeek } from "date-fns";
 import { DayPickerSingleProps } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { safeArray, safeFilter, safeSort } from '@/lib/utils/safe-data';
 
 // Import Slice Actions and Selectors
 import {
@@ -85,16 +86,28 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
     }, [dispatch, role, userId, viewStartDateStr, currentWeekStart, currentWeekEnd]); // Rerun if view changes
 
 
+    // Use safe utility functions for data handling
+
     // --- Data Grouping for List View ---
     const eventsByDay = useMemo(() => {
         return weekDays.map(day => ({
             date: day,
-            events: events.filter((event: ScheduleEvent) => {
-                try {
-                    const eventDate = parseISO(event.startTime);
-                    return isValid(eventDate) && isSameDay(eventDate, day);
-                } catch { return false; }
-            }).sort((a, b) => parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime())
+            events: safeSort(
+                safeFilter<ScheduleEvent>(events, event => {
+                    try {
+                        if (!event || !event.startTime) return false;
+                        const eventDate = parseISO(event.startTime);
+                        return isValid(eventDate) && isSameDay(eventDate, day);
+                    } catch { return false; }
+                }),
+                (a, b) => {
+                    try {
+                        return parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime();
+                    } catch {
+                        return 0;
+                    }
+                }
+            )
         }));
     }, [events, weekDays]);
 

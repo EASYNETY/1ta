@@ -10,7 +10,7 @@ import {
 	createCorporateStudentSlotsThunk,
 } from "./auth-thunks";
 import type { AuthResponse } from "../types/auth-types";
-import { deleteUser, fetchAllUsers, fetchUsersByRole } from "./user-thunks";
+import { deleteUser, fetchAllUsers, fetchUserById, fetchUsersByRole } from "./user-thunks";
 
 export const addAuthExtraReducers = (builder: any) => {
 	// --- Handle Login/Signup Success ---
@@ -255,6 +255,37 @@ export const addAuthExtraReducers = (builder: any) => {
 				);
 				state.totalUsers = Math.max(0, state.totalUsers - 1);
 			}
+		}
+	);
+
+	// --- FETCH USER BY ID ---
+	builder.addCase(fetchUserById.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		fetchUserById.fulfilled,
+		(state: AuthState, action: PayloadAction<User>) => {
+			state.usersLoading = false;
+
+			// If the user is not already in the users array, add it
+			if (!state.users.some(user => user.id === action.payload.id)) {
+				state.users = [...state.users, action.payload];
+			} else {
+				// Otherwise, update the existing user in the array
+				state.users = state.users.map(user =>
+					user.id === action.payload.id ? action.payload : user
+				);
+			}
+		}
+	);
+
+	builder.addCase(
+		fetchUserById.rejected,
+		(state: AuthState, action: ReturnType<typeof fetchUserById.rejected>) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to fetch user";
 		}
 	);
 };

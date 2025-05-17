@@ -11,15 +11,19 @@ import { UserData } from '@/components/users/UserTableRow'; // Use shared type
 import Link from 'next/link';
 import { User, Mail, Calendar, CheckCircle, XCircle, Briefcase } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchAllUsers } from '@/features/auth/store/user-thunks';
+import { useAppDispatch } from '@/store/hooks';
+import { useSafeArraySelector, useSafeObjectSelector } from '@/store/safe-hooks';
+import { fetchUserById } from '@/features/auth/store/user-thunks';
+import { safeString, safeFormatDate } from '@/lib/utils/safe-data';
 
 
-// Helper to format date
+// Helper to format date using safe utilities
 const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    try { return new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }); }
-    catch (e) { return "Invalid Date"; }
+    return safeFormatDate(
+        dateString,
+        (date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+        'N/A'
+    );
 };
 
 export default function ViewUserPage() {
@@ -28,24 +32,22 @@ export default function ViewUserPage() {
     const dispatch = useAppDispatch();
     const userId = params.id as string; // Get ID from route params
 
-    // --- Select relevant parts directly from the auth slice ---
-    const {
-        users: allUsers,      // state.auth.users
-        usersLoading: isLoadingUsers, // state.auth.usersLoading
-        usersError: fetchError // state.auth.usersError
-    } = useAppSelector((state) => state.auth);
+    // --- Select relevant parts using safe selectors ---
+    const allUsers = useSafeArraySelector((state) => state.auth.users);
+    const isLoadingUsers = useSafeObjectSelector((state) => state.auth.usersLoading);
+    const fetchError = useSafeObjectSelector((state) => state.auth.usersError);
 
     const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
 
-    // useEffect for fetching users (remains the same)
+    // useEffect for fetching the specific user by ID
     useEffect(() => {
-        if ((!allUsers || allUsers.length === 0) && !isLoadingUsers && !fetchError) {
-            console.log("ViewUserPage: No users in store or not loading/error, fetching all users.");
-            dispatch(fetchAllUsers());
+        if (userId && !isLoadingUsers && !fetchError) {
+            console.log(`ViewUserPage: Fetching user with ID '${userId}'`);
+            dispatch(fetchUserById(userId));
         }
-    }, [dispatch, allUsers, isLoadingUsers, fetchError]);
+    }, [dispatch, userId, isLoadingUsers, fetchError]);
 
-    // useEffect for finding the current user (remains the same)
+    // useEffect for finding the current user in the store
     useEffect(() => {
         if (userId && allUsers && allUsers.length > 0) {
             console.log(`ViewUserPage: Searching for user ID '${userId}' in ${allUsers.length} users.`);
@@ -119,14 +121,20 @@ export default function ViewUserPage() {
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
                             <Briefcase className="h-5 w-5 text-muted-foreground" />
-                            <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(currentUser.role)}`}>
-                                {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
+                            <Badge variant="outline" className={`text-sm ${getRoleBadgeClass(safeString(currentUser.role))}`}>
+                                {safeString(currentUser.role)
+                                    ? `${safeString(currentUser.role).charAt(0).toUpperCase()}${safeString(currentUser.role).slice(1)}`
+                                    : 'Unknown'}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3 border-b pb-3">
-                            {currentUser.status === 'active' ? <CheckCircle className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
-                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(currentUser.status)}`}>
-                                {currentUser.status.charAt(0).toUpperCase() + currentUser.status.slice(1)}
+                            {safeString(currentUser.status) === 'active'
+                                ? <CheckCircle className="h-5 w-5 text-green-600" />
+                                : <XCircle className="h-5 w-5 text-red-600" />}
+                            <Badge variant="outline" className={`text-sm ${getStatusBadgeClass(safeString(currentUser.status))}`}>
+                                {safeString(currentUser.status)
+                                    ? `${safeString(currentUser.status).charAt(0).toUpperCase()}${safeString(currentUser.status).slice(1)}`
+                                    : 'Unknown'}
                             </Badge>
                         </div>
                         <div className="flex items-center gap-3">

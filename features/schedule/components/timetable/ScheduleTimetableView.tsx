@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { format, parseISO, isValid, isToday, setYear, setMonth, setDay, differenceInMinutes, isSameDay } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { safeArray, safeFilter, safeMap, safeParseDate, safeFormatDate } from '@/lib/utils/safe-data';
 import type { ScheduleEvent } from '../../types/schedule-types'; // Adjust path
 import { TimetableEventItem } from './TimetableEventItem'; // Import the item component
 
@@ -27,15 +28,24 @@ export const ScheduleTimetableView: React.FC<ScheduleTimetableViewProps> = ({
     // --- Event Positioning Logic ---
     const getEventPositionAndDuration = (event: ScheduleEvent): { top: number; height: number } => {
         const minuteHeight = HOUR_HEIGHT_PX / 60;
+        const defaultResult = { top: 0, height: HOUR_HEIGHT_PX }; // Default fallback
 
         try {
-            const startTime = parseISO(event.startTime);
-            const endTime = parseISO(event.endTime);
-            if (!isValid(startTime) || !isValid(endTime)) return { top: 0, height: HOUR_HEIGHT_PX };
+            if (!event || !event.startTime || !event.endTime) return defaultResult;
+
+            // Use safe date parsing
+            const startTime = safeParseDate(event.startTime, new Date());
+            const endTime = safeParseDate(event.endTime, new Date());
+
+            // Validate dates
+            if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) return defaultResult;
 
             // Minutes from the very start of the day (00:00)
             const startMinutesFromDayStart = startTime.getHours() * 60 + startTime.getMinutes();
             const eventDurationMinutes = differenceInMinutes(endTime, startTime);
+
+            // Validate duration (prevent negative durations)
+            if (eventDurationMinutes <= 0) return defaultResult;
 
             // Calculate offset from the timetable's visual start hour
             const offsetMinutesFromViewStart = startMinutesFromDayStart - (TIMETABLE_START_HOUR * 60);
@@ -45,8 +55,9 @@ export const ScheduleTimetableView: React.FC<ScheduleTimetableViewProps> = ({
 
             return { top, height };
 
-        } catch {
-            return { top: 0, height: HOUR_HEIGHT_PX }; // Fallback
+        } catch (error) {
+            console.error("Error calculating event position:", error);
+            return defaultResult; // Fallback
         }
     };
     // --- End Event Positioning ---
@@ -93,17 +104,34 @@ export const ScheduleTimetableView: React.FC<ScheduleTimetableViewProps> = ({
                     ))}
 
                     {/* Absolutely Positioned Events */}
-                    {events.map(event => {
-                        const eventDate = parseISO(event.startTime);
-                        if (!isValid(eventDate)) return null;
-                        const dayIndex = weekDays.findIndex(d => isSameDay(d, eventDate));
-                        if (dayIndex === -1) return null; // Event not in current week
+                    {safeMap(safeFilter(events, event => {
+                        try {
+                            if (!event || !event.startTime) return false;
 
+                            // Use safe date parsing
+                            const eventDate = safeParseDate(event.startTime);
+                            if (isNaN(eventDate.getTime())) return false;
+
+                            // Check if event is in current week
+                            const dayIndex = weekDays.findIndex(d => isSameDay(d, eventDate));
+                            return dayIndex !== -1; // Only include events in the current week
+                        } catch (error) {
+                            console.error("Error filtering event:", error);
+                            return false;
+                        }
+                    }), event => {
+                        // Use safe date parsing for the event date
+                        const eventDate = safeParseDate(event.startTime);
+
+                        // Find which day column this event belongs to
+                        const dayIndex = weekDays.findIndex(d => isSameDay(d, eventDate));
+
+                        // Get positioning information
                         const { top, height } = getEventPositionAndDuration(event);
 
                         return (
                             <TimetableEventItem
-                                key={event.id}
+                                key={event.id || `event-${dayIndex}-${top}`} // Fallback key if id is missing
                                 event={event}
                                 dayIndex={dayIndex}
                                 top={top}

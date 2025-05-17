@@ -193,6 +193,101 @@ export function safeSome<T>(array: T[] | null | undefined, predicate: (value: T)
   return safeArray(array).some(predicate);
 }
 
+// ===== OBJECT OPERATIONS =====
+
+/**
+ * Safely gets nested properties from an object with a path string
+ * @param obj The object to access
+ * @param path The path to the property (e.g., 'user.profile.name')
+ * @param defaultValue The default value to return if the path doesn't exist
+ * @returns The value at the path, or the default value if the path doesn't exist
+ */
+export function safeGet<T>(obj: any, path: string, defaultValue: T): T {
+  try {
+    const keys = path.split('.');
+    let result = obj;
+
+    for (const key of keys) {
+      if (result === null || result === undefined || typeof result !== 'object') {
+        return defaultValue;
+      }
+      result = result[key];
+    }
+
+    return (result === undefined || result === null) ? defaultValue : result as T;
+  } catch {
+    return defaultValue;
+  }
+}
+
+/**
+ * Safely checks if an object has a property
+ * @param obj The object to check
+ * @param prop The property to check for
+ * @returns true if the object has the property, false otherwise
+ */
+export function safeHasProperty(obj: any, prop: string): boolean {
+  return obj !== null && obj !== undefined && typeof obj === 'object' && prop in obj;
+}
+
+/**
+ * Safely merges objects, handling null/undefined objects
+ * @param objects The objects to merge
+ * @returns The merged object
+ */
+export function safeMerge<T extends object>(...objects: (T | null | undefined)[]): T {
+  return objects.reduce((result, obj) => {
+    if (obj !== null && obj !== undefined && typeof obj === 'object') {
+      return { ...result, ...obj };
+    }
+    return result;
+  }, {} as T);
+}
+
+// ===== DATE OPERATIONS =====
+
+/**
+ * Safely parses a date string, handling invalid dates
+ * @param dateString The date string to parse
+ * @param defaultValue The default value to return if parsing fails
+ * @returns The parsed date, or the default value if parsing fails
+ */
+export function safeParseDate(dateString: string | null | undefined, defaultValue: Date = new Date()): Date {
+  if (!dateString) return defaultValue;
+
+  try {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? defaultValue : date;
+  } catch {
+    return defaultValue;
+  }
+}
+
+/**
+ * Safely formats a date, handling invalid dates
+ * @param date The date to format
+ * @param formatter The formatting function
+ * @param defaultValue The default value to return if formatting fails
+ * @returns The formatted date, or the default value if formatting fails
+ */
+export function safeFormatDate(
+  date: Date | string | null | undefined,
+  formatter: (date: Date) => string,
+  defaultValue: string = 'N/A'
+): string {
+  if (!date) return defaultValue;
+
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      return defaultValue;
+    }
+    return formatter(dateObj);
+  } catch {
+    return defaultValue;
+  }
+}
+
 // ===== REDUX INTEGRATION =====
 
 /**
@@ -206,6 +301,20 @@ export function createSafeArraySelector<State, Result>(
   return createSelector(
     selector,
     (result) => safeArray(result)
+  );
+}
+
+/**
+ * Creates a safe selector for objects that ensures the result is never undefined or null
+ * @param selector The original selector that might return undefined/null
+ * @returns A new selector that always returns an object
+ */
+export function createSafeObjectSelector<State, Result extends object>(
+  selector: (state: State) => Result | null | undefined
+) {
+  return createSelector(
+    selector,
+    (result) => safeObject(result)
   );
 }
 

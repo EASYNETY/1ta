@@ -66,6 +66,24 @@ export const deleteUser = createAsyncThunk<
 	}
 });
 
+// Fetch a single user by ID
+export const fetchUserById = createAsyncThunk<
+	User,
+	string,
+	{ state: RootState; rejectValue: string }
+>("users/fetchById", async (userId, { rejectWithValue }) => {
+	try {
+		console.log(`THUNK: Fetching user with ID ${userId}`);
+		// Use the admin endpoint to get a user by ID
+		const response = await get<User>(`/admin/users/${userId}`);
+		return response;
+	} catch (error: any) {
+		const message = error?.message || `Failed to fetch user with ID ${userId}`;
+		console.error(`THUNK ERROR fetching user ${userId}:`, message, error);
+		return rejectWithValue(message);
+	}
+});
+
 // NEW THUNK: Update User (Admin action)
 export const updateUserAdmin = createAsyncThunk<
 	User, // Expect the updated User object in response
