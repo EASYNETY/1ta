@@ -161,10 +161,11 @@ export function StudentInfoModal({
                                     value={studentInfo.isActive === true ? "Paid" : studentInfo.isActive === false ? "Unpaid" : "Unknown"}
                                     valueAsBadge={true}
                                     badgeVariant={
-                                        studentInfo.isActive === true ? "success"
+                                        studentInfo.isActive === true ? "default"
                                             : studentInfo.isActive === false ? "destructive"
                                                 : "secondary"
                                     }
+                                    badgeClassName={studentInfo.isActive === true ? "bg-green-100 text-green-800 border-green-200" : ""}
                                 />
                             </div>
 
@@ -232,8 +233,9 @@ const InfoItem: React.FC<{
     value?: string | number | null | boolean, // Allow boolean for generic use if needed
     isCode?: boolean,
     valueAsBadge?: boolean,
-    badgeVariant?: "default" | "secondary" | "destructive" | "outline" | "success" // Added "success"
-}> = ({ icon: Icon, label, value, isCode = false, valueAsBadge = false, badgeVariant = "secondary" }) => {
+    badgeVariant?: "default" | "secondary" | "destructive" | "outline",
+    badgeClassName?: string
+}> = ({ icon: Icon, label, value, isCode = false, valueAsBadge = false, badgeVariant = "secondary", badgeClassName = "" }) => {
     // More robust check for empty or undefined values
     if (value === undefined || value === null || String(value).trim() === '') {
         // Optionally display N/A for specifically empty strings if desired, else hide
@@ -245,16 +247,8 @@ const InfoItem: React.FC<{
     const stringValue = String(value); // Convert to string for display in Badge or span
 
     if (valueAsBadge) {
-        let badgeClass = ""; // For custom Tailwind classes
-
-        let shadcnBadgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary"; // Default
-        if (badgeVariant === "destructive" || badgeVariant === "outline" || badgeVariant === "default") {
-            shadcnBadgeVariant = badgeVariant;
-        }
-        // For "success" or other custom ones, we rely on className and a base variant like "outline"
-
         displayValue = (
-            <Badge variant={shadcnBadgeVariant} className={badgeClass}> {/* Use shadcnBadgeVariant here */}
+            <Badge variant={badgeVariant} className={badgeClassName}>
                 {stringValue}
             </Badge>
         );

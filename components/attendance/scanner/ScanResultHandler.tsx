@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { 
-    markStudentAttendance, 
-    resetMarkingStatus, 
-    selectAttendanceMarkingLoading, 
-    selectAttendanceMarkingError, 
-    selectAttendanceMarkingStatus 
+import {
+    markStudentAttendance,
+    resetMarkingStatus,
+    selectAttendanceMarkingLoading,
+    selectAttendanceMarkingError,
+    selectAttendanceMarkingStatus
 } from "@/features/attendance/store/attendance-slice";
 import { selectCourseClass } from "@/features/classes/store/classSessionSlice";
 import { StudentInfoModal } from "@/components/students/student-info-modal";
@@ -74,11 +74,11 @@ export function ScanResultHandler({
     useEffect(() => {
         if (lastScannedId && isModalOpen && fetchingStudentInfo) {
             const users = safeArray(allFetchedUsers);
-            
+
             // Find student by barcode ID
             const foundStudent = users.find(
-                (user: any) => 
-                    user.barcodeId === lastScannedId || 
+                (user: any) =>
+                    user.barcodeId === lastScannedId ||
                     user.id === lastScannedId
             );
 
@@ -100,7 +100,9 @@ export function ScanResultHandler({
                 if (!casualScanMode && selectedClass?.id) {
                     dispatch(markStudentAttendance({
                         studentId: foundStudent.id,
-                        classId: selectedClass.id,
+                        classInstanceId: selectedClass.id,
+                        markedByUserId: '', // This will be filled by the backend
+                        timestamp: new Date().toISOString()
                     }));
                 }
             } else {
@@ -111,14 +113,14 @@ export function ScanResultHandler({
             setFetchingStudentInfo(false);
         }
     }, [
-        lastScannedId, 
-        isModalOpen, 
-        fetchingStudentInfo, 
-        allFetchedUsers, 
-        casualScanMode, 
-        selectedClass, 
-        dispatch, 
-        setStudentInfo, 
+        lastScannedId,
+        isModalOpen,
+        fetchingStudentInfo,
+        allFetchedUsers,
+        casualScanMode,
+        selectedClass,
+        dispatch,
+        setStudentInfo,
         setFetchingStudentInfo
     ]);
 

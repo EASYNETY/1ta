@@ -1,21 +1,20 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { 
-    CheckCircle, 
-    XCircle, 
-    Loader2, 
-    AlertTriangle, 
-    ScanLine, 
-    Wifi, 
-    WifiOff, 
-    PowerOff 
+import {
+    CheckCircle,
+    Loader2,
+    AlertTriangle,
+    ScanLine,
+    Wifi,
+    WifiOff,
+    PowerOff
 } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 import { selectCourseClass } from "@/features/classes/store/classSessionSlice";
-import { 
-    selectUsersLoading, 
-    selectUsersError 
+import {
+    selectUsersLoading,
+    selectUsersError
 } from "@/features/auth/store/auth-selectors";
 import { safeArray } from "@/lib/utils/safe-data";
 
@@ -37,7 +36,7 @@ export function ScannerStatusBadge({
     const selectedClass = useAppSelector(selectCourseClass);
     const isLoadingStudents = useAppSelector(selectUsersLoading);
     const studentsFetchError = useAppSelector(selectUsersError);
-    
+
     // Use safeArray to ensure allFetchedUsers is always an array
     const users = safeArray(allFetchedUsers);
 
@@ -69,7 +68,7 @@ export function ScannerStatusBadge({
         if (isScannerActive) {
             if (scannerMode === 'external') {
                 if (socketStatus === 'connected') {
-                    return <Badge variant="success"><Wifi className="mr-1 h-3 w-3" /> External Scanner Ready</Badge>;
+                    return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><Wifi className="mr-1 h-3 w-3" /> External Scanner Ready</Badge>;
                 } else if (socketStatus === 'connecting') {
                     return <Badge variant="outline"><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Connecting Scanner...</Badge>;
                 } else if (socketStatus === 'error') {
@@ -78,7 +77,7 @@ export function ScannerStatusBadge({
                     return <Badge variant="outline"><WifiOff className="mr-1 h-3 w-3" /> Scanner Disconnected</Badge>;
                 }
             } else {
-                return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3" /> Camera Scanner Ready</Badge>;
+                return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200"><CheckCircle className="mr-1 h-3 w-3" /> Camera Scanner Ready</Badge>;
             }
         } else {
             return <Badge variant="secondary"><PowerOff className="mr-1 h-3 w-3" /> Scanner Paused</Badge>;
