@@ -930,10 +930,323 @@ export default function AnalyticsDashboard() {
         </TabsContent>
 
         <TabsContent value="attendance">
-          {/* Attendance-specific analytics */}
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Attendance Analytics Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed attendance analytics will be available in the next update.</p>
+          <div className="space-y-6">
+            {/* Attendance Rate Trends */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Rate Trends</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      rate: {
+                        label: "Attendance Rate",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <LineChart
+                      data={[
+                        { month: "Jan", rate: 82 },
+                        { month: "Feb", rate: 85 },
+                        { month: "Mar", rate: 88 },
+                        { month: "Apr", rate: 84 },
+                        { month: "May", rate: 87 },
+                        { month: "Jun", rate: 90 },
+                      ]}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis domain={[0, 100]} />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `${value}%`}
+                          />
+                        )}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="rate"
+                        stroke="var(--color-rate)"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Attendance Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Attendance by Day of Week */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Attendance by Day of Week</CardTitle>
+                </CardHeader>
+                <CardContent className="h-80">
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Skeleton className="h-64 w-full" />
+                    </div>
+                  ) : (
+                    <ChartContainer
+                      config={{
+                        rate: {
+                          label: "Attendance Rate",
+                          theme: {
+                            light: "#28A745",
+                            dark: "#28A745",
+                          },
+                        },
+                      }}
+                    >
+                      <BarChart
+                        data={[
+                          { day: "Monday", rate: 88 },
+                          { day: "Tuesday", rate: 92 },
+                          { day: "Wednesday", rate: 85 },
+                          { day: "Thursday", rate: 80 },
+                          { day: "Friday", rate: 75 },
+                          { day: "Saturday", rate: 65 },
+                        ]}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="day" />
+                        <YAxis domain={[0, 100]} />
+                        <ChartTooltip
+                          content={({ active, payload }) => (
+                            <ChartTooltipContent
+                              active={active}
+                              payload={payload}
+                              formatter={(value) => `${value}%`}
+                            />
+                          )}
+                        />
+                        <Bar
+                          dataKey="rate"
+                          name="Attendance Rate"
+                          fill="var(--color-rate)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Attendance by Time of Day */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Attendance by Time of Day</CardTitle>
+                </CardHeader>
+                <CardContent className="h-80">
+                  {isLoading ? (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <Skeleton className="h-64 w-full" />
+                    </div>
+                  ) : (
+                    <ChartContainer
+                      config={{
+                        rate: {
+                          label: "Attendance Rate",
+                          theme: {
+                            light: "#28A745",
+                            dark: "#28A745",
+                          },
+                        },
+                      }}
+                    >
+                      <BarChart
+                        data={[
+                          { time: "8-10 AM", rate: 92 },
+                          { time: "10-12 PM", rate: 88 },
+                          { time: "12-2 PM", rate: 75 },
+                          { time: "2-4 PM", rate: 82 },
+                          { time: "4-6 PM", rate: 85 },
+                          { time: "6-8 PM", rate: 78 },
+                        ]}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="time" />
+                        <YAxis domain={[0, 100]} />
+                        <ChartTooltip
+                          content={({ active, payload }) => (
+                            <ChartTooltipContent
+                              active={active}
+                              payload={payload}
+                              formatter={(value) => `${value}%`}
+                            />
+                          )}
+                        />
+                        <Bar
+                          dataKey="rate"
+                          name="Attendance Rate"
+                          fill="var(--color-rate)"
+                          radius={[4, 4, 0, 0]}
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Attendance by Course */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance by Course</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      rate: {
+                        label: "Attendance Rate",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={[
+                        { course: "Web Development", rate: 88 },
+                        { course: "Data Science", rate: 82 },
+                        { course: "UX Design", rate: 90 },
+                        { course: "Mobile Development", rate: 85 },
+                        { course: "DevOps", rate: 92 },
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="course"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis domain={[0, 100]} />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `${value}%`}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="rate"
+                        name="Attendance Rate"
+                        fill="var(--color-rate)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Attendance Status Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      present: {
+                        label: "Present",
+                        theme: {
+                          light: "#10B981",
+                          dark: "#10B981",
+                        },
+                      },
+                      late: {
+                        label: "Late",
+                        theme: {
+                          light: "#F59E0B",
+                          dark: "#F59E0B",
+                        },
+                      },
+                      absent: {
+                        label: "Absent",
+                        theme: {
+                          light: "#EF4444",
+                          dark: "#EF4444",
+                        },
+                      },
+                      excused: {
+                        label: "Excused",
+                        theme: {
+                          light: "#6B7280",
+                          dark: "#6B7280",
+                        },
+                      },
+                    }}
+                  >
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Present", value: 75 },
+                          { name: "Late", value: 10 },
+                          { name: "Absent", value: 10 },
+                          { name: "Excused", value: 5 },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                      />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `${value}%`}
+                          />
+                        )}
+                      />
+                      <ChartLegend
+                        content={({ payload }) => (
+                          <ChartLegendContent payload={payload} />
+                        )}
+                      />
+                    </PieChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
