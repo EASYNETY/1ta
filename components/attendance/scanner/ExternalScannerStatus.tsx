@@ -100,8 +100,8 @@ export function ExternalScannerStatus({
 
                 {/* Alert for inactive scanner */}
                 {!isActive && (
-                    <Alert variant="warning" className="mt-4">
-                        <AlertTriangle className="h-4 w-4" />
+                    <Alert variant="default" className="mt-4 bg-yellow-50 border-yellow-200">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
                         <AlertTitle>Scanner Paused</AlertTitle>
                         <AlertDescription>
                             Resume the scanner to connect to the external device.
