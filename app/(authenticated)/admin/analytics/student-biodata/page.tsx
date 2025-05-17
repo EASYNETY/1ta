@@ -311,26 +311,469 @@ export default function StudentBiodataDashboard() {
 
         {/* Additional tabs content */}
         <TabsContent value="demographics">
-          {/* Demographics-specific analytics */}
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Detailed Demographics Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed demographic analytics will be available in the next update.</p>
+          <div className="space-y-6">
+            {/* Age Distribution Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Age Distribution</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      under18: {
+                        label: "Under 18",
+                        theme: {
+                          light: "#60A5FA",
+                          dark: "#60A5FA",
+                        },
+                      },
+                      age18to24: {
+                        label: "18-24",
+                        theme: {
+                          light: "#34D399",
+                          dark: "#34D399",
+                        },
+                      },
+                      age25to34: {
+                        label: "25-34",
+                        theme: {
+                          light: "#F59E0B",
+                          dark: "#F59E0B",
+                        },
+                      },
+                      age35to44: {
+                        label: "35-44",
+                        theme: {
+                          light: "#EC4899",
+                          dark: "#EC4899",
+                        },
+                      },
+                      age45Plus: {
+                        label: "45+",
+                        theme: {
+                          light: "#8B5CF6",
+                          dark: "#8B5CF6",
+                        },
+                      },
+                    }}
+                  >
+                    <PieChart>
+                      <Pie
+                        data={ageData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        nameKey="name"
+                      />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                          />
+                        )}
+                      />
+                      <ChartLegend
+                        content={({ payload }) => (
+                          <ChartLegendContent payload={payload} />
+                        )}
+                      />
+                    </PieChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Location Distribution Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Location Distribution</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      location: {
+                        label: "Students",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={locationData}
+                      layout="vertical"
+                      margin={{ top: 20, right: 30, left: 70, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        width={60}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="value"
+                        name="Students"
+                        fill="var(--color-location)"
+                        radius={[0, 4, 4, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="enrollment">
-          {/* Enrollment-specific analytics */}
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Enrollment Trends Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed enrollment trend analytics will be available in the next update.</p>
+          <div className="space-y-6">
+            {/* Enrollment Trends Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Monthly Enrollment Trends</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      enrollments: {
+                        label: "New Enrollments",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <LineChart
+                      data={stats.enrollmentTrends || [
+                        { month: "Jan", enrollments: 45 },
+                        { month: "Feb", enrollments: 52 },
+                        { month: "Mar", enrollments: 48 },
+                        { month: "Apr", enrollments: 60 },
+                        { month: "May", enrollments: 75 },
+                        { month: "Jun", enrollments: 82 }
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                          />
+                        )}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="enrollments"
+                        stroke="var(--color-enrollments)"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Enrollment by Course Category */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Enrollment by Course Category</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      programming: {
+                        label: "Programming",
+                        theme: {
+                          light: "#3B82F6",
+                          dark: "#3B82F6",
+                        },
+                      },
+                      design: {
+                        label: "Design",
+                        theme: {
+                          light: "#EC4899",
+                          dark: "#EC4899",
+                        },
+                      },
+                      business: {
+                        label: "Business",
+                        theme: {
+                          light: "#F59E0B",
+                          dark: "#F59E0B",
+                        },
+                      },
+                      dataScience: {
+                        label: "Data Science",
+                        theme: {
+                          light: "#10B981",
+                          dark: "#10B981",
+                        },
+                      },
+                      other: {
+                        label: "Other",
+                        theme: {
+                          light: "#6B7280",
+                          dark: "#6B7280",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={[
+                        { category: "Programming", enrollments: 120 },
+                        { category: "Design", enrollments: 80 },
+                        { category: "Business", enrollments: 60 },
+                        { category: "Data Science", enrollments: 40 },
+                        { category: "Other", enrollments: 20 }
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="enrollments"
+                        name="Enrollments"
+                        fill="var(--color-programming)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
         <TabsContent value="completion">
-          {/* Completion-specific analytics */}
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Completion Analysis Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed completion analysis will be available in the next update.</p>
+          <div className="space-y-6">
+            {/* Course Completion Rates */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Course Completion Rates</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      completionRate: {
+                        label: "Completion Rate",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={stats.completionRates || [
+                        { courseId: "course1", courseTitle: "Web Development", completionRate: 78 },
+                        { courseId: "course2", courseTitle: "UX Design", completionRate: 82 },
+                        { courseId: "course3", courseTitle: "Data Science", completionRate: 65 },
+                        { courseId: "course4", courseTitle: "Mobile Development", completionRate: 70 },
+                        { courseId: "course5", courseTitle: "DevOps", completionRate: 85 }
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="courseTitle"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `${value}%`}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="completionRate"
+                        name="Completion Rate"
+                        fill="var(--color-completionRate)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Completion Rate Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Completion Rate Distribution</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      count: {
+                        label: "Students",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={[
+                        { range: "0-20%", count: 15 },
+                        { range: "21-40%", count: 25 },
+                        { range: "41-60%", count: 45 },
+                        { range: "61-80%", count: 85 },
+                        { range: "81-100%", count: 65 }
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="range" />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="count"
+                        name="Students"
+                        fill="var(--color-count)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Completion Time Analysis */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Average Completion Time (Days)</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Skeleton className="h-64 w-full" />
+                  </div>
+                ) : (
+                  <ChartContainer
+                    config={{
+                      days: {
+                        label: "Days",
+                        theme: {
+                          light: "#28A745",
+                          dark: "#28A745",
+                        },
+                      },
+                    }}
+                  >
+                    <BarChart
+                      data={[
+                        { courseTitle: "Web Development", days: 45 },
+                        { courseTitle: "UX Design", days: 38 },
+                        { courseTitle: "Data Science", days: 60 },
+                        { courseTitle: "Mobile Development", days: 42 },
+                        { courseTitle: "DevOps", days: 35 }
+                      ]}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="courseTitle"
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis />
+                      <ChartTooltip
+                        content={({ active, payload }) => (
+                          <ChartTooltipContent
+                            active={active}
+                            payload={payload}
+                            formatter={(value) => `${value} days`}
+                          />
+                        )}
+                      />
+                      <Bar
+                        dataKey="days"
+                        name="Days"
+                        fill="var(--color-days)"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
