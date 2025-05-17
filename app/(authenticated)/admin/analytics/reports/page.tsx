@@ -287,18 +287,109 @@ export default function ReportsPage() {
 
         {/* Payment Reports Tab */}
         <TabsContent value="payments">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Payment Reports Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed payment reports will be available in the next update.</p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {paymentReports.status === "loading" ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : paymentReports.data.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No payment reports found. Try adjusting your filters.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Payment Method</TableHead>
+                      <TableHead>Course</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paymentReports.data.map((payment) => (
+                      <TableRow key={payment.id}>
+                        <TableCell>{payment.userName}</TableCell>
+                        <TableCell>₦{(payment.amount / 100).toLocaleString()}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              payment.status === "successful" ? "success" :
+                              payment.status === "pending" ? "warning" : "destructive"
+                            }
+                          >
+                            {payment.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{payment.paymentMethod}</TableCell>
+                        <TableCell>{payment.courseTitle || "N/A"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Attendance Reports Tab */}
         <TabsContent value="attendance">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">Attendance Reports Coming Soon</h3>
-            <p className="text-muted-foreground">Detailed attendance reports will be available in the next update.</p>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Attendance Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {attendanceReports.status === "loading" ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : attendanceReports.data.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No attendance reports found. Try adjusting your filters.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Course</TableHead>
+                      <TableHead>Present</TableHead>
+                      <TableHead>Absent</TableHead>
+                      <TableHead>Late</TableHead>
+                      <TableHead>Attendance Rate</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {attendanceReports.data.map((attendance, index) => (
+                      <TableRow key={`${attendance.courseId}-${attendance.date}-${index}`}>
+                        <TableCell>{new Date(attendance.date).toLocaleDateString()}</TableCell>
+                        <TableCell>{attendance.courseTitle}</TableCell>
+                        <TableCell>{attendance.presentCount}</TableCell>
+                        <TableCell>{attendance.absentCount}</TableCell>
+                        <TableCell>{attendance.lateCount}</TableCell>
+                        <TableCell>{attendance.attendanceRate}%</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

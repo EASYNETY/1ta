@@ -105,14 +105,16 @@ export const fetchPaymentReports = createAsyncThunk(
   "reports/fetchPaymentReports",
   async (filter: ReportFilter, { getState, rejectWithValue }) => {
     try {
-      // For now, return empty data since we don't have a derivation function yet
-      return {
-        data: [],
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 0
-      } as ReportResponse<PaymentReport>;
+      // Get the current state
+      const state = getState() as RootState;
+
+      // Import dynamically to avoid circular dependencies
+      const { derivePaymentReports } = await import("../utils/data-derivation-additional");
+
+      // Derive payment reports from the state
+      const paymentReports = derivePaymentReports(state, filter);
+
+      return paymentReports;
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to derive payment reports");
     }
@@ -124,14 +126,16 @@ export const fetchAttendanceReports = createAsyncThunk(
   "reports/fetchAttendanceReports",
   async (filter: ReportFilter, { getState, rejectWithValue }) => {
     try {
-      // For now, return empty data since we don't have a derivation function yet
-      return {
-        data: [],
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 0
-      } as ReportResponse<AttendanceReport>;
+      // Get the current state
+      const state = getState() as RootState;
+
+      // Import dynamically to avoid circular dependencies
+      const { deriveAttendanceReports } = await import("../utils/data-derivation-additional");
+
+      // Derive attendance reports from the state
+      const attendanceReports = deriveAttendanceReports(state, filter);
+
+      return attendanceReports;
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to derive attendance reports");
     }
