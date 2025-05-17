@@ -9,6 +9,7 @@ import BarcodeScanner from "@/lib/barcode-scanner";
 import { StudentInfoModal } from "@/components/students/student-info-modal";
 import { useExternalScannerSocket } from "@/hooks/use-external-scanner-socket";
 import { safeArray } from "@/lib/utils/safe-data";
+import { beepSounds } from "@/public/sound/beep";
 
 // Redux imports
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -204,6 +205,9 @@ export default function ScanPage() {
         setIsProcessingScan(true);
         dispatch(resetMarkingStatus());
 
+        // Play beep sound when barcode is detected
+        beepSounds.scanner();
+
         const potentialId = typeof scannedData === 'object' && scannedData?.text ? scannedData.text : String(scannedData ?? '');
         const scannedBarcodeId = potentialId.trim();
         setLastScannedId(scannedBarcodeId);
@@ -265,8 +269,12 @@ export default function ScanPage() {
                 try {
                     await dispatch(markStudentAttendance(payload)).unwrap();
                     console.log("Attendance marked successfully via Redux.");
+                    // Play success beep sound
+                    beepSounds.success();
                 } catch (reduxError: any) {
                     console.error("Attendance marking failed via Redux:", reduxError);
+                    // Play error beep sound
+                    beepSounds.error();
                     // Error will be handled by apiError selector for display
                 }
             } else if (casualScanMode) {
@@ -283,6 +291,8 @@ export default function ScanPage() {
         } else {
             console.log("Student not found in local list for barcode:", scannedBarcodeId);
             setStudentInfo(null); // Clear previous student info if any
+            // Play error beep sound for student not found
+            beepSounds.error();
             // Toast for student not found is implicitly handled by studentInfo being null in modal
         }
         setIsProcessingScan(false);
@@ -324,18 +334,24 @@ export default function ScanPage() {
 
             // Show toast notifications for connection status changes
             if (socketStatus === 'connected') {
+                // Play connection success sound
+                beepSounds.success();
                 toast({
                     title: "External Scanner Connected",
                     description: "Ready to receive barcode scans",
                     variant: "default"
                 });
             } else if (socketStatus === 'error' && prevSocketStatusRef.current !== 'error') {
+                // Play error sound
+                beepSounds.error();
                 toast({
                     title: "Scanner Connection Error",
                     description: "Could not connect to external scanner service",
                     variant: "destructive"
                 });
             } else if (socketStatus === 'disconnected' && prevSocketStatusRef.current === 'connected') {
+                // Play notification sound
+                beepSounds.notification();
                 toast({
                     title: "Scanner Disconnected",
                     description: "Connection to external scanner was lost",
