@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Wifi, WifiOff, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ExternalScannerStatusProps {
     socketStatus: string;
@@ -29,32 +30,44 @@ export function ExternalScannerStatus({
         : (connectionAttempts / maxAttempts) * 100;
 
     return (
-        <Card className="p-6 h-[350px] flex flex-col justify-center items-center">
+        <Card className="p-6 h-[350px] flex flex-col justify-center items-center backdrop-blur-sm border border-card/30 shadow-lg">
             <div className="text-center space-y-6 w-full max-w-md">
-                {/* Connection Status Icon */}
-                <div className="flex justify-center">
+                {/* Connection Status Icon with Ping Effect */}
+                <div className="flex justify-center relative">
                     {socketStatus === 'connected' ? (
-                        <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-                            <Wifi className="h-8 w-8 text-green-600" />
+                        <div className="relative">
+                            {/* Outer ping animation */}
+                            <div className="absolute inset-0 rounded-full bg-green-500/20 dark:bg-green-500/30 animate-ping-slow"></div>
+                            {/* Middle glow */}
+                            <div className="absolute inset-0 rounded-full bg-green-400/20 dark:bg-green-400/20 blur-md"></div>
+                            {/* Inner container */}
+                            <div className="relative h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/60 flex items-center justify-center border border-green-200 dark:border-green-700 shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                                <Wifi className="h-8 w-8 text-green-600 dark:text-green-400" />
+                            </div>
                         </div>
                     ) : socketStatus === 'connecting' ? (
-                        <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                        <div className="h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/60 flex items-center justify-center border border-blue-200 dark:border-blue-700 shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                            <Loader2 className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-spin" />
                         </div>
                     ) : socketStatus === 'error' ? (
-                        <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
-                            <AlertTriangle className="h-8 w-8 text-red-600" />
+                        <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/60 flex items-center justify-center border border-red-200 dark:border-red-700 shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                            <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
                         </div>
                     ) : (
-                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
-                            <WifiOff className="h-8 w-8 text-gray-600" />
+                        <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800/60 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                            <WifiOff className="h-8 w-8 text-gray-600 dark:text-gray-400" />
                         </div>
                     )}
                 </div>
 
                 {/* Status Text */}
                 <div>
-                    <h3 className="text-lg font-medium mb-1">
+                    <h3 className={cn(
+                        "text-lg font-medium mb-1",
+                        socketStatus === 'connected' && "text-green-700 dark:text-green-400",
+                        socketStatus === 'connecting' && "text-blue-700 dark:text-blue-400",
+                        socketStatus === 'error' && "text-red-700 dark:text-red-400"
+                    )}>
                         {socketStatus === 'connected' ? 'External Scanner Connected' :
                          socketStatus === 'connecting' ? 'Connecting to Scanner...' :
                          socketStatus === 'error' ? 'Connection Error' :
@@ -71,7 +84,17 @@ export function ExternalScannerStatus({
                 {/* Connection Progress (only show when connecting or error) */}
                 {(socketStatus === 'connecting' || (socketStatus === 'error' && maxAttemptsReached)) && (
                     <div className="w-full">
-                        <Progress value={connectionProgress} className="h-2" />
+                        <Progress
+                            value={connectionProgress}
+                            className={cn(
+                                "h-2",
+                                socketStatus === 'connecting' && "bg-blue-100 dark:bg-blue-950/50",
+                                socketStatus === 'error' && "bg-red-100 dark:bg-red-950/50",
+                                // Apply indicator styles via CSS variables that will be picked up by the component
+                                socketStatus === 'connecting' && "[--progress-indicator:theme(colors.blue.500)] dark:[--progress-indicator:theme(colors.blue.600)]",
+                                socketStatus === 'error' && "[--progress-indicator:theme(colors.red.500)] dark:[--progress-indicator:theme(colors.red.600)]"
+                            )}
+                        />
                         <p className="text-xs text-muted-foreground mt-1">
                             {maxAttemptsReached
                                 ? `Maximum connection attempts reached (${maxAttempts}/${maxAttempts})`
@@ -84,7 +107,12 @@ export function ExternalScannerStatus({
                 <Button
                     onClick={reconnectSocket}
                     variant={socketStatus === 'connected' ? "outline" : "default"}
-                    className={`mt-2 ${socketStatus === 'connected' ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800' : ''}`}
+                    className={cn(
+                        "mt-2 transition-all duration-300",
+                        socketStatus === 'connected' && "bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/50",
+                        socketStatus === 'error' && "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800",
+                        socketStatus === 'disconnected' && "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                    )}
                     disabled={socketStatus === 'connecting' || !isActive}
                 >
                     {socketStatus === 'connecting' ? (
@@ -100,10 +128,10 @@ export function ExternalScannerStatus({
 
                 {/* Alert for inactive scanner */}
                 {!isActive && (
-                    <Alert variant="default" className="mt-4 bg-yellow-50 border-yellow-200">
-                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                        <AlertTitle>Scanner Paused</AlertTitle>
-                        <AlertDescription>
+                    <Alert variant="default" className="mt-4 bg-yellow-50 border-yellow-200 dark:bg-yellow-900/30 dark:border-yellow-800">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                        <AlertTitle className="text-yellow-800 dark:text-yellow-400">Scanner Paused</AlertTitle>
+                        <AlertDescription className="text-yellow-700 dark:text-yellow-300/80">
                             Resume the scanner to connect to the external device.
                         </AlertDescription>
                     </Alert>

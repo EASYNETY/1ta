@@ -2,6 +2,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "../styles/animations.css";
 import { Providers } from "@/store/providers";
 import { AuthProvider } from "@/features/auth/components/auth-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
