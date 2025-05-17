@@ -75,12 +75,40 @@ export function ScanResultHandler({
         if (lastScannedId && isModalOpen && fetchingStudentInfo) {
             const users = safeArray(allFetchedUsers);
 
-            // Find student by barcode ID
-            const foundStudent = users.find(
-                (user: any) =>
-                    user.barcodeId === lastScannedId ||
-                    user.id === lastScannedId
-            );
+            // Log the scanned ID and the number of users available for lookup
+            console.log(`Processing scan for barcode ID: "${lastScannedId}"`);
+            console.log(`Total users available for lookup: ${users.length}`);
+
+            // Log a sample of users for debugging (first 3)
+            if (users.length > 0) {
+                console.log("Sample of available users:", users.slice(0, 3).map(user => ({
+                    id: user.id,
+                    name: user.name,
+                    barcodeId: user.barcodeId,
+                    role: user.role
+                })));
+            }
+
+            // Find student by barcode ID with improved matching
+            const foundStudent = users.find((user: any) => {
+                // Normalize both the scanned ID and the stored IDs for comparison
+                const normalizedScannedId = lastScannedId?.trim().toLowerCase();
+                const normalizedBarcodeId = user.barcodeId?.trim().toLowerCase();
+                const normalizedUserId = user.id?.trim().toLowerCase();
+
+                // Log for debugging
+                console.log(`Comparing scanned ID: "${normalizedScannedId}" with user:`, {
+                    name: user.name,
+                    barcodeId: normalizedBarcodeId,
+                    userId: normalizedUserId
+                });
+
+                // Check for matches with both barcodeId and id
+                return (
+                    (normalizedBarcodeId && normalizedBarcodeId === normalizedScannedId) ||
+                    (normalizedUserId && normalizedUserId === normalizedScannedId)
+                );
+            });
 
             if (foundStudent) {
                 // Map user to StudentInfo for the modal
@@ -106,7 +134,56 @@ export function ScanResultHandler({
                     }));
                 }
             } else {
-                console.log(`No student found with barcode ID: ${lastScannedId}`);
+                console.log(`No student found with barcode ID: "${lastScannedId}"`);
+
+                // Additional debugging: Check if any users have barcodeId that partially matches
+                const partialMatches = users.filter(user =>
+                    user.barcodeId &&
+                    (user.barcodeId.includes(lastScannedId) ||
+                     lastScannedId.includes(user.barcodeId))
+                );
+
+                if (partialMatches.length > 0) {
+                    console.log("Found partial matches that didn't exactly match:",
+                        partialMatches.map(user => ({
+                            name: user.name,
+                            barcodeId: user.barcodeId
+                        }))
+                    );
+
+                    // If we have exactly one partial match, use it as a fallback
+                    if (partialMatches.length === 1) {
+                        console.log("Using the single partial match as a fallback:", partialMatches[0].name);
+
+                        // Map user to StudentInfo for the modal
+                        const studentDataForModal: StudentInfo = {
+                            id: partialMatches[0].id,
+                            name: partialMatches[0].name,
+                            email: partialMatches[0].email,
+                            dateOfBirth: partialMatches[0].dateOfBirth,
+                            classId: partialMatches[0].classId,
+                            barcodeId: partialMatches[0].barcodeId || lastScannedId,
+                            isActive: partialMatches[0].isActive,
+                            avatarUrl: partialMatches[0].avatarUrl,
+                        };
+                        setStudentInfo(studentDataForModal);
+
+                        // Mark attendance if not in casual mode and class is selected
+                        if (!casualScanMode && selectedClass?.id) {
+                            dispatch(markStudentAttendance({
+                                studentId: partialMatches[0].id,
+                                classInstanceId: selectedClass.id,
+                                markedByUserId: '', // This will be filled by the backend
+                                timestamp: new Date().toISOString()
+                            }));
+                        }
+
+                        // Exit early since we found a match
+                        setFetchingStudentInfo(false);
+                        return;
+                    }
+                }
+
                 setStudentInfo(null);
             }
 
