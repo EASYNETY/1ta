@@ -12,8 +12,8 @@ interface UseExternalScannerSocketProps {
     serverUrl?: string;
     maxReconnectAttempts?: number;
     connectionTimeout?: number; // Timeout for initial connection in ms
-    pingInterval?: number; // Interval for sending ping messages in ms
-    reconnectDelayBase?: number; // Base delay for reconnection in ms
+    pingInterval?: number;      // Interval for sending ping messages in ms
+    reconnectDelayBase?: number;// Base delay for reconnection in ms
     reconnectDelayMax?: number; // Maximum delay for reconnection in ms
 }
 
@@ -27,210 +27,148 @@ interface UseExternalScannerSocketReturn {
 }
 
 /**
- * Custom hook for connecting to an external barcode scanner via WebSocket
- * This simplified version just connects to the socket without passing any parameters
+ * Custom hook for connecting to an external barcode scanner via WebSocket.
  */
 export function useExternalScannerSocket({
     onBarcodeReceived,
     isEnabled,
     serverUrl,
-    maxReconnectAttempts = 5, // Default to 5 reconnection attempts
-    connectionTimeout = 10000, // Default to 10 seconds
-    pingInterval = 30000, // Default to 30 seconds
-    reconnectDelayBase = 1000, // Default to 1 second
-    reconnectDelayMax = 30000 // Default to 30 seconds
+    maxReconnectAttempts = 5,
+    connectionTimeout = 10000,
+    pingInterval = 30000,
+    reconnectDelayBase = 1000,
+    reconnectDelayMax = 30000
 }: UseExternalScannerSocketProps): UseExternalScannerSocketReturn {
-    // Derive WebSocket URL with proper protocol using useMemo
     const derivedWsServerUrl = useMemo(() => {
-        const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+        const isClient = typeof window !== 'undefined';
+        const isSecure = isClient && window.location.protocol === 'https:';
         let url = serverUrl || process.env.NEXT_PUBLIC_WEBSOCKET_URL;
 
         if (!url) {
-            // If no URL is provided, use a public echo server for testing
             url = isSecure ? 'wss://echo.websocket.org' : 'ws://echo.websocket.org';
             console.log('[WebSocket] No URL provided, using echo server for testing:', url);
-            return url;
+        } else {
+            if (url.startsWith('http://')) {
+                url = url.replace('http://', 'ws://');
+            } else if (url.startsWith('https://')) {
+                url = url.replace('https://', 'wss://');
+            } else if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
+                const protocol = isSecure ? 'wss://' : 'ws://';
+                url = `${protocol}${url}`;
+            }
         }
-
-        // Ensure the URL has the correct protocol
-        if (url.startsWith('http://')) {
-            url = url.replace('http://', 'ws://');
-        } else if (url.startsWith('https://')) {
-            url = url.replace('https://', 'wss://');
-        } else if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-            // Add the appropriate protocol if missing
-            const protocol = isSecure ? 'wss://' : 'ws://';
-            url = `${protocol}${url}`;
-        }
-
         return url;
     }, [serverUrl]);
 
-    // Log the WebSocket URL when the hook is initialized (helpful for debugging)
     useEffect(() => {
         console.log('[WebSocket] Server URL configured as:', derivedWsServerUrl);
-
-        // Check if the URL is valid
         if (!derivedWsServerUrl.startsWith('ws://') && !derivedWsServerUrl.startsWith('wss://')) {
             console.warn('[WebSocket] URL may be invalid. It should start with ws:// or wss://');
         }
     }, [derivedWsServerUrl]);
 
-    // Track connection status
     const [status, setStatus] = useState<WebSocketStatus>('disconnected');
-
-    // Track connection attempts for UI display
-    const [connectionAttempts, setConnectionAttempts] = useState(0);
-
-    // Track if maximum attempts have been reached
+    const [currentConnectionAttempts, setCurrentConnectionAttempts] = useState(0);
     const [maxAttemptsReached, setMaxAttemptsReached] = useState(false);
 
-    // Store WebSocket instance in a ref to persist across renders
     const socketRef = useRef<WebSocket | null>(null);
-
-    // Track reconnection attempts
-    const reconnectAttemptsRef = useRef(0);
-
-    // Track if automatic reconnection is enabled
+    const reconnectAttemptsInternalRef = useRef(0); // Tracks attempts for the current reconnection cycle
     const autoReconnectEnabledRef = useRef(true);
 
-    // Refs for timeout IDs to ensure they can be cleared
     const connectionTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const reconnectTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
     const pingIntervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Cleanup function to close the WebSocket connection
-    // isGracefulShutdown: true when cleanup is intentional (e.g., isEnabled becomes false)
+
     const cleanupSocket = useCallback((isGracefulShutdown = false) => {
-        // Clear all timeouts and intervals
         if (connectionTimeoutIdRef.current) {
             clearTimeout(connectionTimeoutIdRef.current);
             connectionTimeoutIdRef.current = null;
         }
-
         if (reconnectTimeoutIdRef.current) {
             clearTimeout(reconnectTimeoutIdRef.current);
             reconnectTimeoutIdRef.current = null;
         }
-
         if (pingIntervalIdRef.current) {
             clearInterval(pingIntervalIdRef.current);
             pingIntervalIdRef.current = null;
         }
 
         if (socketRef.current) {
-            console.log(`[WebSocket] Cleaning up socket connection (graceful: ${isGracefulShutdown})`);
-
-            // If this is a graceful shutdown, disable auto-reconnect
-            // This prevents the onclose handler from triggering a reconnect
+            console.log(`[WebSocket] Cleaning up socket (graceful: ${isGracefulShutdown})`);
             if (isGracefulShutdown) {
-                autoReconnectEnabledRef.current = false;
+                autoReconnectEnabledRef.current = false; // Prevent onclose from auto-reconnecting
             }
 
-            // Remove all event listeners to prevent memory leaks
             socketRef.current.onopen = null;
-            socketRef.current.onclose = null;
-            socketRef.current.onerror = null;
             socketRef.current.onmessage = null;
+            socketRef.current.onerror = null;
+            socketRef.current.onclose = null;
 
-            // Close the connection if it's still open
             if (socketRef.current.readyState === WebSocket.OPEN ||
                 socketRef.current.readyState === WebSocket.CONNECTING) {
                 try {
-                    // Use code 1000 (Normal Closure) for graceful shutdowns
-                    socketRef.current.close(isGracefulShutdown ? 1000 : undefined);
+                    socketRef.current.close(isGracefulShutdown ? 1000 : undefined, "Client initiated disconnect");
                 } catch (e) {
-                    console.error('[WebSocket] Error closing socket:', e);
+                    console.warn('[WebSocket] Error closing socket during cleanup:', e);
                 }
             }
-
             socketRef.current = null;
-
-            if (isGracefulShutdown) {
-                setStatus('disconnected');
-            }
+        }
+        // Set status to disconnected if this cleanup is intentional (graceful)
+        // or if the status isn't already trying to connect via a new attempt.
+        if (isGracefulShutdown) {
+            setStatus('disconnected');
         }
     }, []);
 
-    // Function to establish WebSocket connection
+
     const connectWebSocket = useCallback(() => {
-        // Clean up any existing connection first with graceful=true to prevent auto-reconnect
-        cleanupSocket(true);
+        cleanupSocket(true); // Gracefully cleanup old socket and disable its auto-reconnect
+        autoReconnectEnabledRef.current = true; // Enable auto-reconnect for this new sequence
 
         if (!isEnabled) {
-            console.log('[WebSocket] Connection disabled, not connecting');
+            console.log('[WebSocket] Connection disabled, not connecting.');
+            setStatus('disconnected');
             return;
         }
 
-        // Re-enable auto-reconnect for this new connection attempt
-        autoReconnectEnabledRef.current = true;
-
-        // Check if we've already reached the maximum number of attempts
-        if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-            console.log(`[WebSocket] Maximum connection attempts (${maxReconnectAttempts}) already reached`);
+        if (reconnectAttemptsInternalRef.current >= maxReconnectAttempts) {
+            console.error(`[WebSocket] Max reconnection attempts (${maxReconnectAttempts}) reached prior to new attempt.`);
             setStatus('error');
             setMaxAttemptsReached(true);
+            autoReconnectEnabledRef.current = false; // Ensure it stays off
             return;
         }
 
-        // Increment connection attempts
-        reconnectAttemptsRef.current += 1;
-        setConnectionAttempts(reconnectAttemptsRef.current);
+        reconnectAttemptsInternalRef.current += 1;
+        setCurrentConnectionAttempts(reconnectAttemptsInternalRef.current);
+        setMaxAttemptsReached(false); // Reset for new attempt sequence
 
-        console.log(`[WebSocket] Connection attempt ${reconnectAttemptsRef.current} of ${maxReconnectAttempts}`);
+        console.log(`[WebSocket] Attempt ${reconnectAttemptsInternalRef.current}/${maxReconnectAttempts} to ${derivedWsServerUrl}`);
+        setStatus('connecting');
 
         try {
-            setStatus('connecting');
-            console.log(`[WebSocket] Attempting to connect to server at ${derivedWsServerUrl}...`);
+            const socket = new WebSocket(derivedWsServerUrl);
+            socketRef.current = socket;
 
-            // Create WebSocket connection
-            let socket: WebSocket;
-
-            try {
-                socket = new WebSocket(derivedWsServerUrl);
-                socketRef.current = socket;
-            } catch (error) {
-                console.error('[WebSocket] Error creating instance:', error);
-                setStatus('error');
-                setMaxAttemptsReached(reconnectAttemptsRef.current >= maxReconnectAttempts);
-                return;
-            }
-
-            // Set a connection timeout
             connectionTimeoutIdRef.current = setTimeout(() => {
-                if (socket && (socket.readyState === WebSocket.CONNECTING)) {
-                    console.error(`[WebSocket] Connection timeout after ${connectionTimeout}ms`);
-                    try {
-                        socket.close();
-                    } catch (e) {
-                        console.error('[WebSocket] Error closing socket after timeout:', e);
-                    }
-                    setStatus('error');
-
-                    // Check if we've reached max attempts
-                    if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
-                        setMaxAttemptsReached(true);
-                    }
+                if (socketRef.current === socket && socket.readyState === WebSocket.CONNECTING) {
+                    console.error(`[WebSocket] Connection timeout after ${connectionTimeout / 1000}s`);
+                    socket.close(1006, "Connection timeout"); // Let onclose handle next steps
                 }
             }, connectionTimeout);
 
-            // Connection opened
             socket.onopen = () => {
-                // Make sure this is for the current socket
-                if (socketRef.current !== socket) return;
+                if (socketRef.current !== socket) return; // Stale socket
 
-                // Clear the connection timeout
-                if (connectionTimeoutIdRef.current) {
-                    clearTimeout(connectionTimeoutIdRef.current);
-                    connectionTimeoutIdRef.current = null;
-                }
-
-                console.log('[WebSocket] Connected to external scanner server');
+                if (connectionTimeoutIdRef.current) clearTimeout(connectionTimeoutIdRef.current);
+                console.log('[WebSocket] Connected to server.');
                 setStatus('connected');
+                reconnectAttemptsInternalRef.current = 0; // Reset on successful connection
+                setCurrentConnectionAttempts(0);
                 setMaxAttemptsReached(false);
-                reconnectAttemptsRef.current = 0; // Reset reconnect attempts on successful connection
 
-                // Send a test message if using echo server
                 if (derivedWsServerUrl.includes('echo.websocket.org')) {
                     try {
                         socket.send(JSON.stringify({ type: 'test', message: 'Connection test' }));
@@ -240,264 +178,212 @@ export function useExternalScannerSocket({
                     }
                 }
 
-                // Set up ping interval to keep connection alive
+                // Clear any existing ping interval before starting a new one
+                if (pingIntervalIdRef.current) clearInterval(pingIntervalIdRef.current);
                 pingIntervalIdRef.current = setInterval(() => {
-                    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+                    if (socketRef.current === socket && socket.readyState === WebSocket.OPEN) {
                         try {
-                            // Send a ping message
-                            if (derivedWsServerUrl.includes('echo.websocket.org')) {
-                                socketRef.current.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
-                            } else {
-                                // For our custom server, use a format it understands
-                                socketRef.current.send(JSON.stringify({ type: 'ping' }));
-                            }
-                            console.log('[WebSocket] Ping sent to keep connection alive');
+                            const pingMsg = derivedWsServerUrl.includes('echo.websocket.org')
+                                ? { type: 'ping', timestamp: Date.now() }
+                                : { type: 'ping' };
+                            socket.send(JSON.stringify(pingMsg));
+                            // console.log('[WebSocket] Ping sent.'); // Can be noisy
                         } catch (e) {
                             console.error('[WebSocket] Error sending ping:', e);
+                            // If ping fails, connection might be compromised. onclose should handle.
                         }
                     }
                 }, pingInterval);
             };
 
-            // Connection closed
             socket.onclose = (event) => {
-                // Make sure this is for the current socket
-                if (socketRef.current !== socket) return;
+                if (socketRef.current !== socket) return; // Stale socket
 
-                // Clear any pending timeouts
-                if (connectionTimeoutIdRef.current) {
-                    clearTimeout(connectionTimeoutIdRef.current);
-                    connectionTimeoutIdRef.current = null;
-                }
+                if (connectionTimeoutIdRef.current) clearTimeout(connectionTimeoutIdRef.current);
+                if (pingIntervalIdRef.current) clearInterval(pingIntervalIdRef.current);
+                pingIntervalIdRef.current = null; // Ensure it's null after clearing
 
-                if (pingIntervalIdRef.current) {
-                    clearInterval(pingIntervalIdRef.current);
-                    pingIntervalIdRef.current = null;
-                }
-
-                // Log closure details with more context
-                const closeCodes = {
-                    1000: 'Normal Closure',
-                    1001: 'Going Away',
-                    1002: 'Protocol Error',
-                    1003: 'Unsupported Data',
-                    1005: 'No Status Received',
-                    1006: 'Abnormal Closure',
-                    1007: 'Invalid frame payload data',
-                    1008: 'Policy Violation',
-                    1009: 'Message too big',
-                    1010: 'Missing Extension',
-                    1011: 'Internal Error',
-                    1012: 'Service Restart',
-                    1013: 'Try Again Later',
-                    1014: 'Bad Gateway',
-                    1015: 'TLS Handshake'
+                const codeMap: { [key: number]: string } = {
+                    1000: 'Normal Closure', 1001: 'Going Away', 1002: 'Protocol Error',
+                    1003: 'Unsupported Data', 1005: 'No Status Received', 1006: 'Abnormal Closure',
+                    1007: 'Invalid frame payload', 1008: 'Policy Violation', 1009: 'Message Too Big',
+                    1010: 'Mandatory Ext.', 1011: 'Internal Error', 1012: 'Service Restart',
+                    1013: 'Try Again Later', 1014: 'Bad Gateway', 1015: 'TLS Handshake',
                 };
-
-                const codeDescription = closeCodes[event.code as keyof typeof closeCodes] || 'Unknown';
-                console.log(`[WebSocket] Connection closed: ${event.code} (${codeDescription})${event.reason ? `, Reason: ${event.reason}` : ''}`);
-
-                // If it's an abnormal closure (common when server is not available)
+                const reason = codeMap[event.code] || 'Unknown';
+                console.log(`[WebSocket] Connection closed: ${event.code} (${reason}) ${event.reason ? `| Reason: ${event.reason}` : ''}`);
                 if (event.code === 1006) {
-                    console.log('[WebSocket] This usually indicates the server is not available or not accepting connections.');
-                    console.log('[WebSocket] Check if the server is running and accessible at:', derivedWsServerUrl);
+                     console.log('[WebSocket] Abnormal closure usually indicates server is unavailable or network issue.');
                 }
 
-                setStatus('disconnected');
+                // Set status to disconnected, unless we're already about to hit max attempts and should show error
+                if (autoReconnectEnabledRef.current && isEnabled && event.code !== 1000 && reconnectAttemptsInternalRef.current >= maxReconnectAttempts) {
+                    setStatus('error');
+                } else {
+                    setStatus('disconnected');
+                }
 
-                // Don't attempt to reconnect if:
-                // 1. Auto-reconnect is disabled (e.g., after cleanupSocket(true))
-                // 2. isEnabled is false (component is being unmounted or disabled)
-                // 3. It's a normal closure (code 1000)
+
                 if (!autoReconnectEnabledRef.current || !isEnabled || event.code === 1000) {
-                    console.log('[WebSocket] Not attempting to reconnect due to:',
-                        !autoReconnectEnabledRef.current ? 'auto-reconnect disabled' :
-                        !isEnabled ? 'connection disabled' :
-                        'normal closure');
+                    console.log('[WebSocket] Auto-reconnect not attempted or not applicable.');
+                    if (reconnectAttemptsInternalRef.current >= maxReconnectAttempts && event.code !== 1000) {
+                        setMaxAttemptsReached(true);
+                        setStatus('error'); // Ensure status is error if max attempts were hit from a non-normal close
+                    }
                     return;
                 }
 
-                // Check if we should reconnect
-                const shouldReconnect = reconnectAttemptsRef.current < maxReconnectAttempts;
-
-                if (shouldReconnect) {
-                    // Calculate exponential backoff delay (1s, 2s, 4s, 8s, 16s, etc.)
-                    // but cap it at the maximum delay
-                    const delay = Math.min(reconnectDelayBase * Math.pow(2, reconnectAttemptsRef.current - 1), reconnectDelayMax);
-                    console.log(`[WebSocket] Attempting to reconnect in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`);
-
-                    // Store the timeout ID so it can be cleared if needed
+                if (reconnectAttemptsInternalRef.current < maxReconnectAttempts) {
+                    const delay = Math.min(
+                        reconnectDelayBase * Math.pow(2, reconnectAttemptsInternalRef.current -1),
+                        reconnectDelayMax
+                    );
+                    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsInternalRef.current + 1}/${maxReconnectAttempts})`); // Next attempt number
                     reconnectTimeoutIdRef.current = setTimeout(() => {
-                        // Double-check isEnabled and autoReconnectEnabledRef before reconnecting
-                        if (isEnabled && autoReconnectEnabledRef.current) {
+                        if (isEnabled && autoReconnectEnabledRef.current) { // Double check
                             connectWebSocket();
                         }
                     }, delay);
                 } else {
-                    console.error(`[WebSocket] Maximum reconnection attempts (${maxReconnectAttempts}) reached`);
-                    console.log('[WebSocket] You may need to check if the server is running or if there are network issues.');
-                    console.log('[WebSocket] Auto-reconnect disabled. User can manually reconnect if needed.');
-
-                    // Disable auto-reconnect after max attempts
-                    autoReconnectEnabledRef.current = false;
-
-                    // Set status to error and mark max attempts reached
+                    console.error(`[WebSocket] Max reconnection attempts (${maxReconnectAttempts}) reached.`);
                     setStatus('error');
                     setMaxAttemptsReached(true);
+                    autoReconnectEnabledRef.current = false;
                 }
             };
 
-            // Connection error
-            socket.onerror = () => {
-                // Make sure this is for the current socket
-                if (socketRef.current !== socket) return;
+            socket.onerror = (errorEvent) => {
+                if (socketRef.current !== socket) return; // Stale socket
 
-                // The error event doesn't contain detailed information in the browser
-                // Just log that an error occurred and set the status
-                console.error('[WebSocket] Connection error occurred');
-                console.log('[WebSocket] Server URL:', derivedWsServerUrl);
-
-                // Set status to error immediately (onclose will usually follow)
+                console.error('[WebSocket] Connection error. URL:', derivedWsServerUrl, 'Event:', errorEvent);
+                // onclose will usually follow with more specific error codes.
+                // Setting status to error here gives immediate feedback.
+                // onclose might then change it or confirm based on retry logic.
                 setStatus('error');
-
-                // Check if we've reached max attempts
-                if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+                // Max attempts check here is mostly for UI, onclose handles the logic
+                if (reconnectAttemptsInternalRef.current >= maxReconnectAttempts) {
                     setMaxAttemptsReached(true);
                 }
-
-                // The actual error handling will be done in the onclose handler
-                // which will be called automatically after an error
-                console.log('[WebSocket] Waiting for onclose event with more details...');
             };
 
-            // Listen for messages
             socket.onmessage = (event) => {
-                // Make sure this is for the current socket
-                if (socketRef.current !== socket) return;
+                if (socketRef.current !== socket) return; // Stale socket
 
-                // Check if the data is binary
-                if (typeof event.data !== 'string') {
-                    console.warn('[WebSocket] Received binary data, not supported:', event.data);
+                // console.log('[WebSocket] Message received:', event.data); // Can be very noisy
+                if (derivedWsServerUrl.includes('echo.websocket.org')) {
+                    console.log('[WebSocket] Echo response:', event.data);
                     return;
                 }
-
-                console.log('[WebSocket] Message received:', event.data.substring(0, 100) + (event.data.length > 100 ? '...' : ''));
-
                 try {
-                    // Handle echo server responses differently
-                    if (derivedWsServerUrl.includes('echo.websocket.org')) {
-                        console.log('[WebSocket] Echo response received:', event.data);
-                        // Don't process echo responses as barcodes
-                        return;
-                    }
-
-                    // Try to parse as JSON
                     let data;
-                    try {
-                        data = JSON.parse(event.data);
-                    } catch (e) {
-                        // If not JSON, treat as plain text (might be just the barcode ID)
-                        console.log('[WebSocket] Received non-JSON message, treating as barcode:', event.data);
-                        onBarcodeReceived(event.data);
+                    if (typeof event.data === 'string') {
+                        try {
+                            data = JSON.parse(event.data);
+                        } catch (e) {
+                            // console.log('[WebSocket] Received non-JSON message, treating as raw barcode:', event.data);
+                            onBarcodeReceived(event.data);
+                            return;
+                        }
+                    } else {
+                        console.warn('[WebSocket] Received binary message, not processed:', event.data);
                         return;
                     }
 
-                    // Check if the message contains a barcode
-                    if (data && data.barcodeId) {
-                        console.log('[WebSocket] Barcode received from external scanner:', data.barcodeId);
+                    if (data && typeof data.barcodeId === 'string') {
                         onBarcodeReceived(data.barcodeId);
-                    } else if (data && data.type === 'barcode' && data.value) {
-                        // Alternative format
-                        console.log('[WebSocket] Barcode received in alternative format:', data.value);
+                    } else if (data && data.type === 'barcode' && typeof data.value === 'string') {
                         onBarcodeReceived(data.value);
                     } else if (data && data.type === 'pong') {
-                        // Server responded to our ping
-                        console.log('[WebSocket] Received pong from server');
-                    } else {
-                        console.log('[WebSocket] Received message does not contain recognized barcode format:', data);
+                         // console.log('[WebSocket] Pong received.');
+                    }else {
+                        console.log('[WebSocket] Received message in unrecognized format:', data);
                     }
                 } catch (error) {
                     console.error('[WebSocket] Error processing message:', error);
                 }
             };
+
         } catch (error) {
-            console.error('[WebSocket] Error creating connection');
-            console.log('[WebSocket] Server URL:', derivedWsServerUrl);
-
-            // Log additional details if available
-            if (error instanceof Error) {
-                console.error('[WebSocket] Error details:', error.message);
-            }
-
+            console.error('[WebSocket] Error creating WebSocket instance:', error);
             setStatus('error');
-            setMaxAttemptsReached(reconnectAttemptsRef.current >= maxReconnectAttempts);
+            // If creation fails, it counts as an attempt. Check if max reached.
+            if (reconnectAttemptsInternalRef.current >= maxReconnectAttempts) {
+                setMaxAttemptsReached(true);
+                autoReconnectEnabledRef.current = false;
+            } else {
+                // Optionally, if `new WebSocket` throws, you might want to retry after a delay
+                // This is not typical for `new WebSocket` throwing (usually URL issues),
+                // but if it were a transient issue, this could be added.
+                // For now, assume `new WebSocket` failure means a configuration problem.
+            }
         }
-    }, [derivedWsServerUrl, isEnabled, onBarcodeReceived, cleanupSocket, connectionTimeout, reconnectDelayBase, reconnectDelayMax, maxReconnectAttempts, pingInterval]);
+    }, [
+        derivedWsServerUrl,
+        isEnabled,
+        onBarcodeReceived,
+        cleanupSocket,
+        maxReconnectAttempts,
+        connectionTimeout,
+        pingInterval,
+        reconnectDelayBase,
+        reconnectDelayMax,
+    ]);
 
-    // Connect/disconnect based on isEnabled prop
+    // Effect for connecting/disconnecting based on isEnabled and URL changes
     useEffect(() => {
-        let timeoutId: NodeJS.Timeout | null = null;
+        let initialConnectTimeoutId: NodeJS.Timeout | null = null;
 
         if (isEnabled) {
-            console.log('[WebSocket] Connection enabled, connecting...');
-
-            // Reset connection attempts when initially enabling the connection
-            reconnectAttemptsRef.current = 0;
-            setConnectionAttempts(0);
+            console.log('[WebSocket] Hook enabled. Initiating connection sequence.');
+            autoReconnectEnabledRef.current = true;
+            reconnectAttemptsInternalRef.current = 0; // Reset attempts for a fresh start
+            setCurrentConnectionAttempts(0);
             setMaxAttemptsReached(false);
 
-            // Re-enable auto-reconnect
-            autoReconnectEnabledRef.current = true;
-
-            // Add a small delay before connecting to avoid React rendering issues
-            timeoutId = setTimeout(() => {
-                // Double-check isEnabled in case it changed during the timeout
-                if (isEnabled) {
+            // Small delay for initial connection. Can be removed if not strictly needed.
+            initialConnectTimeoutId = setTimeout(() => {
+                if (isEnabled && autoReconnectEnabledRef.current) { // Check again
                     connectWebSocket();
                 }
             }, 100);
+
+            return () => {
+                if (initialConnectTimeoutId) clearTimeout(initialConnectTimeoutId);
+                console.log('[WebSocket] Hook cleanup (isEnabled changed or unmount).');
+                cleanupSocket(true); // Graceful shutdown
+                setStatus('disconnected'); // Ensure status reflects disabled state
+            };
         } else {
-            console.log('[WebSocket] Connection disabled, cleaning up');
-            setStatus('disconnected');
+            // isEnabled is false
+            console.log('[WebSocket] Hook disabled. Cleaning up any existing connection.');
             cleanupSocket(true); // Graceful shutdown
+            setStatus('disconnected');
+            // Ensure all state related to attempts is reset if it was disabled.
+            reconnectAttemptsInternalRef.current = 0;
+            setCurrentConnectionAttempts(0);
+            setMaxAttemptsReached(false);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEnabled, derivedWsServerUrl]); // connectWebSocket and cleanupSocket are memoized
 
-        // Cleanup on unmount or when dependencies change
-        return () => {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                timeoutId = null;
-            }
-
-            // Always clean up with graceful=true on unmount
-            cleanupSocket(true);
-        };
-    }, [isEnabled, connectWebSocket, cleanupSocket, derivedWsServerUrl]);
-
-    // Manual reconnect function that resets the connection attempts
     const manualReconnect = useCallback(() => {
-        console.log('[WebSocket] Manual reconnection initiated by user');
-
-        // Reset connection attempts
-        reconnectAttemptsRef.current = 0;
-        setConnectionAttempts(0);
-
-        // Reset max attempts reached flag
-        setMaxAttemptsReached(false);
-
-        // Re-enable auto-reconnect
+        console.log('[WebSocket] Manual reconnection initiated.');
+        if (status === 'connecting') {
+            console.log('[WebSocket] Already attempting to connect.');
+            return;
+        }
         autoReconnectEnabledRef.current = true;
-
-        // Connect
+        reconnectAttemptsInternalRef.current = 0;
+        setCurrentConnectionAttempts(0);
+        setMaxAttemptsReached(false);
         connectWebSocket();
-    }, [connectWebSocket]);
+    }, [connectWebSocket, status]);
 
-    // Return the connection status, attempts, and reconnect function
     return {
         status,
         reconnect: manualReconnect,
-        connectionAttempts, // Use the state variable instead of the ref
+        connectionAttempts: currentConnectionAttempts,
         maxAttempts: maxReconnectAttempts,
-        maxAttemptsReached // Include the maxAttemptsReached flag
+        maxAttemptsReached,
     };
 }
