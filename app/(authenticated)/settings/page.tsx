@@ -6,16 +6,19 @@ import { useAppSelector } from '@/store/hooks';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'; // Added usePathname
 import Link from 'next/link'; // Import Link
 import { cn } from '@/lib/utils';
-import { User, Lock, Bell, Palette, Link as LinkIcon, Settings as AdminSettingsIcon, BookOpen } from 'lucide-react'; // Added BookOpen
+import {
+    User, Lock, Bell, Palette, Link as LinkIcon,
+    Settings as AdminSettingsIcon, BookOpen, RefreshCw
+} from 'lucide-react';
 
-// Import Setting Section Components (Create these)
-// import SettingsProfileForm from '@/features/settings/components/SettingsProfileForm'; // REMOVE THIS
-import SettingsSecurity from '@/features/settings/components/SettingsSecurity'; // Keep/Create
-import SettingsNotifications from '@/features/settings/components/SettingsNotifications'; // Keep/Create
-import SettingsAppearance from '@/features/settings/components/SettingsAppearance'; // Keep/Create
-import SettingsStudentExtras from '@/features/settings/components/SettingsStudentExtras'; // Keep/Create (Links to /subscription/manage)
-import SettingsTeacherExtras from '@/features/settings/components/SettingsTeacherExtras'; // Keep/Create
-import SettingsAdmin from '@/features/settings/components/SettingsAdmin'; // Keep/Create
+// Import Setting Section Components
+import SettingsSecurity from '@/features/settings/components/SettingsSecurity';
+import SettingsNotifications from '@/features/settings/components/SettingsNotifications';
+import SettingsAppearance from '@/features/settings/components/SettingsAppearance';
+import SettingsStudentExtras from '@/features/settings/components/SettingsStudentExtras';
+import SettingsTeacherExtras from '@/features/settings/components/SettingsTeacherExtras';
+import SettingsAdmin from '@/features/settings/components/SettingsAdmin';
+import SettingsAppMaintenance from '@/features/settings/components/SettingsAppMaintenance';
 
 interface SettingNavItem {
     id: string;
@@ -34,6 +37,8 @@ const settingSections: SettingNavItem[] = [
     { id: 'security', label: 'Security', icon: Lock, component: SettingsSecurity, roles: ['admin', 'teacher', 'student'] },
     { id: 'notifications', label: 'Notifications', icon: Bell, component: SettingsNotifications, roles: ['admin', 'teacher', 'student'] },
     // { id: 'appearance', label: 'Appearance', icon: Palette, component: SettingsAppearance, roles: ['admin', 'teacher', 'student'] },
+    // App Maintenance - available to all users
+    { id: 'maintenance', label: 'App Maintenance', icon: RefreshCw, component: SettingsAppMaintenance, roles: ['admin', 'teacher', 'student'] },
     // Role Specific (Subscription link & placeholders)
     // { id: 'subscription', label: 'Subscription', icon: LinkIcon, component: SettingsStudentExtras, roles: ['student'] },
     { id: 'teaching', label: 'Teaching', icon: BookOpen, component: SettingsTeacherExtras, roles: ['teacher'] },
