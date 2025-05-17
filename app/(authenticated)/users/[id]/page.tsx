@@ -12,7 +12,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
 import {
     User as UserIcon, Mail, Clock, GraduationCap,
-    BookOpen, ShieldCheck, FileText, Pencil
+    BookOpen, ShieldCheck, FileText, Pencil, AlertTriangle
 } from 'lucide-react'; // Icons for details
 import { PageHeader } from '@/components/layout/auth/page-header';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
