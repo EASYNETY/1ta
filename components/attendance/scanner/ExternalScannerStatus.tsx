@@ -30,7 +30,7 @@ export function ExternalScannerStatus({
         : (connectionAttempts / maxAttempts) * 100;
 
     return (
-        <Card className="p-6 h-[350px] flex flex-col justify-center items-center backdrop-blur-sm border border-card/30 shadow-lg">
+        <Card className="p-6 h-auto flex flex-col justify-center items-center backdrop-blur-sm border border-card/30 shadow-lg">
             <div className="text-center space-y-6 w-full max-w-md">
                 {/* Connection Status Icon with Ping Effect */}
                 <div className="flex justify-center relative">
