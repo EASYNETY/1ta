@@ -7,12 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Download, Filter, Search } from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import {
   fetchStudentReports,
   fetchCourseReports,
@@ -33,6 +32,7 @@ import {
 } from "@/features/analytics/utils/export-utils";
 import type { ReportFilter } from "@/features/analytics/types/analytics-types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export default function ReportsPage() {
   const dispatch = useAppDispatch();
@@ -324,8 +324,12 @@ export default function ReportsPage() {
                         <TableCell>
                           <Badge
                             variant={
-                              payment.status === "successful" ? "success" :
-                              payment.status === "pending" ? "warning" : "destructive"
+                              payment.status === "successful" ? "default" :
+                              payment.status === "pending" ? "secondary" : "destructive"
+                            }
+                            className={
+                              payment.status === "successful" ? "bg-green-500" :
+                              payment.status === "pending" ? "bg-yellow-500" : ""
                             }
                           >
                             {payment.status}
