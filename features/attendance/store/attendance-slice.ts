@@ -165,9 +165,15 @@ const attendanceMarkingSlice = createSlice({
 
         // Process the daily attendances into the format expected by the state
         const dailyRecords: Record<string, DailyAttendance> = {}
-        dailyAttendances.forEach((daily) => {
-          dailyRecords[daily.date] = daily
-        })
+
+        // Add null check to prevent TypeError when dailyAttendances is undefined
+        if (dailyAttendances && Array.isArray(dailyAttendances)) {
+          dailyAttendances.forEach((daily) => {
+            dailyRecords[daily.date] = daily
+          })
+        } else {
+          console.warn('dailyAttendances is undefined or not an array in fetchCourseAttendance.fulfilled')
+        }
 
         state.courseAttendance[courseClassId] = {
           courseClassId,
