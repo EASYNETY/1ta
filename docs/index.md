@@ -19,54 +19,51 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 ## 📋 Table of Contents
 
 ### 🏗️ Architecture & Design
-- [UI Design Guidelines](./ui/apple-inspired-design.md)
-- [Defensive Programming Guide](./defensive-programming-guide.md)
-- [Safe Redux Selectors](./frontend/safe-redux-selectors.md)
-- [Application Flow](./frontend/flow.md)
+- [System Architecture](./architecture/README.md)
+- [Application Flow](./architecture/flow.md)
+
+### 👨‍💻 Development
+- [Defensive Programming Guide](./development/defensive-programming-comprehensive-guide.md)
+- [Safe Redux Selectors](./development/safe-redux-selectors.md)
+
+### 🎨 UI Design
+- [UI Design Guidelines](./ui/README.md)
+- [Apple-Inspired Design](./ui/apple-inspired-design.md)
 
 ### 🔌 API Integration
-- [API Integration Guide](./api/ApiGuide.md)
-- [API Integration Plan](./api/api-integration-plan.md)
-- [Data Types Reference](./api/data-types-reference.md)
-- [Mock Data Replacement](./api/mock-data-replacement.md)
-- [Standardized API Response Format](./standardized-api-response-format.md)
-- [Standardized Thunk Template](./standardized-thunk-template.md)
+- [API Integration Documentation](./api-integration/README.md)
+- [API Guide](./api-integration/ApiGuide.md)
+- [Standardized API Response Format](./api-integration/standardized-api-response-format.md)
+- [Standardized Thunk Template](./api-integration/standardized-thunk-template.md)
 
 ### 🔙 Backend Integration
+- [Backend Documentation](./backend/README.md)
 - [Backend Requirements](./backend/backend-requirements.md)
 - [Backend Architecture](./backend/backend.md)
-- [Backend API Integration Guide](./backend-api-integration-guide.md)
-- [Classes API Integration Issues](./classes-api-integration-issues.md)
-- [Attendance Mark API](./backend/attendance-mark-api.md)
-- [Attendance Mark Implementation Guide](./backend/attendance-mark-implementation-guide.md)
 
 ### 📱 Features
-- [Attendance Integration](./features/attendance-integration.md)
-- [Classes & Courses Integration](./features/classes-courses-integration.md)
-- [Educational Features Integration](./features/educational-features-integration.md)
-- [Schedule & Timetable Integration](./features/schedule-timetable-integration.md)
-- [App Maintenance](./features/app-maintenance.md)
+- [Features Documentation](./features/README.md)
+- [Attendance](./features/attendance/README.md)
+- [Classes & Courses](./features/classes/README.md)
+- [Barcode Scanner](./features/barcode/README.md)
+- [Help System](./features/help/README.md)
+- [Analytics & Reporting](./features/analytics/README.md)
 
-### 📊 Analytics & Reporting
-- [Admin Reports & Analytics Plan](./admin-reports-analytics-plan.md)
-
-### 🔍 Barcode Scanner Integration
-- [External Barcode Scanner Service](./features/barcode/external-barcode-scanner-service.md)
-- [Hybrid Scanner Approach](./features/barcode/hybrid-scanner-approach.md)
-- [Barcode Scanner Overview](./features/barcode/README.md)
-
-### 📘 Help System
-- [Help Content Maintenance Plan](./features/help/help-content-maintenance-plan.md)
-- [Help Feature Completion Guide](./features/help/help-feature-completion-guide.md)
+### 🧪 Testing
+- [Testing Documentation](./testing/README.md)
+- [Testing Strategy](./testing/testing-strategy.md)
+- [Unit Testing Guide](./testing/unit-testing-guide.md)
+- [Integration Testing Guide](./testing/integration-testing-guide.md)
 
 ## 🚀 Getting Started
 
 For new developers, we recommend starting with the following documents:
 
-1. [API Integration Guide](./api/ApiGuide.md) - To understand how to interact with the API
-2. [Backend Requirements](./backend/backend-requirements.md) - To understand what the backend needs to provide
-3. [Application Flow](./frontend/flow.md) - To understand the overall application flow
-4. [UI Design Guidelines](./ui/apple-inspired-design.md) - To understand the design principles
+1. [System Architecture](./architecture/system-architecture.md) - To understand the overall system design
+2. [API Integration Guide](./api-integration/ApiGuide.md) - To understand how to interact with the API
+3. [Backend Requirements](./backend/backend-requirements.md) - To understand what the backend needs to provide
+4. [Application Flow](./architecture/flow.md) - To understand the overall application flow
+5. [UI Design Guidelines](./ui/apple-inspired-design.md) - To understand the design principles
 
 ## 👥 Contributing to Documentation
 

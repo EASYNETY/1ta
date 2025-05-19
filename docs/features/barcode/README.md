@@ -1,6 +1,15 @@
-# SmartEdu External Barcode Scanner Integration
+# 🔍 Barcode Scanner Documentation
 
-This project adds support for external barcode scanners to the SmartEdu attendance tracking system. It allows teachers and administrators to use physical barcode scanners to mark student attendance, in addition to the existing camera-based scanning functionality.
+This folder contains documentation related to the barcode scanner feature of the SmartEdu platform.
+
+## Contents
+
+- [External Barcode Scanner Service](./external-barcode-scanner-service.md) - Documentation for the external barcode scanner service
+- [Hybrid Scanner Approach](./hybrid-scanner-approach.md) - Documentation for the hybrid scanner approach
+
+## Overview
+
+The barcode scanner feature allows for quick and efficient attendance tracking by scanning student ID cards or badges. It supports both built-in camera scanning and external barcode scanner devices.
 
 ## Features
 
