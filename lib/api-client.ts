@@ -1333,14 +1333,31 @@ export async function handleMockRequest<T>(
 		const studentId = studentAttendanceMatch[1];
 		const studentAttendance = mockStudentAttendance[studentId];
 		if (studentAttendance) {
-			return {
-				studentId,
-				attendances: studentAttendance,
-			} as StudentAttendanceResponse as unknown as T;
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: {
+					studentId,
+					attendances: studentAttendance,
+				},
+				message: "Student attendance records retrieved successfully"
+			};
+
+			console.log("Transformed student attendance result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		}
-		throw new Error(
-			`Mock API: No attendance found for student with ID "${studentId}"`
-		);
+
+		// If no attendance found, return an empty result with the expected format
+		console.log(`Mock API: No attendance found for student with ID "${studentId}". Returning empty result.`);
+		return {
+			success: true,
+			data: {
+				studentId,
+				attendances: []
+			},
+			message: "No attendance records found for this student"
+		} as unknown as T;
 	}
 
 	const teacherAttendanceMatch = endpoint.match(
@@ -1352,11 +1369,30 @@ export async function handleMockRequest<T>(
 			(attendance: any) => attendance.courseClassId === courseClassId
 		);
 		if (classAttendance) {
-			return classAttendance as TeacherAttendanceResponse as unknown as T;
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: classAttendance,
+				message: "Attendance records retrieved successfully"
+			};
+
+			console.log("Transformed attendance result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		}
-		throw new Error(
-			`Mock API: No attendance found for course with ID "${courseClassId}"`
-		);
+
+		// If no attendance found, return an empty result with the expected format
+		console.log(`Mock API: No attendance found for course with ID "${courseClassId}". Returning empty result.`);
+		return {
+			success: true,
+			data: {
+				courseClassId,
+				courseTitle: "Unknown Course",
+				totalStudents: 0,
+				dailyAttendances: []
+			},
+			message: "No attendance records found for this course"
+		} as unknown as T;
 	}
 
 	// --- Mock for Marking Attendance ---
@@ -1367,19 +1403,33 @@ export async function handleMockRequest<T>(
 		const succeed = Math.random() > 0.1; // 90% success rate
 		if (succeed) {
 			// In a real mock, you might update the mock data store here
-			// For now, just return success
-			return { success: true, studentId: payload.studentId } as unknown as T;
+			// For now, just return success with the expected format
+			return {
+				success: true,
+				data: {
+					id: `attendance-${Date.now()}`,
+					studentId: payload.studentId,
+					classId: payload.classInstanceId,
+					date: new Date().toISOString().split('T')[0],
+					status: "present",
+					notes: `Marked via API at ${new Date().toISOString().replace('T', ' ').substring(0, 19)}`,
+					markedBy: payload.markedByUserId
+				},
+				message: "Attendance marked successfully"
+			} as unknown as T;
 		} else {
 			console.error("Mock API: Simulated failure marking attendance");
 			// Simulate returning an error structure your thunk expects
 			throw {
 				response: {
-					data: { message: "Mock Error: Failed to save attendance on server." },
+					data: {
+						success: false,
+						message: "Mock Error: Failed to save attendance on server.",
+						error: "Internal server error"
+					},
 					status: 500,
 				},
 			};
-			// Or return rejectValue structure if preferred:
-			// return { success: false, message: "Mock Error: Failed to save attendance." } as unknown as T;
 		}
 	}
 

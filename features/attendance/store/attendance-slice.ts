@@ -43,8 +43,17 @@ export const fetchStudentAttendance = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("attendance/fetchStudent", async (studentId, { rejectWithValue }) => {
   try {
-    const response = await get<StudentAttendanceResponse>(`/students/${studentId}/attendance`)
-    return response
+    const response = await get<any>(`/students/${studentId}/attendance`)
+    console.log("Student attendance API response:", response)
+
+    // Handle both direct and nested response structures
+    if (response.success && response.data) {
+      // Backend returns nested structure with success and data
+      return response.data
+    } else {
+      // Direct response structure
+      return response
+    }
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to fetch student attendance."
     return rejectWithValue(message)
@@ -58,8 +67,17 @@ export const fetchCourseAttendance = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("attendance/fetchCourse", async (courseClassId, { rejectWithValue }) => {
   try {
-    const response = await get<TeacherAttendanceResponse>(`/courses/${courseClassId}/attendance`)
-    return response
+    const response = await get<any>(`/courses/${courseClassId}/attendance`)
+    console.log("Course attendance API response:", response)
+
+    // Handle both direct and nested response structures
+    if (response.success && response.data) {
+      // Backend returns nested structure with success and data
+      return response.data
+    } else {
+      // Direct response structure
+      return response
+    }
   } catch (error: any) {
     const message = error?.response?.data?.message || error?.message || "Failed to fetch course attendance."
     return rejectWithValue(message)
@@ -78,11 +96,24 @@ export const markStudentAttendance = createAsyncThunk<
     return rejectWithValue("Authentication required.")
   }
   try {
-    const response = await post<{ success: boolean; message?: string }>("/attendance/mark", payload, {
+    const response = await post<any>("/attendance/mark", payload, {
       headers: { Authorization: `Bearer ${token}` },
     })
+    console.log("Mark attendance API response:", response)
+
+    // Handle both direct and nested response structures
     if (response.success) {
-      return { ...response, studentId: payload.studentId }
+      if (response.data) {
+        // Backend returns nested structure with success and data
+        return {
+          success: response.success,
+          studentId: payload.studentId,
+          message: response.message || "Attendance marked successfully"
+        }
+      } else {
+        // Direct response structure
+        return { ...response, studentId: payload.studentId }
+      }
     } else {
       return rejectWithValue(response.message || "Failed to mark attendance on server.")
     }
