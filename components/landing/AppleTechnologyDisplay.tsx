@@ -1,20 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
+import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
-  X, BookOpen, Clock, Layers, PlayCircle, FileQuestion,
-  CheckCircle, Users, Database, Shield, Cpu, Code,
-  Server, Award, Briefcase, Rocket, Brain
+  Cpu, Server, Briefcase, Rocket, Brain,
+  Database, Shield, Code, Award
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { AbstractBackground } from "@/components/layout/abstract-background"
-import { Separator } from "@/components/ui/separator"
+import { TechnologyCourseModal } from "@/components/modals/TechnologyCourseModal"
+import { TechnologyMarquee } from "./TechnologyMarquee"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 // Types
 export interface CourseListing {
@@ -73,14 +68,13 @@ export interface PublicCourse {
 // Fallback data in case API fails
 const fallbackListings: CourseListing[] = [
   {
-    id: "pmp",
-    name: "PMP® Project Management",
-    description: "Lead projects to success with globally recognized PMP certification. Master the art of efficient project delivery.",
+    id: "1",
+    name: "PMP® Certification Training",
+    description: "35 Hours of Instructor-Led Training: Comprehensive live sessions delivered by PMI-certified instructors with industry expertise.",
     category: "current",
     waitlistCount: 0,
     imageUrl: "/placeholders/pmp-hero.png",
-    iconUrl: "/icons/rocket.svg",
-    tags: ["Management", "Certification", "Leadership"],
+    tags: ["Project Management", "Certification", "Leadership"],
     gradientColors: {
       to: "to-green-600",
       from: "from-emerald-500"
@@ -93,7 +87,6 @@ const fallbackListings: CourseListing[] = [
     category: "future",
     isIsoCertification: true,
     waitlistCount: 0,
-    iconUrl: "/icons/award.svg",
     gradientColors: {
       to: "to-gray-600",
       from: "from-slate-500"
@@ -106,7 +99,6 @@ const fallbackListings: CourseListing[] = [
     category: "future",
     isIsoCertification: true,
     waitlistCount: 0,
-    iconUrl: "/icons/award.svg",
     gradientColors: {
       to: "to-gray-600",
       from: "from-slate-500"
@@ -119,7 +111,6 @@ const fallbackListings: CourseListing[] = [
     category: "future",
     isIsoCertification: true,
     waitlistCount: 0,
-    iconUrl: "/icons/award.svg",
     gradientColors: {
       to: "to-gray-600",
       from: "from-slate-500"
@@ -131,11 +122,84 @@ const fallbackListings: CourseListing[] = [
     description: "Explore the frontiers of Artificial Intelligence. Build intelligent systems with advanced ML algorithms and neural networks.",
     category: "future",
     waitlistCount: 0,
-    iconUrl: "/icons/brain.svg",
     gradientColors: {
       to: "to-violet-600",
       from: "from-purple-500"
     }
+  }
+];
+
+// Fallback public course data
+const fallbackPublicCourses: PublicCourse[] = [
+  {
+    id: "1",
+    slug: "pmp-certification-training",
+    title: "PMP® Certification Training",
+    subtitle: "PMP® Certification Training",
+    description: "<p>35 Hours of Instructor-Led Training: Comprehensive live sessions delivered by PMI-certified instructors with industry expertise.</p><p>Aligned with the Latest PMI Standards: Training based on the updated PMBOK® Guide and the latest PMP® exam content outline.</p>",
+    category: "Project Management",
+    image: "/placeholder.svg",
+    previewVideoUrl: "https://vinsystech.s3.us-east-1.amazonaws.com/PMP-Videos/PMP+Training+Day+1-20241221_063337-Meeting+Recording+1.mp4",
+    instructor: {
+      name: "Expert Instructor",
+      title: "Project Management"
+    },
+    level: "Advanced",
+    tags: ["PMP® Certification Training"],
+    priceUSD: 0,
+    learningOutcomes: [
+      "Gain a comprehensive understanding of project management principles and best practices.",
+      "Learn all concepts and knowledge areas outlined in the PMBOK® Guide",
+      "Develop skills in initiating, planning, executing, monitoring, controlling, and closing projects",
+      "Acquire the knowledge needed to pass the PMP certification exam"
+    ],
+    prerequisites: [
+      "Flexi Pass Enabled: Flexibility to reschedule your cohort within first 90 days of access.",
+      "Live, online classroom training by top instructors and practitioners",
+      "Lifetime access to high-quality self-paced eLearning content curated by industry experts",
+      "Learner support and assistance available 24/7"
+    ],
+    modules: [
+      {
+        title: "Assessments & Quizzes",
+        duration: "5 lessons",
+        lessons: [
+          {
+            title: "Mock Test-1",
+            duration: "(quiz)",
+            isPreview: false
+          },
+          {
+            title: "Mock Test-2",
+            duration: "(quiz)",
+            isPreview: false
+          }
+        ]
+      },
+      {
+        title: "Core Training Modules",
+        duration: "8 lessons",
+        lessons: [
+          {
+            title: "PMP Training Day 1",
+            duration: "04:00:00",
+            isPreview: false
+          },
+          {
+            title: "PMP Training Day 2",
+            duration: "03:27:24",
+            isPreview: false
+          }
+        ]
+      }
+    ],
+    lessonCount: 14,
+    moduleCount: 3,
+    totalVideoDuration: "Approx. 29.2 hours",
+    language: "English",
+    certificate: true,
+    accessType: "Lifetime",
+    supportType: "Community"
   }
 ];
 
@@ -149,15 +213,6 @@ const COURSES_ENDPOINT = process.env.NEXT_PUBLIC_API_BASE_URL
   : "http://34.249.241.206:5000/api/public_courses"
 
 // Animation Variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
-}
 
 const iconVariants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -173,42 +228,27 @@ const iconVariants = {
   },
   hover: {
     scale: 1.05,
+    y: -5,
+    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+    borderColor: "rgba(var(--primary), 0.2)",
     transition: {
       type: "spring",
-      stiffness: 300,
-      damping: 30
+      stiffness: 400,
+      damping: 10,
+      ease: [0.22, 1, 0.36, 1] // Custom bezier curve for smooth animation
     }
   },
-  tap: { scale: 0.95 }
-}
-
-const backdropVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
-  exit: { opacity: 0, transition: { duration: 0.3 } },
-}
-
-const modalVariants = {
-  hidden: { opacity: 0, scale: 0.9, y: 20 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
+  tap: {
+    scale: 0.98,
     transition: {
       type: "spring",
-      stiffness: 300,
-      damping: 25
-    }
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    y: 20,
-    transition: {
-      duration: 0.3
+      stiffness: 500,
+      damping: 15
     }
   }
 }
+
+// No duplicate animation variants needed
 
 // Map technology names to appropriate icons
 const getTechnologyIcon = (name: string) => {
@@ -229,11 +269,14 @@ const getTechnologyIcon = (name: string) => {
 
 export function AppleTechnologyDisplay() {
   const [listings, setListings] = useState<CourseListing[]>(fallbackListings)
-  const [publicCourses, setPublicCourses] = useState<PublicCourse[]>([])
+  const [publicCourses, setPublicCourses] = useState<PublicCourse[]>(fallbackPublicCourses)
   const [isLoading, setIsLoading] = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<CourseListing | null>(null)
   const [selectedPublicCourse, setSelectedPublicCourse] = useState<PublicCourse | null>(null)
   const [activeTab, setActiveTab] = useState<'current' | 'future'>('current')
+
+  // Check if screen is small (mobile)
+  const isSmallScreen = useMediaQuery("(max-width: 640px)")
 
   // Fetch course data from API
   useEffect(() => {
@@ -353,10 +396,10 @@ export function AppleTechnologyDisplay() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${isSmallScreen ? 'min-h-[40vh]' : 'min-h-[80vh]'}`}>
       {/* Apple-style segmented control */}
       <div className="flex justify-center mb-8">
-        <div className="inline-flex bg-card/50 backdrop-blur-sm rounded-full p-1 border border-border/50">
+        <div className="inline-flex bg-card/5 backdrop-blur-sm rounded-full p-1 border border-border/50">
           <button
             className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
               activeTab === 'current'
@@ -387,255 +430,112 @@ export function AppleTechnologyDisplay() {
         </div>
       )}
 
-      {/* Technology grid with Apple-style layout */}
+      {/* Technology display - Marquee on small screens, grid on larger screens */}
       <AnimatePresence mode="wait">
         {activeTab === 'current' ? (
-          <motion.div
-            key="current"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center"
-          >
-            {currentCourses.map((course) => (
-              <TechnologyCard
-                key={course.id}
-                course={course}
-                onClick={() => handleIconClick(course)}
-              />
-            ))}
-          </motion.div>
+          <>
+            {isSmallScreen ? (
+              <motion.div
+                key="current-marquee"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                <h3 className="text-xl font-semibold text-center">Current Technologies</h3>
+                <TechnologyMarquee
+                  courses={currentCourses}
+                  onClick={handleIconClick}
+                  getTechnologyIcon={getTechnologyIcon}
+                  direction="left"
+                  speed={20}
+                />
+                <div className="h-4"></div> {/* Spacer between marquees */}
+                <TechnologyMarquee
+                  courses={currentCourses.slice().reverse()}
+                  onClick={handleIconClick}
+                  getTechnologyIcon={getTechnologyIcon}
+                  direction="right"
+                  speed={15}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="current-grid"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
+              >
+                {currentCourses.map((course) => (
+                  <TechnologyCard
+                    key={course.id}
+                    course={course}
+                    onClick={() => handleIconClick(course)}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </>
         ) : (
-          <motion.div
-            key="future"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-items-center"
-          >
-            {futureCourses.map((course) => (
-              <TechnologyCard
-                key={course.id}
-                course={course}
-                onClick={() => handleIconClick(course)}
-              />
-            ))}
-          </motion.div>
+          <>
+            {isSmallScreen ? (
+              <motion.div
+                key="future-marquee"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-4"
+              >
+                <h3 className="text-xl font-semibold text-center">Future Technologies</h3>
+                <TechnologyMarquee
+                  courses={futureCourses}
+                  onClick={handleIconClick}
+                  getTechnologyIcon={getTechnologyIcon}
+                  direction="left"
+                  speed={20}
+                />
+                <div className="h-4"></div> {/* Spacer between marquees */}
+                <TechnologyMarquee
+                  courses={futureCourses.slice().reverse()}
+                  onClick={handleIconClick}
+                  getTechnologyIcon={getTechnologyIcon}
+                  direction="right"
+                  speed={15}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="future-grid"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
+              >
+                {futureCourses.map((course) => (
+                  <TechnologyCard
+                    key={course.id}
+                    course={course}
+                    onClick={() => handleIconClick(course)}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </>
         )}
       </AnimatePresence>
 
       {/* Course Details Modal */}
-      <AnimatePresence>
-        {selectedCourse && (
-          <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            onClick={handleCloseModal}
-          >
-            <motion.div
-              className="bg-card rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-              variants={modalVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="relative">
-                <AbstractBackground className="opacity-90 dark:opacity-80" />
-                <div className="relative z-10 p-6">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 relative shrink-0 bg-primary/10 rounded-md flex items-center justify-center">
-                        {selectedCourse.iconUrl ? (
-                          <Image
-                            src={selectedCourse.iconUrl}
-                            alt={selectedCourse.name}
-                            fill
-                            className="object-contain"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center">
-                            {React.createElement(getTechnologyIcon(selectedCourse.name), { className: "w-6 h-6 text-primary" })}
-                          </div>
-                        )}
-                      </div>
-                      <h2 className="text-2xl font-bold">{selectedCourse.name}</h2>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={handleCloseModal}>
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
-
-                  {selectedPublicCourse ? (
-                    // Detailed course information from public course data
-                    <div className="space-y-6">
-                      {/* Preview Image/Video */}
-                      {(selectedPublicCourse.image || selectedPublicCourse.previewVideoUrl) && (
-                        <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
-                          {selectedPublicCourse.previewVideoUrl ? (
-                            <video
-                              src={selectedPublicCourse.previewVideoUrl}
-                              controls
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Image
-                              src={selectedPublicCourse.image || "/placeholder.svg"}
-                              alt={selectedPublicCourse.title}
-                              fill
-                              className="object-cover"
-                            />
-                          )}
-                          {selectedPublicCourse.level && (
-                            <Badge className="absolute top-4 right-4 bg-primary/20 backdrop-blur-sm">
-                              {selectedPublicCourse.level}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-
-                      <Tabs defaultValue="overview" className="w-full">
-                        <TabsList className="mb-4 grid w-full grid-cols-3">
-                          <TabsTrigger value="overview">Overview</TabsTrigger>
-                          <TabsTrigger value="prerequisites">Prerequisites</TabsTrigger>
-                          <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-                        </TabsList>
-
-                        {/* Overview Tab */}
-                        <TabsContent value="overview" className="space-y-4">
-                          <div>
-                            <h3 className="text-lg font-semibold mb-2">Course Description</h3>
-                            <div
-                              className="text-muted-foreground prose prose-sm dark:prose-invert max-w-none"
-                              dangerouslySetInnerHTML={{ __html: selectedPublicCourse.description }}
-                            />
-                          </div>
-
-                          {selectedPublicCourse.learningOutcomes && selectedPublicCourse.learningOutcomes.length > 0 && (
-                            <div>
-                              <h3 className="text-lg font-semibold mb-2">What You'll Learn</h3>
-                              <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-                                {selectedPublicCourse.learningOutcomes.map((outcome, index) => (
-                                  <li key={index} className="flex items-start">
-                                    <CheckCircle className="w-4 h-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
-                                    <span>{outcome}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                        </TabsContent>
-
-                        {/* Prerequisites Tab */}
-                        <TabsContent value="prerequisites">
-                          {selectedPublicCourse.prerequisites && selectedPublicCourse.prerequisites.length > 0 ? (
-                            <div>
-                              <h3 className="text-lg font-semibold mb-2">Course Prerequisites</h3>
-                              <ul className="space-y-2">
-                                {selectedPublicCourse.prerequisites.map((prereq, index) => (
-                                  <li key={index} className="flex items-start">
-                                    <CheckCircle className="w-4 h-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
-                                    <span>{prereq}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          ) : (
-                            <p className="text-muted-foreground">No specific prerequisites required for this course.</p>
-                          )}
-                        </TabsContent>
-
-                        {/* Curriculum Tab */}
-                        <TabsContent value="curriculum">
-                          {selectedPublicCourse.modules && selectedPublicCourse.modules.length > 0 ? (
-                            <div className="space-y-4">
-                              {selectedPublicCourse.modules.map((module, index) => (
-                                <div key={index} className="border rounded-md overflow-hidden">
-                                  <div className="p-3 bg-muted/50 flex justify-between items-center border-b">
-                                    <h4 className="font-medium text-sm">{module.title}</h4>
-                                    <span className="text-xs text-muted-foreground flex-shrink-0 ml-4">{module.duration}</span>
-                                  </div>
-                                  {module.lessons && module.lessons.length > 0 && (
-                                    <ul className="p-3 text-sm space-y-1.5">
-                                      {module.lessons.map((lesson, lessonIndex) => (
-                                        <li key={lessonIndex} className="flex items-center text-muted-foreground text-xs">
-                                          {lesson.duration.includes('quiz') ? (
-                                            <FileQuestion className="w-3.5 h-3.5 mr-2 flex-shrink-0 text-blue-500" />
-                                          ) : (
-                                            <PlayCircle className="w-3.5 h-3.5 mr-2 flex-shrink-0 text-green-500" />
-                                          )}
-                                          <span>{lesson.title}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-muted-foreground">Curriculum details will be available upon course launch.</p>
-                          )}
-                        </TabsContent>
-                      </Tabs>
-                    </div>
-                  ) : (
-                    // Basic course information when no public course data is available
-                    <div className="space-y-6">
-                      {/* Course Overview */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Course Overview</h3>
-                        <p className="text-muted-foreground">
-                          {selectedCourse.description || `${selectedCourse.name} is a comprehensive course designed to help you master this technology. More details will be available soon.`}
-                        </p>
-                      </div>
-
-                      {/* Prerequisites */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Prerequisites</h3>
-                        <p className="text-muted-foreground">
-                          {selectedCourse.tags && selectedCourse.tags.length > 0
-                            ? `Knowledge of ${selectedCourse.tags.join(", ")} is recommended.`
-                            : "No specific prerequisites required."}
-                        </p>
-                      </div>
-
-                      {/* Curriculum */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-2">Curriculum</h3>
-                        <p className="text-muted-foreground">
-                          Detailed curriculum will be available upon course launch.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Footer with action button */}
-                  <div className="mt-6 pt-6 border-t border-border flex justify-end">
-                    {selectedCourse.category === "current" ? (
-                      <DyraneButton asChild>
-                        <Link href="/signup">
-                          Enroll Now
-                          <span className="ml-2">→</span>
-                        </Link>
-                      </DyraneButton>
-                    ) : (
-                      <DyraneButton variant="outline">
-                        Join Waitlist
-                        <span className="ml-2">→</span>
-                      </DyraneButton>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <TechnologyCourseModal
+        isOpen={!!selectedCourse}
+        onClose={handleCloseModal}
+        techCourse={selectedCourse}
+        publicCourse={selectedPublicCourse}
+      />
     </div>
   )
 }
@@ -646,62 +546,153 @@ interface TechnologyCardProps {
 }
 
 function TechnologyCard({ course, onClick }: TechnologyCardProps) {
-  // Generate gradient class based on course data or use default
-  const gradientClass = course.gradientColors
-    ? `${course.gradientColors.from} ${course.gradientColors.to}`
-    : 'from-primary/20 to-primary/10'
+  const [isHovered, setIsHovered] = useState(false)
+
+  // Define animation variants for the reveal content
+  const revealVariants = {
+    hidden: { opacity: 0, height: 0, marginTop: 0 },
+    visible: {
+      opacity: 1,
+      height: "auto",
+      marginTop: 12,
+      transition: {
+        height: {
+          type: "spring",
+          stiffness: 500,
+          damping: 30,
+          mass: 1,
+        },
+        opacity: {
+          duration: 0.2,
+          ease: [0.34, 1.56, 0.64, 1]
+        }
+      }
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      marginTop: 0,
+      transition: {
+        height: { duration: 0.2 },
+        opacity: { duration: 0.1 },
+        ease: [0.36, 0, 0.66, -0.56]
+      }
+    }
+  }
+
+  // Overlay animation that glides from top to bottom
+  const overlayVariants = {
+    hidden: { opacity: 0, backgroundPosition: "0% 0%" },
+    visible: {
+      opacity: 1,
+      backgroundPosition: "0% 100%",
+      transition: {
+        duration: 1.2,
+        ease: [0.22, 1, 0.36, 1]
+      }
+    }
+  }
 
   return (
     <motion.div
-      className="w-full max-w-[180px]"
-      variants={iconVariants}
+      className="w-full"
       initial="hidden"
       animate="visible"
-      whileHover="hover"
       whileTap="tap"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
     >
-      <div
-        onClick={onClick}
-        className="flex flex-col items-center cursor-pointer group"
-      >
-        {/* Icon */}
-        <div className={`w-20 h-20 mb-3 rounded-2xl bg-gradient-to-br ${gradientClass} flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
-          {course.iconUrl ? (
-            <Image
-              src={course.iconUrl}
-              alt={course.name}
-              width={40}
-              height={40}
-              className="object-contain"
-            />
-          ) : (
-            <div className="w-10 h-10 flex items-center justify-center">
-              {React.createElement(getTechnologyIcon(course.name), { className: "w-10 h-10 text-primary" })}
+      <div className="relative">
+        <motion.div
+          onClick={onClick}
+          className="flex flex-col items-center cursor-pointer group w-full"
+          variants={iconVariants}
+          whileHover="hover"
+        >
+          {/* Icon Container with gliding overlay - Responsive width */}
+          <div className="relative overflow-hidden rounded-xl w-full">
+            <div className={`w-full h-24 px-4 backdrop-blur-sm bg-card/5 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
+              <div className="w-12 h-12 flex items-center justify-center">
+                {React.createElement(getTechnologyIcon(course.name), { className: "w-12 h-12 text-primary" })}
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Name */}
-        <h4 className="text-sm font-medium text-center line-clamp-2 group-hover:text-primary transition-colors duration-300">
-          {course.name}
-        </h4>
+            {/* Gliding overlay effect */}
+            {isHovered && (
+              <>
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-b from-black/5 to-black/20 backdrop-blur-sm"
+                  variants={overlayVariants}
+                  initial="hidden"
+                  animate="visible"
+                />
 
-        {/* Status Badge */}
-        <div className="mt-1.5">
-          {course.category === "current" ? (
-            <Badge variant="outline" className="bg-green-500/10 text-green-600 text-xs">
-              Enrolling Now
-            </Badge>
-          ) : course.isIsoCertification ? (
-            <Badge variant="outline" className="bg-blue-500/10 text-blue-600 text-xs">
-              ISO Certification
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 text-xs">
-              Coming Soon
-            </Badge>
-          )}
-        </div>
+                {/* View icon */}
+                <motion.div
+                  className="absolute inset-0 flex items-center justify-center z-10"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 400,
+                      damping: 15
+                    }
+                  }}
+                >
+                  <div className="bg-primary/10 backdrop-blur-md p-3 rounded-full">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="36"
+                      height="36"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-primary"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </div>
+
+          {/* Progressive Disclosure Content - Reveals below with auto width */}
+          <AnimatePresence>
+            {isHovered && (
+              <motion.div
+                className="overflow-hidden mt-0"
+                variants={revealVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <div className="text-center w-full px-2 py-3">
+                  <p className="font-medium text-sm break-words hyphens-auto">{course.name}</p>
+                  {course.category === "current" ? (
+                    <Badge variant="outline" className="mt-2 bg-green-500/5 text-green-600 border-green-500/20 text-xs">
+                      Enrolling Now
+                    </Badge>
+                  ) : course.isIsoCertification ? (
+                    <Badge variant="outline" className="mt-2 bg-blue-500/5 text-blue-600 border-blue-500/20 text-xs">
+                      ISO Certification
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="mt-2 bg-amber-500/5 text-amber-600 border-amber-500/20 text-xs">
+                      Coming Soon
+                    </Badge>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </motion.div>
   )
