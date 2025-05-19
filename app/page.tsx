@@ -31,7 +31,7 @@ import { Card } from "@/components/cards/FeatureCard"
 import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo, YoutubeLogo } from "phosphor-react"
 import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
 import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
-import { CourseCards } from "@/components/landing/CourseOfferingsDisplay"
+import { TechnologyIcons } from "@/components/landing/TechnologyIcons"
 
 export default function LandingPage() {
 
@@ -263,8 +263,8 @@ export default function LandingPage() {
 
         <SectionDivider />
 
-        
-        {/* Courses Section */}
+
+{/* Commented out "Explore Our Category" section as requested
         <section id="courses" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
@@ -276,7 +276,8 @@ export default function LandingPage() {
             <CoursesSection />
           </div>
         </section>
-    
+*/}
+
 
 
 
@@ -338,7 +339,7 @@ export default function LandingPage() {
               description="Master the tools and platforms shaping the future of tech."
             />
 
-            <CourseCards />
+            <TechnologyIcons />
           </div>
         </section>
 
@@ -357,7 +358,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-                
+
         <SectionDivider />
 
         {/* Contact Us / Inquiry CTA */}

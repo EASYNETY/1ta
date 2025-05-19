@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { Building2, Github, Linkedin, MapPin, TwitterIcon } from 'lucide-react'; // Use Lucide icons
+import { Building2, MapPin } from 'lucide-react'; // Use Lucide icons
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button'; // Using base Button for simplicity, replace with DyraneButton if needed
@@ -35,11 +35,22 @@ const footerLinks = {
         { href: '#', label: 'Privacy Policy' },
         { href: '#', label: 'Terms & Conditions' },
         { href: '#', label: 'Cookies Policy' },
+        { href: '#', label: 'Data Protection Policy' },
     ],
 };
 
 const socialLinks = [
-    { href: 'https://www.linkedin.com/company/1tech-academy/?viewAsMember=true', label: 'LinkedIn', icon: Linkedin },
+    {
+        href: 'https://www.linkedin.com/company/1tech-academy/?viewAsMember=true',
+        label: 'LinkedIn',
+        icon: ({ className, ...props }: React.HTMLAttributes<SVGElement>) => (
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                <rect x="2" y="9" width="4" height="12" />
+                <circle cx="4" cy="4" r="2" />
+            </svg>
+        )
+    },
     { href: 'https://www.instagram.com/1tech_academy?igsh=ZmptMDJyemtjZ2lm&utm_source=qr', label: 'Instagram', icon: InstagramLogo },
     { href: 'https://www.facebook.com/share/162ZNuWcgu/?mibextid=wwXIfr', label: 'Facebook', icon: FacebookLogo },
     { href: 'https://www.tiktok.com/@1tech.academy?_t=ZM-8vuaPPKBpLR&_r=1', label: 'Tiktok', icon: TiktokLogo },
