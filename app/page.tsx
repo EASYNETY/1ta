@@ -226,7 +226,7 @@ export default function LandingPage() {
         </section>
 
         <SectionDivider /> */}
-{/* === UPDATED Why Choose Us Section === */}
+        {/* === UPDATED Why Choose Us Section === */}
         <section id="why_us" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-60 dark:opacity-50" />
           <div className="px-4 md:px-6 relative">
@@ -259,12 +259,12 @@ export default function LandingPage() {
             <StandOutSlideshowSimple />
           </div>
         </section>
-            {/* === END UPDATED Why Choose Us Section === */}
+        {/* === END UPDATED Why Choose Us Section === */}
 
         <SectionDivider />
 
 
-{/* Commented out "Explore Our Category" section as requested
+        {/* Commented out "Explore Our Category" section as requested
         <section id="courses" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
@@ -279,9 +279,7 @@ export default function LandingPage() {
 */}
 
 
-
-
-        <SectionDivider />
+        {/* <SectionDivider /> */}
 
         {/* Onboarding Teaser Section */}
         <section className="py-16 relative overflow-hidden">
