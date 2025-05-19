@@ -151,7 +151,17 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
                                         <FormLabel>Start Date (Optional)</FormLabel>
-                                        <DatePickerWithYearMonth date={field.value} setDate={field.onChange} placeholder="Select start date" />
+                                        <DatePickerWithYearMonth
+                                            date={field.value}
+                                            setDate={(date) => {
+                                                console.log("Setting start date:", date);
+                                                field.onChange(date);
+                                            }}
+                                            placeholder="Select start date"
+                                        />
+                                        <FormDescription>
+                                            {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -162,7 +172,18 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
                                         <FormLabel>End Date (Optional)</FormLabel>
-                                        <DatePickerWithYearMonth date={field.value} setDate={field.onChange} placeholder="Select end date" fromDate={form.getValues('startDate')} />
+                                        <DatePickerWithYearMonth
+                                            date={field.value}
+                                            setDate={(date) => {
+                                                console.log("Setting end date:", date);
+                                                field.onChange(date);
+                                            }}
+                                            placeholder="Select end date"
+                                            fromDate={form.getValues('startDate')}
+                                        />
+                                        <FormDescription>
+                                            {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

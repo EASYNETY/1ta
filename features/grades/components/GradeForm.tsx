@@ -107,13 +107,22 @@ export default function GradeForm({ isEditing = false, gradeItemId }: GradeFormP
     const onSubmit = async (data: FormValues) => {
         if (!user?.id) return
 
+        console.log("Grade form data before processing:", data);
+
+        // Ensure we have a valid date object before converting to ISO string
+        const dueDateISO = data.dueDate instanceof Date && !isNaN(data.dueDate.getTime())
+            ? data.dueDate.toISOString()
+            : null;
+
+        console.log("Processed grade due date:", dueDateISO);
+
         if (isEditing && gradeItemId) {
             await dispatch(
                 updateGradeItem({
                     gradeItemId,
                     gradeItem: {
                         ...data,
-                        dueDate: data.dueDate ? data.dueDate.toISOString() : null,
+                        dueDate: dueDateISO,
                     },
                 }),
             )
@@ -122,7 +131,7 @@ export default function GradeForm({ isEditing = false, gradeItemId }: GradeFormP
                 createGradeItem({
                     gradeItem: {
                         ...data,
-                        dueDate: data.dueDate ? data.dueDate.toISOString() : null,
+                        dueDate: dueDateISO,
                         createdBy: user.id,
                     },
                 }),
@@ -224,9 +233,27 @@ export default function GradeForm({ isEditing = false, gradeItemId }: GradeFormP
                                                     </FormControl>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-auto p-0" align="start">
-                                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                                    <Calendar
+                                                        mode="single"
+                                                        selected={field.value}
+                                                        onSelect={(date) => {
+                                                            console.log("Setting due date:", date);
+                                                            if (date) {
+                                                                // Create a new Date object to ensure we have all date components
+                                                                const fullDate = new Date(date);
+                                                                console.log("Full due date to be set:", fullDate);
+                                                                field.onChange(fullDate);
+                                                            } else {
+                                                                field.onChange(undefined);
+                                                            }
+                                                        }}
+                                                        initialFocus
+                                                    />
                                                 </PopoverContent>
                                             </Popover>
+                                            <FormDescription>
+                                                {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                            </FormDescription>
                                             <FormDescription>Leave empty if there is no specific due date.</FormDescription>
                                             <FormMessage />
                                         </FormItem>

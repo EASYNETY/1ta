@@ -22,17 +22,23 @@ export default function CreateClassPage() {
     const handleCreate = async (data: any) => { // Use specific type from form schema later
         setIsSubmitting(true);
         try {
+            console.log("Form data before processing:", data);
+
             // Format dates if they exist before sending
             const payload = {
                 ...data,
                 startDate: data.startDate ? data.startDate.toISOString() : undefined,
                 endDate: data.endDate ? data.endDate.toISOString() : undefined,
             };
+
+            console.log("Payload to be sent:", payload);
+
             await dispatch(createClass(payload)).unwrap();
             toast.success(`Class "${data.courseTitle}" created successfully!`);
             dispatch(resetOperationStatus()); // Reset status after success
             router.push('/timetable?tab=all-classes'); // Redirect to class list
         } catch (error: any) {
+            console.error("Error creating class:", error);
             toast.error(`Failed to create class: ${error.message || 'Unknown error'}`);
             setIsSubmitting(false);
         }

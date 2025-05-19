@@ -106,11 +106,23 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
     }, [initialData, form]);
 
     const handleSubmit = async (data: ScheduleEventFormValues) => {
+        console.log("Schedule event form data before processing:", data);
+
         // Combine Date and Time into ISO strings
         const combineDateTime = (datePart: Date, hours: number, minutes: number): string | undefined => {
-            if (!datePart || !isValid(datePart)) return undefined;
-            let combined = setHours(datePart, hours);
+            if (!datePart || !isValid(datePart)) {
+                console.log("Invalid date part:", datePart);
+                return undefined;
+            }
+
+            // Ensure we have a valid date object
+            const validDate = new Date(datePart);
+            console.log("Valid date part:", validDate);
+
+            let combined = setHours(validDate, hours);
             combined = setMinutes(combined, minutes);
+
+            console.log("Combined date and time:", combined);
             return formatISO(combined);
         }
 
@@ -182,7 +194,17 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
                         <FormField control={form.control} name="eventDate" render={({ field }) => (
                             <FormItem className="flex flex-col">
                                 <FormLabel>Date</FormLabel>
-                                <DatePickerWithYearMonth date={field.value} setDate={field.onChange} placeholder="Select event date" />
+                                <DatePickerWithYearMonth
+                                    date={field.value}
+                                    setDate={(date) => {
+                                        console.log("Setting event date:", date);
+                                        field.onChange(date);
+                                    }}
+                                    placeholder="Select event date"
+                                />
+                                <FormDescription>
+                                    {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                </FormDescription>
                                 <FormMessage />
                             </FormItem>
                         )} />

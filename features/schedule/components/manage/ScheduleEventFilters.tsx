@@ -92,11 +92,17 @@ export function ScheduleEventFilters({
                     <label htmlFor="dateFrom" className="block text-sm font-medium text-muted-foreground mb-1">Date From</label>
                     <DatePickerWithYearMonth
                         date={filters.dateFrom}
-                        setDate={handleDateChange('dateFrom')}
+                        setDate={(date) => {
+                            console.log("Setting date from:", date);
+                            handleDateChange('dateFrom')(date);
+                        }}
                         placeholder="Start date"
                         buttonClassName="h-9 text-xs"
                         toDate={filters.dateTo} // Prevent start date being after end date
                     />
+                    <div className="text-xs text-muted-foreground mt-1">
+                        {filters.dateFrom ? filters.dateFrom.toLocaleDateString() : "No date selected"}
+                    </div>
                 </div>
 
                 {/* Date To */}
@@ -104,11 +110,17 @@ export function ScheduleEventFilters({
                     <label htmlFor="dateTo" className="block text-sm font-medium text-muted-foreground mb-1">Date To</label>
                     <DatePickerWithYearMonth
                         date={filters.dateTo}
-                        setDate={handleDateChange('dateTo')}
+                        setDate={(date) => {
+                            console.log("Setting date to:", date);
+                            handleDateChange('dateTo')(date);
+                        }}
                         placeholder="End date"
                         buttonClassName="h-9 text-xs"
                         fromDate={filters.dateFrom} // Prevent end date being before start date
                     />
+                    <div className="text-xs text-muted-foreground mt-1">
+                        {filters.dateTo ? filters.dateTo.toLocaleDateString() : "No date selected"}
+                    </div>
                 </div>
 
                 {/* Event Type */}

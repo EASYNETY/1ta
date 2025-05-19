@@ -1,18 +1,15 @@
 // app/(authenticated)/classes/[id]/edit/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCurrentClass, selectOperationStatus, resetOperationStatus, clearCurrentClass } from '@/features/classes/store/classes-slice';
 import { fetchClassById, updateClass } from '@/features/classes/store/classes-thunks';
-import { ClassForm } from '@/features/classes/components/ClassForm'; // Adjust path
+import { ClassForm } from '@/features/classes/components/ClassForm';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
-import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { PageHeader } from '@/components/layout/auth/page-header';
 
 export default function EditClassPage() {
@@ -38,17 +35,23 @@ export default function EditClassPage() {
 
     const handleUpdate = async (data: any) => { // Use specific type from form schema later
         try {
+            console.log("Form data before processing:", data);
+
             // Format dates if they exist before sending
             const payload = {
                 ...data,
                 startDate: data.startDate ? data.startDate.toISOString() : undefined,
                 endDate: data.endDate ? data.endDate.toISOString() : undefined,
             };
+
+            console.log("Payload to be sent:", payload);
+
             await dispatch(updateClass({ id: classId, ...payload })).unwrap();
             toast.success(`Class "${data.courseTitle}" updated successfully!`);
             dispatch(resetOperationStatus());
             router.push('/timetable?tab=all-classes'); // Redirect to class list
         } catch (error: any) {
+            console.error("Error updating class:", error);
             toast.error(`Failed to update class: ${error.message || 'Unknown error'}`);
             // isSubmitting is handled by operationStatus
         }

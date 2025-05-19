@@ -184,12 +184,18 @@ export function ProfileFormFields({
                             <FormLabel>Date of Birth</FormLabel>
                             <DatePickerWithYearMonth
                                 date={field.value}
-                                setDate={field.onChange}
+                                setDate={(date) => {
+                                    console.log("Setting date of birth:", date);
+                                    field.onChange(date);
+                                }}
                                 placeholder="Select your date of birth"
                                 toDate={new Date()}
                                 fromDate={new Date("1900-01-01")}
                                 ariaLabel="Select Date of Birth"
                             />
+                            <FormDescription>
+                                {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                            </FormDescription>
                             {isOnboarding && !isCorporateManager && (
                                 <FormDescription>Required for individual students.</FormDescription>
                             )}

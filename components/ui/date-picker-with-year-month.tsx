@@ -71,7 +71,16 @@ export function DatePickerWithYearMonth({
     const years = React.useMemo(() => generateYears(currentYear), [currentYear]);
 
     const onSelectDate = (d: Date | undefined) => {
-        setDate(d);
+        // Ensure we're preserving the full date including day
+        if (d) {
+            console.log("Selected date:", d);
+            // Create a new Date object to ensure we have all date components
+            const fullDate = new Date(d);
+            console.log("Full date to be set:", fullDate);
+            setDate(fullDate);
+        } else {
+            setDate(undefined);
+        }
         setPopoverOpen(false);
     };
 

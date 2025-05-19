@@ -103,13 +103,22 @@ export default function AssignmentForm({ isEditing = false, assignmentId }: Assi
   const onSubmit = async (data: FormValues) => {
     if (!user?.id) return
 
+    console.log("Form data before processing:", data);
+
+    // Ensure we have a valid date object before converting to ISO string
+    const dueDateISO = data.dueDate instanceof Date && !isNaN(data.dueDate.getTime())
+      ? data.dueDate.toISOString()
+      : null;
+
+    console.log("Processed due date:", dueDateISO);
+
     if (isEditing && assignmentId) {
       await dispatch(
         updateAssignment({
           assignmentId,
           assignment: {
             ...data,
-            dueDate: data.dueDate.toISOString(),
+            dueDate: dueDateISO,
           },
         }),
       )
@@ -118,7 +127,7 @@ export default function AssignmentForm({ isEditing = false, assignmentId }: Assi
         createAssignment({
           assignment: {
             ...data,
-            dueDate: data.dueDate.toISOString(),
+            dueDate: dueDateISO,
             createdBy: user.id,
           },
         }),
@@ -227,9 +236,27 @@ export default function AssignmentForm({ isEditing = false, assignmentId }: Assi
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => {
+                              console.log("Setting assignment due date:", date);
+                              if (date) {
+                                // Create a new Date object to ensure we have all date components
+                                const fullDate = new Date(date);
+                                console.log("Full assignment due date to be set:", fullDate);
+                                field.onChange(fullDate);
+                              } else {
+                                field.onChange(undefined);
+                              }
+                            }}
+                            initialFocus
+                          />
                         </PopoverContent>
                       </Popover>
+                      <FormDescription>
+                        {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
