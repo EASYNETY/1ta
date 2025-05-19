@@ -98,44 +98,53 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 			const response = await get<any>(endpointWithPath);
 			console.log("fetchAllClassesAdmin: Fetched classes", response);
 
-			// Handle both direct and nested response structures
-			if (response.success && response.data && response.pagination) {
-				// Backend returns nested structure with success, data, and pagination
+			// Determine if the response is an array or a nested structure
+			const classesData = Array.isArray(response)
+				? response // Direct array response
+				: (response.success && response.data)
+					? response.data // Nested structure with success and data
+					: []; // Fallback to empty array
 
-				// Map backend fields to frontend fields
-				console.log("Mapping backend classes to frontend format:", response.data);
-				const mappedClasses = response.data.map((cls: any) => {
-					console.log("Processing class:", cls);
+			console.log("Classes data to map:", classesData);
 
-					// Create a new object with the required frontend fields
-					const mappedClass: AdminClassView = {
-						id: cls.id,
-						courseTitle: cls.name || "", // Use name as courseTitle
-						courseId: cls.course_id || "",
-						teacherName: "N/A", // Default value
-						teacherId: cls.teacher_id || null,
-						studentCount: 0, // Default value
-						status: cls.is_active === true ? "active" : "inactive", // Map is_active to status
-						startDate: cls.start_date || "",
-						endDate: cls.end_date || "",
-						description: cls.description || "",
-					};
+			// Map backend fields to frontend fields
+			const mappedClasses = classesData.map((cls: any) => {
+				console.log("Processing class:", cls);
 
-					console.log("Mapped class:", mappedClass);
-					return mappedClass;
-				});
-
-				return {
-					classes: mappedClasses,
-					total: response.pagination.total,
-					page: response.pagination.page,
-					limit: response.pagination.limit,
-					totalPages: response.pagination.pages,
+				// Create a new object with the required frontend fields
+				const mappedClass: AdminClassView = {
+					id: cls.id,
+					courseTitle: cls.name || "", // Use name as courseTitle
+					courseId: cls.course_id || "",
+					teacherName: "N/A", // Default value
+					teacherId: cls.teacher_id || null,
+					studentCount: 0, // Default value
+					status: cls.is_active === true ? "active" : "inactive", // Map is_active to status
+					startDate: cls.start_date || "",
+					endDate: cls.end_date || "",
+					description: cls.description || "",
 				};
-			} else {
-				// Direct response structure (already handled by API client)
-				return response;
-			}
+
+				console.log("Mapped class:", mappedClass);
+				return mappedClass;
+			});
+
+			// Determine pagination info
+			const pagination = response.pagination || {
+				total: mappedClasses.length,
+				page: page,
+				limit: limit,
+				pages: Math.ceil(mappedClasses.length / limit)
+			};
+
+			// Return in the expected format for the reducer
+			return {
+				classes: mappedClasses,
+				total: pagination.total,
+				page: pagination.page || page,
+				limit: pagination.limit || limit,
+				totalPages: pagination.pages || Math.ceil(pagination.total / (pagination.limit || limit)),
+			};
 		} catch (e: any) {
 			const errorMessage =
 				e.response?.data?.message ||

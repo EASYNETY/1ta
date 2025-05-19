@@ -120,14 +120,10 @@ const classesSlice = createSlice({
 					console.log("fetchAllClassesAdmin.fulfilled received:", action.payload);
 					state.status = "succeeded";
 
-					// Check if classes array exists and has items
-					if (!action.payload.classes) {
-						console.error("No classes array in payload:", action.payload);
-						state.allClasses = [];
-					} else {
-						console.log("Setting allClasses to:", action.payload.classes);
-						state.allClasses = action.payload.classes;
-					}
+					// The payload should always have a classes array now
+					const classes = action.payload.classes || [];
+					console.log("Setting allClasses to:", classes);
+					state.allClasses = classes;
 
 					state.adminPagination = {
 						currentPage: action.payload.page || 1,
@@ -290,7 +286,7 @@ const classesSlice = createSlice({
 });
 
 // --- Actions & Selectors (Selectors remain the same, actions from reducers object) ---
-import { createSafeArraySelector, safeArray } from "@/lib/utils/safe-data";
+import { createSafeArraySelector } from "@/lib/utils/safe-data";
 
 export const {
 	clearClassesError,
