@@ -31,11 +31,11 @@ import { useRouter } from "next/navigation"
 
 // --- Constants for Navigation Links ---
 const navLinks = [
-    { href: "#about_us", label: "About Us" },
-    { href: "#why_us", label: "Why Us" },
-    { href: "#courses", label: "Courses" },
-    { href: "#testimonials", label: "Testimonials" },
-    { href: "#contact-us", label: "Contact Us" },
+    { href: "/#about_us", label: "About Us" },
+    { href: "/#why_us", label: "Why Us" },
+    { href: "/#courses", label: "Courses" },
+    { href: "/#testimonials", label: "Testimonials" },
+    { href: "/#contact-us", label: "Contact Us" },
 ];
 
 // --- Main NavBar Component ---

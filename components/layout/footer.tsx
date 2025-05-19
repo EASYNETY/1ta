@@ -19,12 +19,12 @@ const footerLinks = {
     product: [
         // { href: '#features', label: 'Features' },
         // { href: '#', label: 'Pricing' }, // Replace # with actual link
-        { href: '#courses', label: 'Courses' }, // Replace # with actual link
+        { href: '/#courses', label: 'Courses' }, // Replace # with actual link
     ],
     resources: [
         // { href: '#', label: 'Documentation' },
         // { href: '#', label: 'Guides' },
-        { href: '/hehelp-supportlp', label: 'Support' },
+        { href: '/help-support', label: 'Support' },
     ],
     company: [
         // { href: '#', label: 'About' },

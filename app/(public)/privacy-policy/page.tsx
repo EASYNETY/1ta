@@ -3,7 +3,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Shield } from 'lucide-react';
 
@@ -23,12 +23,13 @@ export default function PrivacyPolicyPage() {
         <Tabs defaultValue="overview" className="w-full">
           <div className="p-4 border-b">
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="collection">Data Collection</TabsTrigger>
-                <TabsTrigger value="usage">Data Usage</TabsTrigger>
-                <TabsTrigger value="rights">Your Rights</TabsTrigger>
+              <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground gap-1 sm:grid sm:w-full sm:grid-cols-4 sm:justify-center sm:gap-2">
+                <TabsTrigger value="overview" className="sm:flex-1">Overview</TabsTrigger>
+                <TabsTrigger value="collection" className="sm:flex-1">Data Collection</TabsTrigger>
+                <TabsTrigger value="usage" className="sm:flex-1">Data Usage</TabsTrigger>
+                <TabsTrigger value="rights" className="sm:flex-1">Your Rights</TabsTrigger>
               </TabsList>
+              <ScrollBar orientation="horizontal" className="h-2 sm:hidden" />
             </ScrollArea>
           </div>
 

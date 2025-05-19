@@ -5,8 +5,6 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { DyraneCard } from '@/components/dyrane-ui/dyrane-card';
-import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +12,8 @@ import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Mail, Phone, MessageSquare, HelpCircle } from 'lucide-react';
 
 // Form schema
@@ -54,7 +54,7 @@ const faqItems = [
 
 export default function SupportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const form = useForm<z.infer<typeof supportFormSchema>>({
     resolver: zodResolver(supportFormSchema),
     defaultValues: {
@@ -67,7 +67,7 @@ export default function SupportPage() {
 
   function onSubmit(values: z.infer<typeof supportFormSchema>) {
     setIsSubmitting(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       console.log(values);
@@ -80,44 +80,44 @@ export default function SupportPage() {
   return (
     <div className="container max-w-5xl py-12">
       <h1 className="text-3xl font-bold text-center mb-8">Support Center</h1>
-      
+
       <Tabs defaultValue="contact" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-8">
           <TabsTrigger value="contact">Contact Support</TabsTrigger>
           <TabsTrigger value="faq">Frequently Asked Questions</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="contact" className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <DyraneCard className="p-6 flex flex-col items-center text-center">
+            <Card className="bg-card/5 backdrop-blur-sm border p-6 flex flex-col items-center text-center">
               <Mail className="h-8 w-8 mb-4 text-primary" />
               <h3 className="text-lg font-semibold mb-2">Email Support</h3>
               <p className="text-sm text-muted-foreground mb-4">Send us an email anytime</p>
               <a href="mailto:support@1techacademy.com" className="text-primary hover:underline">
                 support@1techacademy.com
               </a>
-            </DyraneCard>
-            
-            <DyraneCard className="p-6 flex flex-col items-center text-center">
+            </Card>
+
+            <Card className="bg-card/5 backdrop-blur-sm border p-6 flex flex-col items-center text-center">
               <Phone className="h-8 w-8 mb-4 text-primary" />
               <h3 className="text-lg font-semibold mb-2">Phone Support</h3>
               <p className="text-sm text-muted-foreground mb-4">Available Mon-Fri, 9am-5pm</p>
               <a href="tel:+2348012345678" className="text-primary hover:underline">
                 +234 801 234 5678
               </a>
-            </DyraneCard>
-            
-            <DyraneCard className="p-6 flex flex-col items-center text-center">
+            </Card>
+
+            <Card className="bg-card/5 backdrop-blur-sm border p-6 flex flex-col items-center text-center">
               <MessageSquare className="h-8 w-8 mb-4 text-primary" />
               <h3 className="text-lg font-semibold mb-2">Live Chat</h3>
               <p className="text-sm text-muted-foreground mb-4">Chat with our support team</p>
-              <DyraneButton size="sm">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-white">
                 Start Chat
-              </DyraneButton>
-            </DyraneCard>
+              </Button>
+            </Card>
           </div>
-          
-          <DyraneCard>
+
+          <Card className="bg-card/5 backdrop-blur-sm border">
             <div className="p-6">
               <h2 className="text-2xl font-semibold mb-6">Send us a message</h2>
               <Form {...form}>
@@ -136,7 +136,7 @@ export default function SupportPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="email"
@@ -151,7 +151,7 @@ export default function SupportPage() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="subject"
@@ -165,7 +165,7 @@ export default function SupportPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="message"
@@ -173,34 +173,34 @@ export default function SupportPage() {
                       <FormItem>
                         <FormLabel>Message</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="Please describe your issue or question in detail" 
-                            className="min-h-[150px]" 
-                            {...field} 
+                          <Textarea
+                            placeholder="Please describe your issue or question in detail"
+                            className="min-h-[150px]"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
-                  <DyraneButton type="submit" className="w-full" disabled={isSubmitting}>
+
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white" disabled={isSubmitting}>
                     {isSubmitting ? 'Submitting...' : 'Submit Request'}
-                  </DyraneButton>
+                  </Button>
                 </form>
               </Form>
             </div>
-          </DyraneCard>
+          </Card>
         </TabsContent>
-        
+
         <TabsContent value="faq">
-          <DyraneCard>
+          <Card className="bg-card/5 backdrop-blur-sm border">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-6">
                 <HelpCircle className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-semibold">Frequently Asked Questions</h2>
               </div>
-              
+
               <ScrollArea className="h-[500px] pr-4">
                 <Accordion type="single" collapsible className="w-full">
                   {faqItems.map((item, index) => (
@@ -213,17 +213,17 @@ export default function SupportPage() {
                   ))}
                 </Accordion>
               </ScrollArea>
-              
+
               <div className="mt-8 pt-6 border-t">
-                <p className="text-center text-muted-foreground">
+                <div className="text-center text-muted-foreground">
                   Can't find what you're looking for? <br className="md:hidden" />
-                  <DyraneButton variant="link" className="p-0 h-auto" onClick={() => document.querySelector('[data-value="contact"]')?.dispatchEvent(new Event('click'))}>
+                  <Button variant="link" className="p-0 h-auto" onClick={() => document.querySelector('[data-value="contact"]')?.dispatchEvent(new Event('click'))}>
                     Contact our support team
-                  </DyraneButton>
-                </p>
+                  </Button>
+                </div>
               </div>
             </div>
-          </DyraneCard>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
