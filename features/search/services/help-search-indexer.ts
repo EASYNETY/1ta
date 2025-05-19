@@ -1,11 +1,11 @@
 // features/search/services/help-search-indexer.ts
+import { helpArticles } from "@/components/help/help-search";
 import { RootState } from "@/store";
 import { SearchResult } from "../types/search-types";
-import { helpArticles } from "@/components/help/help-search";
 
 /**
  * Help Search Indexer
- * 
+ *
  * This service indexes all help content and makes it searchable through the main search functionality.
  * It integrates with the existing search service to include help articles in search results.
  */
@@ -36,11 +36,11 @@ export const helpSearchIndexer = {
     if (!query.trim()) return [];
 
     const lowerQuery = query.toLowerCase();
-    
+
     // Search through help articles
     return helpArticles
-      .filter(article => 
-        article.title.toLowerCase().includes(lowerQuery) || 
+      .filter(article =>
+        article.title.toLowerCase().includes(lowerQuery) ||
         article.description.toLowerCase().includes(lowerQuery) ||
         article.keywords.some(keyword => keyword.toLowerCase().includes(lowerQuery))
       )
@@ -54,7 +54,7 @@ export const helpSearchIndexer = {
         keywords: article.keywords,
         metadata: {
           category: article.category,
-          icon: article.categoryIcon.name
+          icon: typeof article.categoryIcon === 'function' ? article.categoryIcon.name : undefined
         }
       }));
   },
@@ -68,10 +68,10 @@ export const helpSearchIndexer = {
   integrateWithMainSearch: (state: RootState, query: string): SearchResult[] => {
     // Get regular search results
     const mainResults = state.search.results || [];
-    
+
     // Get help search results
     const helpResults = helpSearchIndexer.searchHelpContent(query);
-    
+
     // Combine results
     return [...mainResults, ...helpResults];
   }
@@ -87,7 +87,7 @@ export const helpSearchIndexer = {
 export const enhanceSearchWithHelpContent = (results: SearchResult[], query: string): SearchResult[] => {
   // Get help search results
   const helpResults = helpSearchIndexer.searchHelpContent(query);
-  
+
   // Combine results
   return [...results, ...helpResults];
 };
