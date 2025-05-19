@@ -1,6 +1,10 @@
 // data/mock-classes-data.ts
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
-import type { AdminClassView, CourseClassOption } from "@/features/classes/types/classes-types";
+import type {
+	AdminClassView,
+	ClassOptionsResponse,
+	CourseClassOption,
+} from "@/features/classes/types/classes-types";
 import { mockAuthCourseData } from "./mock-auth-course-data";
 import { formatISO } from "date-fns"; // For generating consistent date strings
 
@@ -36,38 +40,38 @@ let mockAdminClasses: AdminClassView[] = mockAuthCourseData.map(
 // VVVV UPDATED MOCK DATA FOR CLASS OPTIONS VVVV
 // Mock data structure that matches the backend response
 const mockClassOptionsResponse: ClassOptionsResponse = {
-    success: true,
-    data: {
-        classTypes: [
-            { id: "lecture", name: "Lecture" },
-            { id: "lab", name: "Lab Session" },
-            { id: "discussion", name: "Discussion" },
-            { id: "exam", name: "Exam" },
-            { id: "workshop", name: "Workshop" }
-        ],
-        locations: [
-            { id: "room-101", name: "Room 101" },
-            { id: "room-102", name: "Room 102" },
-            { id: "lab-a", name: "Computer Lab A" },
-            { id: "lab-b", name: "Computer Lab B" },
-            { id: "online", name: "Online (Zoom)" }
-        ],
-        instructors: [
-            { id: "instructor-1", name: "John Smith" },
-            { id: "instructor-2", name: "Jane Doe" },
-            { id: "instructor-3", name: "Robert Johnson" }
-        ],
-        courses: [
-            { id: "course-1", name: "Introduction to Programming" },
-            { id: "course-2", name: "Data Structures" },
-            { id: "course-3", name: "Web Development" }
-        ],
-        timeSlots: [
-            { id: "morning", name: "9:00 AM - 12:00 PM" },
-            { id: "afternoon", name: "1:00 PM - 4:00 PM" },
-            { id: "evening", name: "6:00 PM - 9:00 PM" }
-        ]
-    }
+	success: true,
+	data: {
+		classTypes: [
+			{ id: "lecture", name: "Lecture" },
+			{ id: "lab", name: "Lab Session" },
+			{ id: "discussion", name: "Discussion" },
+			{ id: "exam", name: "Exam" },
+			{ id: "workshop", name: "Workshop" },
+		],
+		locations: [
+			{ id: "room-101", name: "Room 101" },
+			{ id: "room-102", name: "Room 102" },
+			{ id: "lab-a", name: "Computer Lab A" },
+			{ id: "lab-b", name: "Computer Lab B" },
+			{ id: "online", name: "Online (Zoom)" },
+		],
+		instructors: [
+			{ id: "instructor-1", name: "John Smith" },
+			{ id: "instructor-2", name: "Jane Doe" },
+			{ id: "instructor-3", name: "Robert Johnson" },
+		],
+		courses: [
+			{ id: "course-1", name: "Introduction to Programming" },
+			{ id: "course-2", name: "Data Structures" },
+			{ id: "course-3", name: "Web Development" },
+		],
+		timeSlots: [
+			{ id: "morning", name: "9:00 AM - 12:00 PM" },
+			{ id: "afternoon", name: "1:00 PM - 4:00 PM" },
+			{ id: "evening", name: "6:00 PM - 9:00 PM" },
+		],
+	},
 };
 // --- Existing Mock API Functions ---
 
@@ -114,14 +118,14 @@ export const getMockAllClassesAdmin = async (
 		const query = search.toLowerCase();
 		filteredClasses = filteredClasses.filter(
 			(c) =>
-				c.courseTitle.toLowerCase().includes(query) ||
+				c.courseTitle?.toLowerCase().includes(query) ||
 				c.teacherName?.toLowerCase().includes(query)
 		);
 	}
 
 	const total = filteredClasses.length;
-	// Sort by title or date for consistency (optional)
-	filteredClasses.sort((a, b) => a.courseTitle.localeCompare(b.courseTitle));
+
+	filteredClasses.sort((a, b) => a.courseTitle!.localeCompare(b.courseTitle!));
 
 	const paginatedClasses = filteredClasses.slice(
 		(page - 1) * limit,
@@ -133,17 +137,21 @@ export const getMockAllClassesAdmin = async (
 };
 
 // Update the getMockCourseClassOptions function to return the new response format
-export const getMockCourseClassOptions = async (): Promise<ClassOptionsResponse> => {
-	console.log("MOCK: Fetching course class options for scanner");
-	// Add a delay to simulate network request
-	await new Promise((res) => setTimeout(res, 250));
+export const getMockCourseClassOptions =
+	async (): Promise<ClassOptionsResponse> => {
+		console.log("MOCK: Fetching course class options for scanner");
+		// Add a delay to simulate network request
+		await new Promise((res) => setTimeout(res, 250));
 
-	// Log the data being returned for debugging
-	console.log("MOCK: Returning class options response:", mockClassOptionsResponse);
+		// Log the data being returned for debugging
+		console.log(
+			"MOCK: Returning class options response:",
+			mockClassOptionsResponse
+		);
 
-	// Return a deep copy of the mock data
-	return JSON.parse(JSON.stringify(mockClassOptionsResponse));
-}
+		// Return a deep copy of the mock data
+		return JSON.parse(JSON.stringify(mockClassOptionsResponse));
+	};
 
 // --- NEW Mock CRUD Functions ---
 
