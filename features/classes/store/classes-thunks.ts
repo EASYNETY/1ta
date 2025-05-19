@@ -3,6 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 import type {
 	AdminClassView,
+	ClassOptionsResponse,
 	CourseClassOption,
 	// Assuming you'll define these payload types here or import them
 	// from a shared location if they are also used by the backend/mock-data directly.
@@ -95,33 +96,40 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 
 			// Get the response from the API
 			const response = await get<any>(endpointWithPath);
+			console.log("fetchAllClassesAdmin: Fetched classes", response);
 
 			// Handle both direct and nested response structures
 			if (response.success && response.data && response.pagination) {
 				// Backend returns nested structure with success, data, and pagination
 
 				// Map backend fields to frontend fields
-				const mappedClasses = response.data.map((cls: any) => ({
-					id: cls.id,
-					courseTitle: cls.name || cls.courseTitle, // Use name as courseTitle if available
-					courseId: cls.course_id || cls.courseId,
-					teacherName: cls.teacherName,
-					teacherId: cls.teacher_id || cls.teacherId,
-					studentCount: cls.studentCount || 0, // Default to 0 if not provided
-					status: cls.is_active ? "active" : "inactive", // Map is_active to status
-					startDate: cls.start_date || cls.startDate,
-					endDate: cls.end_date || cls.endDate,
-					description: cls.description,
-					// Keep original fields too for reference
-					...cls
-				}));
+				console.log("Mapping backend classes to frontend format:", response.data);
+				const mappedClasses = response.data.map((cls: any) => {
+					console.log("Processing class:", cls);
+					const mappedClass = {
+						id: cls.id,
+						courseTitle: cls.name || cls.courseTitle, // Use name as courseTitle if available
+						courseId: cls.course_id || cls.courseId,
+						teacherName: cls.teacherName,
+						teacherId: cls.teacher_id || cls.teacherId,
+						studentCount: cls.studentCount || 0, // Default to 0 if not provided
+						status: cls.is_active ? "active" : "inactive", // Map is_active to status
+						startDate: cls.start_date || cls.startDate,
+						endDate: cls.end_date || cls.endDate,
+						description: cls.description,
+						// Keep original fields too for reference
+						...cls,
+					};
+					console.log("Mapped class:", mappedClass);
+					return mappedClass;
+				});
 
 				return {
 					classes: mappedClasses,
 					total: response.pagination.total,
 					page: response.pagination.page,
 					limit: response.pagination.limit,
-					totalPages: response.pagination.pages
+					totalPages: response.pagination.pages,
 				};
 			} else {
 				// Direct response structure (already handled by API client)
@@ -162,12 +170,12 @@ export const fetchCourseClassOptionsForScanner = createAsyncThunk<
 		const { courses, timeSlots } = response.data;
 
 		// Create combinations of courses and timeSlots
-		courses.forEach(course => {
-			timeSlots.forEach(timeSlot => {
+		courses.forEach((course) => {
+			timeSlots.forEach((timeSlot) => {
 				transformedOptions.push({
 					id: `${course.id}_${timeSlot.id}`, // Create a combined ID
 					courseName: course.name,
-					sessionName: timeSlot.name
+					sessionName: timeSlot.name,
 				});
 			});
 		});
@@ -210,7 +218,7 @@ export const fetchClassById = createAsyncThunk<
 				endDate: cls.end_date || cls.endDate,
 				description: cls.description,
 				// Keep original fields too for reference
-				...cls
+				...cls,
 			};
 		}
 
@@ -241,7 +249,7 @@ export const createClass = createAsyncThunk<
 			end_date: classData.endDate,
 			description: classData.description,
 			// Include other fields as needed
-			...classData
+			...classData,
 		};
 
 		const response = await post<any>("/classes", backendData);
@@ -262,7 +270,7 @@ export const createClass = createAsyncThunk<
 				endDate: cls.end_date || cls.endDate,
 				description: cls.description,
 				// Keep original fields too for reference
-				...cls
+				...cls,
 			};
 		}
 
@@ -295,7 +303,7 @@ export const updateClass = createAsyncThunk<
 			...(updateData.startDate && { start_date: updateData.startDate }),
 			...(updateData.endDate && { end_date: updateData.endDate }),
 			// Include other fields as needed
-			...updateData
+			...updateData,
 		};
 
 		const response = await put<any>(`/classes/${id}`, backendData);
@@ -316,7 +324,7 @@ export const updateClass = createAsyncThunk<
 				endDate: cls.end_date || cls.endDate,
 				description: cls.description,
 				// Keep original fields too for reference
-				...cls
+				...cls,
 			};
 		}
 

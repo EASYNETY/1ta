@@ -35,6 +35,11 @@ const AdminClassesTab: React.FC = () => {
         dispatch(fetchAllClassesAdmin({ search: searchTerm })); // Add pagination params later
     }, [dispatch]); // Fetch once initially
 
+    // Log classes when they change
+    useEffect(() => {
+        console.log('AdminClassesTab: Current classes', allClasses);
+    }, [allClasses]);
+
     // Optional: Debounce search or fetch on button click
     const handleSearch = () => {
         dispatch(fetchAllClassesAdmin({ search: searchTerm, page: 1 })); // Reset to page 1 on search
@@ -50,7 +55,7 @@ const AdminClassesTab: React.FC = () => {
                 variant: "destructive",
             });
             // Optionally refetch classes if not using RTK Query
-            // dispatch(fetchAllClassesAdmin({ search: searchTerm })); 
+            // dispatch(fetchAllClassesAdmin({ search: searchTerm }));
             // Or just rely on the slice to handle it
             // dispatch(fetchAllClassesAdmin({ page: pagination.currentPage, limit: pagination.pageSize }));
             // No need to refetch manually if slice removes it
@@ -159,7 +164,7 @@ const AdminClassesTab: React.FC = () => {
                                                     description={<>This action cannot be undone. This will permanently delete the class <strong>{cls.courseTitle}</strong>.</>}
                                                     confirmText="Delete"
                                                     variant="destructive"
-                                                    onConfirm={() => handleDeleteClass(cls.id, cls.courseTitle)}
+                                                    onConfirm={() => handleDeleteClass(cls.id, cls.courseTitle!)}
                                                     trigger={
                                                         <DyraneButton variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Delete">
                                                             <Trash2 className="h-4 w-4" />

@@ -117,14 +117,26 @@ const classesSlice = createSlice({
 			.addCase(
 				fetchAllClassesAdmin.fulfilled,
 				(state, action: PayloadAction<FetchAdminClassesResult>) => {
+					console.log("fetchAllClassesAdmin.fulfilled received:", action.payload);
 					state.status = "succeeded";
-					state.allClasses = action.payload.classes || []; // Ensure it's never null/undefined
+
+					// Check if classes array exists and has items
+					if (!action.payload.classes) {
+						console.error("No classes array in payload:", action.payload);
+						state.allClasses = [];
+					} else {
+						console.log("Setting allClasses to:", action.payload.classes);
+						state.allClasses = action.payload.classes;
+					}
+
 					state.adminPagination = {
 						currentPage: action.payload.page || 1,
 						limit: action.payload.limit || 10,
 						totalClasses: action.payload.total || 0,
 						totalPages: action.payload.totalPages || 1,
 					};
+
+					console.log("Updated state.allClasses:", state.allClasses);
 				}
 			)
 			.addCase(fetchAllClassesAdmin.rejected, (state, action) => {
