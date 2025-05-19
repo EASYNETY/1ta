@@ -16,55 +16,63 @@
 
 Welcome to the SmartEdu documentation! This repository contains comprehensive documentation for the SmartEdu platform, a modern educational management system designed to streamline administrative tasks, enhance teaching and learning experiences, and provide powerful analytics for educational institutions.
 
-## 📋 Table of Contents
+## 📋 Documentation Structure
+
+The documentation is organized into the following sections:
 
 ### 🏗️ Architecture & Design
-- [UI Design Guidelines](./ui/apple-inspired-design.md)
-- [Defensive Programming Guide](./defensive-programming-guide.md)
-- [Safe Redux Selectors](./frontend/safe-redux-selectors.md)
-- [Application Flow](./frontend/flow.md)
+- System architecture
+- UI design guidelines
+- Defensive programming
+- Safe Redux selectors
+- Application flow
 
 ### 🔌 API Integration
-- [API Integration Guide](./api/ApiGuide.md)
-- [API Integration Plan](./api/api-integration-plan.md)
-- [Data Types Reference](./api/data-types-reference.md)
-- [Mock Data Replacement](./api/mock-data-replacement.md)
-- [Standardized API Response Format](./standardized-api-response-format.md)
-- [Standardized Thunk Template](./standardized-thunk-template.md)
+- API integration guide
+- API integration plan
+- Data types reference
+- Mock data replacement
+- Standardized API response format
+- Standardized thunk template
 
 ### 🔙 Backend Integration
-- [Backend Requirements](./backend/backend-requirements.md)
-- [Backend Architecture](./backend/backend.md)
-- [Backend API Integration Guide](./backend-api-integration-guide.md)
-- [Classes API Integration Issues](./classes-api-integration-issues.md)
-- [Attendance Mark API](./backend/attendance-mark-api.md)
-- [Attendance Mark Implementation Guide](./backend/attendance-mark-implementation-guide.md)
+- Backend requirements
+- Backend architecture
+- Backend API integration guide
+- Classes API integration issues
+- Attendance mark API
+- Attendance mark implementation guide
 
 ### 📱 Features
-- [Attendance Integration](./features/attendance-integration.md)
-- [Classes & Courses Integration](./features/classes-courses-integration.md)
-- [Educational Features Integration](./features/educational-features-integration.md)
-- [Schedule & Timetable Integration](./features/schedule-timetable-integration.md)
-- [App Maintenance](./features/app-maintenance.md)
+- Attendance integration
+- Classes & courses integration
+- Educational features integration
+- Schedule & timetable integration
+- App maintenance
 
 ### 📊 Analytics & Reporting
-- [Admin Reports & Analytics Plan](./admin-reports-analytics-plan.md)
+- Admin reports & analytics plan
 
 ### 🔍 Barcode Scanner Integration
-- [External Barcode Scanner Service](./features/barcode/external-barcode-scanner-service.md)
-- [Hybrid Scanner Approach](./features/barcode/hybrid-scanner-approach.md)
-- [Barcode Scanner Overview](./features/barcode/README.md)
+- External barcode scanner service
+- Hybrid scanner approach
+- Barcode scanner overview
 
 ### 📘 Help System
-- [Help Content Maintenance Plan](./features/help/help-content-maintenance-plan.md)
-- [Help Feature Completion Guide](./features/help/help-feature-completion-guide.md)
+- Help content maintenance plan
+- Help feature completion guide
+
+### 🧪 Testing
+- Testing strategy
+- Unit testing guide
+- Integration testing guide
 
 ## 🚀 Getting Started
 
 For new developers, we recommend starting with the following documents:
 
-1. [API Integration Guide](./api/ApiGuide.md) - To understand how to interact with the API
-2. [Backend Requirements](./backend/backend-requirements.md) - To understand what the backend needs to provide
+1. [System Architecture](./architecture/system-architecture.md) - To understand the overall system design
+2. [API Integration Guide](./api/ApiGuide.md) - To understand how to interact with the API
 3. [Application Flow](./frontend/flow.md) - To understand the overall application flow
 4. [UI Design Guidelines](./ui/apple-inspired-design.md) - To understand the design principles
 
@@ -73,7 +81,7 @@ For new developers, we recommend starting with the following documents:
 When adding new documentation:
 
 1. Place it in the appropriate subfolder
-2. Update this index file to include a link to the new document
+2. Update the [index.md](./index.md) file to include a link to the new document
 3. Follow the existing documentation format and style
 4. Include a clear title, description, and table of contents
 
@@ -94,3 +102,7 @@ This documentation is maintained by the SmartEdu development team. If you find a
 ## 📅 Last Updated
 
 This documentation was last updated on May 19, 2025.
+
+## 📖 Full Documentation Index
+
+For a complete list of all documentation, see the [index.md](./index.md) file.
