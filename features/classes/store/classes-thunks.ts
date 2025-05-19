@@ -106,20 +106,21 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 				console.log("Mapping backend classes to frontend format:", response.data);
 				const mappedClasses = response.data.map((cls: any) => {
 					console.log("Processing class:", cls);
-					const mappedClass = {
+
+					// Create a new object with the required frontend fields
+					const mappedClass: AdminClassView = {
 						id: cls.id,
-						courseTitle: cls.name || cls.courseTitle, // Use name as courseTitle if available
-						courseId: cls.course_id || cls.courseId,
-						teacherName: cls.teacherName,
-						teacherId: cls.teacher_id || cls.teacherId,
-						studentCount: cls.studentCount || 0, // Default to 0 if not provided
-						status: cls.is_active ? "active" : "inactive", // Map is_active to status
-						startDate: cls.start_date || cls.startDate,
-						endDate: cls.end_date || cls.endDate,
-						description: cls.description,
-						// Keep original fields too for reference
-						...cls,
+						courseTitle: cls.name || "", // Use name as courseTitle
+						courseId: cls.course_id || "",
+						teacherName: "N/A", // Default value
+						teacherId: cls.teacher_id || null,
+						studentCount: 0, // Default value
+						status: cls.is_active === true ? "active" : "inactive", // Map is_active to status
+						startDate: cls.start_date || "",
+						endDate: cls.end_date || "",
+						description: cls.description || "",
 					};
+
 					console.log("Mapped class:", mappedClass);
 					return mappedClass;
 				});
@@ -208,17 +209,15 @@ export const fetchClassById = createAsyncThunk<
 			// Map backend fields to frontend fields
 			return {
 				id: cls.id,
-				courseTitle: cls.name || cls.courseTitle, // Use name as courseTitle if available
-				courseId: cls.course_id || cls.courseId,
-				teacherName: cls.teacherName,
-				teacherId: cls.teacher_id || cls.teacherId,
-				studentCount: cls.studentCount || 0, // Default to 0 if not provided
-				status: cls.is_active ? "active" : "inactive", // Map is_active to status
-				startDate: cls.start_date || cls.startDate,
-				endDate: cls.end_date || cls.endDate,
-				description: cls.description,
-				// Keep original fields too for reference
-				...cls,
+				courseTitle: cls.name || "", // Use name as courseTitle
+				courseId: cls.course_id || "",
+				teacherName: "N/A", // Default value
+				teacherId: cls.teacher_id || null,
+				studentCount: 0, // Default value
+				status: cls.is_active === true ? "active" : "inactive", // Map is_active to status
+				startDate: cls.start_date || "",
+				endDate: cls.end_date || "",
+				description: cls.description || "",
 			};
 		}
 
@@ -260,17 +259,15 @@ export const createClass = createAsyncThunk<
 			// Map backend fields to frontend fields
 			return {
 				id: cls.id,
-				courseTitle: cls.name || cls.courseTitle,
-				courseId: cls.course_id || cls.courseId,
-				teacherName: cls.teacherName,
-				teacherId: cls.teacher_id || cls.teacherId,
-				studentCount: cls.studentCount || 0,
-				status: cls.is_active ? "active" : "inactive",
-				startDate: cls.start_date || cls.startDate,
-				endDate: cls.end_date || cls.endDate,
-				description: cls.description,
-				// Keep original fields too for reference
-				...cls,
+				courseTitle: cls.name || "", // Use name as courseTitle
+				courseId: cls.course_id || "",
+				teacherName: "N/A", // Default value
+				teacherId: cls.teacher_id || null,
+				studentCount: 0, // Default value
+				status: cls.is_active === true ? "active" : "inactive", // Map is_active to status
+				startDate: cls.start_date || "",
+				endDate: cls.end_date || "",
+				description: cls.description || "",
 			};
 		}
 
@@ -314,17 +311,15 @@ export const updateClass = createAsyncThunk<
 			// Map backend fields to frontend fields
 			return {
 				id: cls.id,
-				courseTitle: cls.name || cls.courseTitle,
-				courseId: cls.course_id || cls.courseId,
-				teacherName: cls.teacherName,
-				teacherId: cls.teacher_id || cls.teacherId,
-				studentCount: cls.studentCount || 0,
-				status: cls.is_active ? "active" : "inactive",
-				startDate: cls.start_date || cls.startDate,
-				endDate: cls.end_date || cls.endDate,
-				description: cls.description,
-				// Keep original fields too for reference
-				...cls,
+				courseTitle: cls.name || "", // Use name as courseTitle
+				courseId: cls.course_id || "",
+				teacherName: "N/A", // Default value
+				teacherId: cls.teacher_id || null,
+				studentCount: 0, // Default value
+				status: cls.is_active === true ? "active" : "inactive", // Map is_active to status
+				startDate: cls.start_date || "",
+				endDate: cls.end_date || "",
+				description: cls.description || "",
 			};
 		}
 
