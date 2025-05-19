@@ -1,18 +1,18 @@
-// app/(auth)/contact/page.tsx
+// app/(public)/contact/page.tsx
 'use client';
 
 import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card } from '@/components/ui/card';
+import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription, DyraneCardFooter } from '@/components/dyrane-ui/dyrane-card';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Building2, Mail, MapPin, Phone } from 'lucide-react';
+import { Building2, Mail, MapPin, Phone, ExternalLink } from 'lucide-react';
 
 // Form schema
 const contactFormSchema = z.object({
@@ -25,7 +25,7 @@ const contactFormSchema = z.object({
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const form = useForm<z.infer<typeof contactFormSchema>>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -39,7 +39,7 @@ export default function ContactPage() {
 
   function onSubmit(values: z.infer<typeof contactFormSchema>) {
     setIsSubmitting(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       console.log(values);
@@ -50,17 +50,34 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="w-full">
-      <h1 className="text-3xl font-bold text-center mb-2">Contact Us</h1>
-      <p className="text-center text-muted-foreground mb-12">
-        Have questions or want to learn more about our courses? Get in touch with us.
+    <div className="py-12">
+      <div className="flex flex-col items-center mb-6">
+        <Mail className="h-8 w-8 text-primary mb-2" />
+        <h1 className="text-3xl font-bold text-center">Contact Us</h1>
+      </div>
+
+      <p className="text-muted-foreground text-center mb-8">
+        Have questions or want to learn more about our courses? Get in touch with us and our team will respond as soon as possible.
       </p>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         <div className="lg:col-span-2">
-          <Card>
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold mb-6">Send us a message</h2>
+          <DyraneCard className="overflow-hidden border-primary/10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,rgba(0,0,0,0.6))]" />
+              <DyraneCardHeader className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Mail className="h-5 w-5 text-primary" />
+                  </div>
+                  <DyraneCardTitle>Send us a message</DyraneCardTitle>
+                </div>
+                <DyraneCardDescription>
+                  Fill out the form below and we'll get back to you as soon as possible.
+                </DyraneCardDescription>
+              </DyraneCardHeader>
+            </div>
+            <DyraneCardContent className="relative">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -77,7 +94,7 @@ export default function ContactPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="email"
@@ -92,7 +109,7 @@ export default function ContactPage() {
                       )}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
@@ -107,7 +124,7 @@ export default function ContactPage() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="inquiryType"
@@ -134,7 +151,7 @@ export default function ContactPage() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="message"
@@ -142,86 +159,130 @@ export default function ContactPage() {
                       <FormItem>
                         <FormLabel>Message</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="How can we help you?" 
-                            className="min-h-[150px]" 
-                            {...field} 
+                          <Textarea
+                            placeholder="How can we help you?"
+                            className="min-h-[150px]"
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
-                  <DyraneButton type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Sending...' : 'Send Message'}
+
+                  <DyraneButton
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitting}
+                    size="lg"
+                  >
+                    {isSubmitting ? (
+                      <>Sending...</>
+                    ) : (
+                      <>
+                        Send Message
+                        <Mail className="ml-2 h-4 w-4" />
+                      </>
+                    )}
                   </DyraneButton>
                 </form>
               </Form>
-            </div>
-          </Card>
+            </DyraneCardContent>
+          </DyraneCard>
         </div>
-        
-        <div>
-          <Card className="p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-primary mt-0.5" />
+
+        <div className="space-y-6">
+          <DyraneCard className="overflow-hidden border-primary/10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,rgba(0,0,0,0.6))]" />
+              <DyraneCardHeader className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <DyraneCardTitle>Contact Information</DyraneCardTitle>
+                </div>
+              </DyraneCardHeader>
+            </div>
+            <DyraneCardContent className="relative space-y-6">
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <MapPin className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="font-medium">Address</p>
+                  <p className="font-medium mb-1">Address</p>
                   <p className="text-muted-foreground">17 Aje Street, Sabo Yaba Lagos, Nigeria</p>
                 </div>
               </div>
-              
-              <div className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-primary mt-0.5" />
+
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Mail className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="font-medium">Email</p>
-                  <a href="mailto:info@1techacademy.com" className="text-muted-foreground hover:text-primary">
+                  <p className="font-medium mb-1">Email</p>
+                  <a href="mailto:info@1techacademy.com" className="text-primary hover:underline">
                     info@1techacademy.com
                   </a>
                 </div>
               </div>
-              
-              <div className="flex items-start gap-3">
-                <Phone className="h-5 w-5 text-primary mt-0.5" />
+
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Phone className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="font-medium">Phone</p>
-                  <a href="tel:+2348012345678" className="text-muted-foreground hover:text-primary">
+                  <p className="font-medium mb-1">Phone</p>
+                  <a href="tel:+2348012345678" className="text-primary hover:underline">
                     +234 801 234 5678
                   </a>
                 </div>
               </div>
-              
-              <div className="flex items-start gap-3">
-                <Building2 className="h-5 w-5 text-primary mt-0.5" />
+
+              <div className="flex items-start gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                  <Building2 className="h-5 w-5 text-primary" />
+                </div>
                 <div>
-                  <p className="font-medium">Business Hours</p>
+                  <p className="font-medium mb-1">Business Hours</p>
                   <p className="text-muted-foreground">Monday - Friday: 9am - 5pm</p>
                   <p className="text-muted-foreground">Saturday: 10am - 2pm</p>
                   <p className="text-muted-foreground">Sunday: Closed</p>
                 </div>
               </div>
+            </DyraneCardContent>
+          </DyraneCard>
+
+          <DyraneCard className="overflow-hidden border-primary/10">
+            <div className="relative">
+              <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,rgba(0,0,0,0.6))]" />
+              <DyraneCardHeader className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <DyraneCardTitle>Our Location</DyraneCardTitle>
+                </div>
+              </DyraneCardHeader>
             </div>
-          </Card>
-          
-          <Card className="p-6">
-            <h3 className="text-xl font-semibold mb-4">Our Location</h3>
-            <div className="aspect-video bg-muted rounded-md overflow-hidden relative">
-              {/* This would be replaced with an actual map component */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-muted-foreground">Interactive Map</p>
+            <DyraneCardContent className="relative">
+              <div className="aspect-video bg-muted rounded-md overflow-hidden relative">
+                {/* This would be replaced with an actual map component */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <p className="text-muted-foreground">Interactive Map</p>
+                </div>
               </div>
-            </div>
-            <div className="mt-4">
-              <DyraneButton variant="outline" className="w-full" asChild>
+            </DyraneCardContent>
+            <DyraneCardFooter className="relative">
+              <DyraneButton className="w-full" asChild>
                 <a href="https://maps.google.com/?q=17+Aje+Street+Sabo+Yaba+Lagos+Nigeria" target="_blank" rel="noopener noreferrer">
+                  <MapPin className="mr-2 h-4 w-4" />
                   Get Directions
+                  <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </DyraneButton>
-            </div>
-          </Card>
+            </DyraneCardFooter>
+          </DyraneCard>
         </div>
       </div>
     </div>

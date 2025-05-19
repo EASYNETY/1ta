@@ -1,25 +1,27 @@
 // app/(public)/cookies-policy/page.tsx
 'use client';
 
-import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle, DyraneCardDescription } from '@/components/dyrane-ui/dyrane-card';
+import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { Cookie, ExternalLink, Settings } from 'lucide-react';
+import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { Cookie } from 'lucide-react';
 
 export default function CookiesPolicyPage() {
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-center gap-3 mb-8">
-        <Cookie className="h-8 w-8 text-primary" />
+    <div className="py-12">
+      <div className="flex flex-col items-center mb-6">
+        <Cookie className="h-8 w-8 text-primary mb-2" />
         <h1 className="text-3xl font-bold text-center">Cookies Policy</h1>
       </div>
 
-      <p className="text-center text-muted-foreground mb-8">
-        Last updated: June 15, 2024
+      <p className="text-muted-foreground text-center mb-8">
+        This Cookies Policy explains how 1Tech Academy uses cookies and similar technologies to recognize you when you visit our website. Last updated: June 15, 2024.
       </p>
 
-      <div className='w-full bg-card/5 backdrop-blur-sm rounded-xl border p-4'>
+      <div className='w-full bg-card/5 backdrop-blur-sm rounded-xl border'>
         <Tabs defaultValue="overview" className="w-full">
           <div className="p-4 border-b">
             <ScrollArea className="w-full whitespace-nowrap">
@@ -29,6 +31,7 @@ export default function CookiesPolicyPage() {
                 <TabsTrigger value="usage">How We Use Cookies</TabsTrigger>
                 <TabsTrigger value="control">Your Choices</TabsTrigger>
               </TabsList>
+              <ScrollBar orientation="horizontal" className="h-2 sm:hidden" />
             </ScrollArea>
           </div>
 
@@ -159,19 +162,48 @@ export default function CookiesPolicyPage() {
 
                 <h3 className="text-lg font-medium mb-3">Browser Settings</h3>
                 <p className="mb-4 text-muted-foreground">
-                  Most web browsers allow you to control cookies through their settings. You can usually find these settings in the "Options" or "Preferences" menu of your browser. To understand these settings, the following links may be helpful:
+                  Most web browsers allow you to control cookies through their settings. You can usually find these settings in the "Options" or "Preferences" menu of your browser. The following links provide information on how to manage cookies in the most common browsers:
                 </p>
-                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
-                  <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cookie settings in Chrome</a></li>
-                  <li><a href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cookie settings in Firefox</a></li>
-                  <li><a href="https://support.microsoft.com/en-us/windows/delete-and-manage-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cookie settings in Edge</a></li>
-                  <li><a href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Cookie settings in Safari</a></li>
-                </ul>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <DyraneButton variant="outline" asChild className="justify-between">
+                    <Link href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer">
+                      Google Chrome
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Link>
+                  </DyraneButton>
+                  <DyraneButton variant="outline" asChild className="justify-between">
+                    <Link href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer" target="_blank" rel="noopener noreferrer">
+                      Mozilla Firefox
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Link>
+                  </DyraneButton>
+                  <DyraneButton variant="outline" asChild className="justify-between">
+                    <Link href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac" target="_blank" rel="noopener noreferrer">
+                      Safari
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Link>
+                  </DyraneButton>
+                  <DyraneButton variant="outline" asChild className="justify-between">
+                    <Link href="https://support.microsoft.com/en-us/windows/delete-and-manage-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer">
+                      Microsoft Edge
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </Link>
+                  </DyraneButton>
+                </div>
 
                 <h3 className="text-lg font-medium mb-3">Cookie Consent Tool</h3>
-                <p className="mb-4 text-muted-foreground">
-                  When you first visit our website, you will be presented with a cookie banner that allows you to accept or decline non-essential cookies. You can change your preferences at any time by clicking on the "Cookie Preferences" link in the footer of our website.
-                </p>
+                <div className="bg-muted/30 p-4 rounded-lg mb-6">
+                  <div className="flex items-start gap-3">
+                    <Settings className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <h4 className="font-medium mb-1">Cookie Preferences</h4>
+                      <p className="text-sm text-muted-foreground">
+                        When you first visit our website, you will be presented with a cookie banner that allows you to accept or decline non-essential cookies. You can change your preferences at any time by clicking the "Cookie Preferences" link in the footer of our website.
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
                 <h3 className="text-lg font-medium mb-3">Consequences of Disabling Cookies</h3>
                 <p className="mb-4 text-muted-foreground">
@@ -180,9 +212,32 @@ export default function CookiesPolicyPage() {
 
                 <Separator className="my-6" />
 
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mb-6">
                   If you have any questions about our use of cookies, please contact us at privacy@1techacademy.com.
                 </p>
+
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    <strong>Contact:</strong> privacy@1techacademy.com
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <DyraneButton variant="outline" size="sm" asChild>
+                      <Link href="/privacy-policy">
+                        Privacy Policy
+                      </Link>
+                    </DyraneButton>
+                    <DyraneButton variant="outline" size="sm" asChild>
+                      <Link href="/terms-conditions">
+                        Terms & Conditions
+                      </Link>
+                    </DyraneButton>
+                    <DyraneButton variant="outline" size="sm" asChild>
+                      <Link href="/data-protection-policy">
+                        Data Protection
+                      </Link>
+                    </DyraneButton>
+                  </div>
+                </div>
               </TabsContent>
             </div>
           </ScrollArea>

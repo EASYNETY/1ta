@@ -25,6 +25,7 @@ const publicRoutes = [
   "/reset-password",
   "/help-support",
   "/contact",
+  "/public-courses",
   "/privacy-policy",
   "/terms-conditions",
   "/cookies-policy",
