@@ -24,7 +24,7 @@ const footerLinks = {
     resources: [
         // { href: '#', label: 'Documentation' },
         // { href: '#', label: 'Guides' },
-        { href: '/help', label: 'Support' },
+        { href: '/hehelp-supportlp', label: 'Support' },
     ],
     company: [
         // { href: '#', label: 'About' },

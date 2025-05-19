@@ -23,7 +23,7 @@ const publicRoutes = [
   "/signup",
   "/forgot-password",
   "/reset-password",
-  "/help",
+  "/help-support",
   "/contact",
   "/privacy-policy",
   "/terms-conditions",
