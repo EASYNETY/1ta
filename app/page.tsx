@@ -31,7 +31,7 @@ import { Card } from "@/components/cards/FeatureCard"
 import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo, YoutubeLogo } from "phosphor-react"
 import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
 import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
-import { TechnologyIcons } from "@/components/landing/TechnologyIcons"
+import { EnhancedTechnologyIcons } from "@/components/landing/EnhancedTechnologyIcons"
 
 export default function LandingPage() {
 
@@ -337,7 +337,7 @@ export default function LandingPage() {
               description="Master the tools and platforms shaping the future of tech."
             />
 
-            <TechnologyIcons />
+            <EnhancedTechnologyIcons />
           </div>
         </section>
 
