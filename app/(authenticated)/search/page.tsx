@@ -6,6 +6,7 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { PageHeader } from '@/components/layout/auth/page-header'
 import {
   setSearchQuery,
@@ -158,15 +159,18 @@ export default function SearchPage() {
       {/* Search Results */}
       {searchResults.length > 0 && (
         <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="w-full overflow-x-auto">
-            <TabsTrigger value="all">All Results ({searchResults.length})</TabsTrigger>
-            <TabsTrigger value="course">Courses ({searchResults.filter(r => r.type === 'course').length})</TabsTrigger>
-            <TabsTrigger value="assignment">Assignments ({searchResults.filter(r => r.type === 'assignment').length})</TabsTrigger>
-            <TabsTrigger value="grade">Grades ({searchResults.filter(r => r.type === 'grade').length})</TabsTrigger>
-            <TabsTrigger value="event">Events ({searchResults.filter(r => r.type === 'event').length})</TabsTrigger>
-            <TabsTrigger value="payment">Payments ({searchResults.filter(r => r.type === 'payment').length})</TabsTrigger>
-            <TabsTrigger value="help">Help ({searchResults.filter(r => r.type === 'help').length})</TabsTrigger>
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <TabsList className="w-full overflow-x-auto">
+              <TabsTrigger value="all">All Results ({searchResults.length})</TabsTrigger>
+              <TabsTrigger value="course">Courses ({searchResults.filter(r => r.type === 'course').length})</TabsTrigger>
+              <TabsTrigger value="assignment">Assignments ({searchResults.filter(r => r.type === 'assignment').length})</TabsTrigger>
+              <TabsTrigger value="grade">Grades ({searchResults.filter(r => r.type === 'grade').length})</TabsTrigger>
+              <TabsTrigger value="event">Events ({searchResults.filter(r => r.type === 'event').length})</TabsTrigger>
+              <TabsTrigger value="payment">Payments ({searchResults.filter(r => r.type === 'payment').length})</TabsTrigger>
+              <TabsTrigger value="help">Help ({searchResults.filter(r => r.type === 'help').length})</TabsTrigger>
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
 
           <TabsContent value="all" className="mt-6">
             <div className="grid gap-4">

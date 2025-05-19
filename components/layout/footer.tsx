@@ -24,18 +24,18 @@ const footerLinks = {
     resources: [
         // { href: '#', label: 'Documentation' },
         // { href: '#', label: 'Guides' },
-        { href: '#', label: 'Support' },
+        { href: '/help', label: 'Support' },
     ],
     company: [
         // { href: '#', label: 'About' },
         // { href: '#', label: 'Careers' },
-        { href: '#', label: 'Contact' },
+        { href: '/contact', label: 'Contact' },
     ],
     legal: [
-        { href: '#', label: 'Privacy Policy' },
-        { href: '#', label: 'Terms & Conditions' },
-        { href: '#', label: 'Cookies Policy' },
-        { href: '#', label: 'Data Protection Policy' },
+        { href: '/privacy-policy', label: 'Privacy Policy' },
+        { href: '/terms-conditions', label: 'Terms & Conditions' },
+        { href: '/cookies-policy', label: 'Cookies Policy' },
+        { href: '/data-protection-policy', label: 'Data Protection Policy' },
     ],
 };
 

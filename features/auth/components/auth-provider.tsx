@@ -17,7 +17,19 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const publicRoutes = ["/", "/login", "/signup", "/forgot-password", "/reset-password"];
+const publicRoutes = [
+  "/",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/help",
+  "/contact",
+  "/privacy-policy",
+  "/terms-conditions",
+  "/cookies-policy",
+  "/data-protection-policy"
+];
 
 // Helper to check if path is public
 const isPathPublic = (pathname: string): boolean => {

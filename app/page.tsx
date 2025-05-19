@@ -328,7 +328,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Technologies Taught Section */}
-        <section id="technologies" className="py-16 relative overflow-hidden">
+        <section id="courses" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-50 dark:opacity-40" />
 
           <div className="px-4 md:px-6 relative">

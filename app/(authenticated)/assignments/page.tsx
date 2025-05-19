@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { fetchAssignments } from "@/features/assignments/store/assignment-slice"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -18,7 +19,7 @@ import StudentAssignmentCard from "@/features/assignments/components/StudentAssi
 export default function AssignmentsPage() {
     const dispatch = useAppDispatch()
     const { user } = useAppSelector((state) => state.auth)
-    const [activeTab, setActiveTab] = useState("all")
+    // const [activeTab, setActiveTab] = useState("all") // Unused - handled in child components
     const [isLoading, setIsLoading] = useState(true)
 
     // Fetch assignments on component mount
@@ -117,6 +118,7 @@ function StudentAssignmentsView() {
     return (
         <div className="space-y-6">
             <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+                <ScrollArea className="w-full whitespace-nowrap">
                 <TabsList className="mb-4">
                     <TabsTrigger value="all">All</TabsTrigger>
                     <TabsTrigger value="pending">Pending</TabsTrigger>
@@ -124,6 +126,8 @@ function StudentAssignmentsView() {
                     <TabsTrigger value="graded">Graded</TabsTrigger>
                     <TabsTrigger value="overdue">Overdue</TabsTrigger>
                 </TabsList>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
                 <TabsContent value={activeTab} className="mt-0">
                     {filteredAssignments.length === 0 ? (

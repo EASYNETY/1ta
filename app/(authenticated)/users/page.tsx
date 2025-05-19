@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 // Import modular components
 import { UsersPageHeader } from "@/components/users/UsersPageHeader"
@@ -68,12 +69,15 @@ export default function UsersPage() {
                 <UsersPageHeader />
 
                 <Tabs defaultValue="students" value={activeTab} onValueChange={handleTabChange}>
-                    <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-4">
-                        <TabsTrigger value="all-users">All Users</TabsTrigger>
-                        <TabsTrigger value="students">Students</TabsTrigger>
-                        <TabsTrigger value="teachers">Teachers</TabsTrigger>
-                        <TabsTrigger value="admins">Administrators</TabsTrigger>
-                    </TabsList>
+                    <ScrollArea className="w-full whitespace-nowrap">
+                        <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-4">
+                            <TabsTrigger value="all-users">All Users</TabsTrigger>
+                            <TabsTrigger value="students">Students</TabsTrigger>
+                            <TabsTrigger value="teachers">Teachers</TabsTrigger>
+                            <TabsTrigger value="admins">Administrators</TabsTrigger>
+                        </TabsList>
+                        <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
 
                     <UserFilters
                         searchQuery={searchQuery}

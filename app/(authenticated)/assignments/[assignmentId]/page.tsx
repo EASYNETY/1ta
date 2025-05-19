@@ -23,19 +23,19 @@ import {
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator"; // Unused
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, CheckCircle, Clock, Edit, FileText, Home, Upload, Loader2 } from "lucide-react"; // Added Loader2
+import { AlertCircle, CheckCircle, Clock, Edit, FileText, Home } from "lucide-react";
 import Link from "next/link";
 import { format, parseISO, isValid } from "date-fns"; // Keep date-fns
 import SubmissionForm from "@/features/assignments/components/SubmissionForm"; // Corrected import path
 import SubmissionsList from "@/features/assignments/components/SubmissionsList"; // Corrected import path
-import type { StudentAssignmentView, TeacherAssignmentView, Assignment } from "@/features/assignments/types/assignment-types";
-import { isStudent } from "@/types/user.types"; // Import type guard
+import type { StudentAssignmentView, TeacherAssignmentView } from "@/features/assignments/types/assignment-types";
 import { ArrowLeft } from "phosphor-react";
 
 // Helper: Format Date (handles potential invalid dates)
@@ -104,7 +104,7 @@ export default function AssignmentDetailsPage() {
 
     // --- Derived State & Type Guards ---
     const isLoading = status === "loading";
-    const isFetchFailed = status === "failed";
+    // const isFetchFailed = status === "failed"; // Unused
 
     // Safely determine views (check if currentAssignment exists first)
     const studentAssignment = useMemo(() => (
@@ -213,19 +213,22 @@ export default function AssignmentDetailsPage() {
 
             {/* Main content Tabs */}
             <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="mb-4">
-                    <TabsTrigger value="details">Details</TabsTrigger>
-                    {/* Show "My Submission" tab only if student AND there IS a submission */}
-                    {studentAssignment?.submission && (
-                        <TabsTrigger value="submission">My Submission</TabsTrigger>
-                    )}
-                    {/* Show "Submit" tab only if student CAN submit */}
-                    {canSubmit && <TabsTrigger value="submit">Submit Work</TabsTrigger>}
-                    {/* Show "Submissions" tab only for teacher/admin view */}
-                    {teacherAssignment && (
-                        <TabsTrigger value="submissions">Submissions ({teacherAssignment.totalSubmissions ?? 0})</TabsTrigger>
-                    )}
-                </TabsList>
+                <ScrollArea className="w-full whitespace-nowrap">
+                    <TabsList className="mb-4">
+                        <TabsTrigger value="details">Details</TabsTrigger>
+                        {/* Show "My Submission" tab only if student AND there IS a submission */}
+                        {studentAssignment?.submission && (
+                            <TabsTrigger value="submission">My Submission</TabsTrigger>
+                        )}
+                        {/* Show "Submit" tab only if student CAN submit */}
+                        {canSubmit && <TabsTrigger value="submit">Submit Work</TabsTrigger>}
+                        {/* Show "Submissions" tab only for teacher/admin view */}
+                        {teacherAssignment && (
+                            <TabsTrigger value="submissions">Submissions ({teacherAssignment.totalSubmissions ?? 0})</TabsTrigger>
+                        )}
+                    </TabsList>
+                    <ScrollBar orientation="horizontal" />
+                </ScrollArea>
 
                 {/* Details Tab Content */}
                 <TabsContent value="details" className="mt-0">
