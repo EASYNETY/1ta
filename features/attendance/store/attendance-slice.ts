@@ -7,6 +7,8 @@ import type {
   TeacherAttendanceResponse,
   DailyAttendance,
   StudentAttendanceResponse,
+  AttendanceStatus,
+  AttendanceRecord,
 } from "@/data/mock-attendance-data"
 
 // --- Adjusted State Shape ---
@@ -192,25 +194,70 @@ const attendanceMarkingSlice = createSlice({
       })
       .addCase(fetchCourseAttendance.fulfilled, (state, action) => {
         state.fetchingCourseAttendance = false
-        const { courseClassId, courseTitle, totalStudents, dailyAttendances } = action.payload
 
-        // Process the daily attendances into the format expected by the state
-        const dailyRecords: Record<string, DailyAttendance> = {}
+        // Handle both the old format and the new backend format
+        if (action.payload.records && action.payload.courseId) {
+          // New backend format with records, courseId, and totalCount
+          const { records, courseId, totalCount } = action.payload;
+          console.log("Processing new backend format:", { records, courseId, totalCount });
 
-        // Add null check to prevent TypeError when dailyAttendances is undefined
-        if (dailyAttendances && Array.isArray(dailyAttendances)) {
-          dailyAttendances.forEach((daily) => {
-            dailyRecords[daily.date] = daily
-          })
+          // Process the records into daily attendances
+          const dailyRecords: Record<string, DailyAttendance> = {};
+
+          // Group records by date
+          const recordsByDate: Record<string, any[]> = {};
+          records.forEach((record: any) => {
+            if (!recordsByDate[record.date]) {
+              recordsByDate[record.date] = [];
+            }
+            recordsByDate[record.date].push(record);
+          });
+
+          // Convert to DailyAttendance format
+          Object.entries(recordsByDate).forEach(([date, dateRecords]) => {
+            const attendances = dateRecords.map((record: any) => ({
+              studentId: record.student.id,
+              name: record.student.name,
+              status: record.status as AttendanceStatus,
+              time: record.notes // Use notes as time if available
+            }));
+
+            dailyRecords[date] = {
+              date,
+              courseClassId: courseId,
+              attendances
+            };
+          });
+
+          state.courseAttendance[courseId] = {
+            courseClassId: courseId,
+            courseTitle: records[0]?.className || "Unknown Course",
+            totalStudents: totalCount || records.length,
+            dailyRecords,
+          };
         } else {
-          console.warn('dailyAttendances is undefined or not an array in fetchCourseAttendance.fulfilled')
-        }
+          // Old format with courseClassId, courseTitle, totalStudents, dailyAttendances
+          const { courseClassId, courseTitle, totalStudents, dailyAttendances } = action.payload;
+          console.log("Processing old format:", { courseClassId, courseTitle, totalStudents, dailyAttendances });
 
-        state.courseAttendance[courseClassId] = {
-          courseClassId,
-          courseTitle,
-          totalStudents,
-          dailyRecords,
+          // Process the daily attendances into the format expected by the state
+          const dailyRecords: Record<string, DailyAttendance> = {};
+
+          // Add null check to prevent TypeError when dailyAttendances is undefined
+          if (dailyAttendances && Array.isArray(dailyAttendances)) {
+            dailyAttendances.forEach((daily) => {
+              dailyRecords[daily.date] = daily;
+            });
+          } else {
+            console.warn('dailyAttendances is undefined or not an array in fetchCourseAttendance.fulfilled');
+          }
+
+          state.courseAttendance[courseClassId] = {
+            courseClassId,
+            courseTitle,
+            totalStudents,
+            dailyRecords,
+          };
         }
       })
       .addCase(fetchCourseAttendance.rejected, (state, action) => {

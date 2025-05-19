@@ -45,11 +45,39 @@ export interface StudentAttendanceResponse {
 	attendances: StudentAttendanceRecord[];
 }
 
+// Backend API response format
+export interface AttendanceRecord {
+	id: string;
+	date: string;
+	status: AttendanceStatus;
+	notes?: string;
+	student: {
+		id: string;
+		name: string;
+		email?: string;
+	};
+	classId: string;
+	className: string;
+	markedBy: string;
+}
+
+// New backend format
+export interface BackendAttendanceResponse {
+	records: AttendanceRecord[];
+	courseId: string;
+	totalCount: number;
+}
+
+// Original format
 export interface TeacherAttendanceResponse {
 	courseClassId: string;
 	courseTitle: string;
 	totalStudents: number;
 	dailyAttendances: DailyAttendance[];
+	// New backend format fields
+	records?: AttendanceRecord[];
+	courseId?: string;
+	totalCount?: number;
 }
 
 export interface AdminAttendanceResponse {
