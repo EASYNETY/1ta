@@ -1131,7 +1131,23 @@ export async function handleMockRequest<T>(
 
 		try {
 			const result = await getMockAllClassesAdmin(page, limit, search);
-			return result as unknown as T; // Expects { classes: [], total: number }
+
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: result.classes,
+				pagination: {
+					total: result.total,
+					page: page,
+					limit: limit,
+					pages: Math.ceil(result.total / limit)
+				},
+				message: "Classes fetched successfully"
+			};
+
+			console.log("Transformed admin classes result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for GET /admin/classes:", error.message);
 			throw {
@@ -1149,7 +1165,17 @@ export async function handleMockRequest<T>(
 		console.log(`%cAPI Client MOCK: GET /classes/${classId}`, "color: orange;");
 		try {
 			const classData = await getMockClassById(classId); // Call mock function
-			return classData as unknown as T;
+
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: classData,
+				message: "Class fetched successfully"
+			};
+
+			console.log("Transformed class result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		} catch (error: any) {
 			console.error(
 				`Mock API Error for GET /classes/${classId}:`,
@@ -1166,7 +1192,17 @@ export async function handleMockRequest<T>(
 			throw new Error("Mock API Error: Missing request body for POST /classes");
 		try {
 			const newClass = await createMockClass(body); // Call mock function
-			return newClass as unknown as T;
+
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: newClass,
+				message: "Class created successfully"
+			};
+
+			console.log("Transformed create class result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for POST /classes:", error.message);
 			throw { response: { data: { message: error.message }, status: 400 } }; // Simulate 400 Bad Request
@@ -1184,7 +1220,17 @@ export async function handleMockRequest<T>(
 			);
 		try {
 			const updatedClass = await updateMockClass(classId, body); // Call mock function
-			return updatedClass as unknown as T;
+
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: updatedClass,
+				message: "Class updated successfully"
+			};
+
+			console.log("Transformed update class result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		} catch (error: any) {
 			console.error(
 				`Mock API Error for PUT /classes/${classId}:`,
@@ -1206,7 +1252,17 @@ export async function handleMockRequest<T>(
 		);
 		try {
 			await deleteMockClass(classId); // Call mock function
-			return { success: true, id: classId } as unknown as T; // Or just return undefined for 204 No Content simulation
+
+			// Transform the result to match the expected format from the backend
+			const transformedResult = {
+				success: true,
+				data: { id: classId },
+				message: "Class deleted successfully"
+			};
+
+			console.log("Transformed delete class result:", transformedResult);
+
+			return transformedResult as unknown as T;
 		} catch (error: any) {
 			console.error(
 				`Mock API Error for DELETE /classes/${classId}:`,
