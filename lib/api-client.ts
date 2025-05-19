@@ -1347,6 +1347,8 @@ export async function handleMockRequest<T>(
 			// Cache the successful response in the global cache
 			apiCache.set("GET", endpoint, response);
 
+			// Return the response directly without any transformation
+			// Our API client will handle the nested structure
 			return response as unknown as T;
 		} catch (error: any) {
 			console.error(

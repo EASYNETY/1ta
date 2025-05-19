@@ -113,6 +113,18 @@ export function TeacherAttendanceView() {
         console.log(`TeacherAttendanceView: Skipping fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}`);
     }
   }, [user, dispatch, classOptionsStatus, classOptions]); // Removed fetchCourseClassOptionsForScanner from deps as it's a stable dispatch
+
+  // Force classOptionsStatus to 'succeeded' if it's stuck in 'loading' for too long
+  useEffect(() => {
+    if (classOptionsStatus === 'loading') {
+      const timer = setTimeout(() => {
+        console.log("TeacherAttendanceView: Class options loading timeout, forcing status to succeeded");
+        dispatch(setCourseClassOptionStatus('succeeded'));
+      }, 5000); // 5 seconds timeout
+
+      return () => clearTimeout(timer);
+    }
+  }, [classOptionsStatus, dispatch]);
   // --- End Fetch Class Options ---
 
   // Fetch attendance data when a class is selected
@@ -333,13 +345,13 @@ export function TeacherAttendanceView() {
           <Select
             value={selectedClass?.id || ""}
             onValueChange={handleClassChange}
-            disabled={classOptionsLoading}
+            disabled={classOptionsLoading && classOptionsStatus !== 'succeeded'}
           >
             <SelectTrigger id="courseClassSelect" className="w-full sm:w-auto sm:min-w-[300px] flex-grow">
               <SelectValue placeholder="Select a class to view attendance..." />
             </SelectTrigger>
             <SelectContent>
-              {classOptionsLoading && (!classOptions || classOptions.length === 0) && (
+              {classOptionsLoading && classOptionsStatus === 'loading' && (
                 <SelectItem value="loading" disabled>
                   <div className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading classes...</div>
                 </SelectItem>

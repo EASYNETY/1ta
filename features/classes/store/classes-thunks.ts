@@ -163,12 +163,28 @@ export const fetchCourseClassOptionsForScanner = createAsyncThunk<
 	try {
 		console.log("Dispatching fetchCourseClassOptionsForScanner thunk");
 
-		// Updated to handle the new response format
-		const response = await get<ClassOptionsResponse>("/class-sessions/options");
+		// Get the response from the API
+		const response = await get<any>("/class-sessions/options");
 		console.log("Received class options response:", response);
 
-		// Check if response has the expected structure
-		if (!response.success || !response.data) {
+		// Handle different response formats
+		let responseData;
+
+		// If the response is already in the expected format (our API client might have extracted data)
+		if (response.data && response.data.courses && response.data.timeSlots) {
+			responseData = response.data;
+		}
+		// If the response has success and data fields
+		else if (response.success && response.data) {
+			responseData = response.data;
+		}
+		// If the response is the direct data object
+		else if (response.courses && response.timeSlots) {
+			responseData = response;
+		}
+		// Invalid response format
+		else {
+			console.error("Invalid response format:", response);
 			throw new Error("Invalid response format from class options API");
 		}
 
@@ -177,11 +193,11 @@ export const fetchCourseClassOptionsForScanner = createAsyncThunk<
 		const transformedOptions: CourseClassOption[] = [];
 
 		// Extract courses and timeSlots from the response
-		const { courses, timeSlots } = response.data;
+		const { courses, timeSlots } = responseData;
 
 		// Create combinations of courses and timeSlots
-		courses.forEach((course) => {
-			timeSlots.forEach((timeSlot) => {
+		courses.forEach((course: any) => {
+			timeSlots.forEach((timeSlot: any) => {
 				transformedOptions.push({
 					id: `${course.id}_${timeSlot.id}`, // Create a combined ID
 					courseName: course.name,
