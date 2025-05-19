@@ -396,7 +396,7 @@ export function AppleTechnologyDisplay() {
   ]
 
   return (
-    <div className={`space-y-8 ${isSmallScreen ? 'min-h-[40vh]' : 'min-h-[80vh]'}`}>
+    <div className={`space-y-8 ${isSmallScreen ? 'min-h-[20vh]' : 'min-h-[30vh]'}`}>
       {/* Apple-style segmented control */}
       <div className="flex justify-center mb-8">
         <div className="inline-flex bg-card/5 backdrop-blur-sm rounded-full p-1 border border-border/50">
@@ -443,7 +443,7 @@ export function AppleTechnologyDisplay() {
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                <h3 className="text-xl font-semibold text-center">Current Technologies</h3>
+                {/* <h3 className="text-xl font-semibold text-center">Current Technologies</h3> */}
                 <TechnologyMarquee
                   courses={currentCourses}
                   onClick={handleIconClick}
@@ -490,7 +490,7 @@ export function AppleTechnologyDisplay() {
                 transition={{ duration: 0.3 }}
                 className="space-y-4"
               >
-                <h3 className="text-xl font-semibold text-center">Future Technologies</h3>
+                {/* <h3 className="text-xl font-semibold text-center">Future Technologies</h3> */}
                 <TechnologyMarquee
                   courses={futureCourses}
                   onClick={handleIconClick}

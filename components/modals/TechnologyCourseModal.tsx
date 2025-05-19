@@ -179,7 +179,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
   // Find matching public course or use provided one
-  const matchedPublicCourse = findMatchingPublicCourse(techCourse, publicCourse);
+  const matchedPublicCourse = findMatchingPublicCourse(techCourse as CourseListing | undefined, publicCourse);
 
   // Ensure techCourse is not undefined
   const safeTechCourse = techCourse || {} as CourseListing;
@@ -506,7 +506,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                   </div>
 
                   {/* Footer with action buttons */}
-                  <div className="p-4 border-t flex justify-between items-center mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm">
+                  <div className="p-4 border-t flex justify-between items-center mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm flex-wrap gap-4">
                     <Button
                       variant="outline"
                       size="sm"
