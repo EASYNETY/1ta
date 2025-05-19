@@ -1,7 +1,7 @@
 // features/search/services/search-service.ts
 import { RootState } from "@/store";
-import { SearchResult } from "../types/search-types";
-import { helpSearchIndexer, enhanceSearchWithHelpContent } from "./help-search-indexer";
+import { SearchResult, SearchResultType } from "../types/search-types";
+import { enhanceSearchWithHelpContent } from "./help-search-indexer";
 
 /**
  * Search service that searches across the Redux store
@@ -34,16 +34,16 @@ export const searchService = {
           status: course.enrollmentStatus,
           image: course.image,
           category: course.category,
-          date: course.lastUpdated || course.enrollmentDate,
+          date: course.lastAccessedDate || course.enrollmentDate,
           metadata: {
             instructor: course.instructor?.name,
             level: course.level,
             progress: course.progress,
             priceUSD: course.priceUSD,
             discountPriceUSD: course.discountPriceUSD,
-            studentsEnrolled: course.studentsEnrolled,
-            rating: course.rating,
-            reviewsCount: course.reviewsCount,
+            // Include optional fields only if they exist
+            ...(course.lessonCount && { lessonCount: course.lessonCount }),
+            ...(course.moduleCount && { moduleCount: course.moduleCount }),
             courseId: course.id,
             slug: course.slug
           }
@@ -71,7 +71,7 @@ export const searchService = {
             courseId: assignment.courseId,
             courseTitle: assignment.courseTitle,
             pointsPossible: assignment.pointsPossible,
-            type: assignment.type || 'assignment',
+            assignmentType: 'assignment', // Default type for assignments
             allowLateSubmissions: assignment.allowLateSubmissions,
             createdAt: assignment.createdAt,
             updatedAt: assignment.updatedAt,
@@ -81,23 +81,24 @@ export const searchService = {
       }
     });
 
-    // Search grades
-    const grades = state.grades?.grades || [];
-    grades.forEach(grade => {
+    // Search grade items
+    const gradeItems = state.grades?.gradeItems || [];
+    gradeItems.forEach(gradeItem => {
       if (
-        grade.title.toLowerCase().includes(lowerQuery) ||
-        grade.courseName.toLowerCase().includes(lowerQuery)
+        gradeItem.title.toLowerCase().includes(lowerQuery) ||
+        (gradeItem.courseTitle && gradeItem.courseTitle.toLowerCase().includes(lowerQuery))
       ) {
         results.push({
-          id: grade.id,
-          title: grade.title,
-          description: `${grade.courseName} - Score: ${grade.score}%`,
+          id: gradeItem.id,
+          title: gradeItem.title,
+          description: `${gradeItem.courseTitle || 'Course'} - Points: ${gradeItem.pointsPossible}`,
           type: 'grade',
           href: `/grades`,
-          date: grade.date,
+          date: gradeItem.updatedAt,
           metadata: {
-            score: grade.score,
-            courseName: grade.courseName
+            pointsPossible: gradeItem.pointsPossible,
+            courseTitle: gradeItem.courseTitle,
+            courseId: gradeItem.courseId
           }
         });
       }
@@ -251,6 +252,9 @@ function mapNotificationTypeToSearchType(notificationType: string): SearchResult
     case 'grade': return 'grade';
     case 'course': return 'course';
     case 'payment': return 'payment';
+    case 'event': return 'event';
+    case 'help': return 'help';
+    case 'user': return 'user';
     default: return 'course'; // Default fallback
   }
 }
