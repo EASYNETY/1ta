@@ -21,7 +21,7 @@ interface HelpArticle {
 }
 
 // Complete help content database for search indexing
-const helpArticles: HelpArticle[] = [
+export const helpArticles: HelpArticle[] = [
   // Getting Started
   {
     title: 'Platform Overview',

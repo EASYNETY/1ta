@@ -205,14 +205,13 @@ export default function EditCoursePage() {
                     setError(`Course with slug "${slug}" not found.`);
                     setCourseData(null);
                 } else {
-                    // Basic permission check (Example: only admin or instructor can edit)
-                    // TODO: Add more specific permission logic if needed (e.g., only the specific instructor)
-                    if (user.role !== 'admin' && data.instructor?.id !== user.id) { // Adjust instructor check
+                    // Basic permission check (Example: only admin or teacher can edit, adjust if needed)
+                    if (user.role !== "admin" && user.role !== "teacher") { // Adjust permission check if needed (e.g., only the specific instructor)
                         setError("You do not have permission to edit this course.");
                         setCourseData(null);
                     } else {
-                        setCourseData(data);
-                        const formattedData = formatCourseDataForForm(data);
+                        setCourseData(data as any);
+                        const formattedData = formatCourseDataForForm(data as any);
                         form.reset(formattedData); // Reset form with fetched & formatted data
                     }
                 }

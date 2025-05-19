@@ -296,7 +296,7 @@ export function SearchFilters() {
                     <Calendar
                       initialFocus
                       mode="range"
-                      defaultMonth={filters.dateRange?.from}
+                      defaultMonth={filters.dateRange?.from as Date}
                       selected={filters.dateRange as any}
                       onSelect={(range) => handleDateRangeChange(range as DateRange)}
                       numberOfMonths={2}

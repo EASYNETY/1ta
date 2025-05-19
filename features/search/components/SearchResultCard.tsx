@@ -256,7 +256,7 @@ function getResultActions(result: SearchResult) {
 
   // Default actions
   let primaryAction = null;
-  let secondaryActions = [];
+  let secondaryActions: any[] = [];
 
   switch (result.type) {
     case 'course':

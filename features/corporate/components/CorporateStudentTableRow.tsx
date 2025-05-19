@@ -19,7 +19,7 @@ interface CorporateStudentTableRowProps {
 }
 
 // Helper function to get status badge (modify if needed for student status)
-const getStudentStatusBadge = (isActive: boolean) => {
+const getStudentStatusBadge = (isActive?: boolean) => {
     return isActive ? (
         <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-100 dark:border-green-700 whitespace-nowrap">
             <CheckCircle className="mr-1 h-3 w-3" /> Active
