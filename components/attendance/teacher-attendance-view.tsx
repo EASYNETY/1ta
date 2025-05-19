@@ -40,7 +40,7 @@ import { Label } from "@/components/ui/label"; // Adjusted path
 import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice";
 import { useToast } from "@/hooks/use-toast";
 import { CourseClassOption } from "@/features/classes/types/classes-types";
-import { selectAllCourseClassOptions, selectCourseClassOptionsStatus } from "@/features/classes/store/classes-slice";
+import { selectAllCourseClassOptions, selectCourseClassOptionsStatus, setCourseClassOptionStatus } from "@/features/classes/store/classes-slice";
 import { fetchCourseClassOptionsForScanner } from "@/features/classes/store/classes-thunks";
 
 
@@ -345,7 +345,7 @@ export function TeacherAttendanceView() {
           <Select
             value={selectedClass?.id || ""}
             onValueChange={handleClassChange}
-            disabled={classOptionsLoading && classOptionsStatus !== 'succeeded'}
+            disabled={classOptionsStatus === 'loading'}
           >
             <SelectTrigger id="courseClassSelect" className="w-full sm:w-auto sm:min-w-[300px] flex-grow">
               <SelectValue placeholder="Select a class to view attendance..." />
