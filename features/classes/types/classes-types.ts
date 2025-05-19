@@ -1,15 +1,27 @@
 // features/classes/types/classes-types.ts (Example - Ensure it has needed fields)
 export interface AdminClassView {
 	id: string;
-	courseTitle: string;
+	name?: string; // Backend uses 'name' instead of 'courseTitle'
+	courseTitle?: string; // Frontend uses 'courseTitle'
 	courseId?: string; // Add if needed to link back
+	course_id?: string; // Backend might use snake_case
 	teacherName?: string;
 	teacherId?: string; // Important for assignment
-	studentCount: number;
+	teacher_id?: string; // Backend might use snake_case
+	studentCount?: number; // Frontend calculated field
+	max_students?: number; // Backend field
 	status: "active" | "upcoming" | "inactive" | "archived" | string; // Make status flexible
-	startDate?: string; // ISO String
-	endDate?: string; // ISO String
+	is_active?: boolean; // Backend might use this instead of status
+	startDate?: string; // Frontend format
+	endDate?: string; // Frontend format
+	start_date?: string; // Backend format
+	end_date?: string; // Backend format
 	description?: string; // Add description if needed
+	schedule?: any; // Backend might return schedule object
+	location?: string;
+	metadata?: any;
+	createdAt?: string;
+	updatedAt?: string;
 	// Add any other fields managed for a class
 }
 

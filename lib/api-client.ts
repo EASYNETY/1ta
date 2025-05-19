@@ -365,7 +365,12 @@ async function apiClient<T>(
 
 		const contentType = response.headers.get("content-type");
 		if (contentType && contentType.includes("application/json")) {
-			const data = await response.json();
+			const responseData = await response.json();
+
+			// Handle nested response structure (success, data, pagination)
+			// If the response has a 'data' property, return just the data
+			// This makes the API client compatible with both direct and nested responses
+			const data = responseData.data !== undefined ? responseData.data : responseData;
 
 			// Cache successful GET responses
 			if (method === "GET") {

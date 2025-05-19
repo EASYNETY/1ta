@@ -92,8 +92,41 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 			// The apiClient's `get` function takes the base endpoint, and options.url can pass the full path with query
 			// Or, construct the full path here:
 			const endpointWithPath = `/admin/classes?${queryParams.toString()}`;
-			const response = await get<FetchAdminClassesResult>(endpointWithPath); // Assuming API returns this structure
-			return response;
+
+			// Get the response from the API
+			const response = await get<any>(endpointWithPath);
+
+			// Handle both direct and nested response structures
+			if (response.success && response.data && response.pagination) {
+				// Backend returns nested structure with success, data, and pagination
+
+				// Map backend fields to frontend fields
+				const mappedClasses = response.data.map((cls: any) => ({
+					id: cls.id,
+					courseTitle: cls.name || cls.courseTitle, // Use name as courseTitle if available
+					courseId: cls.course_id || cls.courseId,
+					teacherName: cls.teacherName,
+					teacherId: cls.teacher_id || cls.teacherId,
+					studentCount: cls.studentCount || 0, // Default to 0 if not provided
+					status: cls.is_active ? "active" : "inactive", // Map is_active to status
+					startDate: cls.start_date || cls.startDate,
+					endDate: cls.end_date || cls.endDate,
+					description: cls.description,
+					// Keep original fields too for reference
+					...cls
+				}));
+
+				return {
+					classes: mappedClasses,
+					total: response.pagination.total,
+					page: response.pagination.page,
+					limit: response.pagination.limit,
+					totalPages: response.pagination.pages
+				};
+			} else {
+				// Direct response structure (already handled by API client)
+				return response;
+			}
 		} catch (e: any) {
 			const errorMessage =
 				e.response?.data?.message ||
@@ -159,7 +192,29 @@ export const fetchClassById = createAsyncThunk<
 	{ rejectValue: string }
 >("classes/fetchById", async (classId, { rejectWithValue }) => {
 	try {
-		const response = await get<AdminClassView>(`/classes/${classId}`);
+		const response = await get<any>(`/classes/${classId}`);
+
+		// Handle nested response structure
+		if (response.success && response.data) {
+			const cls = response.data;
+			// Map backend fields to frontend fields
+			return {
+				id: cls.id,
+				courseTitle: cls.name || cls.courseTitle, // Use name as courseTitle if available
+				courseId: cls.course_id || cls.courseId,
+				teacherName: cls.teacherName,
+				teacherId: cls.teacher_id || cls.teacherId,
+				studentCount: cls.studentCount || 0, // Default to 0 if not provided
+				status: cls.is_active ? "active" : "inactive", // Map is_active to status
+				startDate: cls.start_date || cls.startDate,
+				endDate: cls.end_date || cls.endDate,
+				description: cls.description,
+				// Keep original fields too for reference
+				...cls
+			};
+		}
+
+		// Direct response structure (already handled by API client)
 		return response;
 	} catch (e: any) {
 		const errorMessage =
@@ -176,7 +231,42 @@ export const createClass = createAsyncThunk<
 	{ rejectValue: string }
 >("classes/create", async (classData, { rejectWithValue }) => {
 	try {
-		const response = await post<AdminClassView>("/classes", classData);
+		// Map frontend fields to backend fields
+		const backendData = {
+			name: classData.courseTitle,
+			course_id: classData.courseId,
+			teacher_id: classData.teacherId,
+			is_active: classData.status === "active",
+			start_date: classData.startDate,
+			end_date: classData.endDate,
+			description: classData.description,
+			// Include other fields as needed
+			...classData
+		};
+
+		const response = await post<any>("/classes", backendData);
+
+		// Handle nested response structure
+		if (response.success && response.data) {
+			const cls = response.data;
+			// Map backend fields to frontend fields
+			return {
+				id: cls.id,
+				courseTitle: cls.name || cls.courseTitle,
+				courseId: cls.course_id || cls.courseId,
+				teacherName: cls.teacherName,
+				teacherId: cls.teacher_id || cls.teacherId,
+				studentCount: cls.studentCount || 0,
+				status: cls.is_active ? "active" : "inactive",
+				startDate: cls.start_date || cls.startDate,
+				endDate: cls.end_date || cls.endDate,
+				description: cls.description,
+				// Keep original fields too for reference
+				...cls
+			};
+		}
+
+		// Direct response structure (already handled by API client)
 		return response;
 	} catch (e: any) {
 		const errorMessage =
@@ -196,7 +286,41 @@ export const updateClass = createAsyncThunk<
 		return rejectWithValue("Class ID is required for update.");
 	}
 	try {
-		const response = await put<AdminClassView>(`/classes/${id}`, updateData);
+		// Map frontend fields to backend fields
+		const backendData = {
+			...(updateData.courseTitle && { name: updateData.courseTitle }),
+			...(updateData.courseId && { course_id: updateData.courseId }),
+			...(updateData.teacherId && { teacher_id: updateData.teacherId }),
+			...(updateData.status && { is_active: updateData.status === "active" }),
+			...(updateData.startDate && { start_date: updateData.startDate }),
+			...(updateData.endDate && { end_date: updateData.endDate }),
+			// Include other fields as needed
+			...updateData
+		};
+
+		const response = await put<any>(`/classes/${id}`, backendData);
+
+		// Handle nested response structure
+		if (response.success && response.data) {
+			const cls = response.data;
+			// Map backend fields to frontend fields
+			return {
+				id: cls.id,
+				courseTitle: cls.name || cls.courseTitle,
+				courseId: cls.course_id || cls.courseId,
+				teacherName: cls.teacherName,
+				teacherId: cls.teacher_id || cls.teacherId,
+				studentCount: cls.studentCount || 0,
+				status: cls.is_active ? "active" : "inactive",
+				startDate: cls.start_date || cls.startDate,
+				endDate: cls.end_date || cls.endDate,
+				description: cls.description,
+				// Keep original fields too for reference
+				...cls
+			};
+		}
+
+		// Direct response structure (already handled by API client)
 		return response;
 	} catch (e: any) {
 		const errorMessage =
@@ -211,12 +335,20 @@ export const deleteClass = createAsyncThunk<
 	{ rejectValue: string }
 >("classes/delete", async (classId, { rejectWithValue }) => {
 	try {
-		// Assuming API returns 204 No Content or a simple success on delete
-		// The `del` helper in apiClient might return `undefined` for 204 or an object.
-		// If it returns undefined, the thunk will fulfill with `undefined`.
-		// If your slice needs the ID, ensure the API or mock handler returns it or handle `undefined`.
-		await del<void>(`/classes/${classId}`); // Or specific success response type
-		return classId; // Return classId for the reducer to identify which item to remove
+		// The backend might return a nested response structure
+		const response = await del<any>(`/classes/${classId}`);
+
+		// Handle nested response structure
+		if (response && response.success) {
+			// If the backend returns a success message, return the classId
+			return classId;
+		} else if (response) {
+			// If the backend returns something else, still return the classId
+			return classId;
+		}
+
+		// Default case - return the classId so the reducer knows which to remove
+		return classId;
 	} catch (e: any) {
 		const errorMessage =
 			e.response?.data?.message || e.message || "Failed to delete class";
