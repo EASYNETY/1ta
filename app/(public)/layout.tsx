@@ -26,9 +26,19 @@ export default function AuthLayout({
     <div className="flex flex-col min-h-screen">
       <NavBar />
       <main className="flex-1 flex items-center justify-center relative min-h-screen">
-      <AbstractBackground className="opacity-90 dark:opacity-80" />
+        <AbstractBackground className="opacity-90 dark:opacity-80" />
         <div className="w-full relative z-10 py-12 px-4">
           <div className="flex items-center justify-center mb-8">
+            {mounted && currentTheme && (
+              <Image
+                src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                alt="1techacademy Logo"
+                className="h-10 w-auto"
+                priority
+                width={80}
+                height={14}
+              />
+            )}
             {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
           </div>
           {children}
