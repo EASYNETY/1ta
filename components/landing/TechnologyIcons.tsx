@@ -42,22 +42,22 @@ const containerVariants = {
 
 const iconVariants = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    transition: { 
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
       type: "spring",
       stiffness: 300,
       damping: 25,
-      duration: 0.4 
-    } 
+      duration: 0.4
+    }
   },
-  hover: { 
+  hover: {
     scale: 1.15,
-    transition: { 
+    transition: {
       type: "spring",
       stiffness: 400,
-      damping: 10 
+      damping: 10
     }
   },
   tap: { scale: 0.95 }
@@ -71,23 +71,23 @@ const backdropVariants = {
 
 const modalVariants = {
   hidden: { opacity: 0, scale: 0.9, y: 20 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    y: 0, 
-    transition: { 
+  visible: {
+    opacity: 1,
+    scale: 1,
+    y: 0,
+    transition: {
       type: "spring",
       stiffness: 300,
-      damping: 25 
-    } 
+      damping: 25
+    }
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.9, 
-    y: 20, 
-    transition: { 
-      duration: 0.3 
-    } 
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: 20,
+    transition: {
+      duration: 0.3
+    }
   }
 }
 
@@ -111,30 +111,8 @@ export function TechnologyIcons() {
         const data = await response.json()
 
         if (data.success && Array.isArray(data.data)) {
-          // Sort ISO certifications in the correct order
-          const sortedData = [...data.data].sort((a, b) => {
-            // First, separate ISO certifications
-            if (a.isIsoCertification && b.isIsoCertification) {
-              // Sort ISO certifications in the specified order
-              const isoOrder = {
-                "ISO 9001": 1,
-                "ISO 27001": 2,
-                "ISO 20000": 3
-              }
-              
-              // Extract ISO number from name
-              const aIsoNumber = a.name.match(/ISO\s+(\d+)/)?.[0] || ""
-              const bIsoNumber = b.name.match(/ISO\s+(\d+)/)?.[0] || ""
-              
-              return (isoOrder[aIsoNumber as keyof typeof isoOrder] || 999) - 
-                     (isoOrder[bIsoNumber as keyof typeof isoOrder] || 999)
-            }
-            
-            // Non-ISO courses maintain their original order
-            return 0
-          })
-          
-          setCourses(sortedData)
+          // Set courses directly - we'll handle sorting in the grouping logic
+          setCourses(data.data)
         } else {
           throw new Error('Invalid API response format')
         }
@@ -162,9 +140,27 @@ export function TechnologyIcons() {
   }
 
   // Group courses by category
-  const currentCourses = courses.filter(course => course.category === "current")
-  const futureCourses = courses.filter(course => course.category === "future")
-  const isoCertifications = courses.filter(course => course.isIsoCertification)
+  const currentCourses = courses.filter(course => course.category === "current" && !course.isIsoCertification)
+
+  // Combine future courses and ISO certifications, with ISO certifications sorted in the specified order
+  const futureCourses = [
+    ...courses.filter(course => course.category === "future" && !course.isIsoCertification),
+    ...courses.filter(course => course.isIsoCertification).sort((a, b) => {
+      // Sort ISO certifications in the specified order
+      const isoOrder = {
+        "ISO 9001": 1,
+        "ISO 27001": 2,
+        "ISO 20000": 3
+      }
+
+      // Extract ISO number from name
+      const aIsoNumber = a.name.match(/ISO\s+(\d+)/)?.[0] || ""
+      const bIsoNumber = b.name.match(/ISO\s+(\d+)/)?.[0] || ""
+
+      return (isoOrder[aIsoNumber as keyof typeof isoOrder] || 999) -
+             (isoOrder[bIsoNumber as keyof typeof isoOrder] || 999)
+    })
+  ]
 
   if (isLoading) {
     return (
@@ -188,17 +184,17 @@ export function TechnologyIcons() {
       {currentCourses.length > 0 && (
         <div>
           <h3 className="text-2xl font-bold mb-6">Current Technologies</h3>
-          <motion.div 
+          <motion.div
             className="flex flex-wrap gap-8 justify-center"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
             {currentCourses.map((course) => (
-              <TechnologyIcon 
-                key={course.id} 
-                course={course} 
-                onClick={() => handleIconClick(course)} 
+              <TechnologyIcon
+                key={course.id}
+                course={course}
+                onClick={() => handleIconClick(course)}
               />
             ))}
           </motion.div>
@@ -208,44 +204,25 @@ export function TechnologyIcons() {
       {/* Future Technologies */}
       {futureCourses.length > 0 && (
         <div>
-          <h3 className="text-2xl font-bold mb-6">Future Technologies</h3>
-          <motion.div 
+          <h3 className="text-2xl font-bold mb-6">Future Technologies & ISO Certifications</h3>
+          <motion.div
             className="flex flex-wrap gap-8 justify-center"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
             {futureCourses.map((course) => (
-              <TechnologyIcon 
-                key={course.id} 
-                course={course} 
-                onClick={() => handleIconClick(course)} 
+              <TechnologyIcon
+                key={course.id}
+                course={course}
+                onClick={() => handleIconClick(course)}
               />
             ))}
           </motion.div>
         </div>
       )}
 
-      {/* ISO Certifications */}
-      {isoCertifications.length > 0 && (
-        <div>
-          <h3 className="text-2xl font-bold mb-6">ISO Certifications</h3>
-          <motion.div 
-            className="flex flex-wrap gap-8 justify-center"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-          >
-            {isoCertifications.map((course) => (
-              <TechnologyIcon 
-                key={course.id} 
-                course={course} 
-                onClick={() => handleIconClick(course)} 
-              />
-            ))}
-          </motion.div>
-        </div>
-      )}
+
 
       {/* Course Details Modal */}
       <AnimatePresence>
@@ -303,7 +280,7 @@ export function TechnologyIcons() {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Prerequisites</h3>
                     <p className="text-muted-foreground">
-                      {selectedCourse.tags && selectedCourse.tags.length > 0 
+                      {selectedCourse.tags && selectedCourse.tags.length > 0
                         ? `Knowledge of ${selectedCourse.tags.join(", ")} is recommended.`
                         : "No specific prerequisites required."}
                     </p>
