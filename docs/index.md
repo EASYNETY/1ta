@@ -28,6 +28,7 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 
 ### 🎨 UI Design
 - [UI Design Guidelines](./ui/README.md)
+- [UI Design Philosophy](./ui/ui-design-philosophy.md)
 - [Apple-Inspired Design](./ui/apple-inspired-design.md)
 
 ### 🔌 API Integration

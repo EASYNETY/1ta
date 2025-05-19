@@ -4,6 +4,7 @@ This folder contains documentation related to the UI design of the SmartEdu plat
 
 ## Contents
 
+- [UI Design Philosophy](./ui-design-philosophy.md) - Core principles and philosophies guiding our UI design
 - [Apple-Inspired Design](./apple-inspired-design.md) - Documentation for the Apple-inspired design system
 
 ## Overview
