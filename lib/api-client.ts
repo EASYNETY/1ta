@@ -366,11 +366,44 @@ async function apiClient<T>(
 		const contentType = response.headers.get("content-type");
 		if (contentType && contentType.includes("application/json")) {
 			const responseData = await response.json();
+			console.log(`API response for ${endpoint}:`, responseData);
 
 			// Handle nested response structure (success, data, pagination)
 			// If the response has a 'data' property, return just the data
 			// This makes the API client compatible with both direct and nested responses
-			const data = responseData.data !== undefined ? responseData.data : responseData;
+			let data;
+
+			// Check if this is a nested response with success and data fields
+			if (responseData.success !== undefined && responseData.data !== undefined) {
+				// For endpoints with pagination, preserve the pagination info
+				if (responseData.pagination ||
+					(responseData.data && responseData.data.pagination) ||
+					endpoint.includes('?page=') ||
+					endpoint.includes('&page=')) {
+
+					// If pagination is directly in the response
+					if (responseData.pagination) {
+						data = {
+							...responseData.data,
+							pagination: responseData.pagination
+						};
+					}
+					// If pagination is nested inside data
+					else if (responseData.data && responseData.data.pagination) {
+						data = responseData.data;
+					}
+					// Otherwise, just return the data
+					else {
+						data = responseData.data;
+					}
+				} else {
+					// For non-paginated endpoints, just return the data
+					data = responseData.data;
+				}
+			} else {
+				// Direct response structure (no success/data nesting)
+				data = responseData;
+			}
 
 			// Cache successful GET responses
 			if (method === "GET") {
@@ -433,9 +466,25 @@ export async function handleMockRequest<T>(
 		"color: blue; font-weight: bold;"
 	);
 
+	// Helper function to standardize response format
+	const standardizeResponse = (data: any, message: string = "Operation successful") => {
+		// If the data is already in the standard format, return it as is
+		if (data && data.success !== undefined && data.data !== undefined) {
+			return data;
+		}
+
+		// Otherwise, wrap it in the standard format
+		return {
+			success: true,
+			data: data,
+			message: message
+		};
+	};
+
 	// --- Courses
 	if (endpoint === "/courses" && method === "get") {
-		return (await getMockCourses()) as unknown as T;
+		const courses = await getMockCourses();
+		return standardizeResponse(courses, "Courses fetched successfully") as unknown as T;
 	}
 	if (endpoint === "/public_courses" && method === "get") {
 		if (IS_LIVE_API) {
@@ -470,7 +519,9 @@ export async function handleMockRequest<T>(
 	if (courseSlugMatch && method === "get") {
 		const slug = courseSlugMatch[1];
 		const course = await getMockCourseBySlug(slug);
-		if (course) return course as unknown as T;
+		if (course) {
+			return standardizeResponse(course, `Course with slug "${slug}" fetched successfully`) as unknown as T;
+		}
 		throw new Error(`Mock API: Course with slug "${slug}" not found`);
 	}
 
