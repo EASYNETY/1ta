@@ -97,7 +97,7 @@ export function DatePickerWithYearMonth({
                     )}
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, isSm ? "MMM yyyy" : "PPP") : placeholder}
+                    {date ? format(date, isSm ? "EEE, d MMM yyyy" : "EEEE, d MMMM yyyy") : placeholder}
                 </Button>
             </PopoverTrigger>
 

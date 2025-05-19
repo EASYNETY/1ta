@@ -160,7 +160,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                             placeholder="Select start date"
                                         />
                                         <FormDescription>
-                                            {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                            {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -182,7 +182,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                             fromDate={form.getValues('startDate')}
                                         />
                                         <FormDescription>
-                                            {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                            {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>

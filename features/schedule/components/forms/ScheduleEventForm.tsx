@@ -203,7 +203,7 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
                                     placeholder="Select event date"
                                 />
                                 <FormDescription>
-                                    {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                    {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}
                                 </FormDescription>
                                 <FormMessage />
                             </FormItem>

@@ -101,7 +101,7 @@ export function ScheduleEventFilters({
                         toDate={filters.dateTo} // Prevent start date being after end date
                     />
                     <div className="text-xs text-muted-foreground mt-1">
-                        {filters.dateFrom ? filters.dateFrom.toLocaleDateString() : "No date selected"}
+                        {filters.dateFrom ? filters.dateFrom.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : "No date selected"}
                     </div>
                 </div>
 
@@ -119,7 +119,7 @@ export function ScheduleEventFilters({
                         fromDate={filters.dateFrom} // Prevent end date being before start date
                     />
                     <div className="text-xs text-muted-foreground mt-1">
-                        {filters.dateTo ? filters.dateTo.toLocaleDateString() : "No date selected"}
+                        {filters.dateTo ? filters.dateTo.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : "No date selected"}
                     </div>
                 </div>
 

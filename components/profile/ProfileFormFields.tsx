@@ -194,7 +194,7 @@ export function ProfileFormFields({
                                 ariaLabel="Select Date of Birth"
                             />
                             <FormDescription>
-                                {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}
                             </FormDescription>
                             {isOnboarding && !isCorporateManager && (
                                 <FormDescription>Required for individual students.</FormDescription>

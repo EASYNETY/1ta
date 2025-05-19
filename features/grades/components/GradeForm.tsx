@@ -227,7 +227,7 @@ export default function GradeForm({ isEditing = false, gradeItemId }: GradeFormP
                                                             variant={"outline"}
                                                             className={`w-full pl-3 text-left font-normal ${!field.value ? "text-muted-foreground" : ""}`}
                                                         >
-                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                            {field.value ? format(field.value, "EEE, d MMM yyyy") : <span>Pick a date</span>}
                                                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                         </Button>
                                                     </FormControl>
@@ -252,7 +252,7 @@ export default function GradeForm({ isEditing = false, gradeItemId }: GradeFormP
                                                 </PopoverContent>
                                             </Popover>
                                             <FormDescription>
-                                                {field.value ? `Selected: ${field.value.toLocaleDateString()}` : "No date selected"}
+                                                {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}
                                             </FormDescription>
                                             <FormDescription>Leave empty if there is no specific due date.</FormDescription>
                                             <FormMessage />
