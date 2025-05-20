@@ -8,6 +8,7 @@ import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { Cookie, ExternalLink, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 export default function CookiesPolicyPage() {
   return (
@@ -25,11 +26,17 @@ export default function CookiesPolicyPage() {
         <Tabs defaultValue="overview" className="w-full">
           <div className="p-4 border-b">
             <ScrollArea className="w-full whitespace-nowrap">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="types">Cookie Types</TabsTrigger>
-                <TabsTrigger value="usage">How We Use Cookies</TabsTrigger>
-                <TabsTrigger value="control">Your Choices</TabsTrigger>
+              <TabsList className={cn(
+                // Mobile first (scrollable)
+                "inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground",
+                "gap-1", // Add gap between items for scrolling
+                // SM breakpoint and up (grid)
+                "sm:grid sm:w-full sm:grid-cols-4 sm:justify-center sm:gap-2"
+              )}>
+                <TabsTrigger value="overview" className="sm:flex-1">Overview</TabsTrigger>
+                <TabsTrigger value="types" className="sm:flex-1">Cookie Types</TabsTrigger>
+                <TabsTrigger value="usage" className="sm:flex-1">How We Use Cookies</TabsTrigger>
+                <TabsTrigger value="control" className="sm:flex-1">Your Choices</TabsTrigger>
               </TabsList>
               <ScrollBar orientation="horizontal" className="h-2 sm:hidden" />
             </ScrollArea>
