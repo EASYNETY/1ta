@@ -75,11 +75,11 @@ function AvatarWithVerification({
       <Avatar className={className} {...props} />
 
       {showVerification && isActive && (
-        <div className="absolute -bottom-1 -right-1">
+        <div className="absolute -top-1 -right-1">
           <VerificationBadge
             size={verificationSize}
             color="gold"
-            tooltipText={`${user.name} is an active user`}
+            tooltipText={`${user.name} is a verified active user`}
           />
         </div>
       )}
