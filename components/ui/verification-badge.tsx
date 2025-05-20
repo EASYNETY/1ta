@@ -66,23 +66,16 @@ export function VerificationBadge({
       )}
       {...props}
     >
-      <div className={cn(
-        "rounded-full",
-        "bg-background p-[2px]", // Add a small white ring around the badge
-        "ring-1 ring-border", // Add a subtle border
-        size === "xs" ? "p-[1px]" : size === "sm" ? "p-[2px]" : "p-[3px]"
-      )}>
-        <CheckCircle
-          size={size === "xs" ? 14 : size === "sm" ? 16 : size === "md" ? 20 : 24}
-          weight="fill"
-          className={cn(
-            "drop-shadow-sm",
-            color === "gold" ? "text-amber-500" :
-            color === "blue" ? "text-blue-500" :
-            "text-primary"
-          )}
-        />
-      </div>
+      <CheckCircle
+        size={size === "xs" ? 14 : size === "sm" ? 16 : size === "md" ? 20 : 24}
+        weight="fill"
+        className={cn(
+          "drop-shadow-md",
+          color === "gold" ? "text-amber-500" :
+          color === "blue" ? "text-blue-500" :
+          "text-primary"
+        )}
+      />
     </div>
   );
 
