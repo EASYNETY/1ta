@@ -4,6 +4,7 @@ import { User } from "@/types/user.types";
 import clsx from "clsx";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { useToast } from "@/hooks/use-toast";
+import { AvatarWithVerification } from "@/components/ui/avatar";
 
 interface ProfileAvatarInfoProps {
     user: User | null;
@@ -63,6 +64,8 @@ export function ProfileAvatarInfo({ user, onAvatarChange }: ProfileAvatarInfoPro
                     name={user.name || "User"}
                     size="xl"
                     onUrlChange={handleAvatarChange}
+                    user={user}
+                    showVerification={true}
                     uploadOptions={{
                         folder: "avatars",
                         onUploadError: (error) => {

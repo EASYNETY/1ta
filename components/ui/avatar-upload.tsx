@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage, AvatarWithVerification } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2, Pencil, X } from 'lucide-react';
 import { useMediaUpload, UseMediaUploadOptions } from '@/hooks/use-media-upload';
 import { MediaType } from '@/lib/services/media-upload-service';
+import { User } from '@/types/user.types';
 
 export interface AvatarUploadProps {
   /**
@@ -43,6 +44,17 @@ export interface AvatarUploadProps {
    * Additional class name
    */
   className?: string;
+
+  /**
+   * User object to show verification badge for active users
+   */
+  user?: User | null;
+
+  /**
+   * Whether to show the verification badge
+   * @default true
+   */
+  showVerification?: boolean;
 }
 
 /**
@@ -56,6 +68,8 @@ export function AvatarUpload({
   onUrlChange,
   uploadOptions,
   className,
+  user,
+  showVerification = true,
 }: AvatarUploadProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isTouched, setIsTouched] = useState(false);
@@ -150,10 +164,21 @@ export function AvatarUpload({
         onTouchEnd={handleTouchEnd}
         onClick={!isUploading && !disabled ? handleFileSelect : undefined}
       >
-        <Avatar className={`${sizeClasses[size]} ${className}`}>
-          <AvatarImage src={previewUrl || initialUrl || undefined} />
-          <AvatarFallback className="bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{getInitials(name)}</AvatarFallback>
-        </Avatar>
+        {user && showVerification ? (
+          <AvatarWithVerification
+            user={user}
+            className={`${sizeClasses[size]} ${className}`}
+            verificationSize={size === 'sm' ? 'xs' : size === 'md' ? 'sm' : 'md'}
+          >
+            <AvatarImage src={previewUrl || initialUrl || undefined} />
+            <AvatarFallback className="bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{getInitials(name)}</AvatarFallback>
+          </AvatarWithVerification>
+        ) : (
+          <Avatar className={`${sizeClasses[size]} ${className}`}>
+            <AvatarImage src={previewUrl || initialUrl || undefined} />
+            <AvatarFallback className="bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{getInitials(name)}</AvatarFallback>
+          </Avatar>
+        )}
 
         {/* Edit overlay - show on hover or touch */}
         {(isHovering || isTouched) && !isUploading && !disabled && (
