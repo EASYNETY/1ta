@@ -74,7 +74,7 @@ function AvatarWithVerification({
 
   // Position the badge relative to the avatar border
   const getBadgePosition = () => {
-    return "absolute top-[10%] right-[10%] transform translate-x-1/4 translate-y-1/4";
+    return "absolute -top-1 -right-[1px] transform translate-x-1/4 translate-y-1/4";
   };
 
   return (

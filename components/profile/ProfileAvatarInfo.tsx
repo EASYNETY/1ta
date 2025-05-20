@@ -1,10 +1,10 @@
 // components/profile/ProfileAvatarInfo.tsx
 import { User as UserIcon } from "lucide-react";
 import { User } from "@/types/user.types";
-import clsx from "clsx";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarWithVerification } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface ProfileAvatarInfoProps {
     user: User | null;
@@ -38,7 +38,7 @@ export function ProfileAvatarInfo({ user, onAvatarChange }: ProfileAvatarInfoPro
     };
 
     // Badge styling logic
-    const badgeStyle = clsx(
+    const badgeStyle = cn(
         "mt-1 px-3 py-1 rounded-full text-sm capitalize font-medium",
         {
             "bg-primary/10 text-primary": user.role !== "student", // Default non-student styling

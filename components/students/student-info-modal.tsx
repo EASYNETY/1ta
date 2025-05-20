@@ -96,7 +96,7 @@ export function StudentInfoModal({
 
     return (
         // Prevent closing on overlay click if an action is in progress (e.g., apiStatus === 'loading')
-        <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleCloseAndResume(); }}>
+        <Dialog open={isOpen} onOpenChange={(open: boolean) => { if (!open) handleCloseAndResume(); }}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>{getDialogTitle()}</DialogTitle>
