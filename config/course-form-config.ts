@@ -55,15 +55,20 @@ export const LESSON_TYPES: LessonFormValues["type"][] = [
 ];
 
 // Default empty values for lessons/modules when adding new ones
-export const defaultLessonValues: Omit<LessonFormValues, "id"> = {
-	title: "",
-	type: "video",
+export const defaultLessonValues = {
+	title: "New Lesson",
+	type: "video" as LessonFormValues["type"],
 	duration: "", // e.g., "00:10:00" or "10" for minutes
 	description: "",
 };
 
-export const defaultModuleValues: Omit<ModuleFormValues, "id"> = {
-	title: "Module 1",
+export const defaultModuleValues = {
+	title: "New Module",
 	description: "",
-	lessons: [{ ...defaultLessonValues, title: "Lesson 1" }], // Start with one lesson
+	lessons: [{
+		title: "Lesson 1",
+		type: "video" as LessonFormValues["type"],
+		duration: "",
+		description: ""
+	}], // Start with one lesson
 };

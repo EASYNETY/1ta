@@ -2,53 +2,41 @@
 import { z } from "zod";
 
 export const lessonSchema = z.object({
-	title: z.string().min(1, "Lesson title is required").default(""),
+	title: z.string().min(1, "Lesson title is required"),
 	type: z.enum(["video", "quiz", "assignment", "text", "download"], {
 		required_error: "Please select a lesson type.",
 	}),
-	duration: z.string().optional().default(""),
-	description: z.string().optional().default(""),
+	duration: z.string().optional(),
+	description: z.string().optional(),
 });
 
 export type LessonFormValues = z.infer<typeof lessonSchema>;
 
 export const moduleSchema = z.object({
-	title: z.string().min(1, "Module title is required").default(""),
-	description: z.string().optional().default(""),
+	title: z.string().min(1, "Module title is required"),
+	description: z.string().optional(),
 	lessons: z
 		.array(lessonSchema)
-		.min(1, "Each module must have at least one lesson.")
-		.default([
-			{
-				title: "",
-				type: "video",
-				duration: "",
-				description: "",
-			},
-		]),
+		.min(1, "Each module must have at least one lesson."),
 });
 
 export type ModuleFormValues = z.infer<typeof moduleSchema>;
 
 export const courseSchema = z.object({
-	title: z.string().min(5, "Title must be at least 5 characters").default(""),
-	subtitle: z.string().optional().default(""),
+	title: z.string().min(5, "Title must be at least 5 characters"),
+	subtitle: z.string().optional(),
 	description: z
 		.string()
-		.min(20, "Description must be at least 20 characters")
-		.default(""),
+		.min(20, "Description must be at least 20 characters"),
 	category: z
-		.string({ required_error: "Please select a category." })
-		.default(""),
+		.string({ required_error: "Please select a category." }),
 	level: z
 		.enum(["Beginner", "Intermediate", "Advanced", "All Levels"], {
 			required_error: "Please select a level.",
-		})
-		.default("All Levels"),
+		}),
 	price: z.coerce
 		.number()
-		.min(0, "Price must be a positive number or zero.")
-		.default(0),
+		.min(0, "Price must be a positive number or zero."),
 	discountPrice: z
 		.union([
 			z.coerce.number().min(0, "Discount price must be positive or zero"),
@@ -56,36 +44,28 @@ export const courseSchema = z.object({
 			z.literal(""),
 		])
 		.optional()
-		.transform((val) => (isNaN(val as number) || val === "" ? undefined : val))
-		.refine((val) => val === undefined || val >= 0, {
+		.transform((val) => {
+			// Handle empty string, NaN, or undefined cases
+			if (val === "" || val === undefined || (typeof val === 'number' && isNaN(val))) {
+				return undefined;
+			}
+			// Ensure we return a number
+			return typeof val === 'number' ? val : Number(val);
+		})
+		.refine((val) => val === undefined || (typeof val === 'number' && val >= 0), {
 			message: "Discount price must be positive or zero",
 		}),
-	language: z.string().default("English"),
-	certificate: z.boolean().default(true),
-	accessType: z.enum(["Lifetime", "Limited"]).default("Lifetime"),
+	language: z.string(),
+	certificate: z.boolean(),
+	accessType: z.enum(["Lifetime", "Limited"]),
 	supportType: z
-		.enum(["Instructor", "Community", "Both", "None"])
-		.default("Both"),
-	tags: z.string().optional().default(""),
-	learningOutcomes: z.string().optional().default(""),
-	prerequisites: z.string().optional().default(""),
+		.enum(["Instructor", "Community", "Both", "None"]),
+	tags: z.string().optional(),
+	learningOutcomes: z.string().optional(),
+	prerequisites: z.string().optional(),
 	modules: z
 		.array(moduleSchema)
-		.min(1, "Course must have at least one module.")
-		.default([
-			{
-				title: "",
-				description: "",
-				lessons: [
-					{
-						title: "",
-						type: "video",
-						duration: "",
-						description: "",
-					},
-				],
-			},
-		]),
+		.min(1, "Course must have at least one module."),
 });
 
 export type CourseFormValues = z.infer<typeof courseSchema>;

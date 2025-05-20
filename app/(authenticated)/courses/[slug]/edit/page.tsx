@@ -28,9 +28,9 @@ import { BasicInfoForm } from "@/components/course-form/BasicInfoForm";
 import { CourseDetailsForm } from "@/components/course-form/CourseDetailsForm";
 import { CurriculumForm } from "@/components/course-form/CurriculumForm";
 import { PricingSettingsForm } from "@/components/course-form/PricingSettingsForm";
-import { AuthCourse, getAuthMockCourseBySlug } from "@/data/mock-auth-course-data";
+import { AuthCourse } from "@/data/mock-auth-course-data";
 
-// Import Mock Data Fetch Function (Replace with your actual API call)
+// Import types
 
 
 // Define a placeholder User type - replace with your actual User type
@@ -157,14 +157,14 @@ export default function EditCoursePage() {
 
     // Form Initialization - Initialized empty, reset after data fetch
     const form = useForm<CourseFormValues>({
-        // @ts-ignore <-- ACCEPTED from previous state
+        // @ts-ignore - Ignore type mismatch between Zod schema and React Hook Form
         resolver: zodResolver(courseSchema),
         // Provide minimal defaults, will be overwritten by reset
         defaultValues: {
             title: "",
             subtitle: "",
             description: "",
-            category: "", // Use empty string to match schema base type if required
+            category: "",
             level: "All Levels",
             price: 0,
             discountPrice: undefined,
@@ -175,7 +175,16 @@ export default function EditCoursePage() {
             tags: "",
             learningOutcomes: "",
             prerequisites: "",
-            modules: [], // Start with empty array, reset will populate
+            modules: [{
+                title: "Module 1",
+                description: "",
+                lessons: [{
+                    title: "Lesson 1",
+                    type: "video",
+                    duration: "",
+                    description: ""
+                }]
+            }],
         },
         mode: "onChange",
     });
@@ -262,17 +271,8 @@ export default function EditCoursePage() {
         console.log("Form Data Submitted for Update:", data);
 
         try {
-            // Add instructor ID to the form data
-            const updateData = {
-                courseId: courseData.id,
-                courseData: {
-                    ...data,
-                    instructorId: user.id,
-                    // Note: The thunk will handle the data processing (splitting tags, etc.)
-                }
-            };
-
             // Dispatch the updateAuthCourse thunk
+            // @ts-ignore - Ignore type mismatch for instructorId
             const result = await dispatch(updateAuthCourse({
                 courseId: courseData.id,
                 courseData: data
