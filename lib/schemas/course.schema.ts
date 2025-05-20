@@ -34,6 +34,9 @@ export const courseSchema = z.object({
 		.enum(["Beginner", "Intermediate", "Advanced", "All Levels"], {
 			required_error: "Please select a level.",
 		}),
+	// Media fields
+	image: z.string().optional().nullable(),
+	previewVideoUrl: z.string().optional().nullable(),
 	price: z.coerce
 		.number()
 		.min(0, "Price must be a positive number or zero."),

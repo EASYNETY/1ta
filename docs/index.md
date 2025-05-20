@@ -42,6 +42,7 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 ### 🔌 API Integration
 - [API Integration Documentation](./api-integration/README.md)
 - [API Guide](./api-integration/ApiGuide.md)
+- [Media Upload API](./api-integration/media-upload-api.md)
 - [Standardized API Response Format](./api-integration/standardized-api-response-format.md)
 - [Standardized Thunk Template](./api-integration/standardized-thunk-template.md)
 
@@ -57,6 +58,7 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 - [Barcode Scanner](./features/barcode/README.md)
 - [Help System](./features/help/README.md)
 - [Analytics & Reporting](./features/analytics/README.md)
+- [Media Upload](./features/media-upload/README.md)
 
 ### 🧪 Testing
 - [Testing Documentation](./testing/README.md)

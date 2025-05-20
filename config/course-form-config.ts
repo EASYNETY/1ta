@@ -72,3 +72,24 @@ export const defaultModuleValues = {
 		description: ""
 	}], // Start with one lesson
 };
+
+// Default values for a new course
+export const defaultCourseValues: Partial<CourseFormValues> = {
+	title: "",
+	subtitle: "",
+	description: "",
+	category: CATEGORIES[0],
+	level: "Beginner",
+	image: null,
+	previewVideoUrl: null,
+	price: 0,
+	discountPrice: undefined,
+	language: "English",
+	certificate: true,
+	accessType: "Lifetime",
+	supportType: "Instructor",
+	tags: "",
+	learningOutcomes: "",
+	prerequisites: "",
+	modules: [defaultModuleValues],
+};

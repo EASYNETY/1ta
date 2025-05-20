@@ -460,6 +460,23 @@ export async function handleMockRequest<T>(
 		} catch {}
 	}
 
+	// Handle FormData
+	if (options.body instanceof FormData) {
+		body = {};
+		options.body.forEach((value, key) => {
+			// For files, extract basic info
+			if (value instanceof File) {
+				body[key] = {
+					name: value.name,
+					type: value.type,
+					size: value.size,
+				};
+			} else {
+				body[key] = value;
+			}
+		});
+	}
+
 	// --- Primary Debug Log ---
 	console.log(
 		`%c[DEBUG] handleMockRequest: Entry\n  Endpoint: "${endpoint}"\n  Method: "${method}"\n  options.url: "${options.url}"`,
@@ -790,6 +807,41 @@ export async function handleMockRequest<T>(
 	}
 
 	// --- END: Corporate Student Management Mock Handlers ---
+
+	// --- Media Upload Mock Handler ---
+	if (endpoint === "/media/upload" && method === "post") {
+		console.log(
+			`%cAPI Client MOCK: POST /media/upload`,
+			"color: orange;"
+		);
+
+		// Check if we have file data in the body
+		if (!body || !body.file) {
+			throw new Error("Mock API Error: Missing file in upload request");
+		}
+
+		// Generate a mock URL
+		// In a real implementation, this would be a URL to the uploaded file
+		const fileInfo = body.file;
+		const mediaType = body.mediaType || (fileInfo.type.startsWith('image/') ? 'image' :
+			fileInfo.type.startsWith('video/') ? 'video' : 'document');
+
+		// Create a mock response
+		const mockResponse = {
+			success: true,
+			data: {
+				url: `https://storage.example.com/${mediaType}s/${Date.now()}-${fileInfo.name}`,
+				mediaId: `media_${Date.now()}`,
+				mediaType: mediaType,
+				filename: fileInfo.name,
+				size: fileInfo.size,
+				mimeType: fileInfo.type,
+			},
+			message: "File uploaded successfully",
+		};
+
+		return mockResponse as unknown as T;
+	}
 
 	// --- Pricing and Subscriptions
 	const userSubscriptionMatch = endpoint.match(/^\/users\/(.+)\/subscription$/);

@@ -18,22 +18,9 @@ interface BasicInfoFormProps {
     onNext: () => void;
 }
 
-// Placeholder for Thumbnail Upload component
-const ThumbnailUploaderPlaceholder: React.FC = () => (
-    <div className="border rounded-lg p-4 mt-6">
-        <h3 className="text-lg font-medium mb-4">Course Thumbnail (Placeholder)</h3>
-        <div className="flex items-center justify-center border-2 border-dashed rounded-lg p-6 bg-muted/50">
-            <div className="text-center">
-                <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">Drag and drop image, or click to browse</p>
-                <p className="text-xs text-muted-foreground mb-4">Recommended: 1280x720px</p>
-                <DyraneButton type="button" variant="outline" size="sm" disabled>
-                    Upload Image
-                </DyraneButton>
-            </div>
-        </div>
-    </div>
-);
+// Import the FormMediaUpload component
+import { FormMediaUpload } from "@/components/ui/form-media-upload";
+import { MediaType } from "@/lib/services/media-upload-service";
 
 
 export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, onNext }) => {
@@ -135,8 +122,20 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, onNext })
                     )}
                 />
 
-                {/* Thumbnail Placeholder */}
-                <ThumbnailUploaderPlaceholder />
+                {/* Course Thumbnail Upload */}
+                <FormMediaUpload
+                    name="image"
+                    label="Course Thumbnail"
+                    description="Upload a thumbnail image for your course (1280x720px recommended)"
+                    mediaType={MediaType.IMAGE}
+                    showFileName={false}
+                    uploadOptions={{
+                        folder: "course-thumbnails",
+                        onUploadSuccess: (response) => {
+                            console.log("Thumbnail uploaded successfully:", response);
+                        },
+                    }}
+                />
 
             </CardContent>
             <FormNavigation onNext={onNext} />

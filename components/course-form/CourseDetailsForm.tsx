@@ -18,22 +18,9 @@ interface CourseDetailsFormProps {
     onNext: () => void;
 }
 
-// Placeholder for Video Upload component
-const VideoUploaderPlaceholder: React.FC = () => (
-    <div className="border rounded-lg p-4 mt-6">
-        <h3 className="text-lg font-medium mb-4">Promotional Video (Placeholder)</h3>
-        <div className="flex items-center justify-center border-2 border-dashed rounded-lg p-6 bg-muted/50">
-            <div className="text-center">
-                <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">Upload a short promo video (MP4)</p>
-                <p className="text-xs text-muted-foreground mb-4">Recommended: 2-5 minutes</p>
-                <DyraneButton type="button" variant="outline" size="sm" disabled>
-                    Upload Video
-                </DyraneButton>
-            </div>
-        </div>
-    </div>
-);
+// Import the FormMediaUpload component
+import { FormMediaUpload } from "@/components/ui/form-media-upload";
+import { MediaType } from "@/lib/services/media-upload-service";
 
 export const CourseDetailsForm: React.FC<CourseDetailsFormProps> = ({ control, onBack, onNext }) => {
     return (
@@ -143,8 +130,20 @@ export const CourseDetailsForm: React.FC<CourseDetailsFormProps> = ({ control, o
                     />
                 </div>
 
-                {/* Promo Video Placeholder */}
-                <VideoUploaderPlaceholder />
+                {/* Promotional Video Upload */}
+                <FormMediaUpload
+                    name="previewVideoUrl"
+                    label="Promotional Video"
+                    description="Upload a short promotional video for your course (2-5 minutes recommended)"
+                    mediaType={MediaType.VIDEO}
+                    showFileName={false}
+                    uploadOptions={{
+                        folder: "course-videos",
+                        onUploadSuccess: (response) => {
+                            console.log("Video uploaded successfully:", response);
+                        },
+                    }}
+                />
 
             </CardContent>
             <FormNavigation onBack={onBack} onNext={onNext} />

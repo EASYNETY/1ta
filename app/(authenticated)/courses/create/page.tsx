@@ -17,6 +17,7 @@ import { createAuthCourse } from "@/features/auth-course/store/auth-course-slice
 
 // Import Schemas and Types
 import { courseSchema, type CourseFormValues } from "@/lib/schemas/course.schema";
+import { defaultCourseValues } from "@/config/course-form-config";
 
 // Import Types and Components
 
@@ -60,32 +61,7 @@ export default function CreateCoursePage() {
   const form = useForm<CourseFormValues>({
     // @ts-ignore - Ignore type mismatch between Zod schema and React Hook Form
     resolver: zodResolver(courseSchema),
-    defaultValues: {
-      title: "",
-      subtitle: "",
-      description: "",
-      category: "", // Empty string instead of undefined
-      level: "All Levels",
-      price: 0,
-      discountPrice: undefined,
-      language: "English",
-      certificate: true,
-      accessType: "Lifetime",
-      supportType: "Both",
-      tags: "",
-      learningOutcomes: "",
-      prerequisites: "",
-      modules: [{
-        title: "Module 1",
-        description: "",
-        lessons: [{
-          title: "Lesson 1",
-          type: "video",
-          duration: "",
-          description: ""
-        }]
-      }]
-    },
+    defaultValues: defaultCourseValues,
     mode: "onChange", // Validate on change for better UX
   });
 

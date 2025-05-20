@@ -2,6 +2,10 @@
 import { User as UserIcon } from "lucide-react";
 import { User } from "@/types/user.types";
 import clsx from "clsx";
+import { AvatarUpload } from "@/components/ui/avatar-upload";
+import { useAppDispatch } from "@/hooks/redux-hooks";
+import { updateUserProfileThunk } from "@/features/auth/store/auth-thunks";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProfileAvatarInfoProps {
     user: User | null;
@@ -41,11 +45,53 @@ export function ProfileAvatarInfo({ user }: ProfileAvatarInfoProps) {
         }
     );
 
+    const dispatch = useAppDispatch();
+    const { toast } = useToast();
+
+    // Handle avatar URL change
+    const handleAvatarChange = async (url: string | null) => {
+        if (!user) return;
+
+        try {
+            // Update the user profile with the new avatar URL
+            await dispatch(updateUserProfileThunk({
+                avatarUrl: url
+            })).unwrap();
+
+            toast({
+                title: "Profile Updated",
+                description: "Your profile picture has been updated successfully.",
+                variant: "success",
+            });
+        } catch (error) {
+            console.error("Failed to update avatar:", error);
+            toast({
+                title: "Update Failed",
+                description: "There was a problem updating your profile picture. Please try again.",
+                variant: "destructive",
+            });
+        }
+    };
+
     return (
         <div className="flex flex-col items-center mb-6">
-            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-4 ring-2 ring-primary/20">
-                {/* TODO: Replace with actual avatar image when available */}
-                <UserIcon className="h-12 w-12 text-primary" />
+            <div className="mb-4">
+                <AvatarUpload
+                    initialUrl={user.avatarUrl || null}
+                    name={user.name || "User"}
+                    size="xl"
+                    onUrlChange={handleAvatarChange}
+                    uploadOptions={{
+                        folder: "avatars",
+                        onUploadError: (error) => {
+                            toast({
+                                title: "Upload Failed",
+                                description: error.message || "There was a problem uploading your image. Please try again.",
+                                variant: "destructive",
+                            });
+                        },
+                    }}
+                />
             </div>
 
             <h2 className="text-xl font-semibold">{user.name}</h2>

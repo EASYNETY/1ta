@@ -27,6 +27,9 @@ This folder contains documentation related to the features of the SmartEdu platf
 ### Analytics
 - [Admin Reports & Analytics Plan](./analytics/admin-reports-analytics-plan.md) - Plan for admin reports and analytics
 
+### Media Upload
+- [Media Upload Components](./media-upload/README.md) - Documentation for media upload components
+
 ### Other Features
 - [App Maintenance](./app-maintenance.md) - Documentation for app maintenance
 - [Educational Features Integration](./educational-features-integration.md) - Documentation for educational features integration
