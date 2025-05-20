@@ -416,7 +416,7 @@ export function TeacherAttendanceView() {
                     onMonthChange={setDisplayMonth} // Let calendar control month changes
                     onDayClick={handleDayClick} // Use onDayClick for selection logic
                     // onSelect={handleDateSelect} // Use onDayClick primarily
-                    toDate={new Date()} // Can't select future dates
+                    toDate={new Date()} // Can't select future dates for attendance tracking
                     disabled={isWeekend} // Example: disable weekends
                     initialFocus
                     numberOfMonths={isMdUp ? 2 : 1}

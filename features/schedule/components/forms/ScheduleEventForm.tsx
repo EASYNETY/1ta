@@ -201,6 +201,7 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
                                         field.onChange(date);
                                     }}
                                     placeholder="Select event date"
+                                    // No toDate restriction - allow future dates for event scheduling
                                 />
                                 <FormDescription>
                                     {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}

@@ -1,7 +1,7 @@
 // features/classes/components/ClassForm.tsx
 "use client";
 
-import React, { useState, useEffect, FormEvent, use } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -158,6 +158,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                                 field.onChange(date);
                                             }}
                                             placeholder="Select start date"
+                                            // No toDate restriction - allow future dates for class scheduling
                                         />
                                         <FormDescription>
                                             {field.value ? `Selected: ${field.value.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}` : "No date selected"}

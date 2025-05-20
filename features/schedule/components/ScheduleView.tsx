@@ -159,7 +159,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
                     setDisplayMonth={setDisplayMonthForPicker}
                     onDateSelect={handlePickerSelect}
                     selectedDate={selectedDayForHighlight as Date || undefined} // Pass selected day for visual feedback
-                    toDate={new Date()} // Example constraint
+                    // Allow selection of future dates for schedule planning
                 />
             </PopoverContent>
         </Popover>

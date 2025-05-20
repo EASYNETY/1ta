@@ -39,7 +39,7 @@ export function DatePickerWithYearMonth({
     setDate,
     disabled,
     fromDate,
-    toDate = new Date(),
+    toDate, // Removed default value to allow future dates by default
     buttonClassName,
     placeholder = "Select date",
     ariaLabel = "Select Date",
@@ -103,7 +103,7 @@ export function DatePickerWithYearMonth({
 
             <PopoverContent className={cn("w-auto p-0 bg-background/5 backdrop-blur-sm", isMdUp && "md:min-w-[540px]")}>
                 <div className="flex flex-wrap items-center justify-between gap-2 p-2 border-b">
-                    <Select value={String(currentMonth)} onValueChange={(val) => setDisplayMonth(setMonth(displayMonth, +val))}>
+                    <Select value={String(currentMonth)} onValueChange={(val: string) => setDisplayMonth(setMonth(displayMonth, +val))}>
                         <SelectTrigger className="w-[120px] h-8 text-xs focus:ring-0">
                             <SelectValue placeholder="Month" />
                         </SelectTrigger>
@@ -116,7 +116,7 @@ export function DatePickerWithYearMonth({
                         </SelectContent>
                     </Select>
 
-                    <Select value={String(currentYear)} onValueChange={(val) => setDisplayMonth(setYear(displayMonth, +val))}>
+                    <Select value={String(currentYear)} onValueChange={(val: string) => setDisplayMonth(setYear(displayMonth, +val))}>
                         <SelectTrigger className="w-[90px] h-8 text-xs focus:ring-0">
                             <SelectValue placeholder="Year" />
                         </SelectTrigger>
