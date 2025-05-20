@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { SealCheck } from "phosphor-react";
+import { CheckCircle } from "phosphor-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface VerificationBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -66,7 +66,7 @@ export function VerificationBadge({
       )}
       {...props}
     >
-      <SealCheck
+      <CheckCircle
         size={size === "xs" ? 14 : size === "sm" ? 16 : size === "md" ? 20 : 24}
         weight="fill"
         className={cn(
