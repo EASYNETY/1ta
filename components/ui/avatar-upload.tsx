@@ -152,7 +152,7 @@ export function AvatarUpload({
       >
         <Avatar className={`${sizeClasses[size]} ${className}`}>
           <AvatarImage src={previewUrl || initialUrl || undefined} />
-          <AvatarFallback className="bg-muted text-primary font-medium">{getInitials(name)}</AvatarFallback>
+          <AvatarFallback className="bg-muted/5 backdrop-blur-sm text-primary font-medium">{getInitials(name)}</AvatarFallback>
         </Avatar>
 
         {/* Edit overlay - show on hover or touch */}
