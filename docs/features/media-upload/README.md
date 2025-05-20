@@ -245,6 +245,179 @@ export enum MediaType {
 | `uploadMedia(file: File, options?: Partial<MediaUploadOptions>)` | Uploads a file to the server |
 | `createMockUploadResponse(file: File)` | Creates a mock upload response for testing |
 
+## Backend Implementation Guide
+
+This section provides guidance for backend developers on how to implement the necessary endpoints to support the media upload system.
+
+### Required Endpoints
+
+#### 1. Media Upload Endpoint
+
+- **URL**: `/api/v1/media/upload`
+- **Method**: `POST`
+- **Content-Type**: `multipart/form-data`
+- **Authentication**: Required
+
+##### Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `file` | File | Yes | The media file to upload |
+| `mediaType` | String | Yes | The type of media (`image`, `video`, `document`, `audio`) |
+| `folder` | String | No | Optional folder path to store the media in (e.g., "avatars", "course-thumbnails") |
+
+##### Expected Response Schema
+
+```json
+{
+  "success": true,
+  "data": {
+    "url": "https://example.com/storage/images/user-avatars/1234567890.jpg",
+    "mediaId": "media_1234567890",
+    "mediaType": "image",
+    "filename": "profile.jpg",
+    "size": 1024000,
+    "mimeType": "image/jpeg",
+    "width": 800,
+    "height": 600
+  },
+  "message": "File uploaded successfully"
+}
+```
+
+##### Error Response Schema
+
+```json
+{
+  "success": false,
+  "message": "Failed to upload file",
+  "errors": {
+    "file": ["File size exceeds the maximum allowed size (10MB)"],
+    "mediaType": ["Invalid media type"]
+  }
+}
+```
+
+#### 2. Media Deletion Endpoint (Optional but Recommended)
+
+- **URL**: `/api/v1/media/:mediaId`
+- **Method**: `DELETE`
+- **Authentication**: Required
+
+##### Expected Response Schema
+
+```json
+{
+  "success": true,
+  "message": "Media deleted successfully"
+}
+```
+
+### Implementation Requirements
+
+1. **Storage Strategy**:
+   - Store files in a secure, scalable storage solution (AWS S3, Google Cloud Storage, etc.)
+   - Generate unique filenames to prevent collisions
+   - Organize files in folders based on the `folder` parameter
+   - Implement proper access controls
+
+2. **File Processing**:
+   - Validate file types and sizes before accepting uploads
+   - For images: generate thumbnails, optimize for web
+   - For videos: generate thumbnails, consider transcoding
+   - Scan files for malware/viruses
+
+3. **Response Requirements**:
+   - The `url` field in the response is **critical** - it must be a fully qualified URL that can be directly used in the frontend
+   - Include metadata like size, dimensions (for images), and duration (for videos/audio) when available
+   - Ensure consistent response format across all media types
+
+4. **Error Handling**:
+   - Provide specific error messages for validation failures
+   - Handle storage service errors gracefully
+   - Return appropriate HTTP status codes (400 for validation errors, 500 for server errors)
+
+5. **Performance Considerations**:
+   - Implement direct-to-storage uploads for large files when possible
+   - Consider using signed URLs for client-side uploads to storage services
+   - Implement progress tracking for large file uploads
+
+### Database Schema
+
+We recommend tracking uploaded media in a database with a schema similar to:
+
+```sql
+CREATE TABLE media (
+  id VARCHAR(255) PRIMARY KEY,
+  url VARCHAR(1024) NOT NULL,
+  media_type VARCHAR(50) NOT NULL,
+  filename VARCHAR(255) NOT NULL,
+  size BIGINT NOT NULL,
+  mime_type VARCHAR(100) NOT NULL,
+  uploaded_by VARCHAR(255) NOT NULL,
+  folder VARCHAR(255),
+  metadata JSON,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### Integration with User Profiles
+
+For avatar uploads, the backend should:
+
+1. Accept the avatar image through the media upload endpoint
+2. Return the URL as described above
+3. Allow the URL to be included in profile update requests
+
+Example profile update endpoint:
+
+- **URL**: `/api/v1/users/:userId`
+- **Method**: `PUT`
+- **Content-Type**: `application/json`
+
+```json
+{
+  "name": "John Doe",
+  "avatarUrl": "https://example.com/storage/images/user-avatars/1234567890.jpg",
+  "bio": "Software developer"
+}
+```
+
+The frontend will handle uploading the avatar image first, then include the returned URL in the profile update request.
+
+### Handling Different Media Types
+
+The backend should handle different media types appropriately:
+
+#### Images
+- Validate dimensions and aspect ratios
+- Generate thumbnails in different sizes
+- Optimize for web (compress, strip metadata)
+- Support common formats: JPEG, PNG, GIF, WebP
+- Return additional metadata: width, height, aspect ratio
+
+#### Videos
+- Generate thumbnail/poster image
+- Consider transcoding to web-friendly formats
+- Validate duration and file size
+- Support common formats: MP4, WebM
+- Return additional metadata: duration, dimensions, codec
+
+#### Documents
+- Generate preview images for the first few pages
+- Validate file structure to ensure it's not corrupted
+- Support common formats: PDF, DOCX, XLSX, PPTX
+- Return additional metadata: page count, author
+
+#### Audio
+- Generate waveform visualization
+- Validate audio quality
+- Support common formats: MP3, WAV, OGG
+- Return additional metadata: duration, bitrate, artist/title if available
+
+The frontend components are designed to handle these different media types and display appropriate previews and fallbacks.
+
 ## Implementation Details
 
 ### Simplified Upload Flow
