@@ -70,12 +70,34 @@ function AvatarWithVerification({
 }: AvatarWithVerificationProps) {
   const isActive = user?.isActive === true;
 
+  // Calculate badge position and size based on avatar size
+  const getBadgePosition = () => {
+    // Extract size information from className
+    const sizeMatch = className?.match(/(w-\d+|h-\d+|size-\d+)/);
+    const isLarge = className?.includes('h-10') || className?.includes('w-10') ||
+                   className?.includes('h-12') || className?.includes('w-12') ||
+                   className?.includes('h-16') || className?.includes('w-16') ||
+                   className?.includes('h-24') || className?.includes('w-24') ||
+                   className?.includes('h-32') || className?.includes('w-32') ||
+                   className?.includes('size-10') || className?.includes('size-12') ||
+                   className?.includes('size-16') || className?.includes('size-24') ||
+                   className?.includes('size-32');
+
+    // For larger avatars, position the badge more precisely
+    if (isLarge) {
+      return "absolute top-0 right-0 transform translate-x-1/4 -translate-y-1/4";
+    }
+
+    // For smaller avatars, use a simpler position
+    return "absolute -top-1 -right-1";
+  };
+
   return (
     <div className="relative inline-block">
       <Avatar className={className} {...props} />
 
       {showVerification && isActive && (
-        <div className="absolute -top-1 -right-1">
+        <div className={getBadgePosition()}>
           <VerificationBadge
             size={verificationSize}
             color="gold"
