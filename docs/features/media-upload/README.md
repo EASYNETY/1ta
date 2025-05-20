@@ -20,7 +20,7 @@ import { MediaType } from '@/lib/services/media-upload-service';
 
 function MyComponent() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  
+
   return (
     <MediaUpload
       mediaType={MediaType.IMAGE}
@@ -77,11 +77,11 @@ function MyForm() {
       profileImage: null,
     },
   });
-  
+
   const onSubmit = (data) => {
     console.log('Form submitted:', data);
   };
-  
+
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -118,7 +118,7 @@ import { AvatarUpload } from '@/components/ui/avatar-upload';
 
 function MyComponent() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  
+
   return (
     <AvatarUpload
       initialUrl={avatarUrl}
@@ -173,7 +173,7 @@ function MyComponent() {
       console.log('Upload successful:', response);
     },
   });
-  
+
   return (
     <div>
       {previewUrl && <img src={previewUrl} alt="Preview" />}
@@ -247,13 +247,72 @@ export enum MediaType {
 
 ## Implementation Details
 
+### Simplified Upload Flow
+
+The media upload components follow a simple, consistent flow:
+
+1. **File Selection**: User selects a file through the component's interface.
+
+2. **Local Preview**: Immediately after selection, a local preview URL is generated using `URL.createObjectURL(file)` and displayed to the user.
+
+3. **Automatic Upload**: The file is automatically uploaded to the server (if `autoUpload` is true, which is the default).
+
+4. **URL Return**: Once the upload is complete, the component returns the remote URL through the `onUrlChange` callback.
+
+5. **Form Integration**: The returned URL can be directly used in form payloads or other application logic.
+
 ### Two-Phase Rendering
 
-The media upload components use a two-phase rendering approach:
+The media upload components use a two-phase rendering approach for a seamless user experience:
 
-1. **First Phase**: When a file is selected, a local preview URL is generated using `URL.createObjectURL(file)`. This allows for immediate feedback to the user.
+1. **First Phase**: When a file is selected, a local preview URL is generated using `URL.createObjectURL(file)`. This allows for immediate feedback to the user without waiting for the upload to complete.
 
-2. **Second Phase**: After the file is uploaded to the server, the local preview URL is replaced with the remote URL returned by the server.
+2. **Second Phase**: After the file is uploaded to the server, the local preview URL is replaced with the remote URL returned by the server. This ensures that the form submission uses the permanent server URL.
+
+### Using the URL in Forms
+
+The URL returned by the media upload components can be directly used in form payloads:
+
+```tsx
+// Example of using the avatar URL in a profile update
+function ProfilePage() {
+  const [formData, setFormData] = useState({
+    name: 'John Doe',
+    email: 'john@example.com',
+    avatarUrl: null
+  });
+
+  // Handle avatar URL change
+  const handleAvatarChange = (url: string | null) => {
+    // Update the form data with the new URL
+    setFormData(prev => ({
+      ...prev,
+      avatarUrl: url
+    }));
+  };
+
+  // Submit the form with the avatar URL
+  const handleSubmit = () => {
+    // The avatarUrl is already part of the form data
+    submitProfileUpdate(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Other form fields */}
+
+      {/* Avatar upload component */}
+      <AvatarUpload
+        initialUrl={formData.avatarUrl}
+        onUrlChange={handleAvatarChange}
+        name={formData.name}
+      />
+
+      <button type="submit">Update Profile</button>
+    </form>
+  );
+}
+```
 
 ### Defensive Coding
 
@@ -261,13 +320,16 @@ The media upload components use defensive coding techniques to handle various ed
 
 1. **File Validation**: Files are validated before upload to ensure they meet the requirements (size, type, etc.).
 
-2. **Error Handling**: Errors are caught and displayed to the user with meaningful messages.
+2. **Error Handling**: Errors are caught and displayed to the user with meaningful messages. The system includes retry logic with exponential backoff for transient errors.
 
 3. **Memory Management**: Object URLs are revoked when they are no longer needed to prevent memory leaks.
 
 4. **Progress Tracking**: Upload progress is tracked and displayed to the user.
 
-5. **Fallbacks**: If the upload fails, the user can retry or select a different file.
+5. **Fallbacks**: Components provide fallbacks when URLs are missing or invalid:
+   - AvatarUpload shows initials when no image is available
+   - MediaUpload shows appropriate placeholders based on media type
+   - Error states are clearly communicated to the user
 
 ## Examples
 
@@ -279,7 +341,7 @@ import { MediaType } from '@/lib/services/media-upload-service';
 
 function ImageUploadExample() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  
+
   return (
     <div>
       <h2>Image Upload</h2>
@@ -326,11 +388,13 @@ function ProfileForm() {
       profileImage: null,
     },
   });
-  
+
   const onSubmit = (data) => {
     console.log('Form submitted:', data);
+    // The profileImage field contains the URL returned from the server
+    // This URL can be directly used in API calls or stored in the database
   };
-  
+
   return (
     <FormProvider {...form}>
       <Form>
@@ -347,18 +411,106 @@ function ProfileForm() {
               </FormItem>
             )}
           />
-          
+
           <FormMediaUpload
             name="profileImage"
             label="Profile Image"
             description="Upload a profile image"
             mediaType={MediaType.IMAGE}
           />
-          
+
           <Button type="submit">Save Profile</Button>
         </form>
       </Form>
     </FormProvider>
+  );
+}
+```
+
+### Real-World Example: Profile Avatar Integration
+
+The following example shows how the AvatarUpload component is integrated into the user profile page:
+
+```tsx
+// ProfileAvatarInfo.tsx - A component that displays user avatar and info
+export function ProfileAvatarInfo({ user, onAvatarChange }: ProfileAvatarInfoProps) {
+  const { toast } = useToast();
+
+  // Handle avatar URL change - simply pass it up to the parent component
+  const handleAvatarChange = (url: string | null) => {
+    // Call the parent callback if provided
+    if (onAvatarChange) {
+      onAvatarChange(url);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="mb-4">
+        <AvatarUpload
+          initialUrl={user.avatarUrl || null}
+          name={user.name || "User"}
+          size="xl"
+          onUrlChange={handleAvatarChange}
+          uploadOptions={{
+            folder: "avatars",
+            onUploadError: (error) => {
+              toast({
+                title: "Upload Failed",
+                description: error.message || "There was a problem uploading your image.",
+                variant: "destructive",
+              });
+            },
+          }}
+        />
+      </div>
+      <h2 className="text-xl font-semibold">{user.name}</h2>
+      <p className="text-muted-foreground">{user.email}</p>
+    </div>
+  );
+}
+
+// ProfilePage.tsx - The parent component that handles profile updates
+function ProfilePage() {
+  const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
+  const { toast } = useToast();
+
+  return (
+    <div>
+      <Card>
+        <CardContent>
+          <ProfileAvatarInfo
+            user={user}
+            onAvatarChange={(url) => {
+              // When avatar URL changes, update the profile
+              if (user) {
+                dispatch(updateUserProfileThunk({
+                  avatarUrl: url
+                }))
+                .unwrap()
+                .then(() => {
+                  toast({
+                    title: "Profile Updated",
+                    description: "Your profile picture has been updated successfully.",
+                    variant: "success",
+                  });
+                })
+                .catch((error) => {
+                  toast({
+                    title: "Update Failed",
+                    description: error.message || "There was a problem updating your profile picture.",
+                    variant: "destructive",
+                  });
+                });
+              }
+            }}
+          />
+
+          {/* Rest of the profile form */}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 ```
