@@ -322,7 +322,7 @@ function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
         )}>
             <Avatar className={cn("size-7", !isSidebarOpen && "size-6")}>
                 <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
-                <AvatarFallback className="text-xs">
+                <AvatarFallback className="text-xs text-primary font-medium">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
             </Avatar>

@@ -46,7 +46,7 @@ export function CorporateStudentTableRow({ student, onDelete, isDeleting }: Corp
                 <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
                         <AvatarImage src={student.avatarUrl ?? undefined} alt={student.name} />
-                        <AvatarFallback>{student.name?.charAt(0)?.toUpperCase() || 'S'}</AvatarFallback>
+                        <AvatarFallback className="text-primary font-medium">{student.name?.charAt(0)?.toUpperCase() || 'S'}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
                         {/* Link to View Page */}

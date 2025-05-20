@@ -285,7 +285,7 @@ function SidebarTrigger({
           alt={user?.name || "User"}
           className="h-full w-full rounded-full object-cover"
         />
-        <AvatarFallback className="h-7 w-7 rounded-full bg-muted text-primary hover:bg-primary/20 cursor-pointer hover:border hover:border-primary" >
+        <AvatarFallback className="h-7 w-7 rounded-full bg-muted text-primary hover:bg-primary/20 cursor-pointer hover:border hover:border-primary font-medium" >
           {user?.name?.charAt(0) || "U"}
         </AvatarFallback>
       </Avatar>

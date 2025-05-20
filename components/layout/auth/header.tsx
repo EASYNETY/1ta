@@ -163,7 +163,7 @@ export function Header() {
                                             alt="User Avatar"
                                             className="h-7 w-7 rounded-full"
                                         />
-                                        <AvatarFallback className="relative h-7 w-7 rounded-full bg-muted text-primary hover:bg-primary/20 cursor-pointer hover:border hover:border-primary">
+                                        <AvatarFallback className="relative h-7 w-7 rounded-full bg-muted text-primary hover:bg-primary/20 cursor-pointer hover:border hover:border-primary font-medium">
                                             {user?.name?.charAt(0) || "U"}
                                         </AvatarFallback>
                                     </Avatar>
@@ -248,7 +248,7 @@ export function Header() {
                                                         <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
                                                             <Avatar className="size-10">
                                                                 <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
-                                                                <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                                                                <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary font-medium">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                                                             </Avatar>
                                                             <div className="overflow-hidden">
                                                                 <p className="font-semibold text-sm truncate text-foreground">{user.name}</p>

@@ -238,7 +238,7 @@ export default function AdminTicketDetailPage() {
                                     "border-green-500": response.userRole === "student",
                                 })}
                             >
-                                <AvatarFallback>{response.userName?.charAt(0) || "?"}</AvatarFallback>
+                                <AvatarFallback className="text-primary font-medium">{response.userName?.charAt(0) || "?"}</AvatarFallback>
                             </Avatar>
                             <div
                                 className={cn("flex-1 p-3 rounded-md border", {
