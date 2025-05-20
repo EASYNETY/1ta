@@ -4,6 +4,8 @@ import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
 import { cn } from "@/lib/utils";
+import { VerificationBadge } from "./verification-badge";
+import { User } from "@/types/user.types";
 
 function Avatar({
   className,
@@ -50,4 +52,39 @@ function AvatarFallback({
   );
 }
 
-export { Avatar, AvatarImage, AvatarFallback };
+interface AvatarWithVerificationProps extends React.ComponentProps<typeof AvatarPrimitive.Root> {
+  user?: User | null;
+  showVerification?: boolean;
+  verificationSize?: "xs" | "sm" | "md" | "lg";
+}
+
+/**
+ * Avatar component with verification badge for active users
+ */
+function AvatarWithVerification({
+  user,
+  showVerification = true,
+  verificationSize = "sm",
+  className,
+  ...props
+}: AvatarWithVerificationProps) {
+  const isActive = user?.isActive === true;
+
+  return (
+    <div className="relative inline-block">
+      <Avatar className={className} {...props} />
+
+      {showVerification && isActive && (
+        <div className="absolute -bottom-1 -right-1">
+          <VerificationBadge
+            size={verificationSize}
+            color="gold"
+            tooltipText={`${user.name} is an active user`}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+export { Avatar, AvatarImage, AvatarFallback, AvatarWithVerification };

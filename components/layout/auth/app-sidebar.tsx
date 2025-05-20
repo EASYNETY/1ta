@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage, AvatarWithVerification } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Chat, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree } from "phosphor-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
@@ -320,12 +320,16 @@ function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
             "flex items-center gap-3 rounded-md p-2 bg-accent/50 hover:bg-accent transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300 w-full overflow-hidden",
             !isSidebarOpen && "justify-center w-auto px-1 py-1 h-8" // Adjust for collapsed state
         )}>
-            <Avatar className={cn("size-7", !isSidebarOpen && "size-6")}>
+            <AvatarWithVerification
+                user={user}
+                className={cn("size-7", !isSidebarOpen && "size-6")}
+                verificationSize={isSidebarOpen ? "xs" : "xs"}
+            >
                 <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
                 <AvatarFallback className="text-xs text-primary font-medium">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
-            </Avatar>
+            </AvatarWithVerification>
             {isSidebarOpen && (
                 <div className="min-w-0 flex-1">
                     <p className="font-medium text-xs truncate text-foreground">{user.name}</p>

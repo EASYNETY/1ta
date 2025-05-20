@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { Avatar, AvatarFallback, AvatarImage, AvatarWithVerification } from "./avatar";
 import { useAppSelector } from "@/store/hooks";
 import { DyraneButton } from "../dyrane-ui/dyrane-button";
 
@@ -279,7 +279,11 @@ function SidebarTrigger({
     {...props}
     >
       {/* <PanelLeftIcon /> */}
-      <Avatar className="h-8 w-8">
+      <AvatarWithVerification
+        user={user}
+        className="h-8 w-8"
+        verificationSize="xs"
+      >
         <AvatarImage
           src={user?.avatarUrl || undefined}
           alt={user?.name || "User"}
@@ -288,7 +292,7 @@ function SidebarTrigger({
         <AvatarFallback className="h-7 w-7 rounded-full bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary hover:bg-primary/20 cursor-pointer font-medium" >
           {user?.name?.charAt(0) || "U"}
         </AvatarFallback>
-      </Avatar>
+      </AvatarWithVerification>
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
