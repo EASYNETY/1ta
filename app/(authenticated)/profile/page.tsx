@@ -443,7 +443,32 @@ export default function ProfilePage() {
                     )}
                 </CardHeader>
                 <CardContent>
-                    <ProfileAvatarInfo user={user} />
+                    <ProfileAvatarInfo
+                        user={user}
+                        onAvatarChange={(url) => {
+                            // When avatar URL changes, update the profile
+                            if (user) {
+                                dispatch(updateUserProfileThunk({
+                                    avatarUrl: url
+                                }))
+                                .unwrap()
+                                .then(() => {
+                                    toast({
+                                        title: "Profile Updated",
+                                        description: "Your profile picture has been updated successfully.",
+                                        variant: "success",
+                                    });
+                                })
+                                .catch((error) => {
+                                    toast({
+                                        title: "Update Failed",
+                                        description: error.message || "There was a problem updating your profile picture. Please try again.",
+                                        variant: "destructive",
+                                    });
+                                });
+                            }
+                        }}
+                    />
 
                     <Form {...form}>
                         <form id="profile-form" onSubmit={form.handleSubmit(handleSubmit)} className="mt-6">

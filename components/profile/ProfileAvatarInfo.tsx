@@ -3,16 +3,18 @@ import { User as UserIcon } from "lucide-react";
 import { User } from "@/types/user.types";
 import clsx from "clsx";
 import { AvatarUpload } from "@/components/ui/avatar-upload";
-import { useAppDispatch } from "@/hooks/redux-hooks";
-import { updateUserProfileThunk } from "@/features/auth/store/auth-thunks";
 import { useToast } from "@/hooks/use-toast";
 
 interface ProfileAvatarInfoProps {
     user: User | null;
+    /** Callback when the avatar URL changes */
+    onAvatarChange?: (url: string | null) => void;
 }
 
-export function ProfileAvatarInfo({ user }: ProfileAvatarInfoProps) {
+export function ProfileAvatarInfo({ user, onAvatarChange }: ProfileAvatarInfoProps) {
     if (!user) return null;
+
+    const { toast } = useToast();
 
     /**
      * Label the user role based on account type and manager status.
@@ -45,31 +47,11 @@ export function ProfileAvatarInfo({ user }: ProfileAvatarInfoProps) {
         }
     );
 
-    const dispatch = useAppDispatch();
-    const { toast } = useToast();
-
-    // Handle avatar URL change
-    const handleAvatarChange = async (url: string | null) => {
-        if (!user) return;
-
-        try {
-            // Update the user profile with the new avatar URL
-            await dispatch(updateUserProfileThunk({
-                avatarUrl: url
-            })).unwrap();
-
-            toast({
-                title: "Profile Updated",
-                description: "Your profile picture has been updated successfully.",
-                variant: "success",
-            });
-        } catch (error) {
-            console.error("Failed to update avatar:", error);
-            toast({
-                title: "Update Failed",
-                description: "There was a problem updating your profile picture. Please try again.",
-                variant: "destructive",
-            });
+    // Handle avatar URL change - simply pass it up to the parent component
+    const handleAvatarChange = (url: string | null) => {
+        // Call the parent callback if provided
+        if (onAvatarChange) {
+            onAvatarChange(url);
         }
     };
 
