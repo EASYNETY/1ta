@@ -52,10 +52,12 @@ function AvatarFallback({
   );
 }
 
-interface AvatarWithVerificationProps extends React.ComponentProps<typeof AvatarPrimitive.Root> {
+interface AvatarWithVerificationProps {
   user?: User | null;
   showVerification?: boolean;
   verificationSize?: "xs" | "sm" | "md" | "lg";
+  className?: string;
+  children?: React.ReactNode;
 }
 
 /**
@@ -66,7 +68,7 @@ function AvatarWithVerification({
   showVerification = true,
   verificationSize = "sm",
   className,
-  ...props
+  children,
 }: AvatarWithVerificationProps) {
   const isActive = user?.isActive === true;
 
@@ -77,7 +79,9 @@ function AvatarWithVerification({
 
   return (
     <div className="relative inline-block">
-      <Avatar className={className} {...props} />
+      <Avatar className={className}>
+        {children}
+      </Avatar>
 
       {showVerification && isActive && (
         <div className={getBadgePosition()}>
