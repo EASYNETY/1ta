@@ -167,14 +167,14 @@ export function AvatarUpload({
         {user && showVerification ? (
           <AvatarWithVerification
             user={user}
-            className={`${sizeClasses[size]} ${className}`}
+            className={`${sizeClasses[size]} ${className || ''}`}
             verificationSize={size === 'sm' ? 'xs' : size === 'md' ? 'sm' : 'md'}
           >
             <AvatarImage src={previewUrl || initialUrl || undefined} />
             <AvatarFallback className="bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{getInitials(name)}</AvatarFallback>
           </AvatarWithVerification>
         ) : (
-          <Avatar className={`${sizeClasses[size]} ${className}`}>
+          <Avatar className={`${sizeClasses[size]} ${className || ''}`}>
             <AvatarImage src={previewUrl || initialUrl || undefined} />
             <AvatarFallback className="bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{getInitials(name)}</AvatarFallback>
           </Avatar>
