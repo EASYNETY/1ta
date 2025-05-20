@@ -31,6 +31,14 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 - [UI Design Philosophy](./ui/ui-design-philosophy.md)
 - [Apple-Inspired Design](./ui/apple-inspired-design.md)
 
+### 🧠 UX Enhancement
+- [UX Components Documentation](./ux-components/README.md)
+- [UX Enhancement Plan](./ux-enhancement-plan.md)
+- [Onboarding Tour](./ux-components/onboarding-tour.md)
+- [Contextual Help System](./ux-components/contextual-help.md)
+- [Personalized Elements](./ux-components/personalized-elements.md)
+- [Performance Optimization](./ux-components/performance-optimization.md)
+
 ### 🔌 API Integration
 - [API Integration Documentation](./api-integration/README.md)
 - [API Guide](./api-integration/ApiGuide.md)
@@ -65,6 +73,7 @@ For new developers, we recommend starting with the following documents:
 3. [Backend Requirements](./backend/backend-requirements.md) - To understand what the backend needs to provide
 4. [Application Flow](./architecture/flow.md) - To understand the overall application flow
 5. [UI Design Guidelines](./ui/apple-inspired-design.md) - To understand the design principles
+6. [UX Enhancement Plan](./ux-enhancement-plan.md) - To understand the user experience enhancement strategy
 
 ## 👥 Contributing to Documentation
 
@@ -91,4 +100,4 @@ This documentation is maintained by the SmartEdu development team. If you find a
 
 ## 📅 Last Updated
 
-This documentation was last updated on May 19, 2025.
+This documentation was last updated on May 20, 2025.
