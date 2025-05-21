@@ -45,8 +45,6 @@ export const fetchSchedule = createAsyncThunk<
 	"schedule/fetchSchedule",
 	async ({ role, userId, startDate, endDate }, { rejectWithValue }) => {
 		try {
-			console.log(`Fetching schedule from ${startDate} to ${endDate}`);
-
 			// Construct query parameters
 			const params = new URLSearchParams();
 			params.append("role", role);

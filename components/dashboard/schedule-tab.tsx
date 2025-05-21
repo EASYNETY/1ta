@@ -79,7 +79,6 @@ export function ScheduleTab() {
         if (user?.id && user.role) {
             const startDateISO = formatISO(currentWeekStart, { representation: 'date' });
             const endDateISO = formatISO(currentWeekEnd, { representation: 'date' });
-            console.log(`Dashboard ScheduleTab: Fetching schedule for ${startDateISO} to ${endDateISO}`);
             dispatch(fetchSchedule({
                 role: user.role,
                 userId: user.id,
