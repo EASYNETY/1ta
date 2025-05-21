@@ -17,7 +17,6 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                         <th className="text-left py-3 px-4 font-medium text-muted-foreground">Course</th>
                         <th className="text-left py-3 px-4 font-medium text-muted-foreground">Category</th>
                         <th className="text-left py-3 px-4 font-medium text-muted-foreground">Instructor</th>
-                        <th className="text-left py-3 px-4 font-medium text-muted-foreground">Students</th>
                         <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
                         <th className="text-left py-3 px-4 font-medium text-muted-foreground">Price</th>
                         <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
@@ -34,8 +33,8 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                         ))
                     ) : (
                         <tr>
-                            {/* Adjust colspan to match the number of columns (7) */}
-                            <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                            {/* Adjust colspan to match the number of columns (6) */}
+                            <td colSpan={6} className="py-8 text-center text-muted-foreground">
                                 No courses found matching your criteria.
                             </td>
                         </tr>

@@ -10,7 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"; // Use the reusable dialog
-import { MoreVertical, Users, Eye, Pencil, Trash, MoreHorizontal } from "lucide-react";
+import { MoreVertical, Eye, Pencil, Trash, MoreHorizontal } from "lucide-react";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 
 interface ManageCourseTableRowProps {
@@ -54,15 +54,6 @@ export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowP
             {/* Instructor Cell */}
             <td className="py-3 px-4 align-top truncate ">
                 {course.instructor.name}
-            </td>
-
-            {/* Students Cell */}
-            <td className="py-3 px-4 align-top">
-                <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    {/* TODO: Replace with actual student count */}
-                    <span>{Math.floor(Math.random() * 100) + 10}</span>
-                </div>
             </td>
 
             {/* Status Cell */}
