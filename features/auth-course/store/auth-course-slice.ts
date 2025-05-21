@@ -601,6 +601,9 @@ export const selectCurrentModuleId = (state: RootState) =>
 	state.auth_courses.currentModuleId;
 export const selectCurrentLessonId = (state: RootState) =>
 	state.auth_courses.currentLessonId;
+export const selectAuthCourseBySlug = (slug: string) => (state: RootState) =>
+	state.auth_courses.courses.find(course => course.slug === slug) ||
+	(state.auth_courses.currentCourse?.slug === slug ? state.auth_courses.currentCourse : null);
 
 // --- Export Reducer ---
 export default authCourseSlice.reducer;

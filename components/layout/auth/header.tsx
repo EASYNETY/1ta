@@ -7,7 +7,8 @@ import Link from "next/link"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, Bell, Loader2, Search } from "lucide-react"
+import { LogOut, Loader2, Search } from "lucide-react"
+import { NotificationCenter } from "@/components/notifications/notification-center"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -31,30 +32,21 @@ import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavIte
 import { getMobileNavItems } from "./mobile-nav"
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
 import { isStudent } from "@/types/user.types"
-import { NotificationList } from "@/features/notifications/components/NotificationList"
-import {
-    fetchNotifications,
-    selectUnreadCount,
-    selectNotificationsStatus
-} from "@/features/notifications/store/notifications-slice"
 
 
 export function Header() {
     // --- Hooks ---
     const { isAuthenticated, user } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
-    const unreadCount = useAppSelector(selectUnreadCount)
-    const notificationsStatus = useAppSelector(selectNotificationsStatus)
     const dispatch = useAppDispatch()
     const router = useRouter()
     const isMobile = useMobile()
-    const { theme, setTheme, systemTheme } = useTheme();
+    const { theme, systemTheme } = useTheme();
     const scrollDirection = useScrollDirection();
     const mobileNavItems = getMobileNavItems(user);
 
     // --- State ---
     const [isScrolled, setIsScrolled] = useState(false)
-    const [notificationsOpen, setNotificationsOpen] = useState(false)
     const [mounted, setMounted] = useState(false);
     const [mobileUserSheetOpen, setMobileUserSheetOpen] = useState(false);
 
@@ -72,12 +64,7 @@ export function Header() {
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
-    // Fetch notifications when component mounts
-    useEffect(() => {
-        if (isAuthenticated && user && notificationsStatus === "idle") {
-            dispatch(fetchNotifications({ limit: 20 }));
-        }
-    }, [dispatch, isAuthenticated, user, notificationsStatus]);
+    // No need to fetch notifications here anymore, handled by NotificationCenter component
 
     // -- Handlers --
 
@@ -127,8 +114,6 @@ export function Header() {
     const scrolledHeaderBg = "bg-background/65"; // Example: Less opaque background
     const scrolledHeaderBlur = "backdrop-blur-md"; // Standard blur
     const scrolledHeaderBorder = "border-b border-border/30"; // Subtle border
-    const linkHoverColor = "hover:text-primary"; // Primary hover color
-    const mutedTextColor = "text-muted-foreground"; // Muted text color
 
     // --- Render ---
     // Return null or a skeleton if critical data like user isn't ready yet, AFTER hooks
@@ -338,24 +323,7 @@ export function Header() {
                     )}
 
                     {isAuthenticated && (
-                        <Sheet open={notificationsOpen} onOpenChange={setNotificationsOpen}>
-                            <SheetTrigger asChild>
-                                <button className="relative rounded-full p-2 hover:bg-muted cursor-pointer">
-                                    <Bell className="h-5 w-5" />
-                                    {unreadCount > 0 && (
-                                        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                                            {unreadCount}
-                                        </span>
-                                    )}
-                                </button>
-                            </SheetTrigger>
-                            <SheetContent side="right" className="w-[320px] sm:w-[400px] rounded-l-3xl border-0 bg-background/65 backdrop-blur-md pb-8">
-                                <SheetHeader className="px-4">
-                                    <SheetTitle>Notifications</SheetTitle>
-                                </SheetHeader>
-                                <NotificationList onNotificationClick={() => setNotificationsOpen(false)} />
-                            </SheetContent>
-                        </Sheet>
+                        <NotificationCenter />
                     )}
                 </div>
             </div>

@@ -369,6 +369,8 @@ export const selectAdminPagination = (state: RootState) =>
 	state.classes.adminPagination;
 export const selectClassesStatus = (state: RootState) => state.classes.status; // General list status
 export const selectClassesError = (state: RootState) => state.classes.error; // General list error
+export const selectClassById = (id: string) => (state: RootState) =>
+	state.classes.allClasses.find(c => c.id === id) || state.classes.currentClass;
 
 // Basic course class options selectors
 const selectCourseClassOptionsRaw = (state: RootState) =>

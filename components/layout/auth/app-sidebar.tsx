@@ -58,6 +58,7 @@ export const primaryNavItems: NavItem[] = [
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", 'admin'] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", 'admin'] },
+    { title: "Analytics", href: "/analytics", icon: BarChart3, roles: ["student", "teacher"] },
     { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
 ];
 

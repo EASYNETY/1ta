@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 import { addItem } from '@/features/cart/store/cart-slice'
 import { useRouter } from 'next/navigation'
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -73,25 +73,25 @@ export function ClassEnrollmentButton({
   const [open, setOpen] = useState(false)
   const { user, isAuthenticated } = useAppSelector((state) => state.auth)
   const cartItems = useAppSelector((state) => state.cart.items)
-  
+
   // Check if this class is already in the cart
-  const isAlreadyInCart = cartItems.some(item => 
+  const isAlreadyInCart = cartItems.some(item =>
     item.classId === classId || item.courseId === courseId
   )
 
   // Calculate enrollment status
   const hasAvailableSlots = availableSlots !== undefined && availableSlots > 0
-  const enrollmentHasStarted = enrollmentStartDate 
-    ? new Date(enrollmentStartDate) <= new Date() 
+  const enrollmentHasStarted = enrollmentStartDate
+    ? new Date(enrollmentStartDate) <= new Date()
     : true
-  
+
   const canEnroll = hasAvailableSlots && enrollmentHasStarted && !isDisabled
-  
+
   // Format dates
   const formattedStartDate = startDate ? format(new Date(startDate), 'PPP') : undefined
   const formattedEndDate = endDate ? format(new Date(endDate), 'PPP') : undefined
-  const formattedEnrollmentStartDate = enrollmentStartDate 
-    ? format(new Date(enrollmentStartDate), 'PPP') 
+  const formattedEnrollmentStartDate = enrollmentStartDate
+    ? format(new Date(enrollmentStartDate), 'PPP')
     : undefined
 
   // Calculate slots percentage
@@ -133,7 +133,7 @@ export function ClassEnrollmentButton({
     } else {
       router.push("/cart")
     }
-    
+
     setOpen(false)
   }
 
@@ -146,7 +146,7 @@ export function ClassEnrollmentButton({
         message: "This class is currently full. You can join the waitlist to be notified when a slot becomes available."
       }
     }
-    
+
     if (!enrollmentHasStarted) {
       return {
         type: "warning",
@@ -154,7 +154,7 @@ export function ClassEnrollmentButton({
         message: `Enrollment for this class will open on ${formattedEnrollmentStartDate}.`
       }
     }
-    
+
     if (isDisabled && disabledReason) {
       return {
         type: "error",
@@ -162,7 +162,7 @@ export function ClassEnrollmentButton({
         message: disabledReason
       }
     }
-    
+
     return {
       type: "success",
       title: "Available for Enrollment",
@@ -182,7 +182,7 @@ export function ClassEnrollmentButton({
       >
         {buttonText}
       </DyraneButton>
-      
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -191,13 +191,13 @@ export function ClassEnrollmentButton({
               Review class details before enrolling
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <h3 className="font-medium text-lg">{courseTitle}</h3>
-            
+
             {/* Status Alert */}
             <Alert variant={
-              statusMessage.type === "error" ? "destructive" : 
+              statusMessage.type === "error" ? "destructive" :
               statusMessage.type === "warning" ? "default" :
               "success"
             }>
@@ -207,7 +207,7 @@ export function ClassEnrollmentButton({
               <AlertTitle>{statusMessage.title}</AlertTitle>
               <AlertDescription>{statusMessage.message}</AlertDescription>
             </Alert>
-            
+
             {showDetails && (
               <>
                 {/* Class Details */}
@@ -221,14 +221,14 @@ export function ClassEnrollmentButton({
                       </div>
                     </div>
                   )}
-                  
+
                   {(formattedStartDate || formattedEndDate) && (
                     <div className="flex items-start gap-2">
                       <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
                       <div>
                         <p className="text-sm font-medium">Dates</p>
                         <p className="text-sm text-muted-foreground">
-                          {formattedStartDate && formattedEndDate 
+                          {formattedStartDate && formattedEndDate
                             ? `${formattedStartDate} to ${formattedEndDate}`
                             : formattedStartDate || formattedEndDate
                           }
@@ -236,7 +236,7 @@ export function ClassEnrollmentButton({
                       </div>
                     </div>
                   )}
-                  
+
                   {location && (
                     <div className="flex items-start gap-2">
                       <Users className="h-4 w-4 mt-1 text-muted-foreground" />
@@ -246,7 +246,7 @@ export function ClassEnrollmentButton({
                       </div>
                     </div>
                   )}
-                  
+
                   {maxSlots && availableSlots !== undefined && (
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
@@ -260,12 +260,12 @@ export function ClassEnrollmentButton({
               </>
             )}
           </div>
-          
+
           <DialogFooter className="flex space-x-2 sm:justify-between">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            
+
             {!hasAvailableSlots && (
               <Button variant="secondary" onClick={() => {
                 toast({
@@ -278,7 +278,7 @@ export function ClassEnrollmentButton({
                 Join Waitlist
               </Button>
             )}
-            
+
             {canEnroll && (
               <Button onClick={handleEnroll}>
                 {isAlreadyInCart ? "View Cart" : "Enroll Now"}

@@ -180,7 +180,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Gender Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -253,7 +253,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Account Type Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -317,7 +317,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Age Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -397,7 +397,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Location Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -456,7 +456,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Monthly Enrollment Trends</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -514,7 +514,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Enrollment by Course Category</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -601,7 +601,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Course Completion Rates</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -663,7 +663,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Completion Rate Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -718,7 +718,7 @@ export default function StudentBiodataDashboard() {
               <CardHeader>
                 <CardTitle>Average Completion Time (Days)</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />

@@ -9,6 +9,8 @@ import {
     setCurrentLesson,
     markLessonComplete,
 } from "@/features/auth-course/store/auth-course-slice"
+import { fetchAssignments } from "@/features/assignments/store/assignment-slice"
+import { fetchGradeItems, fetchStudentGrades } from "@/features/grades/store/grade-slice"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
@@ -20,6 +22,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { ClassAssignmentLink } from "@/components/courses/ClassAssignmentLink"
+import { ClassQuizLink } from "@/components/courses/ClassQuizLink"
+import { ClassGradeLink } from "@/components/courses/ClassGradeLink"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -33,6 +38,27 @@ export default function CourseDetailPage() {
     useEffect(() => {
         if (user && slug) {
             dispatch(fetchAuthCourseBySlug(slug))
+                .unwrap()
+                .then((course) => {
+                    // Fetch assignments for this course
+                    dispatch(fetchAssignments({
+                        role: user.role,
+                        courseId: course.id
+                    }))
+
+                    // Fetch grade items for this course
+                    dispatch(fetchGradeItems({
+                        role: user.role,
+                        courseId: course.id
+                    }))
+
+                    // Fetch student grades if student
+                    if (user.role === 'student') {
+                        dispatch(fetchStudentGrades(
+                            user.id
+                        ))
+                    }
+                })
         }
     }, [dispatch, slug, user])
 
@@ -307,6 +333,15 @@ export default function CourseDetailPage() {
                             </CardContent>
                         </DyraneCard>
                     )}
+
+                    {/* Assignments Link */}
+                    <ClassAssignmentLink courseId={currentCourse.id} />
+
+                    {/* Quizzes Link */}
+                    <ClassQuizLink courseSlug={currentCourse.slug} />
+
+                    {/* Grades Link */}
+                    <ClassGradeLink courseId={currentCourse.id} />
                 </div>
 
                 {/* Main Content */}

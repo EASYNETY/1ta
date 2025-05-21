@@ -616,4 +616,35 @@ export const selectGradeOperationStatus = (state: RootState) =>
 	state.grades.operationStatus;
 export const selectGradeError = (state: RootState) => state.grades.error;
 
+// Additional selectors for filtering by course and class
+export const selectGradeItemsByCourseId = (courseId: string) => (state: RootState) =>
+	state.grades.gradeItems.filter(item => item.courseId === courseId);
+
+export const selectGradeItemsByClassId = (classId: string) => (state: RootState) =>
+	state.grades.gradeItems.filter(item => item.classId === classId);
+
+export const selectStudentGradeItemsByCourseId = (courseId: string) => (state: RootState) =>
+	state.grades.studentGradeItems.filter(item => item.courseId === courseId);
+
+export const selectStudentGradeItemsByClassId = (classId: string) => (state: RootState) =>
+	state.grades.studentGradeItems.filter(item => item.classId === classId);
+
+export const selectStudentGradesByCourseId = (courseId: string) => (state: RootState) => {
+	// First, get all grade items for this course
+	const courseGradeItems = state.grades.gradeItems.filter(item => item.courseId === courseId);
+	// Then, get all student grades for these grade items
+	return state.grades.studentGrades.filter(grade =>
+		courseGradeItems.some(item => item.id === grade.gradeItemId)
+	);
+};
+
+export const selectStudentGradesByClassId = (classId: string) => (state: RootState) => {
+	// First, get all grade items for this class
+	const classGradeItems = state.grades.gradeItems.filter(item => item.classId === classId);
+	// Then, get all student grades for these grade items
+	return state.grades.studentGrades.filter(grade =>
+		classGradeItems.some(item => item.id === grade.gradeItemId)
+	);
+};
+
 export default gradeSlice.reducer;

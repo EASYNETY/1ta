@@ -21,6 +21,7 @@ import { CourseCard } from "@/components/dashboard/course-card"
 import { GradesTab } from "@/components/dashboard/grades-tab"
 import { AssignmentsTab } from "@/components/dashboard/assignments-tab"
 import { ScheduleTab } from "@/components/dashboard/schedule-tab"
+import { ProgressOverview } from "@/components/dashboard/progress-overview"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { useRouter } from "next/navigation"
 import { isStudent } from "@/types/user.types"
@@ -244,6 +245,13 @@ export default function DashboardPage() {
                 <TabsContent value="overview">
                     {/* Stats Cards */}
                     <DashboardStats />
+
+                    {/* Progress Overview - Only show for students */}
+                    {user.role === "student" && (
+                        <div className="mt-8">
+                            <ProgressOverview />
+                        </div>
+                    )}
 
                     {/* My Courses Section */}
                     <h2 className="text-2xl font-bold mt-8">

@@ -32,7 +32,7 @@ interface StatCardProps {
 }
 
 const StatCard = ({ title, value, description, icon, loading = false, className }: StatCardProps) => (
-  <Card className={cn("overflow-hidden", className)}>
+  <Card className={cn("overflow-hidden", className)} style={{ height: 'auto' }}>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <div className="h-4 w-4 text-muted-foreground">{icon}</div>
@@ -42,8 +42,8 @@ const StatCard = ({ title, value, description, icon, loading = false, className 
         <div className="h-9 w-24 animate-pulse rounded-md bg-muted"></div>
       ) : (
         <>
-          <div className="text-2xl font-bold">{value}</div>
-          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+          <div className="text-2xl font-bold truncate">{value}</div>
+          {description && <p className="text-xs text-muted-foreground truncate">{description}</p>}
         </>
       )}
     </CardContent>
@@ -149,7 +149,7 @@ export function DashboardStats() {
   const notificationsLoading = notificationsStatus === 'loading'
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
         title="Pending Assignments"
         value={pendingAssignments}

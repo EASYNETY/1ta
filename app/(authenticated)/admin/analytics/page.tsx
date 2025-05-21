@@ -154,7 +154,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Revenue Trend</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -212,7 +212,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Course Enrollments</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -277,7 +277,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Student Growth</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -337,7 +337,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Gender Distribution</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -407,7 +407,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Age Distribution</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -467,7 +467,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Course Popularity</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -530,7 +530,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Completion Rates</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -592,7 +592,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Average Grades</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -659,7 +659,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Monthly Revenue</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -719,7 +719,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Payment Methods</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -798,7 +798,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Payment Status</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -870,7 +870,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Revenue by Course</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -936,7 +936,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Attendance Rate Trends</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -997,7 +997,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Attendance by Day of Week</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -1054,7 +1054,7 @@ export default function AnalyticsDashboard() {
                 <CardHeader>
                   <CardTitle>Attendance by Time of Day</CardTitle>
                 </CardHeader>
-                <CardContent className="h-80">
+                <CardContent className="min-h-80 h-auto">
                   {isLoading ? (
                     <div className="h-full w-full flex items-center justify-center">
                       <Skeleton className="h-64 w-full" />
@@ -1112,7 +1112,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Attendance by Course</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />
@@ -1174,7 +1174,7 @@ export default function AnalyticsDashboard() {
               <CardHeader>
                 <CardTitle>Attendance Status Distribution</CardTitle>
               </CardHeader>
-              <CardContent className="h-80">
+              <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
                   <div className="h-full w-full flex items-center justify-center">
                     <Skeleton className="h-64 w-full" />

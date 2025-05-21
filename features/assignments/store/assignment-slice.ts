@@ -35,7 +35,7 @@ export const fetchAssignments = createAsyncThunk<
 			if (userId) params.append("userId", userId);
 			if (courseId) params.append("courseId", courseId);
 			if (classId) params.append("classId", classId);
-			
+
 			// API call based on role
 			if (role === "student" && userId) {
 				// API: GET /assignments?role=student&userId=...
@@ -63,7 +63,7 @@ export const fetchAssignmentById = createAsyncThunk<
 			const params = new URLSearchParams();
 			params.append("role", role);
 			if (userId) params.append("userId", userId);
-			
+
 			// API Call: GET /assignments/{assignmentId}?role=...&userId=...
 			return await get<Assignment | StudentAssignmentView | TeacherAssignmentView>(
 				`/assignments/${assignmentId}?${params.toString()}`
@@ -382,5 +382,18 @@ export const selectAssignmentOperationStatus = (state: RootState) =>
 	state.assignments.operationStatus;
 export const selectAssignmentError = (state: RootState) =>
 	state.assignments.error;
+
+// Additional selectors for filtering by course and class
+export const selectAssignmentsByCourseId = (courseId: string) => (state: RootState) =>
+	state.assignments.assignments.filter(assignment => assignment.courseId === courseId);
+
+export const selectAssignmentsByClassId = (classId: string) => (state: RootState) =>
+	state.assignments.assignments.filter(assignment => assignment.classId === classId);
+
+export const selectStudentAssignmentsByCourseId = (courseId: string) => (state: RootState) =>
+	state.assignments.studentAssignments.filter(assignment => assignment.courseId === courseId);
+
+export const selectStudentAssignmentsByClassId = (classId: string) => (state: RootState) =>
+	state.assignments.studentAssignments.filter(assignment => assignment.classId === classId);
 
 export default assignmentSlice.reducer;

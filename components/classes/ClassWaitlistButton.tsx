@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/components/ui/use-toast'
-import { 
+import { useToast } from '@/hooks/use-toast'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { 
+import {
   Form,
   FormControl,
   FormDescription,
@@ -76,11 +76,11 @@ export function ClassWaitlistButton({
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const { user } = useAppSelector((state) => state.auth)
-  
+
   // Format dates
   const formattedStartDate = startDate ? format(new Date(startDate), 'PPP') : undefined
   const formattedEndDate = endDate ? format(new Date(endDate), 'PPP') : undefined
-  
+
   // Initialize form with user data if available
   const form = useForm<WaitlistFormValues>({
     resolver: zodResolver(waitlistFormSchema),
@@ -92,7 +92,7 @@ export function ClassWaitlistButton({
       agreeToTerms: false,
     },
   })
-  
+
   // Handle form submission
   const onSubmit = (values: WaitlistFormValues) => {
     dispatch(addToWaitlist({
@@ -103,16 +103,16 @@ export function ClassWaitlistButton({
       notifyEmail: values.notifyEmail,
       notifySMS: values.notifySMS,
     }))
-    
+
     toast({
       title: "Added to Waitlist",
       description: `You'll be notified when a slot becomes available in ${courseTitle}.`,
       variant: "success"
     })
-    
+
     setOpen(false)
   }
-  
+
   return (
     <>
       <Button
@@ -122,7 +122,7 @@ export function ClassWaitlistButton({
       >
         {buttonText}
       </Button>
-      
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -131,11 +131,11 @@ export function ClassWaitlistButton({
               Get notified when a slot becomes available in this class.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <div className="mb-4">
               <h3 className="font-medium text-lg">{courseTitle}</h3>
-              
+
               <div className="mt-2 space-y-2 text-sm">
                 {schedule && (
                   <div className="flex items-center gap-2">
@@ -143,19 +143,19 @@ export function ClassWaitlistButton({
                     <span>{schedule}</span>
                   </div>
                 )}
-                
+
                 {(formattedStartDate || formattedEndDate) && (
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {formattedStartDate && formattedEndDate 
+                      {formattedStartDate && formattedEndDate
                         ? `${formattedStartDate} to ${formattedEndDate}`
                         : formattedStartDate || formattedEndDate
                       }
                     </span>
                   </div>
                 )}
-                
+
                 {location && (
                   <div className="flex items-center gap-2">
                     <AlertCircle className="h-4 w-4 text-muted-foreground" />
@@ -164,7 +164,7 @@ export function ClassWaitlistButton({
                 )}
               </div>
             </div>
-            
+
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -183,7 +183,7 @@ export function ClassWaitlistButton({
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="phone"
@@ -200,7 +200,7 @@ export function ClassWaitlistButton({
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="space-y-2">
                   <FormField
                     control={form.control}
@@ -208,25 +208,25 @@ export function ClassWaitlistButton({
                     render={({ field }) => (
                       <FormItem className="flex items-center gap-2 space-y-0">
                         <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange} 
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
                         <FormLabel className="cursor-pointer">Notify me by email</FormLabel>
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="notifySMS"
                     render={({ field }) => (
                       <FormItem className="flex items-center gap-2 space-y-0">
                         <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange} 
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
                         <FormLabel className="cursor-pointer">Notify me by SMS</FormLabel>
@@ -234,16 +234,16 @@ export function ClassWaitlistButton({
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="agreeToTerms"
                   render={({ field }) => (
                     <FormItem className="flex items-start gap-2 space-y-0">
                       <FormControl>
-                        <Checkbox 
-                          checked={field.value} 
-                          onCheckedChange={field.onChange} 
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
@@ -258,7 +258,7 @@ export function ClassWaitlistButton({
                     </FormItem>
                   )}
                 />
-                
+
                 <DialogFooter className="pt-4">
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     Cancel
