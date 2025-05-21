@@ -117,12 +117,12 @@ const classesSlice = createSlice({
 			.addCase(
 				fetchAllClassesAdmin.fulfilled,
 				(state, action: PayloadAction<FetchAdminClassesResult>) => {
-					console.log("fetchAllClassesAdmin.fulfilled received:", action.payload);
 					state.status = "succeeded";
 
 					// The payload should always have a classes array now
 					const classes = action.payload.classes || [];
-					console.log("Setting allClasses to:", classes);
+					console.log("Classes loaded:", classes.length);
+
 					state.allClasses = classes;
 
 					state.adminPagination = {
@@ -131,8 +131,6 @@ const classesSlice = createSlice({
 						totalClasses: action.payload.total || 0,
 						totalPages: action.payload.totalPages || 1,
 					};
-
-					console.log("Updated state.allClasses:", state.allClasses);
 				}
 			)
 			.addCase(fetchAllClassesAdmin.rejected, (state, action) => {

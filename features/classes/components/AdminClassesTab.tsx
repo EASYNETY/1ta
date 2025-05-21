@@ -1,11 +1,10 @@
-// features/classes/componentsClassesTab.tsx
+// features/classes/components/AdminClassesTab.tsx
 "use client";
 
 import React, { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
-import { DyraneCard } from '@/components/dyrane-ui/dyrane-card';
-import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -37,8 +36,11 @@ const AdminClassesTab: React.FC = () => {
 
     // Log classes when they change
     useEffect(() => {
-        console.log('AdminClassesTab: Current classes', allClasses);
-    }, [allClasses]);
+        console.log('Classes loaded:', allClasses.length);
+        if (error) {
+            console.error('Classes error:', error);
+        }
+    }, [allClasses, error]);
 
     // Optional: Debounce search or fetch on button click
     const handleSearch = () => {
@@ -71,35 +73,58 @@ const AdminClassesTab: React.FC = () => {
     };
 
     const getStatusBadgeVariant = (status: AdminClassView['status']): "default" | "secondary" | "outline" | "destructive" => {
-        switch (status) {
-            case 'active': return 'default'; // Greenish
-            case 'upcoming': return 'secondary'; // Bluish/Grayish
-            case 'inactive': case 'archived': return 'outline'; // Gray
+        switch (status?.toLowerCase()) {
+            case 'active': return 'default'; // Green
+            case 'upcoming': return 'secondary'; // Blue
+            case 'full': return 'secondary'; // Blue
+            case 'inactive': return 'outline'; // Gray
+            case 'archived': return 'outline'; // Gray
+            case 'cancelled': return 'destructive'; // Red
             default: return 'outline';
         }
     };
 
 
     return (
-        <DyraneCard>
+        <Card>
             <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <CardTitle>All Classes</CardTitle>
-                    <DyraneButton size="sm" asChild>
-                        {/* TODO: Link to admin class creation page */}
-                        <Link href="/classes/create"><Plus className="mr-2 h-4 w-4" /> Create Class</Link>
-                    </DyraneButton>
+                    <div>
+                        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-50">All Classes</CardTitle>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your class sessions and enrollments</p>
+                    </div>
+                    <Link href="/classes/create">
+                        <DyraneButton size="sm">
+                            <Plus className="mr-2 h-4 w-4" /> Create Class
+                        </DyraneButton>
+                    </Link>
                 </div>
-                <div className="flex items-center gap-2 pt-4">
-                    <Input
-                        placeholder="Search by title or teacher..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="max-w-sm"
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                    <DyraneButton onClick={handleSearch} size="sm" variant="outline" disabled={status === 'loading'}>
-                        <Search className="mr-2 h-4 w-4" /> Search
+                <div className="flex items-center gap-2 pt-6 mt-2">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                            placeholder="Search by title or teacher..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus-visible:ring-blue-500"
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        />
+                    </div>
+                    <DyraneButton
+                        onClick={handleSearch}
+                        size="sm"
+                        variant="outline"
+                        disabled={status === 'loading'}
+                        className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                        {status === 'loading' ? (
+                            <>
+                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600"></div>
+                                Searching...
+                            </>
+                        ) : (
+                            <>Search</>
+                        )}
                     </DyraneButton>
                 </div>
             </CardHeader>
@@ -120,69 +145,117 @@ const AdminClassesTab: React.FC = () => {
                     </Alert>
                 )}
                 {status === 'succeeded' && (
-                    <div className="border rounded-md">
-                        <Table>
-                            <TableHeader>
+                    <div className="border rounded-lg overflow-hidden shadow-sm">
+                        <Table className="border-collapse">
+                            <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
                                 <TableRow>
-                                    <TableHead>Class Title</TableHead>
-                                    <TableHead>Teacher</TableHead>
-                                    <TableHead className="text-center">Students</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Actions</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300">Class Name</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300">Course</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300">Instructor</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300 text-center">Enrollment</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300">Schedule</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300">Status</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300 text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {allClasses.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
-                                            No classes found.
+                                        <TableCell colSpan={7} className="h-32 text-center">
+                                            <div className="flex flex-col items-center justify-center space-y-2 text-gray-500 dark:text-gray-400">
+                                                <Users className="h-8 w-8 opacity-40" />
+                                                <p>No classes found</p>
+                                                <p className="text-sm">Create a new class to get started</p>
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 )}
                                 {allClasses.map((cls) => (
-                                    <TableRow key={cls.id}>
-                                        <TableCell className="font-medium">{cls.courseTitle}</TableCell>
-                                        <TableCell>{cls.teacherName || 'N/A'}</TableCell>
-                                        <TableCell className="text-center">{cls.studentCount}</TableCell>
+                                    <TableRow key={cls.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                        <TableCell className="font-medium text-gray-900 dark:text-gray-100">{cls.courseTitle}</TableCell>
+                                        <TableCell className="text-gray-700 dark:text-gray-300">
+                                            {cls.course ? cls.course.name : cls.courseId}
+                                        </TableCell>
+                                        <TableCell className="text-gray-700 dark:text-gray-300">{cls.teacherName || 'N/A'}</TableCell>
+                                        <TableCell className="text-center">
+                                            <div className="flex flex-col">
+                                                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                                                    {cls.enrolledStudentsCount || cls.studentCount || 0} / {cls.maxStudents || cls.max_students || 30}
+                                                </span>
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {cls.availableSlots || cls.available_slots || (cls.maxStudents && cls.studentCount ? (cls.maxStudents - cls.studentCount) : 0) + (cls.maxSlots || cls.max_slots || 0) - (cls.enrolledStudentsCount || cls.studentCount || 0)} slots available
+                                                </span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
-                                            <Badge variant={getStatusBadgeVariant(cls.status)} className="capitalize">
+                                            {cls.schedule ? (
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                                        {cls.schedule.days?.join(', ')}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {cls.schedule.time} ({cls.schedule.duration})
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-gray-500 dark:text-gray-400">No schedule</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                variant={getStatusBadgeVariant(cls.status)}
+                                                className="capitalize font-medium px-2.5 py-0.5 text-xs rounded-full"
+                                            >
                                                 {cls.status}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex gap-1">
-                                                {/* TODO: Add real links */}
-                                                <DyraneButton variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                    <Link href={`/classes/${cls.id}`} title="View"><Eye className="h-4 w-4" /></Link>
-                                                </DyraneButton>
-                                                <DyraneButton variant="ghost" size="icon" className="h-7 w-7" asChild>
-                                                    <Link href={`/classes/${cls.id}/edit`} title="Edit"><Edit className="h-4 w-4" /></Link>
-                                                </DyraneButton>
+                                            <div className="flex items-center justify-end space-x-2">
+                                                <div className="rounded-full p-1.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                    <Link href={`/classes/${cls.id}`} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none" title="View details">
+                                                        <Eye className="h-4 w-4" />
+                                                    </Link>
+                                                </div>
+
+                                                <div className="rounded-full p-1.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                                    <Link href={`/classes/${cls.id}/edit`} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none" title="Edit class">
+                                                        <Edit className="h-4 w-4" />
+                                                    </Link>
+                                                </div>
+
                                                 {/* Delete Button with Confirmation */}
                                                 <ConfirmationDialog
                                                     title="Delete Class?"
-                                                    description={<>This action cannot be undone. This will permanently delete the class <strong>{cls.courseTitle}</strong>.</>}
+                                                    description={
+                                                        <div className="space-y-2">
+                                                            <p>This action cannot be undone.</p>
+                                                            <p>This will permanently delete the class <strong>{cls.courseTitle}</strong>.</p>
+                                                        </div>
+                                                    }
                                                     confirmText="Delete"
                                                     variant="destructive"
                                                     onConfirm={() => handleDeleteClass(cls.id, cls.courseTitle!)}
                                                     trigger={
-                                                        <DyraneButton variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" title="Delete">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </DyraneButton>
+                                                        <div className="rounded-full p-1.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer">
+                                                            <span className="text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 focus:outline-none" title="Delete class">
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </span>
+                                                        </div>
                                                     }
                                                 />
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                ))
+                                }
                             </TableBody>
                         </Table>
                     </div>
                 )}
                 {/* TODO: Add Pagination Controls based on pagination state */}
             </CardContent>
-        </DyraneCard>
+        </Card>
     );
-};
+}
 
 export default AdminClassesTab;

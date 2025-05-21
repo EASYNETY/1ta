@@ -22,13 +22,20 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 // Define Zod Schema for the form
 const classFormSchema = z.object({
     courseTitle: z.string().min(3, "Course title must be at least 3 characters"),
-    // courseId: z.string().optional(), // Link to a base course if applicable
+    courseId: z.string().optional(), // Link to a base course if applicable
     teacherId: z.string().optional(), // Teacher assignment
-    status: z.enum(['active', 'upcoming', 'inactive', 'archived']),
+    status: z.enum(['active', 'upcoming', 'inactive', 'archived', 'full', 'cancelled']),
     description: z.string().optional(),
     startDate: z.date().optional(),
     endDate: z.date().optional(),
-    // Add other fields like capacity, location etc. if needed
+    maxStudents: z.number().min(1, "Must allow at least 1 student").default(30),
+    maxSlots: z.number().min(1, "Must have at least 1 slot").optional(),
+    location: z.string().optional(),
+    schedule: z.object({
+        days: z.array(z.string()).optional(),
+        time: z.string().optional(),
+        duration: z.string().optional(),
+    }).optional(),
 }).refine(data => { // Example validation: end date must be after start date if both exist
     if (data.startDate && data.endDate) {
         return data.endDate >= data.startDate;
@@ -43,13 +50,22 @@ type ClassFormValues = z.infer<typeof classFormSchema>;
 
 // Map API/initial data to form data (handle optional dates)
 const mapDataToForm = (data?: AdminClassView | null): Partial<ClassFormValues> => ({
-    courseTitle: data?.courseTitle || "",
-    teacherId: data?.teacherId || "",
+    courseTitle: data?.courseTitle || data?.name || "",
+    courseId: data?.courseId || data?.course_id || "",
+    teacherId: data?.teacherId || data?.teacher_id || "",
     // @ts-ignore
     status: data?.status || 'upcoming', // Default to upcoming for new
     description: data?.description || "",
-    startDate: data?.startDate ? new Date(data.startDate) : undefined,
-    endDate: data?.endDate ? new Date(data.endDate) : undefined,
+    startDate: data?.startDate || data?.start_date ? new Date(data.startDate || data.start_date || "") : undefined,
+    endDate: data?.endDate || data?.end_date ? new Date(data.endDate || data.end_date || "") : undefined,
+    maxStudents: data?.maxStudents || data?.max_students || 30,
+    maxSlots: data?.maxSlots || data?.max_slots,
+    location: data?.location || "",
+    schedule: {
+        days: data?.schedule?.days || [],
+        time: data?.schedule?.time || "",
+        duration: data?.schedule?.duration || "",
+    },
 });
 
 interface ClassFormProps {
@@ -205,8 +221,70 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                             <SelectItem value="active">Active</SelectItem>
                                             <SelectItem value="inactive">Inactive</SelectItem>
                                             <SelectItem value="archived">Archived</SelectItem>
+                                            <SelectItem value="full">Full</SelectItem>
+                                            <SelectItem value="cancelled">Cancelled</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Enrollment Capacity */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="maxStudents"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Maximum Students</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                {...field}
+                                                onChange={e => field.onChange(parseInt(e.target.value) || 30)}
+                                                value={field.value || 30}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>Maximum number of students allowed in this class</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="maxSlots"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Maximum Slots (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min={1}
+                                                {...field}
+                                                onChange={e => field.onChange(parseInt(e.target.value) || undefined)}
+                                                value={field.value || ''}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>Maximum enrollment slots (if different from max students)</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        {/* Location */}
+                        <FormField
+                            control={form.control}
+                            name="location"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Location (Optional)</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="e.g., Room 101, Online, etc." />
+                                    </FormControl>
+                                    <FormDescription>Where this class will be held</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}

@@ -12,7 +12,7 @@ export interface Class {
   max_slots: number;           // New field
   available_slots: number;     // New field
   enrolled_students_count: number; // New field
-  is_active: boolean;
+  isActive: number | boolean; // Can be 1/0 or true/false
   status: string;              // Can be 'active', 'full', 'cancelled', etc.
   teacher_id: string;
   created_at: string;

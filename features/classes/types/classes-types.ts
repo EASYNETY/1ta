@@ -1,4 +1,4 @@
-// features/classes/types/classes-types.ts (Example - Ensure it has needed fields)
+// features/classes/types/classes-types.ts
 export interface AdminClassView {
 	id: string;
 	name?: string; // Backend uses 'name' instead of 'courseTitle'
@@ -8,21 +8,68 @@ export interface AdminClassView {
 	teacherName?: string;
 	teacherId?: string; // Important for assignment
 	teacher_id?: string; // Backend might use snake_case
+
+	// Enrollment and capacity fields
 	studentCount?: number; // Frontend calculated field
-	max_students?: number; // Backend field
-	status: "active" | "upcoming" | "inactive" | "archived" | string; // Make status flexible
-	is_active?: boolean; // Backend might use this instead of status
+	max_students?: number; // Maximum number of students allowed
+	maxStudents?: number; // camelCase version
+	max_slots?: number; // Maximum slots available
+	maxSlots?: number; // camelCase version
+	available_slots?: number; // Available slots remaining
+	availableSlots?: number; // camelCase version
+	enrolled_students_count?: number; // Current number of enrolled students
+	enrolledStudentsCount?: number; // camelCase version
+
+	// Status fields
+	status: "active" | "upcoming" | "inactive" | "archived" | "full" | "cancelled" | string; // Make status flexible
+	isActive?: number | boolean; // Can be 1/0 or true/false
+
+	// Date fields
 	startDate?: string; // Frontend format
 	endDate?: string; // Frontend format
 	start_date?: string; // Backend format
 	end_date?: string; // Backend format
-	description?: string; // Add description if needed
-	schedule?: any; // Backend might return schedule object
+
+	// Schedule and location
+	description?: string; // Class description
+	schedule?: {
+		days?: string[];
+		time?: string;
+		duration?: string;
+	}; // Schedule object with days, time, and duration
 	location?: string;
+
+	// Course relationship
+	course?: {
+		id: string;
+		name: string;
+		description?: string;
+		category?: string;
+		is_iso_certification?: boolean;
+		isIsoCertification?: boolean;
+		available_for_enrollment?: boolean;
+		availableForEnrollment?: boolean;
+		image_url?: string;
+		imageUrl?: string;
+		icon_url?: string;
+		iconUrl?: string;
+	};
+
+	// Teacher relationship
+	teacher?: {
+		id: string;
+		name: string;
+		email?: string;
+		avatar_url?: string;
+		avatarUrl?: string;
+	};
+
+	// Metadata and timestamps
 	metadata?: any;
 	createdAt?: string;
 	updatedAt?: string;
-	// Add any other fields managed for a class
+	created_at?: string;
+	updated_at?: string;
 }
 
 export interface ClassesState {
