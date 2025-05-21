@@ -177,7 +177,6 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 
 			// Get the response from the API
 			const response = await get<any>(endpointWithPath);
-			console.log("fetchAllClassesAdmin: Raw API response", response);
 
 			// Determine if the response is an array or a nested structure
 			// Based on the actual response: {0: {...}, 1: {...}, 2: {...}, pagination: {...}}

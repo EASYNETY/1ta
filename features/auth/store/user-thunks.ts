@@ -73,13 +73,11 @@ export const fetchUserById = createAsyncThunk<
 	{ state: RootState; rejectValue: string }
 >("users/fetchById", async (userId, { rejectWithValue }) => {
 	try {
-		console.log(`THUNK: Fetching user with ID ${userId}`);
 		// Use the admin endpoint to get a user by ID
 		const response = await get<User>(`/admin/users/${userId}`);
 		return response;
 	} catch (error: any) {
 		const message = error?.message || `Failed to fetch user with ID ${userId}`;
-		console.error(`THUNK ERROR fetching user ${userId}:`, message, error);
 		return rejectWithValue(message);
 	}
 });
@@ -91,7 +89,6 @@ export const updateUserAdmin = createAsyncThunk<
 	{ state: RootState; rejectValue: string }
 >("users/updateAdmin", async ({ userId, userData }, { rejectWithValue }) => {
 	try {
-		console.log(`THUNK: Updating user ${userId} with data:`, userData);
 		// The API should return the full updated user object
 		const response = await put<User>(`/admin/users/${userId}`, userData);
 		return response; // Assumes API returns the updated User directly, not nested in { user: ... }
@@ -99,7 +96,6 @@ export const updateUserAdmin = createAsyncThunk<
 	} catch (error: any) {
 		const message =
 			error?.data?.message || error?.message || "Failed to update user";
-		console.error(`THUNK ERROR updating user ${userId}:`, message, error);
 		return rejectWithValue(message);
 	}
 });
