@@ -175,11 +175,11 @@ export function Header() {
                                 </SheetTrigger>
                                 {/* Badge */}
                                 {hasItems && (
-                                    <div className="absolute -top-[1px] -right-[1px]">
+                                    <div className="absolute top-0 -right-1">
                                         {/* Ping animation */}
                                         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"></span>
                                         {/* Actual badge */}
-                                        <span className="relative flex h-2 w-2 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium ring-2 ring-primary/30">
+                                        <span className="relative flex h-3 w-3 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium ring-2 ring-primary/30">
                                         </span>
                                     </div>
                                 )}
