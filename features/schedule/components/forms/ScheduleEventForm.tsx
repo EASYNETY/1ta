@@ -213,26 +213,30 @@ export function ScheduleEventForm({ initialData, onSubmit, isSubmitting = false,
                         {/* Time Pickers - Requires TimePicker component */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField control={form.control} name="startTimeHours" render={({ field }) => ( // Use Controller for number type
-                                <FormItem>
+                                <FormItem className="min-w-[200px]">
                                     <FormLabel>Start Time</FormLabel>
-                                    <TimePicker
-                                        hours={field.value}
-                                        minutes={form.watch('startTimeMinutes')} // Watch corresponding minutes
-                                        onHoursChange={(h) => field.onChange(h)}
-                                        onMinutesChange={(m) => form.setValue('startTimeMinutes', m)}
-                                    />
+                                    <div className="flex items-center">
+                                        <TimePicker
+                                            hours={field.value}
+                                            minutes={form.watch('startTimeMinutes')} // Watch corresponding minutes
+                                            onHoursChange={(h) => field.onChange(h)}
+                                            onMinutesChange={(m) => form.setValue('startTimeMinutes', m)}
+                                        />
+                                    </div>
                                     <FormMessage /> {/* Error for hours shown here */}
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="endTimeHours" render={({ field }) => (
-                                <FormItem>
+                                <FormItem className="min-w-[200px]">
                                     <FormLabel>End Time</FormLabel>
-                                    <TimePicker
-                                        hours={field.value}
-                                        minutes={form.watch('endTimeMinutes')}
-                                        onHoursChange={(h) => field.onChange(h)}
-                                        onMinutesChange={(m) => form.setValue('endTimeMinutes', m)}
-                                    />
+                                    <div className="flex items-center">
+                                        <TimePicker
+                                            hours={field.value}
+                                            minutes={form.watch('endTimeMinutes')}
+                                            onHoursChange={(h) => field.onChange(h)}
+                                            onMinutesChange={(m) => form.setValue('endTimeMinutes', m)}
+                                        />
+                                    </div>
                                     <FormMessage /> {/* Error for hours/validation shown here */}
                                 </FormItem>
                             )} />

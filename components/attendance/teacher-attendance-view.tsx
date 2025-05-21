@@ -401,12 +401,12 @@ export function TeacherAttendanceView() {
                 <PopoverContent className={cn("w-auto p-0 bg-background/80 backdrop-blur-sm border", isMdUp && "md:min-w-[540px]")}>
                   <div className="flex flex-wrap items-center justify-between gap-2 p-2 border-b">
                     <Select value={String(currentMonth)} onValueChange={(val) => setDisplayMonth(setMonth(displayMonth, +val))}>
-                      <SelectTrigger className="w-[120px] h-8 text-xs focus:ring-0"><SelectValue placeholder="Month" /></SelectTrigger>
-                      <SelectContent>{months.map(({ value, label }) => (<SelectItem key={value} value={String(value)} className="text-xs">{label}</SelectItem>))}</SelectContent>
+                      <SelectTrigger className="w-[140px] h-10 text-sm focus:ring-0"><SelectValue placeholder="Month" /></SelectTrigger>
+                      <SelectContent>{months.map(({ value, label }) => (<SelectItem key={value} value={String(value)} className="text-sm">{label}</SelectItem>))}</SelectContent>
                     </Select>
                     <Select value={String(currentYear)} onValueChange={(val) => setDisplayMonth(setYear(displayMonth, +val))}>
-                      <SelectTrigger className="w-[90px] h-8 text-xs focus:ring-0"><SelectValue placeholder="Year" /></SelectTrigger>
-                      <SelectContent className="max-h-[200px] overflow-y-auto">{years.map((year) => (<SelectItem key={year} value={String(year)} className="text-xs">{year}</SelectItem>))}</SelectContent>
+                      <SelectTrigger className="w-[100px] h-10 text-sm focus:ring-0"><SelectValue placeholder="Year" /></SelectTrigger>
+                      <SelectContent className="max-h-[200px] overflow-y-auto">{years.map((year) => (<SelectItem key={year} value={String(year)} className="text-sm">{year}</SelectItem>))}</SelectContent>
                     </Select>
                   </div>
                   <Calendar

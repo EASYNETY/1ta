@@ -104,12 +104,12 @@ export function DatePickerWithYearMonth({
             <PopoverContent className={cn("w-auto p-0 bg-background/5 backdrop-blur-sm", isMdUp && "md:min-w-[540px]")}>
                 <div className="flex flex-wrap items-center justify-between gap-2 p-2 border-b">
                     <Select value={String(currentMonth)} onValueChange={(val: string) => setDisplayMonth(setMonth(displayMonth, +val))}>
-                        <SelectTrigger className="w-[120px] h-8 text-xs focus:ring-0">
+                        <SelectTrigger className="w-[140px] h-10 text-sm focus:ring-0">
                             <SelectValue placeholder="Month" />
                         </SelectTrigger>
                         <SelectContent>
                             {months.map(({ value, label }) => (
-                                <SelectItem key={value} value={String(value)} className="text-xs">
+                                <SelectItem key={value} value={String(value)} className="text-sm">
                                     {label}
                                 </SelectItem>
                             ))}
@@ -117,12 +117,12 @@ export function DatePickerWithYearMonth({
                     </Select>
 
                     <Select value={String(currentYear)} onValueChange={(val: string) => setDisplayMonth(setYear(displayMonth, +val))}>
-                        <SelectTrigger className="w-[90px] h-8 text-xs focus:ring-0">
+                        <SelectTrigger className="w-[100px] h-10 text-sm focus:ring-0">
                             <SelectValue placeholder="Year" />
                         </SelectTrigger>
                         <SelectContent className="max-h-[200px] overflow-y-auto">
                             {years.map((year) => (
-                                <SelectItem key={year} value={String(year)} className="text-xs">
+                                <SelectItem key={year} value={String(year)} className="text-sm">
                                     {year}
                                 </SelectItem>
                             ))}
