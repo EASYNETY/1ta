@@ -25,13 +25,13 @@ export default function PaymentHistoryPage() {
 
     // Fetch data on mount, specific fetch handled within role components now for Admin
     useEffect(() => {
-        if (user?.id && user.role === "student" && status === "idle") {
+        if (user?.id && user.role === "student") {
             dispatch(fetchMyPaymentHistory({ userId: user.id }))
         }
         // Admin data fetching is triggered inside AdminPaymentsTable component
         // Clear errors on mount or user change
         dispatch(clearPaymentHistoryError())
-    }, [dispatch, user?.id, user?.role, status]) // Status included to refetch if becomes idle
+    }, [dispatch, user?.id, user?.role]) // Status included to refetch if becomes idle
 
     const renderContent = () => {
         if (!user) return <Skeleton className="h-40 w-full" />
