@@ -10,10 +10,7 @@ const API_BASE_URL =
 	process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1";
 const IS_LIVE_API = process.env.NEXT_PUBLIC_API_IS_LIVE === "true";
 
-console.log(
-	`%cAPI Client Mode: ${IS_LIVE_API ? "LIVE" : "MOCK"}`,
-	"color: cyan; font-weight: bold;"
-);
+// API Client Mode is set to: ${IS_LIVE_API ? "LIVE" : "MOCK"}
 
 // --- Types ---
 interface FetchOptions extends RequestInit {
@@ -82,11 +79,6 @@ async function apiClient<T>(
 
 	// --- LIVE Handling ---
 	try {
-		console.log(
-			`%cAPI Client: LIVE ${config.method || "GET"} ${API_BASE_URL}${endpoint}`,
-			"color: lightblue;"
-		);
-
 		const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
 		if (!response.ok) {

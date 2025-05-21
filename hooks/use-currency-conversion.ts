@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from 'react';
 
 // Mock exchange rate API call - replace with your actual API endpoint
 async function fetchExchangeRateAPI(base: string, target: string): Promise<number | null> {
-    console.log(`Fetching ${base} to ${target} rate... (using mock)`);
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800));
     // In real app:

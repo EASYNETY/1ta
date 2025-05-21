@@ -60,7 +60,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Ensure it runs only client-side and only if authenticated but fetch hasn't happened
     if (isMounted && isAuthenticated && !hasFetchedProfile.current) {
-      console.log("AuthProvider: Dispatching fetchUserProfileThunk...");
       dispatch(fetchUserProfileThunk());
       hasFetchedProfile.current = true;
     }
@@ -74,14 +73,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     // Wait for mount and initialization
     if (!isMounted || !isInitialized) {
-      console.log("AuthProvider: Waiting for initialization or mount...");
       return;
     }
-    console.log(`AuthProvider: Running checks. Path: ${pathname}, Auth: ${isAuthenticated}, Initialized: ${isInitialized}`);
 
     // Clear cart for corporate students
     if (isAuthenticated && user && isStudent(user) && user.corporateId != null && !user.isCorporateManager) {
-      console.log("AuthProvider: Corporate student detected, clearing cart");
       dispatch(clearCart());
     }
 
@@ -90,7 +86,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // --- Scenario 1: Not Authenticated ---
     if (!isAuthenticated) {
       if (!isPublic) {
-        console.log("AuthProvider: Not authenticated, private route. Redirecting to /login");
         router.push("/login");
       }
       // If it IS public, do nothing, let them stay
@@ -101,45 +96,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (isAuthenticated) {
       // If user data is needed but not loaded yet, wait (should be handled by isInitialized usually)
       if (!user) {
-        console.log("AuthProvider: Authenticated but user object not ready yet.");
         return;
       }
 
       // A) Onboarding Check
       if (!isProfileComplete(user) && !skipOnboarding && pathname !== "/profile") {
-        console.log("AuthProvider: Authenticated, profile incomplete. Redirecting to /profile");
-        // No need for toast here usually, profile page explains it
         router.push("/profile");
         return; // Prioritize profile completion
       }
 
       // B) Already Authenticated on Public Route Check
       if (isPublic) {
-        console.log("AuthProvider: Authenticated on public route. Redirecting to /dashboard");
         router.push("/dashboard");
         return;
       }
 
       // C) Role-Based Access Control for Private Routes (add more as needed)
       if (pathname.startsWith("/admin") && user.role !== "admin") {
-        console.log("AuthProvider: Admin route unauthorized. Redirecting...");
         router.push("/dashboard");
         return;
       }
       if (pathname.startsWith("/teacher") && !['teacher', 'admin'].includes(user.role)) {
-        console.log("AuthProvider: Teacher route unauthorized. Redirecting...");
         router.push("/dashboard");
         return;
       }
       if (pathname.startsWith("/corporate-management") && !(user.role === "student" && user.isCorporateManager === true)) {
-        console.log("AuthProvider: Corporate route unauthorized. Redirecting...");
         router.push("/dashboard");
         return;
       }
 
       // If none of the above conditions met, user is authenticated, profile complete (or skipped),
       // and on an appropriate private route - do nothing, allow access.
-      console.log("AuthProvider: Access granted.");
     }
 
   }, [

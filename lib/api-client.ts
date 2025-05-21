@@ -152,13 +152,8 @@ apiCache.configure({
 	ttl: 60000, // 1 minute
 	maxEntries: 100,
 	cacheErrors: true,
-	debug: process.env.NODE_ENV === "development",
+	debug: false, // Set to false to disable debug logs
 });
-
-console.log(
-	`%cAPI Client Mode: ${IS_LIVE_API ? "LIVE" : "MOCK"}`,
-	"color: cyan; font-weight: bold;"
-);
 
 // --- Types ---
 interface FetchOptions extends RequestInit {
@@ -255,11 +250,6 @@ async function apiClient<T>(
 
 	// --- LIVE Handling ---
 	try {
-		console.log(
-			`%cAPI Client: LIVE ${method} ${API_BASE_URL}${endpoint}`,
-			"color: lightblue;"
-		);
-
 		const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
 		if (!response.ok) {
@@ -366,7 +356,6 @@ async function apiClient<T>(
 		const contentType = response.headers.get("content-type");
 		if (contentType && contentType.includes("application/json")) {
 			const responseData = await response.json();
-			console.log(`API response for ${endpoint}:`, responseData);
 
 			// Handle nested response structure (success, data, pagination)
 			// If the response has a 'data' property, return just the data
