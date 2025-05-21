@@ -16,9 +16,11 @@ import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 interface ManageCourseTableRowProps {
     course: AuthCourse;
     onDelete: (courseId: string, courseTitle: string) => Promise<void> | void; // Expects the delete callback
+    showDollarPricing: boolean; // Whether to show prices in USD or Naira
+    userRole: string; // User role (admin, teacher, student)
 }
 
-export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowProps) {
+export function ManageCourseTableRow({ course, onDelete, showDollarPricing, userRole }: ManageCourseTableRowProps) {
 
     const deleteDescription = (
         <>
@@ -66,8 +68,13 @@ export function ManageCourseTableRow({ course, onDelete }: ManageCourseTableRowP
 
             {/* Price Cell */}
             <td className="py-3 px-4 align-top truncate">
-                {/* Add currency formatting later if needed */}
-                ₦ {course.priceUSD?.toFixed(2) ?? 'N/A'}
+                {showDollarPricing ? (
+                    // Show USD price for admin/teacher when toggle is set to USD
+                    <span>$ {course.priceUSD?.toFixed(2) ?? 'N/A'}</span>
+                ) : (
+                    // Show Naira price for students or when toggle is set to Naira
+                    <span>₦ {course.priceNaira?.toFixed(2) ?? course.priceUSD ? (course.priceUSD * 1500).toFixed(2) : 'N/A'}</span>
+                )}
             </td>
 
             {/* Actions Cell */}

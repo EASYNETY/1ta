@@ -73,8 +73,58 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
         switch (level) { case "Beginner": return "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 border-green-300/50 dark:border-green-700/50"; case "Intermediate": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300 border-yellow-300/50 dark:border-yellow-700/50"; case "Advanced": return "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 border-red-300/50 dark:border-red-700/50"; default: return "bg-muted text-muted-foreground border-border"; }
     }
 
-    const handleEnrollNow = () => { /* ... cart logic ... */
-        if (isAlreadyInCart) { toast({ title: "Already Selected", description: `${course.title} is already in your list.`, variant: "default" }); } else { dispatch(addItem({ courseId: course.id, title: course.title, price: course.priceUSD, discountPrice: course.discountPriceUSD, image: course.image, instructor: course.instructor.name, }),); toast({ title: "Course Selected", description: `${course.title} has been added to your list.`, variant: "success" }); } if (!isAuthenticated) { router.push("/signup"); } else { router.push("/cart"); }
+    const { user } = useAppSelector((state) => state.auth);
+    const isAdmin = user?.role === 'admin';
+    const isTeacher = user?.role === 'teacher';
+    const isAdminOrTeacher = isAdmin || isTeacher;
+
+    // Determine which price to use based on user role
+    const getPrice = () => {
+        // For students, always use Naira price
+        if (!isAdminOrTeacher) {
+            return course.priceNaira ?? (course.priceUSD ? course.priceUSD * 1500 : 0);
+        }
+        // For admin/teacher, use USD price
+        return course.priceUSD ?? 0;
+    };
+
+    const getDiscountPrice = () => {
+        // For students, always use Naira discount price
+        if (!isAdminOrTeacher) {
+            return course.discountPriceNaira ?? (course.discountPriceUSD ? course.discountPriceUSD * 1500 : undefined);
+        }
+        // For admin/teacher, use USD discount price
+        return course.discountPriceUSD;
+    };
+
+    const handleEnrollNow = () => {
+        if (isAlreadyInCart) {
+            toast({
+                title: "Already Selected",
+                description: `${course.title} is already in your list.`,
+                variant: "default"
+            });
+        } else {
+            dispatch(addItem({
+                courseId: course.id,
+                title: course.title,
+                price: getPrice(),
+                discountPrice: getDiscountPrice(),
+                image: course.image,
+                instructor: course.instructor.name,
+            }));
+            toast({
+                title: "Course Selected",
+                description: `${course.title} has been added to your list.`,
+                variant: "success"
+            });
+        }
+
+        if (!isAuthenticated) {
+            router.push("/signup");
+        } else {
+            router.push("/cart");
+        }
     }
 
     // --- MODAL VIEW ---

@@ -3,7 +3,7 @@ import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
 import { CardContent } from "@/components/ui/card";
 import { FetchStatus } from "@/types";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { deleteAuthCourse } from "@/features/auth-course/store/auth-course-slice";
 import { toast } from "sonner";
 import { ManageCourseTable } from "./ManageCourseTable"; // Import the new table component
