@@ -29,9 +29,30 @@ export const fetchMyEnrolledClasses = createAsyncThunk<
 	{ rejectValue: string }
 >("classes/fetchMyEnrolled", async (userId, { rejectWithValue }) => {
 	try {
-		const response = await get<AuthCourse[]>(
+		const response = await get<any>(
 			`/users/${userId}/enrolled-classes`
 		);
+
+		// Handle different response formats
+		if (response.success && Array.isArray(response.data)) {
+			// New format: success with data array
+			return response.data.map(item => ({
+				id: item.id,
+				slug: item.courseSlug || '',
+				title: item.title || item.courseTitle,
+				description: item.description || '',
+				category: item.type || 'course',
+				image: '/placeholder.svg', // Default image
+				instructor: {
+					name: item.instructor || 'Instructor',
+				},
+				level: 'All Levels',
+				priceUSD: 0,
+				// Add any other required fields with defaults
+			}));
+		}
+
+		// Original format
 		return response;
 	} catch (e: any) {
 		const errorMessage =
@@ -48,9 +69,30 @@ export const fetchMyTaughtClasses = createAsyncThunk<
 	{ rejectValue: string }
 >("classes/fetchMyTaught", async (teacherId, { rejectWithValue }) => {
 	try {
-		const response = await get<AuthCourse[]>(
+		const response = await get<any>(
 			`/teachers/${teacherId}/taught-classes`
 		);
+
+		// Handle different response formats
+		if (response.success && Array.isArray(response.data)) {
+			// New format: success with data array
+			return response.data.map(item => ({
+				id: item.id,
+				slug: item.courseSlug || '',
+				title: item.title || item.courseTitle,
+				description: item.description || '',
+				category: item.type || 'course',
+				image: '/placeholder.svg', // Default image
+				instructor: {
+					name: item.instructor || 'Instructor',
+				},
+				level: 'All Levels',
+				priceUSD: 0,
+				// Add any other required fields with defaults
+			}));
+		}
+
+		// Original format
 		return response;
 	} catch (e: any) {
 		const errorMessage =
@@ -102,7 +144,9 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 			const classesData = Array.isArray(response)
 				? response // Direct array response
 				: (response.success && response.data)
-					? response.data // Nested structure with success and data
+					? Array.isArray(response.data)
+						? response.data // New format: data is an array of classes
+						: response.data.classes || [] // Old format: data.classes
 					: []; // Fallback to empty array
 
 			console.log("Classes data to map:", classesData);
@@ -170,7 +214,17 @@ export const fetchCourseClassOptionsForScanner = createAsyncThunk<
 		// Handle different response formats
 		let responseData;
 
-		// If the response is already in the expected format (our API client might have extracted data)
+		// Check if the response is in the new format (direct array in data)
+		if (response.success && Array.isArray(response.data)) {
+			// Transform the new format to match the expected structure
+			return response.data.map(item => ({
+				id: item.id,
+				courseName: item.courseTitle || item.title,
+				sessionName: item.description || `${new Date(item.startTime).toLocaleTimeString()} - ${new Date(item.endTime).toLocaleTimeString()}`
+			}));
+		}
+
+		// If the response is in the old expected format
 		if (response.data && response.data.courses && response.data.timeSlots) {
 			responseData = response.data;
 		}
