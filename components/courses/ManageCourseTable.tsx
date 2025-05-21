@@ -48,27 +48,28 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                             <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
                         </tr>
                     </thead>
-                <tbody>
-                    {courses.length > 0 ? (
-                        courses.map((course) => (
-                            <ManageCourseTableRow
-                                key={course.id}
-                                course={course}
-                                onDelete={onDeleteCourse} // Pass the delete handler down
-                                showDollarPricing={isAdminOrTeacher ? showDollarPricing : false} // Students always see Naira
-                                userRole={user?.role || 'student'} // Default to student if role is undefined
-                            />
-                        ))
-                    ) : (
-                        <tr>
-                            {/* Adjust colspan to match the number of columns (6) */}
-                            <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                                No courses found matching your criteria.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                    <tbody>
+                        {courses.length > 0 ? (
+                            courses.map((course) => (
+                                <ManageCourseTableRow
+                                    key={course.id}
+                                    course={course}
+                                    onDelete={onDeleteCourse} // Pass the delete handler down
+                                    showDollarPricing={isAdminOrTeacher ? showDollarPricing : false} // Students always see Naira
+                                    userRole={user?.role || 'student'} // Default to student if role is undefined
+                                />
+                            ))
+                        ) : (
+                            <tr>
+                                {/* Adjust colspan to match the number of columns (6) */}
+                                <td colSpan={6} className="py-8 text-center text-muted-foreground">
+                                    No courses found matching your criteria.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
