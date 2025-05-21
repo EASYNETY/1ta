@@ -86,6 +86,13 @@ const STATUS_OPTIONS = {
     { value: "failed", label: "Failed" },
     { value: "refunded", label: "Refunded" }
   ],
+  class: [
+    { value: "open", label: "Open for Enrollment" },
+    { value: "closed", label: "Closed for Enrollment" },
+    { value: "active", label: "Active" },
+    { value: "upcoming", label: "Upcoming" },
+    { value: "completed", label: "Completed" }
+  ],
   course: [
     { value: "enrolled", label: "Enrolled" },
     { value: "not_enrolled", label: "Not Enrolled" },
@@ -390,6 +397,74 @@ export function SearchFilters() {
             </AccordionItem>
 
             {/* Type-specific filters */}
+            {activeTab === 'class' && (
+              <AccordionItem value="class-specific">
+                <AccordionTrigger className="py-2">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>Class Filters</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    {/* Available Slots Filter */}
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="available-slots"
+                        checked={filters.hasAvailableSlots}
+                        onCheckedChange={(checked) =>
+                          dispatch(setFilters({ hasAvailableSlots: checked === true ? true : undefined }))
+                        }
+                      />
+                      <label
+                        htmlFor="available-slots"
+                        className="text-sm cursor-pointer"
+                      >
+                        Has available slots
+                      </label>
+                    </div>
+
+                    {/* Enrollment Started Filter */}
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="enrollment-started"
+                        checked={filters.enrollmentStarted}
+                        onCheckedChange={(checked) =>
+                          dispatch(setFilters({ enrollmentStarted: checked === true ? true : undefined }))
+                        }
+                      />
+                      <label
+                        htmlFor="enrollment-started"
+                        className="text-sm cursor-pointer"
+                      >
+                        Enrollment has started
+                      </label>
+                    </div>
+
+                    {/* Location Filter */}
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Location</label>
+                      <Input
+                        placeholder="Search by location"
+                        value={filters.location || ""}
+                        onChange={(e) => dispatch(setFilters({ location: e.target.value || undefined }))}
+                      />
+                    </div>
+
+                    {/* Instructor */}
+                    <div>
+                      <label className="text-sm font-medium mb-1 block">Instructor</label>
+                      <Input
+                        placeholder="Search by instructor name"
+                        value={filters.instructor || ""}
+                        onChange={handleInstructorChange}
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
             {activeTab === 'course' && (
               <AccordionItem value="course-specific">
                 <AccordionTrigger className="py-2">

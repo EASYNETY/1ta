@@ -35,6 +35,9 @@ const initialState: ClassesState = {
 	courseClassOptions: [],
 	courseClassOptionsStatus: "idle",
 	courseClassOptionsError: null,
+	waitlist: [],
+	waitlistStatus: "idle",
+	waitlistError: null,
 };
 
 // --- Slice ---
@@ -46,6 +49,7 @@ const classesSlice = createSlice({
 			state.error = null;
 			// Also clear specific errors if you add them (e.g., operationError)
 			state.courseClassOptionsError = null;
+			state.waitlistError = null;
 		},
 		clearCurrentClass: (state) => {
 			state.currentClass = null;
@@ -67,6 +71,61 @@ const classesSlice = createSlice({
 			state.courseClassOptions = [];
 			state.courseClassOptionsStatus = "idle";
 			state.courseClassOptionsError = null;
+		},
+		// Waitlist actions
+		addToWaitlist: (
+			state,
+			action: PayloadAction<{
+				classId: string;
+				courseId: string;
+				email: string;
+				phone?: string;
+				notifyEmail: boolean;
+				notifySMS: boolean;
+			}>
+		) => {
+			state.waitlistStatus = "loading";
+			state.waitlistError = null;
+
+			// In a real implementation, this would be an async thunk that calls the API
+			// For now, we'll simulate a successful addition to the waitlist
+			const newWaitlistEntry: WaitlistEntry = {
+				id: `waitlist-${Date.now()}`,
+				classId: action.payload.classId,
+				courseId: action.payload.courseId,
+				email: action.payload.email,
+				phone: action.payload.phone,
+				notifyEmail: action.payload.notifyEmail,
+				notifySMS: action.payload.notifySMS,
+				createdAt: new Date().toISOString(),
+				status: 'pending'
+			};
+
+			state.waitlist.push(newWaitlistEntry);
+			state.waitlistStatus = "succeeded";
+		},
+		removeFromWaitlist: (
+			state,
+			action: PayloadAction<string> // waitlistId
+		) => {
+			state.waitlist = state.waitlist.filter(entry => entry.id !== action.payload);
+		},
+		updateWaitlistStatus: (
+			state,
+			action: PayloadAction<{
+				waitlistId: string;
+				status: 'pending' | 'notified' | 'enrolled' | 'expired';
+			}>
+		) => {
+			const entry = state.waitlist.find(entry => entry.id === action.payload.waitlistId);
+			if (entry) {
+				entry.status = action.payload.status;
+			}
+		},
+		clearWaitlist: (state) => {
+			state.waitlist = [];
+			state.waitlistStatus = "idle";
+			state.waitlistError = null;
 		},
 	},
 	extraReducers: (builder) => {
@@ -291,7 +350,11 @@ export const {
 	clearCurrentClass,
 	resetOperationStatus,
 	clearCourseClassOptions,
-	setCourseClassOptionStatus
+	setCourseClassOptionStatus,
+	addToWaitlist,
+	removeFromWaitlist,
+	updateWaitlistStatus,
+	clearWaitlist
 } = classesSlice.actions;
 
 // Basic selectors
@@ -318,8 +381,16 @@ export const selectCourseClassOptionsError = (state: RootState) =>
 // Safe selectors that handle null/undefined values
 export const selectAllCourseClassOptions = createSafeArraySelector(selectCourseClassOptionsRaw);
 
+// Waitlist selectors
+export const selectWaitlist = (state: RootState) => state.classes.waitlist;
+export const selectWaitlistStatus = (state: RootState) => state.classes.waitlistStatus;
+export const selectWaitlistError = (state: RootState) => state.classes.waitlistError;
+export const selectWaitlistByClassId = (classId: string) => (state: RootState) =>
+  state.classes.waitlist.filter(entry => entry.classId === classId);
+
 // For backward compatibility, also export the raw selectors
 export const selectMyClassesSafe = createSafeArraySelector(selectMyClasses);
 export const selectAllAdminClassesSafe = createSafeArraySelector(selectAllAdminClasses);
+export const selectWaitlistSafe = createSafeArraySelector(selectWaitlist);
 
 export default classesSlice.reducer;

@@ -16,6 +16,50 @@ export const searchService = {
     const results: SearchResult[] = [];
     const lowerQuery = query.toLowerCase();
 
+    // Search classes
+    const classes = state.classes?.adminClasses || [];
+    classes.forEach(classItem => {
+      if (
+        classItem.courseTitle?.toLowerCase().includes(lowerQuery) ||
+        classItem.description?.toLowerCase().includes(lowerQuery) ||
+        classItem.teacherName?.toLowerCase().includes(lowerQuery) ||
+        classItem.location?.toLowerCase().includes(lowerQuery) ||
+        classItem.schedule?.toLowerCase().includes(lowerQuery)
+      ) {
+        // Check if class has available slots and enrollment has started
+        const hasAvailableSlots = classItem.maxSlots && classItem.studentCount
+          ? classItem.maxSlots > classItem.studentCount
+          : true;
+        const enrollmentStarted = classItem.enrollmentStartDate
+          ? new Date(classItem.enrollmentStartDate) <= new Date()
+          : true;
+        const enrollmentStatus = hasAvailableSlots && enrollmentStarted ? 'open' : 'closed';
+
+        results.push({
+          id: classItem.id,
+          title: classItem.courseTitle,
+          description: classItem.description?.substring(0, 100) + '...' || 'Class for ' + classItem.courseTitle,
+          type: 'class',
+          href: `/classes/${classItem.id}`,
+          status: enrollmentStatus,
+          date: classItem.startDate,
+          metadata: {
+            courseId: classItem.courseId,
+            teacherId: classItem.teacherId,
+            teacherName: classItem.teacherName,
+            schedule: classItem.schedule,
+            location: classItem.location,
+            maxSlots: classItem.maxSlots,
+            availableSlots: classItem.maxSlots ? classItem.maxSlots - (classItem.studentCount || 0) : undefined,
+            enrollmentStartDate: classItem.enrollmentStartDate,
+            startDate: classItem.startDate,
+            endDate: classItem.endDate,
+            status: classItem.status
+          }
+        });
+      }
+    });
+
     // Search courses
     const courses = state.auth_courses?.courses || [];
     courses.forEach(course => {
@@ -31,7 +75,7 @@ export const searchService = {
           description: course.description.substring(0, 100) + '...',
           type: 'course',
           href: `/courses/${course.slug}`,
-          status: course.enrollmentStatus,
+          status: course.available_for_enrollment ? 'open' : 'closed', // Updated to use available_for_enrollment
           image: course.image,
           category: course.category,
           date: course.lastAccessedDate || course.enrollmentDate,
@@ -45,7 +89,8 @@ export const searchService = {
             ...(course.lessonCount && { lessonCount: course.lessonCount }),
             ...(course.moduleCount && { moduleCount: course.moduleCount }),
             courseId: course.id,
-            slug: course.slug
+            slug: course.slug,
+            available_for_enrollment: course.available_for_enrollment // Add enrollment availability
           }
         });
       }
@@ -251,6 +296,7 @@ function mapNotificationTypeToSearchType(notificationType: string): SearchResult
     case 'assignment': return 'assignment';
     case 'grade': return 'grade';
     case 'course': return 'course';
+    case 'class': return 'class';
     case 'payment': return 'payment';
     case 'event': return 'event';
     case 'help': return 'help';

@@ -4,14 +4,15 @@ import React from 'react'
 import { useAppDispatch } from '@/store/hooks'
 import { setActiveTab } from '../store/search-slice'
 import { Card, CardContent } from '@/components/ui/card'
-import { 
-  BookOpen, 
-  FileText, 
-  GraduationCap, 
-  Calendar, 
-  CreditCard, 
+import {
+  BookOpen,
+  FileText,
+  GraduationCap,
+  Calendar,
+  CreditCard,
   User,
-  Search
+  Search,
+  Clock
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -23,6 +24,13 @@ const SEARCH_CATEGORIES = [
     description: 'Search through all courses',
     icon: <BookOpen className="h-5 w-5" />,
     color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+  },
+  {
+    id: 'class',
+    name: 'Classes',
+    description: 'Find available class sessions',
+    icon: <Clock className="h-5 w-5" />,
+    color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300'
   },
   {
     id: 'assignment',
@@ -67,19 +75,19 @@ interface SearchCategoriesProps {
 
 export function SearchCategories({ onSearch }: SearchCategoriesProps) {
   const dispatch = useAppDispatch()
-  
+
   const handleCategoryClick = (categoryId: string) => {
     dispatch(setActiveTab(categoryId))
     onSearch(categoryId)
   }
-  
+
   return (
     <div className="mb-6">
       <h3 className="text-sm font-medium mb-4">Search Categories</h3>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {SEARCH_CATEGORIES.map(category => (
-          <Card 
+          <Card
             key={category.id}
             className="cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => handleCategoryClick(category.id)}

@@ -2,24 +2,24 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  BookOpen, 
-  FileText, 
-  Video, 
-  Download, 
-  Link as LinkIcon, 
-  ExternalLink, 
-  Play, 
-  File, 
-  Bookmark, 
-  ChevronRight 
+import {
+  BookOpen,
+  FileText,
+  Video,
+  Download,
+  Link as LinkIcon,
+  ExternalLink,
+  Play,
+  File,
+  Bookmark,
+  ChevronRight
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ArticleHeader, 
-  ArticleFooter, 
-  HelpCallout, 
-  RelatedTopics, 
+import {
+  ArticleHeader,
+  ArticleFooter,
+  HelpCallout,
+  RelatedTopics,
   RoleContent,
   StepByStepGuide,
   Step,
@@ -29,18 +29,18 @@ import {
 
 // Define related topics for this help article
 const relatedTopics = [
-  { 
-    title: 'Course Enrollment', 
+  {
+    title: 'Course Enrollment',
     href: '/help/courses/enrollment',
     description: 'Learn how to browse and enroll in courses'
   },
-  { 
-    title: 'Tracking Your Progress', 
+  {
+    title: 'Tracking Your Progress',
     href: '/help/courses/progress',
     description: 'Understand how to monitor your learning journey'
   },
-  { 
-    title: 'Navigating the Interface', 
+  {
+    title: 'Navigating the Interface',
     href: '/help/getting-started/navigation',
     description: 'Learn how to navigate through different sections of the platform'
   },
@@ -65,14 +65,16 @@ export default function CourseMaterialsHelpPage() {
 
       {/* Introduction */}
       <p className="text-lg">
-        Once you've enrolled in a course, you'll have access to a variety of learning materials including
+        Once you've enrolled in a class, you'll have access to a variety of learning materials including
         lectures, readings, videos, and assignments. This guide will help you understand how to find and
         use these materials effectively.
       </p>
 
       <HelpCallout type="note" title="Material Availability">
-        Course materials become available based on the course schedule. Some instructors release all materials
-        at once, while others release them progressively as the course advances.
+        Course materials become available based on the class schedule. Some instructors release all materials
+        at once, while others release them progressively as the class advances. Materials are typically
+        associated with specific classes, so students in different class sessions of the same course
+        may receive materials at different times.
       </HelpCallout>
 
       {/* Finding Your Course Materials */}
@@ -83,14 +85,17 @@ export default function CourseMaterialsHelpPage() {
       </p>
 
       <StepByStepGuide title="Accessing Course Materials" description="Follow these steps to access your course materials:">
-        <Step number={1} title="Navigate to My Courses">
-          From the main sidebar, click on "My Courses" to see a list of all your enrolled courses.
+        <Step number={1} title="Navigate to My Classes">
+          From the main sidebar, click on "My Classes" or "Timetable" to see a list of all your enrolled classes.
         </Step>
-        <Step number={2} title="Select a Course">
-          Click on the course title to open the course dashboard.
+        <Step number={2} title="Select a Class">
+          Click on the class title to open the class dashboard. You can also access your classes through the course page by selecting the specific class session you're enrolled in.
         </Step>
-        <Step number={3} title="Browse Course Content">
-          Use the course navigation menu to browse different sections of the course, such as Modules, Assignments, or Resources.
+        <Step number={3} title="Browse Class Content">
+          Use the class navigation menu to browse different sections of the class, such as Modules, Assignments, or Resources. Materials are organized by the instructor for your specific class session.
+        </Step>
+        <Step number={4} title="Access Course-Wide Materials">
+          Some materials may be available to all class sessions of a course. These can typically be found in the "Course Resources" section, accessible from either the class dashboard or the main course page.
         </Step>
       </StepByStepGuide>
 

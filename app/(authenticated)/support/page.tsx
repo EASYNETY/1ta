@@ -21,11 +21,11 @@ export default function MySupportTicketsPage() {
     const isLoading = status === 'loading';
 
     useEffect(() => {
-        if (user?.id && status === 'idle') { // Fetch only if needed
+        if (user?.id) { // Fetch only if needed
             dispatch(fetchMyTickets({ userId: user.id }));
         }
         dispatch(clearSupportError()); // Clear errors on mount
-    }, [dispatch, user?.id, status]);
+    }, [dispatch, user?.id]);
 
     return (
         <div className="space-y-6">

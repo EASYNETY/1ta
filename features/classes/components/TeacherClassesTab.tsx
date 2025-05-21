@@ -22,10 +22,10 @@ const TeacherClassesTab: React.FC = () => {
     const error = useAppSelector(selectClassesError);
 
     useEffect(() => {
-        if (user?.id && status === 'idle') {
+        if (user?.id) {
             dispatch(fetchMyTaughtClasses(user.id));
         }
-    }, [dispatch, user?.id, status]);
+    }, [dispatch, user?.id]);
 
     const itemVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 

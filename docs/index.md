@@ -56,6 +56,7 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 - [Attendance](./features/attendance/README.md)
 - [Classes & Courses](./features/classes/README.md)
   - [Enrollment Management System](./features/classes/Enrollment.md)
+  - [Slot-Based Enrollment with Waitlist](./features/classes/SlotBasedEnrollment.md)
 - [Barcode Scanner](./features/barcode/README.md)
 - [Help System](./features/help/README.md)
 - [Analytics & Reporting](./features/analytics/README.md)

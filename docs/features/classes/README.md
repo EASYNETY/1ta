@@ -6,6 +6,7 @@ This folder contains documentation related to the classes and courses features o
 
 - [Classes & Courses Integration](./classes-courses-integration.md) - Documentation for classes and courses integration
 - [Enrollment Management System](./Enrollment.md) - Documentation for the slot-based enrollment system
+- [Slot-Based Enrollment with Waitlist](./SlotBasedEnrollment.md) - Documentation for the enhanced slot-based enrollment system with waitlist functionality
 
 ## Overview
 
@@ -23,7 +24,8 @@ The classes feature allows administrators and teachers to manage classes, course
 - **Class Management**: Create, update, and delete classes.
 - **Course Management**: Create, update, and delete courses.
 - **Teacher Assignment**: Assign teachers to classes.
-- **Student Enrollment**: Enroll students in classes.
+- **Student Enrollment**: Enroll students in classes with slot-based capacity management.
+- **Waitlist Management**: Allow students to join waitlists for full classes and notify them when slots become available.
 - **Class Scheduling**: Schedule classes with times and locations.
 - **Class Materials**: Manage materials for classes.
 - **Class Progress Tracking**: Track progress of classes.

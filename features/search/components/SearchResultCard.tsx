@@ -98,6 +98,31 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
           <CardDescription className="text-sm">{result.description}</CardDescription>
 
           {/* Additional metadata based on type */}
+          {result.type === 'class' && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              {result.metadata?.schedule && <div>Schedule: {result.metadata.schedule}</div>}
+              {result.metadata?.location && <div>Location: {result.metadata.location}</div>}
+              {result.metadata?.teacherName && <div>Instructor: {result.metadata.teacherName}</div>}
+              {result.metadata?.availableSlots !== undefined && (
+                <div className="mt-1">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Available Slots</span>
+                    <span>{result.metadata.availableSlots} / {result.metadata.maxSlots}</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-1.5">
+                    <div
+                      className="bg-primary h-1.5 rounded-full"
+                      style={{
+                        width: `${result.metadata.maxSlots ?
+                          (result.metadata.availableSlots / result.metadata.maxSlots) * 100 : 0}%`
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {result.type === 'course' && result.metadata?.progress !== undefined && (
             <div className="mt-2">
               <div className="flex justify-between text-xs mb-1">
@@ -210,6 +235,8 @@ function getResultIcon(type: string) {
   switch (type) {
     case 'course':
       return <BookOpen className="h-4 w-4" />
+    case 'class':
+      return <Clock className="h-4 w-4" />
     case 'user':
       return <User className="h-4 w-4" />
     case 'assignment':
@@ -245,6 +272,15 @@ function getStatusColor(status: string) {
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
     case 'not_enrolled':
       return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
+    // Class-specific statuses
+    case 'open':
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+    case 'closed':
+      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+    case 'active':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+    case 'upcoming':
+      return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300'
     default:
       return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
   }
@@ -259,6 +295,49 @@ function getResultActions(result: SearchResult) {
   let secondaryActions: any[] = [];
 
   switch (result.type) {
+    case 'class':
+      // Primary action for class
+      const isEnrollable = result.status === 'open';
+      primaryAction = {
+        label: isEnrollable ? 'Enroll' : 'View Details',
+        icon: isEnrollable
+          ? <CheckCircle className="h-3.5 w-3.5 mr-1" />
+          : <Eye className="h-3.5 w-3.5 mr-1" />,
+        action: () => {
+          router.push(`/classes/${result.id}`);
+        }
+      };
+
+      // Secondary actions for class
+      secondaryActions = [
+        {
+          label: 'View Schedule',
+          icon: <Calendar className="h-4 w-4" />,
+          action: () => {
+            router.push(`/timetable?classId=${result.id}`);
+          }
+        },
+        {
+          label: 'View Course',
+          icon: <BookOpen className="h-4 w-4" />,
+          action: () => {
+            router.push(`/courses/${result.metadata?.courseId}`);
+          }
+        }
+      ];
+
+      // Add join meeting action if available
+      if (result.metadata?.meetingLink) {
+        secondaryActions.push({
+          label: 'Join Meeting',
+          icon: <Play className="h-4 w-4" />,
+          action: () => {
+            window.open(result.metadata.meetingLink, '_blank');
+          }
+        });
+      }
+      break;
+
     case 'course':
       // Primary action for course
       primaryAction = {

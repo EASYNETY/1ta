@@ -37,7 +37,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { ScheduleEvent } from "@/features/schedule/types/schedule-types"; // Import type
-import { safeArray, safeFilter, safeSort, safeLength } from "@/lib/utils/safe-data"; // Import safe utility functions
+import { safeArray, safeFilter, safeSort, safeLength, safeParseDate } from "@/lib/utils/safe-data"; // Import safe utility functions
 
 // Helper function to safely format time string
 const safeFormatTime = (dateString: string | undefined | null): string => {
@@ -111,13 +111,13 @@ export function ScheduleTab() {
                 safeFilter<ScheduleEvent>(events, event => {
                     try {
                         if (!event || !event.startTime) return false;
-                        const eventDate = parseISO(event.startTime);
+                        const eventDate = safeParseDate(event.startTime)
                         return isValid(eventDate) && isSameDay(eventDate, day);
                     } catch { return false; }
                 }),
                 (a, b) => {
                     try {
-                        return parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime();
+                        return safeParseDate(a.startTime).getTime() - safeParseDate(b.startTime).getTime();
                     } catch {
                         return 0;
                     }

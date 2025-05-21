@@ -21,10 +21,10 @@ const StudentClassesTab: React.FC = () => {
     const error = useAppSelector(selectClassesError);
 
     useEffect(() => {
-        if (user?.id && status === 'idle') { // Fetch only if idle and user exists
+        if (user?.id) { // Fetch only if idle and user exists
             dispatch(fetchMyEnrolledClasses(user.id));
         }
-    }, [dispatch, user?.id, status]);
+    }, [dispatch, user?.id]);
 
     const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
 

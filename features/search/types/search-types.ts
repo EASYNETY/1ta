@@ -1,6 +1,6 @@
 // features/search/types/search-types.ts
 
-export type SearchResultType = 'course' | 'user' | 'assignment' | 'grade' | 'event' | 'payment' | 'help';
+export type SearchResultType = 'course' | 'class' | 'user' | 'assignment' | 'grade' | 'event' | 'payment' | 'help';
 
 export interface SearchResult {
   id: string;
@@ -39,6 +39,11 @@ export interface SearchFilters {
   priceRange: PriceRange | null;
   scoreRange: ScoreRange | null;
   instructor: string | null;
+  // Class-specific filters
+  hasAvailableSlots?: boolean;
+  enrollmentStarted?: boolean;
+  location?: string;
+  schedule?: string;
 }
 
 export interface SearchState {

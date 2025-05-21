@@ -72,6 +72,19 @@ export interface AdminClassView {
 	updated_at?: string;
 }
 
+export interface WaitlistEntry {
+	id: string;
+	classId: string;
+	courseId: string;
+	userId?: string;
+	email: string;
+	phone?: string;
+	notifyEmail: boolean;
+	notifySMS: boolean;
+	createdAt: string;
+	status: 'pending' | 'notified' | 'enrolled' | 'expired';
+}
+
 export interface ClassesState {
 	myClasses: any[]; // Use a specific type e.g., StudentClassView[]
 	allClasses: AdminClassView[];
@@ -89,6 +102,9 @@ export interface ClassesState {
 		totalClasses: number;
 		totalPages: number;
 	} | null;
+	waitlist: WaitlistEntry[];
+	waitlistStatus: "idle" | "loading" | "succeeded" | "failed";
+	waitlistError: string | null;
 }
 
 // Simple option type for dropdown selection
