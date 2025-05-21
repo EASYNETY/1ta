@@ -84,9 +84,40 @@ export const fetchAllScheduleEvents = createAsyncThunk<
 		}
 
 		// API call using the API client
-		return await get<FetchAllEventsResult>(
-			`/schedule-events?${queryParams.toString()}`
-		);
+		const response = await get<any>(`/schedule-events?${queryParams.toString()}`);
+
+		// Handle API response format which might be wrapped in data object
+		if (response.data && response.data.events) {
+			// API returns { success: true, data: { events: [], pagination: {} } }
+			return {
+				events: response.data.events,
+				total: response.data.pagination?.total || 0,
+				page: response.data.pagination?.page || 1,
+				limit: response.data.pagination?.limit || 10,
+				totalPages: response.data.pagination?.pages || 1
+			};
+		} else if (Array.isArray(response.events)) {
+			// API returns { events: [], total: 0, page: 1, ... }
+			return response;
+		} else if (Array.isArray(response)) {
+			// API returns direct array of events
+			return {
+				events: response,
+				total: response.length,
+				page: 1,
+				limit: response.length,
+				totalPages: 1
+			};
+		}
+
+		// Fallback for unexpected response format
+		return {
+			events: [],
+			total: 0,
+			page: 1,
+			limit: 10,
+			totalPages: 0
+		};
 	} catch (error: any) {
 		return rejectWithValue(
 			error.message || "Failed to fetch all schedule events"

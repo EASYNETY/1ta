@@ -12,18 +12,29 @@ export interface ScheduleEvent {
 	id: string;
 	title: string; // Event specific title (e.g., "Midterm Exam")
 	courseId?: string; // Link to the course if applicable
+	course_id?: string; // Snake case version
 	courseSlug?: string; // Link to the course if applicable
+	course_slug?: string; // Snake case version
 	courseTitle?: string; // Display name of the course
+	course_title?: string; // Snake case version
 	classId?: string; // Link to the specific class instance if applicable
-	startTime: string; // ISO Date string
-	endTime: string; // ISO Date string
+	class_id?: string; // Snake case version
+	startTime?: string; // ISO Date string
+	start_time?: string; // Snake case version
+	endTime?: string; // ISO Date string
+	end_time?: string; // Snake case version
 	type: ScheduleEventType;
 	location?: string; // Physical room or 'Virtual Classroom'
 	instructorId?: string;
+	instructor_id?: string; // Snake case version
 	instructor?: string; // Display name
 	meetingLink?: string; // Optional link for virtual events
+	meeting_link?: string; // Snake case version
 	description?: string;
 	attendees?: string[]; // Optional list of student/user IDs expected
+	// Additional fields from API response
+	start_time_formatted?: string;
+	end_time_formatted?: string;
 }
 
 // State for the schedule slice

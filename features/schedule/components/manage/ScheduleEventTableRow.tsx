@@ -51,14 +51,20 @@ export function ScheduleEventTableRow({ event, onDelete, isDeleting }: ScheduleE
         <>This action cannot be undone. This will permanently delete the event <strong>{event.title}</strong>.</>
     );
 
+    // Handle both camelCase and snake_case field names from API
+    const startTime = event.startTime || event.start_time;
+    const endTime = event.endTime || event.end_time;
+    const courseTitle = event.courseTitle || event.course_title;
+    const classId = event.classId || event.class_id;
+
     return (
         <TableRow>
             <TableCell className="font-medium">{event.title}</TableCell>
             <TableCell>{getEventTypeBadge(event.type)}</TableCell>
-            <TableCell>{safeFormatDate(event.startTime)}</TableCell>
-            <TableCell className="whitespace-nowrap">{safeFormatTime(event.startTime)} - {safeFormatTime(event.endTime)}</TableCell>
+            <TableCell>{safeFormatDate(startTime)}</TableCell>
+            <TableCell className="whitespace-nowrap">{safeFormatTime(startTime)} - {safeFormatTime(endTime)}</TableCell>
             <TableCell className="text-xs text-muted-foreground truncate">
-                {event.courseTitle || event.classId || 'N/A'}
+                {courseTitle || classId || 'N/A'}
             </TableCell>
             <TableCell>{event.instructor || 'N/A'}</TableCell>
             <TableCell className="text-right">
