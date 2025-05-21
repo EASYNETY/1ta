@@ -104,9 +104,9 @@ export default function TimetablePage() {
                 {/* Conditionally render Manage button for Admin */}
                 {user.role === 'admin' && (
                     <DyraneButton size="sm" variant="outline" asChild>
-                        <Link href="/manage-schedule">
+                        <Link href={activeTab === "all-classes" ? "/classes" : "/manage-schedule"}>
                             <Settings className="mr-2 h-4 w-4" />
-                            Manage Schedule
+                            {activeTab === "all-classes" ? "Manage Classes" : "Manage Schedule"}
                         </Link>
                     </DyraneButton>
                 )}
