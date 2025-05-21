@@ -19,28 +19,6 @@ interface PricingSettingsFormProps {
     submitLabel: string;
 }
 
-// Placeholder for Course Settings - Kept as requested
-// (Ensure imports for Select/Input/Button are kept if this component uses them)
-const CourseSettingsPlaceholder: React.FC = () => (
-    <div className="border rounded-lg p-4 mt-6">
-        <h3 className="text-lg font-medium mb-4">Course Settings (Placeholder)</h3>
-        <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 border rounded-md">
-                <div><h4 className="font-medium">Visibility</h4><p className="text-sm text-muted-foreground">Control who can see it</p></div>
-                <Select defaultValue="public" disabled><SelectTrigger className="w-[180px]"><SelectValue placeholder="Visibility" /></SelectTrigger><SelectContent><SelectItem value="public">Public</SelectItem><SelectItem value="private">Private</SelectItem><SelectItem value="draft">Draft</SelectItem></SelectContent></Select>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-md">
-                <div><h4 className="font-medium">Enrollment Limit</h4><p className="text-sm text-muted-foreground">Max number of students</p></div>
-                <Input type="number" placeholder="No limit" className="w-[180px]" disabled />
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-md">
-                <div><h4 className="font-medium">Start Date</h4><p className="text-sm text-muted-foreground">When it becomes available</p></div>
-                <Input type="date" className="w-[180px]" disabled />
-            </div>
-        </div>
-    </div>
-);
-
 
 export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ control, isSubmitting, onBack, submitLabel }) => {
     const [showDollarPricing, setShowDollarPricing] = useState(false);
@@ -185,10 +163,33 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
                     </div>
                 )}
 
-                {/* REMOVED Payment Integration Placeholder */}
-
-                {/* Course Settings Placeholder - Kept */}
-                <CourseSettingsPlaceholder />
+                {/* Course Settings */}
+                <div className="border rounded-lg p-4 mt-6">
+                    <h3 className="text-lg font-medium mb-4">Course Settings</h3>
+                    <div className="space-y-4">
+                        <FormField
+                            control={control}
+                            name="available_for_enrollment"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center justify-between p-3 border rounded-md">
+                                    <div>
+                                        <FormLabel>Availability</FormLabel>
+                                        <FormDescription className="text-sm text-muted-foreground">
+                                            Control if students can enroll in this course
+                                        </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                        <Switch
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
 
             </CardContent>
             {/* FormNavigation remains the same */}

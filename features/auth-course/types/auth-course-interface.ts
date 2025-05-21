@@ -19,6 +19,7 @@ export interface AuthCourse {
 	level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
 	tags?: string[];
 	available_for_enrollment?: boolean; // Whether the course is available for enrollment
+	isAvailableForEnrollment?: boolean; // Alternative field name for available_for_enrollment
 	priceUSD: number;
 	priceNaira?: number; // Price in Naira
 	discountPriceUSD?: number;
@@ -123,8 +124,12 @@ export interface AuthCourse {
 	};
 	level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
 	tags?: string[];
+	available_for_enrollment?: boolean; // Whether the course is available for enrollment
+	isAvailableForEnrollment?: boolean; // Alternative field name for available_for_enrollment
 	priceUSD: number;
+	priceNaira?: number; // Price in Naira
 	discountPriceUSD?: number;
+	discountPriceNaira?: number; // Discount price in Naira
 	learningOutcomes?: string[];
 	prerequisites?: string[];
 	modules: AuthCourseModule[];

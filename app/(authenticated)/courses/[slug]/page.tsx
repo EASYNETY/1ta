@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import {
     fetchAuthCourseBySlug,
@@ -13,7 +13,7 @@ import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { BookOpen, Clock, Users, CheckCircle, LockIcon, PlayCircle, FileText, Download, Award, Edit, MessageSquare, Share2, Bookmark, Star } from 'lucide-react'
+import { BookOpen, Clock, Users, CheckCircle, LockIcon, PlayCircle, FileText, Download, Award, Edit, MessageSquare, Share2, Bookmark, Star, Bell } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -24,7 +24,6 @@ import Link from "next/link"
 export default function CourseDetailPage() {
     const params = useParams()
     const slug = params?.slug as string
-    const router = useRouter()
     const dispatch = useAppDispatch()
     const { toast } = useToast()
     const { user } = useAppSelector((state) => state.auth)
@@ -160,9 +159,17 @@ export default function CourseDetailPage() {
         return `${minutes}m`;
     };
 
+    // Helper function to check if course is available for enrollment
+    const isAvailableForEnrollment = () => {
+        return !(currentCourse.isAvailableForEnrollment === false || currentCourse.available_for_enrollment === false);
+    };
+
 
     // Role-specific actions
     const getRoleActions = () => {
+        // Check if course is available for enrollment
+        const isAvailable = isAvailableForEnrollment();
+
         switch (user.role) {
             case "admin":
                 return (
@@ -173,6 +180,12 @@ export default function CourseDetailPage() {
                                 Edit Course
                             </Link>
                         </DyraneButton>
+                        {!isAvailable && (
+                            <DyraneButton variant="outline" size="sm" className="text-green-600 border-green-300 hover:bg-green-50">
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Enable Enrollment
+                            </DyraneButton>
+                        )}
                     </div>
                 )
             case "teacher":
@@ -184,6 +197,12 @@ export default function CourseDetailPage() {
                                 Edit Content
                             </Link>
                         </DyraneButton>
+                        {!isAvailable && (
+                            <DyraneButton variant="outline" size="sm" disabled className="cursor-not-allowed opacity-60">
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Request Enrollment Activation
+                            </DyraneButton>
+                        )}
                     </div>
                 )
             default:
@@ -197,6 +216,12 @@ export default function CourseDetailPage() {
                             <Share2 className="mr-2 h-4 w-4" />
                             Share
                         </DyraneButton>
+                        {!isAvailable && (
+                            <DyraneButton variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50">
+                                <Bell className="mr-2 h-4 w-4" />
+                                Notify When Available
+                            </DyraneButton>
+                        )}
                     </div>
                 )
         }
@@ -303,6 +328,16 @@ export default function CourseDetailPage() {
                                 <Badge variant="outline" className="bg-primary/10 text-primary">
                                     {currentCourse.category}
                                 </Badge>
+                                {/* Enrollment Status Badge */}
+                                {!isAvailableForEnrollment() ? (
+                                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                                        Not Available for Enrollment
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                                        Available for Enrollment
+                                    </Badge>
+                                )}
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Clock className="h-4 w-4" />
                                     <span>{currentCourse.totalVideoDuration}</span>
@@ -311,10 +346,7 @@ export default function CourseDetailPage() {
                                     <BookOpen className="h-4 w-4" />
                                     <span>{currentCourse.lessonCount} lessons</span>
                                 </div>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <Users className="h-4 w-4" />
-                                    <span>{Math.floor(Math.random() * 1000) + 100} students</span>
-                                </div>
+                                {/* Student count removed as requested */}
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Star className="h-4 w-4 text-yellow-500" />
                                     <Star className="h-4 w-4 text-yellow-500" />
@@ -407,6 +439,22 @@ export default function CourseDetailPage() {
                                         <div className="prose max-w-none">
                                             <h3>About this lesson</h3>
                                             <p>{currentLessonObj?.description || "No description available for this lesson."}</p>
+
+                                            {/* Enrollment Status Alert */}
+                                            {!isAvailableForEnrollment() && (
+                                                <div className="mt-6 p-4 border border-red-200 bg-red-50 text-red-800 rounded-md">
+                                                    <h4 className="font-semibold flex items-center">
+                                                        <Bell className="mr-2 h-5 w-5" />
+                                                        Enrollment Notice
+                                                    </h4>
+                                                    <p className="mt-1">
+                                                        This course is currently not available for new enrollments.
+                                                        {user.role === "student" && " You can request to be notified when enrollment opens."}
+                                                        {user.role === "teacher" && " Please contact an administrator to enable enrollment."}
+                                                        {user.role === "admin" && " You can enable enrollment from the course settings."}
+                                                    </p>
+                                                </div>
+                                            )}
 
                                             <h3 className="mt-6">Course Description</h3>
                                             <div dangerouslySetInnerHTML={{ __html: currentCourse.description }} />

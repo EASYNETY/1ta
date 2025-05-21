@@ -31,6 +31,11 @@ import { PricingSettingsForm } from "@/components/course-form/PricingSettingsFor
 import { AuthCourse } from "@/data/mock-auth-course-data";
 
 // Import types
+// Define an extended AuthCourse interface that includes the Naira pricing fields
+interface ExtendedAuthCourse extends AuthCourse {
+    priceNaira?: number;
+    discountPriceNaira?: number;
+}
 
 
 // Define a placeholder User type - replace with your actual User type
@@ -77,7 +82,7 @@ const ErrorDisplay: React.FC<{ message: string }> = ({ message }) => (
 
 // --- Helper Function to Format Fetched Data for the Form ---
 // This is the reverse of the processing done in onSubmit
-const formatCourseDataForForm = (course: AuthCourse): Partial<CourseFormValues> => {
+const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseFormValues> => {
 
     // Define the valid lesson types for the form schema explicitly
     const validFormLessonTypes: Set<LessonFormValues['type']> = new Set([
@@ -125,7 +130,7 @@ const formatCourseDataForForm = (course: AuthCourse): Partial<CourseFormValues> 
         description: course.description ?? "",
         category: course.category ?? "", // Need a valid category string
         level: course.level ?? "All Levels",
-        available_for_enrollment: course.available_for_enrollment ?? true,
+        available_for_enrollment: course.isAvailableForEnrollment ?? true, // Map isAvailableForEnrollment to available_for_enrollment
         price: course.priceUSD ?? 0,
         priceNaira: course.priceNaira ?? 0,
         discountPrice: course.discountPriceUSD, // Can be undefined
@@ -150,7 +155,7 @@ export default function EditCoursePage() {
     const dispatch = useAppDispatch();
     const { toast } = useToast();
 
-    const [courseData, setCourseData] = useState<AuthCourse | null>(null);
+    const [courseData, setCourseData] = useState<ExtendedAuthCourse | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<string>("basic");
@@ -197,8 +202,8 @@ export default function EditCoursePage() {
                         setError("You do not have permission to edit this course.");
                         setCourseData(null);
                     } else {
-                        setCourseData(data as any);
-                        const formattedData = formatCourseDataForForm(data as any);
+                        setCourseData(data as ExtendedAuthCourse);
+                        const formattedData = formatCourseDataForForm(data as ExtendedAuthCourse);
                         form.reset(formattedData); // Reset form with fetched & formatted data
                     }
                 }

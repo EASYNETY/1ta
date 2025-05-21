@@ -166,6 +166,7 @@ export interface AuthCourse extends PublicCourse {
 	assignments?: Assignment[];
 	enrollmentDate?: string; // ISO date string
 	lastAccessed?: string; // ISO date string
+	isAvailableForEnrollment?: boolean; // Whether the course is available for enrollment
 }
 
 // --- Public Mock Course Data Generation ---
@@ -1088,13 +1089,14 @@ export const createAuthMockCourse = async (courseData: any): Promise<AuthCourse>
 		learningOutcomes: Array.isArray(courseData.learningOutcomes) ? courseData.learningOutcomes : [],
 		prerequisites: Array.isArray(courseData.prerequisites) ? courseData.prerequisites : [],
 		modules: modules,
-		lessonCount: modules.reduce((count, module) => count + module.lessons.length, 0),
+		lessonCount: modules.reduce((count: number, module: any) => count + module.lessons.length, 0),
 		moduleCount: modules.length,
 		totalVideoDuration: "Approx. 10 hours",
 		language: courseData.language || "English",
 		certificate: courseData.certificate !== undefined ? courseData.certificate : true,
 		accessType: courseData.accessType || "Lifetime",
 		supportType: courseData.supportType || "Both",
+		isAvailableForEnrollment: courseData.available_for_enrollment !== undefined ? courseData.available_for_enrollment : true,
 		enrollmentStatus: "enrolled",
 		progress: 0,
 		completedLessons: [],
@@ -1181,12 +1183,13 @@ export const updateAuthMockCourse = async (courseId: string, courseData: any): P
 		learningOutcomes: Array.isArray(courseData.learningOutcomes) ? courseData.learningOutcomes : existingCourse.learningOutcomes,
 		prerequisites: Array.isArray(courseData.prerequisites) ? courseData.prerequisites : existingCourse.prerequisites,
 		modules: updatedModules,
-		lessonCount: updatedModules.reduce((count, module) => count + module.lessons.length, 0),
+		lessonCount: updatedModules.reduce((count: number, module: any) => count + module.lessons.length, 0),
 		moduleCount: updatedModules.length,
 		language: courseData.language || existingCourse.language,
 		certificate: courseData.certificate !== undefined ? courseData.certificate : existingCourse.certificate,
 		accessType: courseData.accessType || existingCourse.accessType,
 		supportType: courseData.supportType || existingCourse.supportType,
+		isAvailableForEnrollment: courseData.available_for_enrollment !== undefined ? courseData.available_for_enrollment : existingCourse.isAvailableForEnrollment,
 		lastAccessed: new Date().toISOString(),
 	};
 
