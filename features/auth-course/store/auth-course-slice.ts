@@ -50,20 +50,34 @@ export const fetchAuthCourses = createAsyncThunk<
 
 		// Use the apiClient's get method with proper error handling
 		const response = await get<{
-			success: boolean;
-			data: AuthCourse[];
+			success?: boolean;
+			data?: AuthCourse[];
 			message?: string;
-		}>("/auth_courses");
+		} | AuthCourse[]>("/auth_courses");
 
-		// Check if the response has the expected structure
-		if (!response || !response.success) {
-			console.error("API Error:", response?.message || "Unknown error");
-			throw new Error(response?.message || "Failed to fetch auth courses");
+		// Handle both response formats (direct array or nested with success/data)
+		let courses: AuthCourse[];
+
+		// Check if response has the nested structure with success/data properties
+		if (response && typeof response === 'object' && !Array.isArray(response) && 'success' in response && 'data' in response) {
+			// This is a nested response format
+			if (!response.success) {
+				console.error("API Error:", response.message || "Unknown error");
+				throw new Error(response.message || "Failed to fetch auth courses");
+			}
+
+			if (!response.data) {
+				console.error("API Error: Missing courses data in response");
+				throw new Error("Courses data not found in response");
+			}
+
+			courses = response.data;
+		} else {
+			// This is a direct response format (array)
+			courses = response as AuthCourse[];
 		}
 
-		// Extract the courses from the response
-		const courses = response.data;
-
+		// Validate that courses is an array
 		if (!Array.isArray(courses)) {
 			console.error("Fetched auth courses data is not an array:", courses);
 			throw new Error("Invalid data format received for auth courses");
@@ -73,6 +87,7 @@ export const fetchAuthCourses = createAsyncThunk<
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to fetch courses";
+		console.error("fetchAuthCourses Thunk Error:", message);
 		return rejectWithValue(message);
 	}
 });
@@ -84,14 +99,47 @@ export const fetchCourseBySlug = createAsyncThunk<
 >("auth_courses/fetchCourseBySlug", async (slug, { rejectWithValue }) => {
 	try {
 		console.log(`Dispatching fetchCourseBySlug: ${slug}`);
-		const course = await get<AuthCourse>(`/auth_courses/${slug}`);
-		if (!course || typeof course !== "object") {
-			throw new Error("Invalid data received for course");
+
+		// Use the apiClient's get method with proper error handling
+		const response = await get<{
+			success?: boolean;
+			data?: AuthCourse;
+			message?: string;
+		} | AuthCourse>(`/auth_courses/${slug}`);
+
+		// Handle both response formats (direct or nested with success/data)
+		let course: AuthCourse;
+
+		// Check if response has the nested structure with success/data properties
+		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+			// This is a nested response format
+			if (!response.success) {
+				console.error("API Error:", response.message || "Unknown error");
+				throw new Error(response.message || "Failed to fetch course");
+			}
+
+			if (!response.data) {
+				console.error("API Error: Missing course data in response");
+				throw new Error("Course data not found in response");
+			}
+
+			course = response.data;
+		} else {
+			// This is a direct response format
+			course = response as AuthCourse;
 		}
+
+		// Validate the course object
+		if (!course || typeof course !== 'object' || !course.id) {
+			console.error("Invalid course data received:", course);
+			throw new Error("Invalid course data received");
+		}
+
 		return course;
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to fetch course by slug";
+		console.error("fetchCourseBySlug Thunk Error:", message);
 		return rejectWithValue(message);
 	}
 });
@@ -103,8 +151,42 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 >("auth_courses/fetchCourseBySlug", async (slug, { rejectWithValue }) => {
 	try {
 		console.log(`Dispatching fetchAuthCourseBySlug: ${slug}`);
-		const course = await get<AuthCourse>(`/auth_courses/slug/${slug}`);
-		if (!course) throw new Error("Course not found");
+
+		// Use the apiClient's get method with proper error handling
+		const response = await get<{
+			success?: boolean;
+			data?: AuthCourse;
+			message?: string;
+		} | AuthCourse>(`/auth_courses/slug/${slug}`);
+
+		// Handle both response formats (direct or nested with success/data)
+		let course: AuthCourse;
+
+		// Check if response has the nested structure with success/data properties
+		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+			// This is a nested response format
+			if (!response.success) {
+				console.error("API Error:", response.message || "Unknown error");
+				throw new Error(response.message || "Failed to fetch course");
+			}
+
+			if (!response.data) {
+				console.error("API Error: Missing course data in response");
+				throw new Error("Course data not found in response");
+			}
+
+			course = response.data;
+		} else {
+			// This is a direct response format
+			course = response as AuthCourse;
+		}
+
+		// Validate the course object
+		if (!course || typeof course !== 'object' || !course.id) {
+			console.error("Invalid course data received:", course);
+			throw new Error("Invalid course data received");
+		}
+
 		return course;
 	} catch (error) {
 		const message =
@@ -125,17 +207,35 @@ export const markLessonComplete = createAsyncThunk<
 			console.log(
 				`Marking lesson ${lessonId} as ${completed ? "complete" : "incomplete"}`
 			);
-			await post<void>(
+
+			// Use the apiClient's post method with proper error handling
+			const response = await post<{
+				success?: boolean;
+				message?: string;
+			} | void>(
 				`/auth_courses/${courseId}/lessons/${lessonId}/complete`,
 				{
 					completed,
 				}
 			);
+
+			// Check if response has the nested structure with success property
+			if (response && typeof response === 'object' && 'success' in response) {
+				// This is a nested response format
+				if (!response.success) {
+					console.error("API Error:", response.message || "Unknown error");
+					throw new Error(response.message || "Failed to update lesson status");
+				}
+			}
+
+			// If we got here, the operation was successful
+			return;
 		} catch (error) {
 			const message =
 				error instanceof Error
 					? error.message
 					: "Failed to update lesson status";
+			console.error("markLessonComplete Thunk Error:", message);
 			return rejectWithValue(message);
 		}
 	}
@@ -165,18 +265,40 @@ export const createAuthCourse = createAsyncThunk<
 
 		// Make the API call to create the course
 		const response = await post<{
-			success: boolean;
-			data: AuthCourse;
+			success?: boolean;
+			data?: AuthCourse;
 			message?: string;
-		}>("/auth_courses", processedData);
+		} | AuthCourse>("/auth_courses", processedData);
 
-		// Check if the response has the expected structure
-		if (!response || !response.success) {
-			console.error("API Error:", response?.message || "Unknown error");
-			throw new Error(response?.message || "Failed to create course");
+		// Handle both response formats (direct or nested with success/data)
+		let course: AuthCourse;
+
+		// Check if response has the nested structure with success/data properties
+		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+			// This is a nested response format
+			if (!response.success) {
+				console.error("API Error:", response.message || "Unknown error");
+				throw new Error(response.message || "Failed to create course");
+			}
+
+			if (!response.data) {
+				console.error("API Error: Missing course data in response");
+				throw new Error("Course data not found in response");
+			}
+
+			course = response.data;
+		} else {
+			// This is a direct response format
+			course = response as AuthCourse;
 		}
 
-		return response.data;
+		// Validate the course object
+		if (!course || typeof course !== 'object' || !course.id) {
+			console.error("Invalid course data received:", course);
+			throw new Error("Invalid course data received");
+		}
+
+		return course;
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to create course";
@@ -209,18 +331,40 @@ export const updateAuthCourse = createAsyncThunk<
 
 		// Make the API call to update the course
 		const response = await put<{
-			success: boolean;
-			data: AuthCourse;
+			success?: boolean;
+			data?: AuthCourse;
 			message?: string;
-		}>(`/auth_courses/${courseId}`, processedData);
+		} | AuthCourse>(`/auth_courses/${courseId}`, processedData);
 
-		// Check if the response has the expected structure
-		if (!response || !response.success) {
-			console.error("API Error:", response?.message || "Unknown error");
-			throw new Error(response?.message || "Failed to update course");
+		// Handle both response formats (direct or nested with success/data)
+		let course: AuthCourse;
+
+		// Check if response has the nested structure with success/data properties
+		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+			// This is a nested response format
+			if (!response.success) {
+				console.error("API Error:", response.message || "Unknown error");
+				throw new Error(response.message || "Failed to update course");
+			}
+
+			if (!response.data) {
+				console.error("API Error: Missing course data in response");
+				throw new Error("Course data not found in response");
+			}
+
+			course = response.data;
+		} else {
+			// This is a direct response format
+			course = response as AuthCourse;
 		}
 
-		return response.data;
+		// Validate the course object
+		if (!course || typeof course !== 'object' || !course.id) {
+			console.error("Invalid course data received:", course);
+			throw new Error("Invalid course data received");
+		}
+
+		return course;
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to update course";
@@ -236,9 +380,22 @@ export const deleteAuthCourse = createAsyncThunk<
 >("auth_courses/deleteAuthCourse", async (courseId, { rejectWithValue }) => {
 	try {
 		console.log(`Dispatching deleteAuthCourse: ${courseId}`);
-		// Assuming your API endpoint for deleting is /auth_courses/{courseId}
-		// The 'del' function likely doesn't return the full course, adjust if needed
-		await del<void>(`/auth_courses/${courseId}`);
+
+		// Make the API call to delete the course
+		const response = await del<{
+			success?: boolean;
+			message?: string;
+		} | void>(`/auth_courses/${courseId}`);
+
+		// Check if response has the nested structure with success property
+		if (response && typeof response === 'object' && 'success' in response) {
+			// This is a nested response format
+			if (!response.success) {
+				console.error("API Error:", response.message || "Unknown error");
+				throw new Error(response.message || "Failed to delete course");
+			}
+		}
+
 		return courseId; // Return the ID to identify which course to remove from state
 	} catch (error) {
 		const message =
