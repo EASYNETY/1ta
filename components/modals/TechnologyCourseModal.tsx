@@ -536,22 +536,31 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
 
                     {/* Action button */}
                     {safeTechCourse.category === "current" ? (
-                      <DyraneButton
-                        onClick={handleEnrollNow}
-                        className="gap-1.5"
-                      >
-                        {isAlreadyInCart ? (
-                          <>
-                            <CheckCircle className="h-4 w-4" />
-                            <span>Selected</span>
-                          </>
-                        ) : (
-                          <>
-                            <GraduationCap className="h-4 w-4" />
-                            <span>Enroll Now</span>
-                          </>
-                        )}
-                      </DyraneButton>
+                      mergedCourse.available_for_enrollment !== false ? (
+                        <DyraneButton
+                          onClick={handleEnrollNow}
+                          className="gap-1.5"
+                        >
+                          {isAlreadyInCart ? (
+                            <>
+                              <CheckCircle className="h-4 w-4" />
+                              <span>Selected</span>
+                            </>
+                          ) : (
+                            <>
+                              <GraduationCap className="h-4 w-4" />
+                              <span>Enroll Now</span>
+                            </>
+                          )}
+                        </DyraneButton>
+                      ) : (
+                        <DyraneButton
+                          disabled
+                          className="gap-1.5 cursor-not-allowed opacity-70"
+                        >
+                          <span>Not Available for Enrollment</span>
+                        </DyraneButton>
+                      )
                     ) : (
                       <>
                         {waitlistSubmitted ? (

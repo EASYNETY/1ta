@@ -108,9 +108,15 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                             <DyraneButton variant="ghost" onClick={() => onClose?.()} >
                                 Close
                             </DyraneButton>
-                            <DyraneButton size="lg" onClick={handleEnrollNow}>
-                                {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enroll Now</span>)}
-                            </DyraneButton>
+                            {course.available_for_enrollment !== false ? (
+                                <DyraneButton size="lg" onClick={handleEnrollNow}>
+                                    {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enroll Now</span>)}
+                                </DyraneButton>
+                            ) : (
+                                <DyraneButton size="lg" disabled className="cursor-not-allowed opacity-70">
+                                    <span className="text-sm">Not Available for Enrollment</span>
+                                </DyraneButton>
+                            )}
                         </div>
                     </div>
                 </div>

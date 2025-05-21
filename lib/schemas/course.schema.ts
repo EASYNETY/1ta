@@ -37,10 +37,36 @@ export const courseSchema = z.object({
 	// Media fields
 	image: z.string().optional().nullable(),
 	previewVideoUrl: z.string().optional().nullable(),
+	// Enrollment availability
+	available_for_enrollment: z.boolean().optional().default(true),
+	// USD Pricing
 	price: z.coerce
 		.number()
 		.min(0, "Price must be a positive number or zero."),
 	discountPrice: z
+		.union([
+			z.coerce.number().min(0, "Discount price must be positive or zero"),
+			z.nan(),
+			z.literal(""),
+		])
+		.optional()
+		.transform((val) => {
+			// Handle empty string, NaN, or undefined cases
+			if (val === "" || val === undefined || (typeof val === 'number' && isNaN(val))) {
+				return undefined;
+			}
+			// Ensure we return a number
+			return typeof val === 'number' ? val : Number(val);
+		})
+		.refine((val) => val === undefined || (typeof val === 'number' && val >= 0), {
+			message: "Discount price must be positive or zero",
+		}),
+	// Naira Pricing
+	priceNaira: z.coerce
+		.number()
+		.min(0, "Price must be a positive number or zero.")
+		.optional(),
+	discountPriceNaira: z
 		.union([
 			z.coerce.number().min(0, "Discount price must be positive or zero"),
 			z.nan(),
@@ -72,3 +98,34 @@ export const courseSchema = z.object({
 });
 
 export type CourseFormValues = z.infer<typeof courseSchema>;
+
+// Extended type for form default values
+export const defaultCourseValues: Partial<CourseFormValues> = {
+	title: "",
+	subtitle: "",
+	description: "",
+	category: "",
+	level: "All Levels",
+	price: 0,
+	priceNaira: 0,
+	discountPrice: undefined,
+	discountPriceNaira: undefined,
+	available_for_enrollment: true,
+	language: "English",
+	certificate: true,
+	accessType: "Lifetime",
+	supportType: "Both",
+	tags: "",
+	learningOutcomes: "",
+	prerequisites: "",
+	modules: [{
+		title: "Module 1",
+		description: "",
+		lessons: [{
+			title: "Lesson 1",
+			type: "video",
+			duration: "",
+			description: ""
+		}]
+	}],
+};

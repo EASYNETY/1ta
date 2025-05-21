@@ -16,8 +16,7 @@ import Link from "next/link";
 import { createAuthCourse } from "@/features/auth-course/store/auth-course-slice";
 
 // Import Schemas and Types
-import { courseSchema, type CourseFormValues } from "@/lib/schemas/course.schema";
-import { defaultCourseValues } from "@/config/course-form-config";
+import { courseSchema, type CourseFormValues, defaultCourseValues } from "@/lib/schemas/course.schema";
 
 // Import Types and Components
 

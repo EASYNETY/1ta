@@ -17,7 +17,7 @@ import Link from "next/link";
 import { fetchAuthCourseBySlug, updateAuthCourse } from "@/features/auth-course/store/auth-course-slice";
 
 // Import Schemas and Types
-import { courseSchema, LessonFormValues, type CourseFormValues } from "@/lib/schemas/course.schema";
+import { courseSchema, LessonFormValues, type CourseFormValues, defaultCourseValues } from "@/lib/schemas/course.schema";
 
 
 // Import Config (might not be needed if defaults come from fetched data)
@@ -125,8 +125,11 @@ const formatCourseDataForForm = (course: AuthCourse): Partial<CourseFormValues> 
         description: course.description ?? "",
         category: course.category ?? "", // Need a valid category string
         level: course.level ?? "All Levels",
+        available_for_enrollment: course.available_for_enrollment ?? true,
         price: course.priceUSD ?? 0,
+        priceNaira: course.priceNaira ?? 0,
         discountPrice: course.discountPriceUSD, // Can be undefined
+        discountPriceNaira: course.discountPriceNaira, // Can be undefined
         language: course.language ?? "English",
         certificate: course.certificate ?? true,
         accessType: course.accessType ?? "Lifetime",
@@ -159,33 +162,8 @@ export default function EditCoursePage() {
     const form = useForm<CourseFormValues>({
         // @ts-ignore - Ignore type mismatch between Zod schema and React Hook Form
         resolver: zodResolver(courseSchema),
-        // Provide minimal defaults, will be overwritten by reset
-        defaultValues: {
-            title: "",
-            subtitle: "",
-            description: "",
-            category: "",
-            level: "All Levels",
-            price: 0,
-            discountPrice: undefined,
-            language: "English",
-            certificate: true,
-            accessType: "Lifetime",
-            supportType: "Both",
-            tags: "",
-            learningOutcomes: "",
-            prerequisites: "",
-            modules: [{
-                title: "Module 1",
-                description: "",
-                lessons: [{
-                    title: "Lesson 1",
-                    type: "video",
-                    duration: "",
-                    description: ""
-                }]
-            }],
-        },
+        // Use the defaultCourseValues from the schema
+        defaultValues: defaultCourseValues,
         mode: "onChange",
     });
 

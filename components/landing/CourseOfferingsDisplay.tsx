@@ -333,13 +333,23 @@ export function CourseCards() {
                     <div className="mt-auto border-t border-border pt-5">
                       <AnimatePresence mode="wait">
                         {selectedCourse.category === "current" ? (
-                          <motion.div key="enroll-button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Button className="w-full text-base py-3" size="lg" asChild onClick={handleCloseDetails}>
-                              <Link href='/#courses' className="flex items-center justify-center">
-                                Enroll Now <ArrowRight className="ml-2 w-5 h-5" />
-                              </Link>
-                            </Button>
-                          </motion.div>
+                          selectedCourse.available_for_enrollment !== false ? (
+                            <motion.div key="enroll-button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              <Button className="w-full text-base py-3" size="lg" asChild onClick={handleCloseDetails}>
+                                <Link href='/#courses' className="flex items-center justify-center">
+                                  Enroll Now <ArrowRight className="ml-2 w-5 h-5" />
+                                </Link>
+                              </Button>
+                            </motion.div>
+                          ) : (
+                            <motion.div key="not-available" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              <Button className="w-full text-base py-3" size="lg" disabled>
+                                <span className="flex items-center justify-center">
+                                  Not Available for Enrollment
+                                </span>
+                              </Button>
+                            </motion.div>
+                          )
                         ) : isSuccess ? (
                           <motion.div
                             key="success-message"

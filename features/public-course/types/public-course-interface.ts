@@ -15,9 +15,12 @@ export interface PublicCourse {
 	};
 	level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
 	tags?: string[]; // Derived from subcategory or other fields
+	available_for_enrollment?: boolean; // Whether the course is available for enrollment
 	// --- Pricing needed for cart functionality ---
 	priceUSD: number; // Default to 0 if not provided by partner
+	priceNaira?: number; // Price in Naira
 	discountPriceUSD?: number; // Optional
+	discountPriceNaira?: number; // Discount price in Naira
 	priceIndividualUSD?: number; // Default to 0 if not provided by partner
 	pricing?: {
 		corporate?: {
