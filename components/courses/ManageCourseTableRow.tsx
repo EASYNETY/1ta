@@ -20,6 +20,71 @@ interface ManageCourseTableRowProps {
     userRole: string; // User role (admin, teacher, student)
 }
 
+// Helper function to determine course status and styling
+type CourseStatusType = {
+    label: string;
+    className: string;
+};
+
+const getCourseStatus = (course: AuthCourse): CourseStatusType => {
+    // Check if the course is available for enrollment
+    const isAvailable = course.available_for_enrollment !== undefined
+        ? course.available_for_enrollment
+        : course.isAvailableForEnrollment !== undefined
+            ? course.isAvailableForEnrollment
+            : true; // Default to true if both fields are undefined
+
+    // If the course has an enrollment status, use that for more detailed status
+    if (course.enrollmentStatus) {
+        switch (course.enrollmentStatus) {
+            case "pending":
+                return {
+                    label: "Pending",
+                    className: "bg-blue-100 text-blue-800 border-blue-300"
+                };
+            case "not_enrolled":
+                // For not_enrolled courses, check if they're available
+                if (!isAvailable) {
+                    return {
+                        label: "Inactive",
+                        className: "bg-amber-100 text-amber-800 border-amber-300"
+                    };
+                }
+                return {
+                    label: "Active",
+                    className: "bg-green-100 text-green-800 border-green-300"
+                };
+            case "enrolled":
+            case "in-progress":
+            case "completed":
+                // These are all active states
+                return {
+                    label: "Active",
+                    className: "bg-green-100 text-green-800 border-green-300"
+                };
+            default:
+                // For any other enrollment status
+                return {
+                    label: "Active",
+                    className: "bg-green-100 text-green-800 border-green-300"
+                };
+        }
+    }
+
+    // Fallback to simple available/not available status
+    if (isAvailable) {
+        return {
+            label: "Active",
+            className: "bg-green-100 text-green-800 border-green-300"
+        };
+    } else {
+        return {
+            label: "Inactive",
+            className: "bg-amber-100 text-amber-800 border-amber-300"
+        };
+    }
+};
+
 export function ManageCourseTableRow({ course, onDelete, showDollarPricing, userRole }: ManageCourseTableRowProps) {
 
     const deleteDescription = (
@@ -60,10 +125,14 @@ export function ManageCourseTableRow({ course, onDelete, showDollarPricing, user
 
             {/* Status Cell */}
             <td className="py-3 px-4 align-top">
-                {/* TODO: Replace with actual status */}
-                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 whitespace-nowrap">
-                    Active
-                </Badge>
+                {(() => {
+                    const status = getCourseStatus(course);
+                    return (
+                        <Badge variant="outline" className={`${status.className} whitespace-nowrap`}>
+                            {status.label}
+                        </Badge>
+                    );
+                })()}
             </td>
 
             {/* Price Cell */}
