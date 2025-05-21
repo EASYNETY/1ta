@@ -18,7 +18,7 @@ import { ThemeToggle } from "@/providers/theme-provider"
 import { logout } from "@/features/auth/store/auth-slice"
 import { useTheme } from "next-themes"
 import Image from "next/image"
-import { AvatarFallback, AvatarImage, Avatar, AvatarWithVerification } from "@/components/ui/avatar"
+import { AvatarFallback, AvatarImage, AvatarWithVerification } from "@/components/ui/avatar"
 import { useScrollDirection } from "@/hooks/use-scroll-direction"
 import { adminNavItems, NavItem, primaryNavItems } from "./app-sidebar"
 
@@ -156,16 +156,22 @@ export function Header() {
                         >
                             <div className="relative">
                                 <SheetTrigger asChild>
-                                    <AvatarWithVerification user={user} verificationSize="xs">
-                                        <AvatarImage
-                                            src={user?.avatarUrl || undefined}
-                                            alt="User Avatar"
-                                            className="h-7 w-7 rounded-full"
-                                        />
-                                        <AvatarFallback className="relative h-7 w-7 rounded-full bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary hover:bg-primary/20 cursor-pointer font-medium">
-                                            {user?.name?.charAt(0) || "U"}
-                                        </AvatarFallback>
-                                    </AvatarWithVerification>
+                                    <div className="cursor-pointer">
+                                        <AvatarWithVerification
+                                            user={user}
+                                            verificationSize="xs"
+                                            onClick={() => setMobileUserSheetOpen(true)}
+                                        >
+                                            <AvatarImage
+                                                src={user?.avatarUrl || undefined}
+                                                alt="User Avatar"
+                                                className="h-7 w-7 rounded-full"
+                                            />
+                                            <AvatarFallback className="relative h-7 w-7 rounded-full bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary hover:bg-primary/20 cursor-pointer font-medium">
+                                                {user?.name?.charAt(0) || "U"}
+                                            </AvatarFallback>
+                                        </AvatarWithVerification>
+                                    </div>
                                 </SheetTrigger>
                                 {/* Badge */}
                                 {hasItems && (
@@ -245,7 +251,11 @@ export function Header() {
                                                 <TooltipTrigger asChild>
                                                     <SheetClose asChild >
                                                         <Link href="/profile" className="mb-2 flex items-center space-x-4 rounded-xl p-2 bg-accent/50 hover:bg-accent transition-colors ease-[cubic-bezier(0.77, 0, 0.175, 1)] duration-300">
-                                                            <AvatarWithVerification user={user} className="size-10" verificationSize="sm">
+                                                            <AvatarWithVerification
+                                                                user={user}
+                                                                className="size-10"
+                                                                verificationSize="sm"
+                                                            >
                                                                 <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
                                                                 <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                                                             </AvatarWithVerification>

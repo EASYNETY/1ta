@@ -58,6 +58,7 @@ interface AvatarWithVerificationProps {
   verificationSize?: "xs" | "sm" | "md" | "lg";
   className?: string;
   children?: React.ReactNode;
+  onClick?: () => void;
 }
 
 /**
@@ -69,6 +70,7 @@ function AvatarWithVerification({
   verificationSize = "sm",
   className,
   children,
+  onClick,
 }: AvatarWithVerificationProps) {
   const isActive = user?.isActive === true;
 
@@ -78,7 +80,11 @@ function AvatarWithVerification({
   };
 
   return (
-    <div className="relative inline-block">
+    <div
+      className="relative inline-block cursor-pointer"
+      onClick={onClick}
+      style={{ pointerEvents: 'auto' }}
+    >
       <Avatar className={className}>
         {children}
       </Avatar>
