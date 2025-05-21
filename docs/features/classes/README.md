@@ -5,6 +5,7 @@ This folder contains documentation related to the classes and courses features o
 ## Contents
 
 - [Classes & Courses Integration](./classes-courses-integration.md) - Documentation for classes and courses integration
+- [Enrollment Management System](./Enrollment.md) - Documentation for the slot-based enrollment system
 
 ## Overview
 
