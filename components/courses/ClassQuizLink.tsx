@@ -2,19 +2,19 @@
 
 import { useState, useEffect } from 'react'
 import { useAppSelector, useAppDispatch } from '@/store/hooks'
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from '@/components/ui/card'
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  GraduationCap, 
-  CheckCircle2, 
+import {
+  GraduationCap,
+  CheckCircle2,
   AlertCircle,
   ChevronRight,
   Clock
@@ -32,13 +32,13 @@ interface ClassQuizLinkProps {
 
 export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
   const dispatch = useAppDispatch()
-  
+
   // Get course data
   const course = useAppSelector(selectAuthCourseBySlug(courseSlug))
-  
+
   // Get class data if classId is provided
   const classData = classId ? useAppSelector(selectClassById(classId)) : null
-  
+
   // Extract all quizzes from course modules
   const quizzes = course?.modules?.reduce((acc, module) => {
     const moduleQuizzes = safeFilter(module.lessons, lesson => lesson.type === 'quiz')
@@ -49,23 +49,23 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
       }))
     return [...acc, ...moduleQuizzes]
   }, [] as any[]) || []
-  
+
   // Get completed quizzes
-  const completedQuizzes = quizzes.filter(quiz => 
+  const completedQuizzes = quizzes.filter(quiz =>
     course?.quizScores && quiz.id in course.quizScores
   )
-  
+
   // Get incomplete quizzes
-  const incompleteQuizzes = quizzes.filter(quiz => 
+  const incompleteQuizzes = quizzes.filter(quiz =>
     !course?.quizScores || !(quiz.id in course.quizScores)
   )
-  
+
   // Get quiz status badge
   const getQuizStatusBadge = (quiz: any) => {
     if (course?.quizScores && quiz.id in course.quizScores) {
       const score = course.quizScores[quiz.id]
       const scorePercentage = typeof score === 'number' ? score : 0
-      
+
       if (scorePercentage >= 70) {
         return (
           <Badge className="bg-green-100 text-green-800 border-green-300">
@@ -81,7 +81,7 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
         )
       }
     }
-    
+
     return (
       <Badge variant="outline">
         <Clock className="mr-1 h-3 w-3" />
@@ -89,7 +89,7 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
       </Badge>
     )
   }
-  
+
   if (quizzes.length === 0) {
     return (
       <Card>
@@ -110,7 +110,7 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
       </Card>
     )
   }
-  
+
   return (
     <Card>
       <CardHeader>
@@ -121,31 +121,33 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
           {completedQuizzes.length} completed and {incompleteQuizzes.length} pending quizzes
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {incompleteQuizzes.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Pending Quizzes</h3>
             {incompleteQuizzes.slice(0, 3).map((quiz) => (
-              <div 
-                key={quiz.id} 
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
+              <div
+                key={quiz.id}
+                className="flex flex-wrap items-center gap-2 p-3 border rounded-lg hover:bg-muted/50"
               >
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-1.5 rounded-md">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="bg-primary/10 p-1.5 rounded-md flex-shrink-0">
                     <GraduationCap className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{quiz.title}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="min-w-0 overflow-hidden">
+                    <p className="font-medium text-sm truncate">{quiz.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       Module: {quiz.moduleTitle}
                     </p>
                   </div>
                 </div>
-                {getQuizStatusBadge(quiz)}
+                <div className="flex-shrink-0 ml-auto">
+                  {getQuizStatusBadge(quiz)}
+                </div>
               </div>
             ))}
-            
+
             {incompleteQuizzes.length > 3 && (
               <DyraneButton variant="ghost" size="sm" className="w-full" asChild>
                 <Link href={`/courses/${courseSlug}`}>
@@ -156,30 +158,32 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
             )}
           </div>
         )}
-        
+
         {completedQuizzes.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Completed Quizzes</h3>
             {completedQuizzes.slice(0, 2).map((quiz) => (
-              <div 
-                key={quiz.id} 
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
+              <div
+                key={quiz.id}
+                className="flex flex-wrap items-center gap-2 p-3 border rounded-lg hover:bg-muted/50"
               >
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-1.5 rounded-md">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="bg-primary/10 p-1.5 rounded-md flex-shrink-0">
                     <GraduationCap className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <p className="font-medium text-sm">{quiz.title}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="min-w-0 overflow-hidden">
+                    <p className="font-medium text-sm truncate">{quiz.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">
                       Module: {quiz.moduleTitle}
                     </p>
                   </div>
                 </div>
-                {getQuizStatusBadge(quiz)}
+                <div className="flex-shrink-0 ml-auto">
+                  {getQuizStatusBadge(quiz)}
+                </div>
               </div>
             ))}
-            
+
             {completedQuizzes.length > 2 && (
               <DyraneButton variant="ghost" size="sm" className="w-full" asChild>
                 <Link href={`/courses/${courseSlug}`}>
@@ -191,7 +195,7 @@ export function ClassQuizLink({ courseSlug, classId }: ClassQuizLinkProps) {
           </div>
         )}
       </CardContent>
-      
+
       <CardFooter>
         <DyraneButton variant="outline" className="w-full" asChild>
           <Link href={`/courses/${courseSlug}`}>
