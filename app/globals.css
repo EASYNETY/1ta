@@ -243,3 +243,16 @@
 	animation: scanLine 2.5s ease-in-out infinite;
 }
 
+@keyframes glow {
+	0%,
+	100% {
+		box-shadow: 0 0 3px #ffd700;
+	}
+	50% {
+		box-shadow: 0 0 6px #ffd700;
+	}
+}
+
+.glow-border {
+	animation: glow 1.5s ease-in-out infinite;
+}
