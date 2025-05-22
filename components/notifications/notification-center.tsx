@@ -485,8 +485,8 @@ export function NotificationCenter() {
                   <div
                     key={notification.id}
                     className={cn(
-                      "p-3 border rounded-lg transition-all hover:shadow-sm",
-                      !notification.read ? "bg-muted/50 border-primary/20" : "bg-background"
+                      "p-3 border rounded-lg transition-all hover:shadow-sm backdrop-blur-sm",
+                      !notification.read ? "bg-muted/25 border-primary/20" : "bg-background/5"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
