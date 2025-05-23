@@ -7,6 +7,7 @@ import { ScanBarcode } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -94,6 +95,9 @@ export const BarcodeDialog: React.FC<BarcodeDialogProps> = ({
                     <DialogTitle className="text-xl font-semibold">
                         Scan Student ID
                     </DialogTitle>
+                    <DialogDescription className="text-sm text-muted-foreground">
+                        Use this barcode to scan your student ID for attendance or verification purposes.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div
