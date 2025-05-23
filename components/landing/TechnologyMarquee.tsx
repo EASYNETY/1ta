@@ -11,7 +11,7 @@ interface TechnologyMarqueeProps {
   speed?: number
   gap?: number
   onClick: (course: CourseListing) => void
-  getTechnologyIcon: (name: string) => React.ElementType
+  getTechnologyIcon: (name: string) => string
 }
 
 // Calculate a suitable height for one row of items + padding
@@ -122,7 +122,7 @@ export function TechnologyMarquee({
         animate={controls}
       >
         {duplicatedCourses.map((course, index) => {
-          const IconComponent = getTechnologyIcon(course.name);
+          const iconUrl = getTechnologyIcon(course.name);
           return (
             <div
               key={`${course.id}-${index}`}
@@ -143,7 +143,22 @@ export function TechnologyMarquee({
                 whileTap={{ scale: 0.95 }}
               >
                 <div className="w-12 h-12 flex items-center justify-center">
-                  {React.createElement(IconComponent, { className: "w-10 h-10 text-primary" })}
+                  <img
+                    src={iconUrl}
+                    alt={`${course.name} technology icon`}
+                    className="w-10 h-10 object-contain rounded-md"
+                    onError={(e) => {
+                      // Fallback to a diverse icon if image fails to load
+                      const fallbackIcons = [
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png',
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png'
+                      ];
+                      const randomIndex = Math.floor(Math.random() * fallbackIcons.length);
+                      e.currentTarget.src = fallbackIcons[randomIndex];
+                    }}
+                  />
                 </div>
               </motion.div>
 

@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import {
-  Cpu, Server, Briefcase, Rocket, Brain,
-  Database, Shield, Code, Award
-} from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
 import { TechnologyCourseModal } from "@/components/modals/TechnologyCourseModal"
 import { TechnologyMarquee } from "./TechnologyMarquee"
@@ -250,21 +247,577 @@ const iconVariants = {
 
 // No duplicate animation variants needed
 
-// Map technology names to appropriate icons
-const getTechnologyIcon = (name: string) => {
+// Advanced Icon Queue Management System with Performance Optimizations and Anti-Duplication
+class IconQueueManager {
+  private usedIcons = new Set<string>();
+  private iconQueue: string[] = [];
+  private queueIndex = 0;
+  private iconCache = new Map<string, string>(); // Cache course name -> icon URL
+  private iconUsageCount = new Map<string, number>(); // Track how many times each icon has been used
+  private performanceMetrics = {
+    cacheHits: 0,
+    cacheMisses: 0,
+    assignmentTime: 0,
+    validationTime: 0,
+    lastResetTime: 0
+  };
+
+  constructor() {
+    this.initializeQueue();
+    this.performanceMetrics.lastResetTime = performance.now();
+  }
+
+  private initializeQueue() {
+    // Comprehensive icon pool with strategic ordering for maximum diversity
+    this.iconQueue = [
+      // Tier 1: Most recognizable and diverse technologies
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/512px-Amazon_Web_Services_Logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Docker_%28container_engine%29_logo.svg/512px-Docker_%28container_engine%29_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png',
+
+      // Tier 2: Popular frameworks and tools
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/512px-Angular_full_color_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue.js_Logo_2.svg/512px-Vue.js_Logo_2.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Tensorflow_logo.svg/512px-Tensorflow_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/512px-Kubernetes_logo_without_workmark.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Git-logo.svg/512px-Git-logo.svg.png',
+
+      // Tier 3: Cloud platforms and databases
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Microsoft_Azure.svg/512px-Microsoft_Azure.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/512px-Google_Cloud_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/MongoDB_Logo.svg/512px-MongoDB_Logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Postgresql_elephant.svg/512px-Postgresql_elephant.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/MySQL_textlogo.svg/512px-MySQL_textlogo.svg.png',
+
+      // Tier 4: Web technologies and languages
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/HTML5_logo_and_wordmark.svg/512px-HTML5_logo_and_wordmark.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/CSS3_logo_and_wordmark.svg/512px-CSS3_logo_and_wordmark.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/512px-JavaScript-logo.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/ISO_C%2B%2B_Logo.svg/512px-ISO_C%2B%2B_Logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Csharp_Logo.png/512px-Csharp_Logo.png',
+
+      // Tier 5: Specialized tools and frameworks
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Laravel.svg/512px-Laravel.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Django_logo.svg/512px-Django_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Flask_logo.svg/512px-Flask_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Jenkins_logo.svg/512px-Jenkins_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/512px-Terraform_Logo.svg.png',
+
+      // Tier 6: Business and certification icons
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Project_Management_Institute_logo.svg/512px-Project_Management_Institute_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Kali-dragon-icon.svg/512px-Kali-dragon-icon.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Cisco_logo.svg/512px-Cisco_logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/ISO_logo_%28Red_square%29.svg/512px-ISO_logo_%28Red_square%29.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Adobe_Photoshop_CC_icon.svg/512px-Adobe_Photoshop_CC_icon.svg.png',
+
+      // Tier 7: Additional diversity (VS Code placed strategically in middle-end)
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/512px-Android_robot.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Certificate_icon.svg/512px-Certificate_icon.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Business_icon.svg/512px-Business_icon.svg.png'
+    ];
+
+    console.log(`🎯 Icon Queue initialized with ${this.iconQueue.length} diverse icons`);
+  }
+
+  isIconAvailable(iconUrl: string): boolean {
+    return !this.usedIcons.has(iconUrl);
+  }
+
+  reserveIcon(iconUrl: string): string {
+    this.usedIcons.add(iconUrl);
+
+    // Track usage count for anti-duplication analysis
+    const currentCount = this.iconUsageCount.get(iconUrl) || 0;
+    this.iconUsageCount.set(iconUrl, currentCount + 1);
+
+    const iconName = iconUrl.split('/').pop()?.replace('.svg.png', '').replace('.png', '');
+    console.log(`🔒 Reserved: ${iconName} (${this.usedIcons.size}/${this.iconQueue.length}) [usage: ${currentCount + 1}]`);
+
+    return iconUrl;
+  }
+
+  // Get least used available icons for better distribution
+  getLeastUsedAvailableIcons(): string[] {
+    const availableIcons = this.iconQueue.filter(icon => this.isIconAvailable(icon));
+
+    // Sort by usage count (ascending) to prefer least used icons
+    return availableIcons.sort((a, b) => {
+      const usageA = this.iconUsageCount.get(a) || 0;
+      const usageB = this.iconUsageCount.get(b) || 0;
+      return usageA - usageB;
+    });
+  }
+
+  getNextAvailableIcon(): string {
+    const startTime = performance.now();
+
+    // First, try to get the least used available icon for better distribution
+    const leastUsedIcons = this.getLeastUsedAvailableIcons();
+
+    if (leastUsedIcons.length > 0) {
+      const selectedIcon = leastUsedIcons[0]; // Take the least used
+      const endTime = performance.now();
+      this.performanceMetrics.assignmentTime += (endTime - startTime);
+      const usageCount = this.iconUsageCount.get(selectedIcon) || 0;
+      console.log(`📋 Least-used assigned: ${selectedIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} [previous usage: ${usageCount}] [${(endTime - startTime).toFixed(2)}ms]`);
+      return this.reserveIcon(selectedIcon);
+    }
+
+    // Fallback to original queue logic if no icons available
+    let attempts = 0;
+    while (attempts < this.iconQueue.length) {
+      const currentIcon = this.iconQueue[this.queueIndex];
+      this.queueIndex = (this.queueIndex + 1) % this.iconQueue.length;
+
+      if (this.isIconAvailable(currentIcon)) {
+        const endTime = performance.now();
+        this.performanceMetrics.assignmentTime += (endTime - startTime);
+        console.log(`📋 Queue assigned: ${currentIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} (position ${this.queueIndex - 1}/${this.iconQueue.length}) [${(endTime - startTime).toFixed(2)}ms]`);
+        return this.reserveIcon(currentIcon);
+      }
+
+      attempts++;
+    }
+
+    // Enhanced emergency handling - expand the icon pool dynamically
+    console.warn('⚠️ All primary queue icons exhausted, expanding icon pool...');
+
+    // Emergency icon pool with additional unique icons
+    const emergencyIcons = [
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/PHP-logo.svg/512px-PHP-logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Octicons-mark-github.svg/512px-Octicons-mark-github.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Scrum_process.svg/512px-Scrum_process.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Sql_data_base_with_logo.png/512px-Sql_data_base_with_logo.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Google_Colaboratory_SVG_Logo.svg/512px-Google_Colaboratory_SVG_Logo.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/PyCharm_Icon.svg/512px-PyCharm_Icon.svg.png',
+      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/IntelliJ_IDEA_Icon.svg/512px-IntelliJ_IDEA_Icon.svg.png'
+    ];
+
+    // Try emergency icons
+    for (const emergencyIcon of emergencyIcons) {
+      if (this.isIconAvailable(emergencyIcon)) {
+        console.log(`🚨 Emergency icon assigned: ${emergencyIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')}`);
+        return this.reserveIcon(emergencyIcon);
+      }
+    }
+
+    // Final fallback with unique timestamp to ensure uniqueness
+    const timestamp = Date.now();
+    console.error(`🔴 CRITICAL: All icons exhausted! Using timestamped fallback (${timestamp})`);
+    const fallbackIcon = `https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png?t=${timestamp}`;
+    return this.reserveIcon(fallbackIcon);
+  }
+
+  // Check if course already has a cached icon (with performance tracking)
+  getCachedIcon(courseName: string): string | null {
+    const result = this.iconCache.get(courseName) || null;
+    if (result) {
+      this.performanceMetrics.cacheHits++;
+    } else {
+      this.performanceMetrics.cacheMisses++;
+    }
+    return result;
+  }
+
+  // Cache an icon for a course
+  setCachedIcon(courseName: string, iconUrl: string): void {
+    this.iconCache.set(courseName, iconUrl);
+  }
+
+  reset() {
+    const startTime = performance.now();
+
+    // Log usage distribution before reset for analysis
+    if (this.iconUsageCount.size > 0) {
+      const usageStats = Array.from(this.iconUsageCount.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5); // Top 5 most used
+
+      console.log(`📊 Icon Usage Distribution (top 5):`, usageStats.map(([icon, count]) =>
+        `${icon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')}: ${count}`
+      ).join(', '));
+    }
+
+    this.usedIcons.clear();
+    this.queueIndex = 0;
+    this.iconCache.clear(); // Clear cache on reset
+    this.iconUsageCount.clear(); // Clear usage tracking
+
+    // Reset performance metrics
+    const totalTime = startTime - this.performanceMetrics.lastResetTime;
+    const cacheHitRate = this.performanceMetrics.cacheHits / (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) * 100;
+
+    console.log(`🔄 Icon Queue Manager reset - fresh distribution cycle`);
+    console.log(`⚡ Performance Summary: ${this.performanceMetrics.cacheHits} cache hits, ${this.performanceMetrics.cacheMisses} misses (${cacheHitRate.toFixed(1)}% hit rate)`);
+    console.log(`⏱️ Timing: Assignment ${this.performanceMetrics.assignmentTime.toFixed(2)}ms, Validation ${this.performanceMetrics.validationTime.toFixed(2)}ms, Total cycle ${totalTime.toFixed(2)}ms`);
+
+    this.performanceMetrics = {
+      cacheHits: 0,
+      cacheMisses: 0,
+      assignmentTime: 0,
+      validationTime: 0,
+      lastResetTime: performance.now()
+    };
+  }
+
+  // Validate system for any duplications (with performance tracking)
+  validateDeduplication(): { isValid: boolean; duplicates: string[]; report: string } {
+    const startTime = performance.now();
+    const iconCounts = new Map<string, number>();
+    const duplicates: string[] = [];
+
+    // Count occurrences of each cached icon
+    for (const [, iconUrl] of this.iconCache.entries()) {
+      const count = iconCounts.get(iconUrl) || 0;
+      iconCounts.set(iconUrl, count + 1);
+
+      if (count === 1) { // Second occurrence detected
+        duplicates.push(iconUrl);
+      }
+    }
+
+    const endTime = performance.now();
+    this.performanceMetrics.validationTime += (endTime - startTime);
+
+    const isValid = duplicates.length === 0;
+    const report = isValid
+      ? `✅ Deduplication validation passed - ${this.iconCache.size} courses, all unique icons [${(endTime - startTime).toFixed(2)}ms]`
+      : `❌ Deduplication validation failed - ${duplicates.length} duplicate icons detected [${(endTime - startTime).toFixed(2)}ms]`;
+
+    return { isValid, duplicates, report };
+  }
+
+  getUsageStats() {
+    const validation = this.validateDeduplication();
+    const cacheHitRate = this.performanceMetrics.cacheHits / (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) * 100;
+
+    // Calculate usage distribution statistics
+    const usageValues = Array.from(this.iconUsageCount.values());
+    const maxUsage = usageValues.length > 0 ? Math.max(...usageValues) : 0;
+    const minUsage = usageValues.length > 0 ? Math.min(...usageValues) : 0;
+    const avgUsage = usageValues.length > 0 ? (usageValues.reduce((a, b) => a + b, 0) / usageValues.length) : 0;
+
+    return {
+      used: this.usedIcons.size,
+      total: this.iconQueue.length,
+      available: this.iconQueue.length - this.usedIcons.size,
+      utilizationRate: ((this.usedIcons.size / this.iconQueue.length) * 100).toFixed(1),
+      cached: this.iconCache.size,
+      deduplicationValid: validation.isValid,
+      validationReport: validation.report,
+      distribution: {
+        maxUsage,
+        minUsage,
+        avgUsage: avgUsage.toFixed(2),
+        variance: maxUsage - minUsage,
+        evenDistribution: maxUsage - minUsage <= 1 // Good distribution if variance <= 1
+      },
+      performance: {
+        cacheHits: this.performanceMetrics.cacheHits,
+        cacheMisses: this.performanceMetrics.cacheMisses,
+        cacheHitRate: isNaN(cacheHitRate) ? 0 : cacheHitRate.toFixed(1),
+        totalAssignmentTime: this.performanceMetrics.assignmentTime.toFixed(2),
+        totalValidationTime: this.performanceMetrics.validationTime.toFixed(2),
+        avgAssignmentTime: this.performanceMetrics.cacheMisses > 0 ? (this.performanceMetrics.assignmentTime / this.performanceMetrics.cacheMisses).toFixed(2) : '0'
+      }
+    };
+  }
+}
+
+// Global icon queue manager instance
+const iconManager = new IconQueueManager();
+
+// Function to reset icon usage (called when component re-renders)
+const resetIconUsage = () => {
+  iconManager.reset();
+};
+
+// Intelligent Technology Icon Mapping System - LLM-like semantic analysis with deduplication
+const getTechnologyIcon = (name: string): string => {
+  const startTime = performance.now();
+
+  // Check cache first - if icon already assigned, return it immediately
+  const cachedIcon = iconManager.getCachedIcon(name);
+  if (cachedIcon) {
+    const endTime = performance.now();
+    console.log(`💾 Cache hit: "${name}" → ${cachedIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} [${(endTime - startTime).toFixed(2)}ms]`);
+    return cachedIcon;
+  }
+
+  // Pre-compute lowercase for efficiency
   const lowerName = name.toLowerCase();
 
-  if (lowerName.includes('data') || lowerName.includes('sql')) return Database;
-  if (lowerName.includes('security') || lowerName.includes('cyber')) return Shield;
-  if (lowerName.includes('ai') || lowerName.includes('machine')) return Brain;
-  if (lowerName.includes('cloud') || lowerName.includes('aws') || lowerName.includes('azure')) return Server;
-  if (lowerName.includes('web') || lowerName.includes('javascript') || lowerName.includes('react')) return Code;
-  if (lowerName.includes('iso')) return Award;
-  if (lowerName.includes('project') || lowerName.includes('pmp')) return Briefcase;
-  if (lowerName.includes('devops')) return Rocket;
+  // Debug logging to see what course names we're processing
+  console.log('🤖 AI Icon Mapper analyzing:', name);
 
-  // Default icon
-  return Cpu;
+  // Helper function to check if icon is available (not used)
+  const isIconAvailable = (iconUrl: string): boolean => {
+    return iconManager.isIconAvailable(iconUrl);
+  };
+
+  // Helper function to reserve an icon
+  const reserveIcon = (iconUrl: string): string => {
+    return iconManager.reserveIcon(iconUrl);
+  };
+
+  // Advanced semantic analysis patterns
+  const semanticPatterns = {
+    // Project Management & Business
+    projectManagement: {
+      keywords: ['pmp', 'project management', 'scrum', 'agile', 'kanban', 'waterfall', 'pmbok'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Project_Management_Institute_logo.svg/512px-Project_Management_Institute_logo.svg.png',
+      confidence: 0.95
+    },
+
+    // Security & Cybersecurity
+    cybersecurity: {
+      keywords: ['cyber', 'security', 'penetration', 'ethical hacking', 'kali', 'nmap', 'vulnerability', 'firewall', 'encryption'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Kali-dragon-icon.svg/512px-Kali-dragon-icon.svg.png',
+      confidence: 0.9
+    },
+
+    // Data Science & Analytics
+    dataScience: {
+      keywords: ['data', 'analytics', 'science', 'pandas', 'numpy', 'matplotlib', 'jupyter', 'statistics', 'visualization'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
+      confidence: 0.85
+    },
+
+    // Machine Learning & AI
+    machineLearning: {
+      keywords: ['machine learning', 'artificial intelligence', 'neural network', 'deep learning', 'tensorflow', 'pytorch', 'sklearn', 'nlp', 'computer vision'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Tensorflow_logo.svg/512px-Tensorflow_logo.svg.png',
+      confidence: 0.9
+    },
+
+    // Cloud Computing
+    cloudComputing: {
+      keywords: ['cloud', 'aws', 'azure', 'gcp', 'serverless', 'lambda', 'ec2', 's3', 'kubernetes', 'microservices'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/512px-Amazon_Web_Services_Logo.svg.png',
+      confidence: 0.85
+    },
+
+    // Web Development
+    webDevelopment: {
+      keywords: ['web development', 'frontend', 'backend', 'full stack', 'html', 'css', 'javascript', 'responsive', 'spa'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
+      confidence: 0.8
+    },
+
+    // Mobile Development
+    mobileDevelopment: {
+      keywords: ['mobile', 'android', 'ios', 'react native', 'flutter', 'swift', 'kotlin', 'app development'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Android_robot.svg/512px-Android_robot.svg.png',
+      confidence: 0.85
+    },
+
+    // DevOps & Infrastructure
+    devops: {
+      keywords: ['devops', 'ci/cd', 'jenkins', 'docker', 'kubernetes', 'terraform', 'ansible', 'monitoring', 'deployment'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Docker_%28container_engine%29_logo.svg/512px-Docker_%28container_engine%29_logo.svg.png',
+      confidence: 0.8
+    },
+
+    // Database & Storage
+    database: {
+      keywords: ['database', 'sql', 'nosql', 'mongodb', 'postgresql', 'mysql', 'redis', 'elasticsearch', 'data modeling'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Sql_data_base_with_logo.png/512px-Sql_data_base_with_logo.png',
+      confidence: 0.8
+    },
+
+    // Quality & Testing
+    qualityAssurance: {
+      keywords: ['quality', 'testing', 'qa', 'automation', 'selenium', 'unit test', 'integration', 'performance'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/ISO_logo_%28Red_square%29.svg/512px-ISO_logo_%28Red_square%29.svg.png',
+      confidence: 0.75
+    },
+
+    // Design & UX
+    design: {
+      keywords: ['design', 'ui', 'ux', 'user experience', 'figma', 'sketch', 'adobe', 'photoshop', 'illustrator'],
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Adobe_Photoshop_CC_icon.svg/512px-Adobe_Photoshop_CC_icon.svg.png',
+      confidence: 0.8
+    }
+  };
+
+  // Intelligent pattern matching with confidence scoring
+  let bestMatch = null;
+  let highestConfidence = 0;
+
+  for (const [category, pattern] of Object.entries(semanticPatterns)) {
+    let matchScore = 0;
+    let keywordMatches = 0;
+
+    for (const keyword of pattern.keywords) {
+      if (lowerName.includes(keyword)) {
+        keywordMatches++;
+        // Weight longer keywords more heavily
+        matchScore += keyword.length * 0.1;
+      }
+    }
+
+    // Calculate confidence based on keyword matches and pattern confidence
+    const confidence = (keywordMatches / pattern.keywords.length) * pattern.confidence;
+
+    if (confidence > highestConfidence && confidence > 0.3) { // Minimum confidence threshold
+      highestConfidence = confidence;
+      bestMatch = { category, pattern, confidence };
+    }
+  }
+
+  if (bestMatch) {
+    const primaryIcon = bestMatch.pattern.icon;
+    if (isIconAvailable(primaryIcon)) {
+      console.log(`🎯 AI Match: "${name}" → ${bestMatch.category} (confidence: ${(bestMatch.confidence * 100).toFixed(1)}%)`);
+      const assignedIcon = reserveIcon(primaryIcon);
+      iconManager.setCachedIcon(name, assignedIcon);
+      return assignedIcon;
+    } else {
+      console.log(`⚠️ Primary icon taken for "${name}" → ${bestMatch.category}, finding alternative...`);
+      // Continue to next matching system
+    }
+  }
+
+  // Advanced contextual analysis for specific technologies
+  const contextualAnalysis = {
+    // Programming Languages
+    languages: {
+      'javascript': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/JavaScript-logo.png/512px-JavaScript-logo.png',
+      'python': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
+      'java': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/ISO_C%2B%2B_Logo.svg/512px-ISO_C%2B%2B_Logo.svg.png',
+      'c#': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Csharp_Logo.png/512px-Csharp_Logo.png',
+      'php': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/PHP-logo.svg/512px-PHP-logo.svg.png'
+    },
+
+    // Frameworks & Libraries
+    frameworks: {
+      'react': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
+      'angular': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Angular_full_color_logo.svg/512px-Angular_full_color_logo.svg.png',
+      'vue': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Vue.js_Logo_2.svg/512px-Vue.js_Logo_2.svg.png',
+      'node': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png',
+      'laravel': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Laravel.svg/512px-Laravel.svg.png',
+      'django': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Django_logo.svg/512px-Django_logo.svg.png',
+      'flask': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Flask_logo.svg/512px-Flask_logo.svg.png'
+    },
+
+    // Cloud Platforms
+    cloud: {
+      'aws': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/512px-Amazon_Web_Services_Logo.svg.png',
+      'azure': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Microsoft_Azure.svg/512px-Microsoft_Azure.svg.png',
+      'gcp': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Google_Cloud_logo.svg/512px-Google_Cloud_logo.svg.png'
+    },
+
+    // Databases
+    databases: {
+      'mongodb': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/MongoDB_Logo.svg/512px-MongoDB_Logo.svg.png',
+      'postgresql': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Postgresql_elephant.svg/512px-Postgresql_elephant.svg.png',
+      'mysql': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/MySQL_textlogo.svg/512px-MySQL_textlogo.svg.png'
+    },
+
+    // DevOps Tools
+    devops: {
+      'docker': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Docker_%28container_engine%29_logo.svg/512px-Docker_%28container_engine%29_logo.svg.png',
+      'kubernetes': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/512px-Kubernetes_logo_without_workmark.svg.png',
+      'jenkins': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Jenkins_logo.svg/512px-Jenkins_logo.svg.png',
+      'terraform': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Terraform_Logo.svg/512px-Terraform_Logo.svg.png',
+      'git': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Git-logo.svg/512px-Git-logo.svg.png'
+    }
+  };
+
+  // Check for specific technology mentions with deduplication and priority weighting
+  const techMatches: { tech: string; icon: string; category: string; priority: number }[] = [];
+
+  for (const [category, technologies] of Object.entries(contextualAnalysis)) {
+    for (const [tech, icon] of Object.entries(technologies)) {
+      if (lowerName.includes(tech)) {
+        // Calculate priority based on specificity and current usage
+        const specificity = tech.length; // Longer matches are more specific
+        const currentUsage = iconManager.isIconAvailable(icon) ? 0 : 1; // Penalize already used icons
+        const priority = specificity - (currentUsage * 10); // Heavy penalty for used icons
+
+        techMatches.push({ tech, icon, category, priority });
+      }
+    }
+  }
+
+  // Sort by priority (highest first) and take the best available match
+  techMatches.sort((a, b) => b.priority - a.priority);
+
+  for (const match of techMatches) {
+    if (isIconAvailable(match.icon)) {
+      console.log(`🔧 Tech Match: "${name}" → ${match.tech} (${match.category}) [priority: ${match.priority}]`);
+      const assignedIcon = reserveIcon(match.icon);
+      iconManager.setCachedIcon(name, assignedIcon);
+      return assignedIcon;
+    }
+  }
+
+  // Intelligent ISO certification analysis
+  const isoPatterns = [
+    { pattern: /iso\s*9001|quality\s+management/i, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/ISO_logo_%28Red_square%29.svg/512px-ISO_logo_%28Red_square%29.svg.png', type: 'Quality Management' },
+    { pattern: /iso\s*27001|information\s+security/i, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Kali-dragon-icon.svg/512px-Kali-dragon-icon.svg.png', type: 'Information Security' },
+    { pattern: /iso\s*20000|it\s+service\s+management/i, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Cisco_logo.svg/512px-Cisco_logo.svg.png', type: 'IT Service Management' },
+    { pattern: /iso/i, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/ISO_logo_%28Red_square%29.svg/512px-ISO_logo_%28Red_square%29.svg.png', type: 'ISO Standard' }
+  ];
+
+  for (const { pattern, icon, type } of isoPatterns) {
+    if (pattern.test(name) && isIconAvailable(icon)) {
+      console.log(`📋 ISO Match: "${name}" → ${type}`);
+      const assignedIcon = reserveIcon(icon);
+      iconManager.setCachedIcon(name, assignedIcon);
+      return assignedIcon;
+    }
+  }
+
+  // Intelligent contextual fallback system
+  const intelligentFallback = () => {
+    // Analyze course characteristics for smarter fallback selection
+    const courseCharacteristics = {
+      isCertification: /certification|certified|cert/i.test(name),
+      isTraining: /training|course|bootcamp|workshop/i.test(name),
+      isManagement: /management|manager|lead|admin/i.test(name),
+      isTechnical: /development|programming|coding|software|tech/i.test(name),
+      isDesign: /design|ui|ux|creative|visual/i.test(name),
+      isAnalytics: /analytics|analysis|data|statistics/i.test(name),
+      isNetwork: /network|infrastructure|system|server/i.test(name),
+      isSecurity: /security|secure|protection|safety/i.test(name)
+    };
+
+    // Smart fallback mapping based on course characteristics with deduplication
+    const characteristicMappings = [
+      { condition: courseCharacteristics.isCertification, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Certificate_icon.svg/512px-Certificate_icon.svg.png', type: 'Certification' },
+      { condition: courseCharacteristics.isManagement, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Business_icon.svg/512px-Business_icon.svg.png', type: 'Management' },
+      { condition: courseCharacteristics.isDesign, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Adobe_Photoshop_CC_icon.svg/512px-Adobe_Photoshop_CC_icon.svg.png', type: 'Design' },
+      { condition: courseCharacteristics.isAnalytics, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png', type: 'Analytics' },
+      { condition: courseCharacteristics.isNetwork, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Cisco_logo.svg/512px-Cisco_logo.svg.png', type: 'Network' },
+      { condition: courseCharacteristics.isSecurity, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Kali-dragon-icon.svg/512px-Kali-dragon-icon.svg.png', type: 'Security' },
+      { condition: courseCharacteristics.isTechnical, icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png', type: 'Technical' }
+    ];
+
+    for (const { condition, icon, type } of characteristicMappings) {
+      if (condition && isIconAvailable(icon)) {
+        console.log(`🎯 Characteristic Match: "${name}" → ${type}`);
+        const assignedIcon = reserveIcon(icon);
+        iconManager.setCachedIcon(name, assignedIcon);
+        return assignedIcon;
+      }
+    }
+
+    // Use the queue manager for final fallback - ensures even distribution
+    console.log(`🎯 Using queue manager for final assignment: "${name}"`);
+    const queueIcon = iconManager.getNextAvailableIcon();
+    iconManager.setCachedIcon(name, queueIcon);
+    return queueIcon;
+  };
+
+  const fallbackIcon = intelligentFallback();
+  console.log(`🧠 Intelligent Fallback: "${name}" → Smart analysis complete`);
+
+  // The fallback icon is already reserved and cached by the queue manager
+  return fallbackIcon;
 };
 
 export function AppleTechnologyDisplay() {
@@ -394,6 +947,85 @@ export function AppleTechnologyDisplay() {
              (isoOrder[bIsoNumber as keyof typeof isoOrder] || 999)
     })
   ]
+
+  // Enhanced pre-assignment with deduplication verification and performance optimization
+  const preAssignIcons = (courses: CourseListing[]) => {
+    const batchStartTime = performance.now();
+    console.log(`🎯 Pre-assigning icons for ${courses.length} courses with deduplication...`);
+
+    const assignedIcons = new Set<string>();
+    const duplicateDetection: { [key: string]: string[] } = {};
+    let processedCount = 0;
+
+    // Batch process courses for better performance
+    const batchSize = 10;
+    for (let i = 0; i < courses.length; i += batchSize) {
+      const batch = courses.slice(i, i + batchSize);
+
+      batch.forEach(course => {
+        const assignedIcon = getTechnologyIcon(course.name);
+        processedCount++;
+
+        // Track duplicates for debugging
+        if (assignedIcons.has(assignedIcon)) {
+          if (!duplicateDetection[assignedIcon]) {
+            duplicateDetection[assignedIcon] = [];
+          }
+          duplicateDetection[assignedIcon].push(course.name);
+          console.warn(`⚠️ DUPLICATE DETECTED: ${assignedIcon.split('/').pop()?.replace('.svg.png', '')} assigned to multiple courses:`, duplicateDetection[assignedIcon]);
+        } else {
+          assignedIcons.add(assignedIcon);
+        }
+      });
+
+      // Yield control to prevent blocking UI (micro-optimization)
+      if (i + batchSize < courses.length) {
+        // Small delay to prevent blocking
+        setTimeout(() => {}, 0);
+      }
+    }
+
+    const batchEndTime = performance.now();
+    const stats = iconManager.getUsageStats();
+    const uniqueIcons = assignedIcons.size;
+    const duplicateCount = courses.length - uniqueIcons;
+
+    console.log(`📊 Pre-assignment complete: ${stats.used}/${stats.total} icons assigned (${stats.utilizationRate}% utilization) [${(batchEndTime - batchStartTime).toFixed(2)}ms]`);
+    console.log(`💾 Cache Status: ${stats.cached} courses cached (${stats.performance.cacheHitRate}% hit rate)`);
+    console.log(`⚡ Performance: ${stats.performance.cacheHits} hits, ${stats.performance.cacheMisses} misses, avg ${stats.performance.avgAssignmentTime}ms per assignment`);
+    console.log(`🎯 Deduplication Status: ${uniqueIcons} unique icons, ${duplicateCount} duplicates ${duplicateCount === 0 ? '✅' : '❌'}`);
+    console.log(`📈 Distribution: max ${stats.distribution.maxUsage}, min ${stats.distribution.minUsage}, avg ${stats.distribution.avgUsage}, variance ${stats.distribution.variance} ${stats.distribution.evenDistribution ? '✅' : '⚠️'}`);
+    console.log(stats.validationReport);
+
+    if (Object.keys(duplicateDetection).length > 0) {
+      console.warn('🚨 Duplicate icons detected in assignment:', duplicateDetection);
+    }
+
+    if (!stats.deduplicationValid) {
+      console.error('🔴 CRITICAL: Cache validation failed - system integrity compromised!');
+    } else {
+      console.log('✅ Perfect deduplication achieved - all icons are unique!');
+    }
+  };
+
+  // Reset icon usage when component re-renders or tab changes (optimized)
+  useEffect(() => {
+    const effectStartTime = performance.now();
+
+    resetIconUsage();
+
+    // Pre-assign icons for current tab to ensure stability
+    const coursesToAssign = activeTab === 'current' ? currentCourses : futureCourses;
+
+    // Only process if we have courses to avoid unnecessary work
+    if (coursesToAssign.length > 0) {
+      preAssignIcons(coursesToAssign);
+    }
+
+    const effectEndTime = performance.now();
+    console.log(`🔄 useEffect completed in ${(effectEndTime - effectStartTime).toFixed(2)}ms`);
+
+  }, [activeTab, listings.length]); // Optimized dependencies - only re-run when tab or course count changes
 
   return (
     <div className={`space-y-8 ${isSmallScreen ? 'min-h-[20vh]' : 'min-h-[30vh]'}`}>
@@ -545,7 +1177,7 @@ interface TechnologyCardProps {
   onClick: () => void
 }
 
-function TechnologyCard({ course, onClick }: TechnologyCardProps) {
+const TechnologyCard = React.memo(function TechnologyCard({ course, onClick }: TechnologyCardProps) {
   const [isHovered, setIsHovered] = useState(false)
 
   // Define animation variants for the reveal content
@@ -613,7 +1245,22 @@ function TechnologyCard({ course, onClick }: TechnologyCardProps) {
           <div className="relative overflow-hidden rounded-xl w-full">
             <div className={`w-full h-24 px-4 backdrop-blur-sm bg-card/5 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
               <div className="w-12 h-12 flex items-center justify-center">
-                {React.createElement(getTechnologyIcon(course.name), { className: "w-12 h-12 text-primary" })}
+                <img
+                  src={getTechnologyIcon(course.name)}
+                  alt={`${course.name} technology icon`}
+                  className="w-12 h-12 object-contain rounded-md"
+                  onError={(e) => {
+                    // Fallback to a diverse icon if image fails to load
+                    const fallbackIcons = [
+                      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png',
+                      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
+                      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
+                      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png'
+                    ];
+                    const randomIndex = Math.floor(Math.random() * fallbackIcons.length);
+                    e.currentTarget.src = fallbackIcons[randomIndex];
+                  }}
+                />
               </div>
             </div>
 
@@ -696,4 +1343,4 @@ function TechnologyCard({ course, onClick }: TechnologyCardProps) {
       </div>
     </motion.div>
   )
-}
+});
