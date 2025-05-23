@@ -64,12 +64,34 @@ export function DemoRequestForm() {
     setIsSubmitted(false); // Reset submitted state on new attempt
     setSubmitError(null); // Clear previous errors
 
-    // Simulate API call to your backend endpoint for inquiries
     try {
-      console.log("Sending inquiry:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate success
-      setIsSubmitted(true);
-      reset(); // Clear form fields on success
+      // Create mailto link with form data
+      const subject = encodeURIComponent(`Inquiry: ${data.interest}`);
+      const body = encodeURIComponent(`
+Hello,
+
+I am interested in learning more about 1Tech Academy through your website.
+
+Name: ${data.name}
+Email: ${data.email}
+Area of Interest: ${data.interest}
+
+${data.message ? `Additional Message:\n${data.message}` : ''}
+
+I would like to know more about your programs and how to get started.
+
+Best regards,
+${data.name}
+      `);
+
+      // Open mailto link
+      window.location.href = `mailto:info@1techacademy.com?subject=${subject}&body=${body}`;
+
+      // Show success state
+      setTimeout(() => {
+        setIsSubmitted(true);
+        reset(); // Clear form fields on success
+      }, 500);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "An unknown error occurred.");
       console.error("Inquiry submission failed:", error);
@@ -119,7 +141,7 @@ export function DemoRequestForm() {
         </motion.div>
         <h3 className="text-lg font-semibold mb-1 text-foreground">Thank You!</h3> {/* Adjusted text */}
         <p className="text-muted-foreground mb-6 text-sm">
-          Your inquiry has been sent. We'll get back to you soon! {/* Adjusted text */}
+          Your email client has been opened. Please send the email to complete your inquiry! {/* Adjusted text */}
         </p>
         <DyraneButton variant="outline" size="sm" onClick={() => setIsSubmitted(false)}> {/* Smaller button */}
           Send Another Inquiry

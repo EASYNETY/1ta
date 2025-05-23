@@ -40,13 +40,34 @@ export default function ContactPage() {
   function onSubmit(values: z.infer<typeof contactFormSchema>) {
     setIsSubmitting(true);
 
-    // Simulate API call
+    // Create mailto link with form data
+    const subject = encodeURIComponent(`Contact Form: ${values.inquiryType}`);
+    const body = encodeURIComponent(`
+Hello,
+
+I am contacting you through your website contact form.
+
+Name: ${values.name}
+Email: ${values.email}
+Phone: ${values.phone || 'Not provided'}
+Inquiry Type: ${values.inquiryType}
+
+Message:
+${values.message}
+
+Best regards,
+${values.name}
+    `);
+
+    // Open mailto link
+    window.location.href = `mailto:info@1techacademy.com?subject=${subject}&body=${body}`;
+
+    // Show success message and reset form
     setTimeout(() => {
-      console.log(values);
-      toast.success('Your message has been sent successfully. We\'ll get back to you soon!');
+      toast.success('Your email client has been opened. Please send the email to complete your inquiry.');
       form.reset();
       setIsSubmitting(false);
-    }, 1500);
+    }, 500);
   }
 
   return (
