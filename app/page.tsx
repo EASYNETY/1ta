@@ -264,7 +264,7 @@ export default function LandingPage() {
         <SectionDivider />
 
 
-        {/* Commented out "Explore Our Category" section as requested
+        {/* Explore Our Courses Section */}
         <section id="courses" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
@@ -276,10 +276,8 @@ export default function LandingPage() {
             <CoursesSection />
           </div>
         </section>
-*/}
 
-
-        {/* <SectionDivider /> */}
+        <SectionDivider />
 
         {/* Onboarding Teaser Section */}
         <section className="py-16 relative overflow-hidden">
@@ -328,7 +326,7 @@ export default function LandingPage() {
         <SectionDivider />
 
         {/* Technologies Taught Section */}
-        <section id="courses" className="py-16 relative overflow-hidden">
+        <section id="technologies" className="py-16 relative overflow-hidden">
           <AbstractBackground className="opacity-50 dark:opacity-40" />
 
           <div className="px-4 md:px-6 relative">

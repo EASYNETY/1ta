@@ -422,7 +422,7 @@ export function EnhancedTechnologyIcons() {
       {/* Current Technologies */}
       {currentCourses.length > 0 && (
         <div>
-          <h3 className="text-2xl font-bold mb-6">Current Technologies</h3>
+          <h3 className="text-2xl font-bold mb-6">Current Enrollment</h3>
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
             variants={containerVariants}
@@ -443,7 +443,7 @@ export function EnhancedTechnologyIcons() {
       {/* Future Technologies */}
       {futureCourses.length > 0 && (
         <div>
-          <h3 className="text-2xl font-bold mb-6">Future Technologies & ISO Certifications</h3>
+          <h3 className="text-2xl font-bold mb-6">Future Courses & ISO Certifications</h3>
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
             variants={containerVariants}

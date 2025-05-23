@@ -19,7 +19,7 @@ const footerLinks = {
     product: [
         // { href: '#features', label: 'Features' },
         // { href: '#', label: 'Pricing' }, // Replace # with actual link
-        { href: '/public-courses', label: 'Courses' }, // Replace # with actual link
+        { href: '/#courses', label: 'Courses' }, // Replace # with actual link
     ],
     resources: [
         // { href: '#', label: 'Documentation' },

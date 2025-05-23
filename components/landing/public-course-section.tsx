@@ -16,6 +16,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 // --- Import Redux hooks and selectors ---
 import { useAppSelector } from "@/store/hooks"
 import {
+    selectAllCourses,
     selectCoursesByCategory,
     selectCourseCategories,
     selectCoursesStatus,
@@ -31,6 +32,7 @@ export function CoursesSection() {
     const categoryRef = useRef(null)
 
     // --- Redux State Access ---
+    const allCourses = useAppSelector(selectAllCourses)
     const coursesByCategory = useAppSelector(selectCoursesByCategory)
     const courseCategories = useAppSelector(selectCourseCategories)
     const coursesStatus = useAppSelector(selectCoursesStatus)
@@ -126,7 +128,7 @@ export function CoursesSection() {
     }
 
     // 3. No Data Success State
-    if (coursesStatus === "succeeded" && courseCategories.length === 0) {
+    if (coursesStatus === "succeeded" && allCourses.length === 0) {
         return (
             <section className="container py-16 md:py-24">
                 <SectionHeader
@@ -144,7 +146,30 @@ export function CoursesSection() {
     return (
         <div className="space-y-16">
 
-            {/* All Courses by Category Section */}
+            {/* All Courses Section - Simple Grid Display */}
+            {allCourses.length > 0 && (
+                <motion.div
+                    ref={categoryRef}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate={'visible'}
+                >
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    >
+                        {allCourses.map((course) => (
+                            <motion.div key={course.id} variants={itemVariants}>
+                                <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </motion.div>
+            )}
+
+            {/* Commented out "Explore Our Category" section as requested
             {courseCategories.length > 0 && (
                 <motion.div
                     ref={categoryRef}
@@ -194,6 +219,7 @@ export function CoursesSection() {
                     </Tabs>
                 </motion.div>
             )}
+            */}
 
             {/* Course Detail Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
