@@ -149,10 +149,10 @@ import { apiCache } from "./api-cache";
 
 // Configure the API cache
 apiCache.configure({
-	ttl: 60000, // 1 minute
+	ttl: process.env.NODE_ENV === 'development' ? 5000 : 60000, // 5 seconds in dev, 1 minute in prod
 	maxEntries: 100,
-	cacheErrors: true,
-	debug: false, // Set to false to disable debug logs
+	cacheErrors: false, // Don't cache errors in development
+	debug: process.env.NODE_ENV === 'development', // Enable debug logs in development
 });
 
 // --- Types ---

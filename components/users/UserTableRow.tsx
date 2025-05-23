@@ -131,7 +131,7 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
             <td className="py-3 px-4 align-top text-right">
                 <div className="flex items-center justify-end gap-1">
                     {/* Barcode Dialog (conditionally render for students?) */}
-                    {user.role === 'student' && <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />}
+                    {user.role === 'student' && user.barcodeId && <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">

@@ -266,29 +266,53 @@ All authentication pages use the same navbar and footer as the landing page, ens
 2. **Course Selection**: User views course details and adds to cart
 3. **Cart Management**: User reviews cart and proceeds to checkout
 4. **Registration**:
-
-1. Step 1: Account information (with role selection)
-2. Step 2: Profile details
-3. Step 3: Payment (if applicable)
-
-
-
+   1. Step 1: Account information (with role selection)
+   2. Step 2: Profile details
+   3. Step 3: Payment (if applicable)
 5. **Confirmation**: User receives confirmation and is redirected to dashboard
 6. **Learning**: User can access enrolled courses from dashboard
 
+### 8. Smart App Update System
 
-Alright — let's prepare a **clean professional document** for adding the **Cart Display to the Navbar**.  
+I've implemented a simple, reliable app update detection system that ensures users always have the latest version:
+
+#### **Development Experience**
+- **No interference**: Update detection is disabled during development to prevent interruption of hot reloading
+- **Immediate code visibility**: Changes show instantly without cache conflicts
+- **Manual testing**: Developers can test update functionality through Settings
+
+#### **Production Features**
+- **Automatic detection**: Uses chunk error detection and periodic server checks
+- **Non-intrusive notifications**: Toast messages instead of modal popups
+- **One-click updates**: "Refresh Now" button handles cache clearing and reload
+- **Auth preservation**: Updates never log users out or lose important data
+
+#### **User Experience**
+- **Smart timing**: Checks for updates when users return to the app
+- **Clear messaging**: Shows current version and explains what updates contain
+- **Manual control**: Users can check for updates anytime in Settings → App Maintenance
+
+#### **Technical Implementation**
+- **Server endpoint**: `/api/version` provides reliable version information
+- **Multiple detection methods**: Chunk loading failures + periodic checks + visibility-based checks
+- **Comprehensive cache clearing**: Handles API cache, browser storage, and Redux persist data
+- **Platform integration**: Works automatically with Vercel, Netlify, and other deployment platforms
+
+The system uses established web platform patterns for maximum reliability and minimal maintenance overhead.
+
+
+Alright — let's prepare a **clean professional document** for adding the **Cart Display to the Navbar**.
 I'll format it the way you'd write a proper internal or public **PRD (Product Requirements Doc)** or **feature spec**.
 
 ---
 
-# 📄 1Tech Academy – Cart Display in Navbar  
+# 📄 1Tech Academy – Cart Display in Navbar
 *(Document for Development/Integration)*
 
 ---
 
 ## 🎯 Purpose:
-Integrate a responsive, live-updating **Cart Display** directly into the **Navbar**.  
+Integrate a responsive, live-updating **Cart Display** directly into the **Navbar**.
 Enhance visibility of selected courses and provide a frictionless transition toward checkout/enrollment.
 
 ---
@@ -335,7 +359,7 @@ Enhance visibility of selected courses and provide a frictionless transition tow
   - Fade in
   - Scale slight up from 95% → 100%
   - Y axis slight down from `-5px` → `0`
-- **Dropdown Max Height:** 300px  
+- **Dropdown Max Height:** 300px
 - **Scroll inside dropdown** if more than 3 cart items.
 
 ---
@@ -466,8 +490,8 @@ So, while the provided backend code directly implies around 17 distinct views/ro
 
 ## **1. Overview**
 
-The DyraneUI Navigation System is crafted to deliver a fluid, intelligent, and beautiful user experience across mobile, tablet, and desktop platforms.  
-It is designed around **human-like motion**, **organic transitions**, **soft visuals**, and **minimal clutter**.  
+The DyraneUI Navigation System is crafted to deliver a fluid, intelligent, and beautiful user experience across mobile, tablet, and desktop platforms.
+It is designed around **human-like motion**, **organic transitions**, **soft visuals**, and **minimal clutter**.
 Every navigation element responds dynamically to user behavior with **blur effects**, **rounded glassmorphism**, and **natural animation curves** — resulting in a delightful and deeply immersive environment.
 
 ---
@@ -475,7 +499,7 @@ Every navigation element responds dynamically to user behavior with **blur effec
 ## **2. Navigation Groups**
 
 ### **Main Navigation**
-Primary, most important app destinations (example: Dashboard, Courses, Messages, Payments, Settings).  
+Primary, most important app destinations (example: Dashboard, Courses, Messages, Payments, Settings).
 - Maximum 5 items.
 - Always visible where possible (sidebar on tablet/desktop, bottom bar on mobile).
 
@@ -505,18 +529,18 @@ Placed in sheets or footer areas, keeping the primary surfaces uncluttered.
 
 - **Bottom Bar**: Floating, scroll-sensitive, icon-only navigation (no labels).
 - **Navbar**: Lightweight — only Avatar (left), Logo (center), Theme Toggle + Notification Icon (right).
-- **Sheets**: 
+- **Sheets**:
   - Avatar → Left Sheet (Profile, Cart, Support, etc.)
   - Notification → Right Sheet (Notification feed).
 - **Floating Plus (+) Button**: Context-sensitive CRUD action, positioned top-right of Bottom Bar.
-- **Scroll Sensitivity**: 
+- **Scroll Sensitivity**:
   - Scrolling down (content moving up) → Bottom Bar hides softly with blur.
   - Scrolling up (content moving down) → Bottom Bar reappears.
 
 ### **Tablet**
 
 - **Left Sidebar**: Collapsible, shows Main Navigation. Profile card moved to sidebar footer.
-- **Navbar**:  
+- **Navbar**:
   - Avatar (left), Logo (center), Theme Toggle + Notifications (right).
 - **Right Sidebar**: Collapsible, used for notifications or contextual panels.
 - **Floating Plus (+) Button**: Becomes part of right side interactions.
@@ -707,7 +731,7 @@ No floating action button needed; actions are integrated in sidebars or top bars
 ---
 # **Final Notes**
 
-This Navigation System embodies DyraneUI's belief in **fluidity, beauty, and clarity**.  
+This Navigation System embodies DyraneUI's belief in **fluidity, beauty, and clarity**.
 It respects the user’s focus, giving them maximum screen real estate when needed, and presenting actions only when they're ready for them.
 
 We don't chase trends — we build **timelessly smooth experiences**.

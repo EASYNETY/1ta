@@ -9,6 +9,8 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { MouseTrackerProvider } from "@/providers/MouseTrackerProvider";
 import { ErrorBoundary } from "@/providers/error-boundary";
 import { Toaster } from "sonner";
+import { cacheManager } from "@/lib/cache-manager";
+import { UpdateDetector } from "@/components/app/UpdateDetector";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +43,7 @@ export const metadata: Metadata = {
       { url: "/icon.png", sizes: "512x512", type: "image/png" },
     ],
   },
+
 };
 
 export default function RootLayout({
@@ -48,6 +51,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Enable cache debugging in development
+  if (process.env.NODE_ENV === 'development') {
+    cacheManager.enableCacheDebugging();
+  }
+
   return (
     <html
       lang="en"
@@ -83,6 +91,8 @@ export default function RootLayout({
                       },
                     }}
                   />
+                  {/* Simple, reliable update detection */}
+                  <UpdateDetector />
                 </MouseTrackerProvider>
               </AuthProvider>
             </ErrorBoundary>

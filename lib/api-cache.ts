@@ -65,19 +65,19 @@ class ApiCache {
   get<T>(method: string, endpoint: string, params?: Record<string, any>): T | undefined {
     const key = this.generateKey(method, endpoint, params);
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       if (this.config.debug) console.log(`[ApiCache] Cache miss: ${key}`);
       return undefined;
     }
-    
+
     const now = Date.now();
     if (now - entry.timestamp > this.config.ttl) {
       if (this.config.debug) console.log(`[ApiCache] Cache expired: ${key}`);
       this.cache.delete(key);
       return undefined;
     }
-    
+
     if (this.config.debug) console.log(`[ApiCache] Cache hit: ${key}`);
     return entry.data;
   }
@@ -90,22 +90,22 @@ class ApiCache {
     if (status >= 400 && !this.config.cacheErrors) {
       return;
     }
-    
+
     const key = this.generateKey(method, endpoint, params);
-    
+
     // Enforce maximum cache size by removing oldest entries
     if (this.cache.size >= this.config.maxEntries) {
       const oldestKey = this.cache.keys().next().value;
       this.cache.delete(oldestKey);
       if (this.config.debug) console.log(`[ApiCache] Cache full, removed oldest entry: ${oldestKey}`);
     }
-    
+
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
       status,
     });
-    
+
     if (this.config.debug) console.log(`[ApiCache] Cached: ${key}`);
   }
 
@@ -118,10 +118,10 @@ class ApiCache {
       this.cache.clear();
       return;
     }
-    
+
     const prefix = method ? `${method.toUpperCase()}:` : '';
     const endpointStr = endpoint || '';
-    
+
     // Delete all entries that match the prefix and endpoint
     for (const key of this.cache.keys()) {
       if (key.startsWith(prefix) && (endpoint ? key.includes(endpointStr) : true)) {
@@ -137,6 +137,40 @@ class ApiCache {
   configure(config: Partial<ApiCacheConfig>): void {
     this.config = { ...this.config, ...config };
     if (this.config.debug) console.log('[ApiCache] Configuration updated:', this.config);
+  }
+
+  /**
+   * Gets the current size of the cache
+   */
+  size(): number {
+    return this.cache.size;
+  }
+
+  /**
+   * Gets the current configuration
+   */
+  getConfig(): ApiCacheConfig {
+    return { ...this.config };
+  }
+
+  /**
+   * Removes expired entries from the cache
+   */
+  cleanup(): void {
+    const now = Date.now();
+    const keysToDelete: string[] = [];
+
+    this.cache.forEach((entry, key) => {
+      if (now - entry.timestamp > this.config.ttl) {
+        keysToDelete.push(key);
+      }
+    });
+
+    keysToDelete.forEach(key => this.cache.delete(key));
+
+    if (this.config.debug && keysToDelete.length > 0) {
+      console.log(`[ApiCache] Cleaned up ${keysToDelete.length} expired entries`);
+    }
   }
 }
 
