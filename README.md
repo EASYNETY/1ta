@@ -179,6 +179,39 @@ The initial MVP focuses on core functionality. Refer to the detailed MVP Scope D
 
 ---
 
+## 📚 Documentation
+
+This project includes comprehensive documentation organized in the `docs/` folder:
+
+### 🏗️ Architecture & Design
+- [System Architecture](./docs/architecture/README.md) - Overview of the system architecture
+- [Application Flow](./docs/architecture/flow.md) - User journeys and application flow
+
+### 🔧 Backend Documentation
+- [CMS API Requirements](./docs/backend/cms-api-requirements.md) - Complete API requirements for CMS
+- [CMS Database Models](./docs/backend/cms-database-models.md) - Database schemas and Sequelize models
+- [CMS Controllers](./docs/backend/cms-controllers.md) - Business logic and controller implementations
+- [CMS Validation Schemas](./docs/backend/cms-validation-schemas.md) - Request/response validation
+- [CMS Media Integration](./docs/backend/cms-media-integration.md) - Media management system integration
+- [CMS Implementation Guide](./docs/backend/cms-implementation-guide.md) - Step-by-step backend setup
+
+### 📱 Features
+- [Cache Management](./docs/features/cache-management/solution.md) - App update and cache management system
+- [Media Upload](./docs/features/media-upload/README.md) - Media upload components and services
+- [Barcode Scanner](./docs/features/barcode/README.md) - Hybrid barcode scanning implementation
+
+### 🔌 API Integration
+- [Data Types Reference](./docs/api-integration/data-types-reference.md) - TypeScript types for backend compatibility
+- [Mock Data Replacement](./docs/api-integration/mock-data-replacement.md) - Guide for replacing mock data with real APIs
+
+### 👨‍💻 Development
+- [Defensive Programming Guide](./docs/development/defensive-programming-comprehensive-guide.md) - Best practices for robust code
+- [Safe Redux Selectors](./docs/development/safe-redux-selectors.md) - Redux state management patterns
+
+For a complete overview of all documentation, see the [Documentation Index](./docs/index.md).
+
+---
+
 ## 🔗 Useful Links (Placeholders)
 
 - **Design Files:** [Link to Figma/Zeplin]

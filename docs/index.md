@@ -26,6 +26,15 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 - [Defensive Programming Guide](./development/defensive-programming-comprehensive-guide.md)
 - [Safe Redux Selectors](./development/safe-redux-selectors.md)
 
+### 🔧 Backend Documentation
+- [Backend Overview](./backend/README.md)
+- [CMS API Requirements](./backend/cms-api-requirements.md)
+- [CMS Database Models](./backend/cms-database-models.md)
+- [CMS Controllers](./backend/cms-controllers.md)
+- [CMS Validation Schemas](./backend/cms-validation-schemas.md)
+- [CMS Media Integration](./backend/cms-media-integration.md)
+- [CMS Implementation Guide](./backend/cms-implementation-guide.md)
+
 ### 🎨 UI Design
 - [UI Design Guidelines](./ui/README.md)
 - [UI Design Philosophy](./ui/ui-design-philosophy.md)
@@ -61,6 +70,7 @@ Welcome to the SmartEdu documentation! This repository contains comprehensive do
 - [Help System](./features/help/README.md)
 - [Analytics & Reporting](./features/analytics/README.md)
 - [Media Upload](./features/media-upload/README.md)
+- [Cache Management](./features/cache-management/solution.md)
 
 ### 🧪 Testing
 - [Testing Documentation](./testing/README.md)
