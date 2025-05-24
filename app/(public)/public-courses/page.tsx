@@ -426,8 +426,8 @@ export default function PublicCoursesPage() {
                 animate="visible"
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
               >
-                {filteredCourses.map((course) => (
-                  <motion.div key={course.id} variants={itemVariants}>
+                {filteredCourses.map((course, index) => (
+                  <motion.div key={`${course.id}-${index}`} variants={itemVariants}>
                     <PublicCourseCard
                       course={course}
                       onClick={() => handleViewCourse(course)}

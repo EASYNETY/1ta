@@ -270,10 +270,16 @@ export default function DashboardPage() {
                                 .fill(0)
                                 .map((_, i) => <div key={i} className="h-[300px] rounded-xl bg-muted animate-pulse" />)
                         ) : courses.length > 0 ? (
-                            // Show actual courses
+                            // Show actual courses - simple fix for duplicate backend IDs
                             courses
                                 .slice(0, 4)
-                                .map((course, index) => <CourseCard key={course.id} course={course} index={index} />)
+                                .map((course, index) => (
+                                    <CourseCard
+                                        key={`${course.id}-${index}`}
+                                        course={course}
+                                        index={index}
+                                    />
+                                ))
                         ) : (
                             // No courses message
                             <div className="col-span-full text-center py-8">
@@ -294,8 +300,14 @@ export default function DashboardPage() {
                                 .fill(0)
                                 .map((_, i) => <div key={i} className="h-[300px] rounded-xl bg-muted animate-pulse" />)
                         ) : courses.length > 0 ? (
-                            // Show all courses
-                            courses.map((course, index) => <CourseCard key={course.id} course={course} index={index} />)
+                            // Show all courses - simple fix for duplicate backend IDs
+                            courses.map((course, index) => (
+                                <CourseCard
+                                    key={`${course.id}-${index}`}
+                                    course={course}
+                                    index={index}
+                                />
+                            ))
                         ) : (
                             // No courses message
                             <div className="col-span-full text-center py-8">

@@ -160,8 +160,8 @@ export function CoursesSection() {
                         animate="visible"
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                     >
-                        {allCourses.map((course) => (
-                            <motion.div key={course.id} variants={itemVariants}>
+                        {allCourses.map((course, index) => (
+                            <motion.div key={`${course.id}-${index}`} variants={itemVariants}>
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}

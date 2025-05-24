@@ -307,7 +307,7 @@ export function HelpSearch({
                       const Icon = article.categoryIcon;
                       return (
                         <CommandItem
-                          key={index}
+                          key={`${article.id}-${index}`}
                           onSelect={() => handleSelectArticle(article)}
                           className="cursor-pointer"
                         >

@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { 
-  setSearchQuery, 
+import {
+  setSearchQuery,
   clearRecentSearches,
   selectRecentSearches
 } from '../store/search-slice'
@@ -18,20 +18,20 @@ interface RecentSearchesProps {
 export function RecentSearches({ onSearchSelect }: RecentSearchesProps) {
   const dispatch = useAppDispatch()
   const recentSearches = useAppSelector(selectRecentSearches)
-  
+
   if (!recentSearches || recentSearches.length === 0) {
     return null
   }
-  
+
   const handleSearchClick = (query: string) => {
     dispatch(setSearchQuery(query))
     onSearchSelect(query)
   }
-  
+
   const handleClearAll = () => {
     dispatch(clearRecentSearches())
   }
-  
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-2">
@@ -39,21 +39,21 @@ export function RecentSearches({ onSearchSelect }: RecentSearchesProps) {
           <Clock className="h-4 w-4 mr-2" />
           Recent Searches
         </h3>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleClearAll}
           className="text-xs"
         >
           Clear all
         </Button>
       </div>
-      
+
       <ScrollArea className="whitespace-nowrap pb-2">
         <div className="flex gap-2">
           {recentSearches.map((query, index) => (
             <Button
-              key={index}
+              key={`${query}-${index}`}
               variant="outline"
               size="sm"
               className="flex items-center gap-1"

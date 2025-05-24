@@ -707,12 +707,154 @@ const transformPartnerData = (partnerData: any[]): PublicCourse | null => {
 	return publicCourse;
 };
 
+// Additional mock course data for testing
+const additionalMockCourses: PublicCourse[] = [
+	{
+		id: "2",
+		slug: "web-development-fundamentals",
+		title: "Web Development Fundamentals",
+		subtitle: "Learn HTML, CSS, and JavaScript",
+		description: "A comprehensive introduction to web development covering HTML, CSS, and JavaScript fundamentals.",
+		category: "Web Development",
+		image: "/images/courses/web-development-fundamentals.jpg",
+		instructor: {
+			name: "Sarah Johnson",
+			title: "Senior Web Developer",
+		},
+		level: "Beginner",
+		tags: ["HTML", "CSS", "JavaScript", "Frontend"],
+		priceUSD: 99.99,
+		discountPriceUSD: 79.99,
+		learningOutcomes: [
+			"Build responsive websites with HTML and CSS",
+			"Create interactive web pages with JavaScript",
+			"Understand modern web development practices"
+		],
+		prerequisites: ["Basic computer skills"],
+		modules: [
+			{
+				title: "HTML Basics",
+				duration: "5 lessons",
+				lessons: [
+					{ title: "Introduction to HTML", duration: "00:30:00", isPreview: true },
+					{ title: "HTML Elements and Tags", duration: "00:45:00" },
+					{ title: "Forms and Input Elements", duration: "00:40:00" },
+					{ title: "Semantic HTML", duration: "00:35:00" },
+					{ title: "HTML Best Practices", duration: "00:25:00" }
+				]
+			},
+			{
+				title: "CSS Styling",
+				duration: "6 lessons",
+				lessons: [
+					{ title: "CSS Basics", duration: "00:30:00" },
+					{ title: "Selectors and Properties", duration: "00:40:00" },
+					{ title: "Layout with Flexbox", duration: "00:50:00" },
+					{ title: "CSS Grid", duration: "00:45:00" },
+					{ title: "Responsive Design", duration: "00:55:00" },
+					{ title: "CSS Animations", duration: "00:35:00" }
+				]
+			}
+		],
+		lessonCount: 11,
+		moduleCount: 2,
+		totalVideoDuration: "Approx. 7.5 hours",
+		language: "English",
+		certificate: true,
+		accessType: "Lifetime",
+		supportType: "Community"
+	},
+	{
+		id: "3",
+		slug: "data-science-python",
+		title: "Data Science with Python",
+		subtitle: "Master data analysis and machine learning",
+		description: "Learn data science fundamentals using Python, pandas, and scikit-learn.",
+		category: "Data Science",
+		image: "/images/courses/data-science-python.jpg",
+		instructor: {
+			name: "Dr. Michael Chen",
+			title: "Data Science Lead",
+		},
+		level: "Intermediate",
+		tags: ["Python", "Data Analysis", "Machine Learning", "Pandas"],
+		priceUSD: 149.99,
+		discountPriceUSD: 119.99,
+		learningOutcomes: [
+			"Analyze data using Python and pandas",
+			"Build machine learning models",
+			"Visualize data with matplotlib and seaborn"
+		],
+		prerequisites: ["Basic Python knowledge"],
+		modules: [
+			{
+				title: "Python for Data Science",
+				duration: "4 lessons",
+				lessons: [
+					{ title: "NumPy Fundamentals", duration: "00:45:00", isPreview: true },
+					{ title: "Pandas Data Manipulation", duration: "01:00:00" },
+					{ title: "Data Cleaning Techniques", duration: "00:50:00" },
+					{ title: "Exploratory Data Analysis", duration: "00:55:00" }
+				]
+			}
+		],
+		lessonCount: 4,
+		moduleCount: 1,
+		totalVideoDuration: "Approx. 3.5 hours",
+		language: "English",
+		certificate: true,
+		accessType: "Lifetime",
+		supportType: "Instructor"
+	},
+	{
+		id: "4",
+		slug: "mobile-app-development",
+		title: "Mobile App Development with React Native",
+		subtitle: "Build cross-platform mobile apps",
+		description: "Create mobile applications for iOS and Android using React Native.",
+		category: "Mobile Development",
+		image: "/images/courses/mobile-app-development.jpg",
+		instructor: {
+			name: "Alex Rodriguez",
+			title: "Mobile Development Expert",
+		},
+		level: "Advanced",
+		tags: ["React Native", "Mobile", "iOS", "Android"],
+		priceUSD: 179.99,
+		discountPriceUSD: 139.99,
+		learningOutcomes: [
+			"Build native mobile apps with React Native",
+			"Implement navigation and state management",
+			"Deploy apps to app stores"
+		],
+		prerequisites: ["React.js experience", "JavaScript proficiency"],
+		modules: [
+			{
+				title: "React Native Basics",
+				duration: "3 lessons",
+				lessons: [
+					{ title: "Setting up Development Environment", duration: "00:30:00", isPreview: true },
+					{ title: "Components and Styling", duration: "00:45:00" },
+					{ title: "Navigation Setup", duration: "00:40:00" }
+				]
+			}
+		],
+		lessonCount: 3,
+		moduleCount: 1,
+		totalVideoDuration: "Approx. 2 hours",
+		language: "English",
+		certificate: true,
+		accessType: "Lifetime",
+		supportType: "Both"
+	}
+];
+
 // Generate the public course data
 export const publicMockCourseData: PublicCourse[] = [
 	// Process the embedded PMP data
 	transformPartnerData(partnerRawDataPMP),
-	// Add more courses here by calling transformPartnerData with their respective raw data arrays
-	// transformPartnerData(anotherCourseRawData),
+	// Add additional mock courses
+	...additionalMockCourses,
 ].filter((course): course is PublicCourse => course !== null); // Filter out any nulls from failed transformations
 
 // --- Authenticated Mock Course Data Generation ---
