@@ -47,11 +47,11 @@ export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreen
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-white ${className || ''}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-primary ${className || ''}`}
     >
       <div className="flex items-center justify-center w-full h-full">
         {/* Pure Logo Animation - Clean and Simple */}
-        <div className="relative w-full max-w-4xl mx-auto px-8">
+        <div className="relative w-full max-w-4xl mx-auto px-8 -ml-4 md:-ml-8 lg:-ml-12">
           {/* Maintain 16:9 aspect ratio (2560x1440) */}
           <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
             <Image
