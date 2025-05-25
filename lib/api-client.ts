@@ -147,6 +147,9 @@ const IS_LIVE_API = process.env.NEXT_PUBLIC_API_IS_LIVE === "true";
 // Import the API cache
 import { apiCache } from "./api-cache";
 
+// Import rate limiter
+import { apiRateLimiter, isRateLimitError } from "./rate-limiter";
+
 // Configure the API cache
 apiCache.configure({
 	ttl: process.env.NODE_ENV === 'development' ? 5000 : 60000, // 5 seconds in dev, 1 minute in prod
@@ -200,6 +203,12 @@ async function apiClient<T>(
 		if (cachedResponse !== undefined) {
 			return cachedResponse;
 		}
+	}
+
+	// Check rate limiting before making the request
+	if (IS_LIVE_API && !apiRateLimiter.isAllowed(endpoint)) {
+		console.warn(`Rate limit check failed for ${endpoint}, waiting...`);
+		await apiRateLimiter.waitUntilAllowed(endpoint);
 	}
 
 	const headers = new Headers(fetchOptions.headers);
@@ -264,6 +273,85 @@ async function apiClient<T>(
 			}
 
 			console.error("API Error Data:", errorData);
+
+			// Handle 429 Too Many Requests (Rate Limiting)
+			if (response.status === 429) {
+				console.warn("Rate limit exceeded, implementing backoff strategy");
+
+				// Extract retry-after header if available
+				const retryAfter = response.headers.get('retry-after');
+				const retryAfterSeconds = retryAfter ? parseInt(retryAfter) : 30; // Default 30 seconds
+
+				// Update rate limiter with the rate limit info
+				apiRateLimiter.handleRateLimit(endpoint, retryAfterSeconds);
+
+				// Implement exponential backoff with jitter
+				const backoffDelay = Math.min(retryAfterSeconds * 1000 + Math.random() * 1000, 60000); // Max 60 seconds
+
+				console.log(`Rate limited. Retrying after ${backoffDelay}ms`);
+
+				// Wait for the backoff period
+				await new Promise(resolve => setTimeout(resolve, backoffDelay));
+
+				// Retry the request once
+				try {
+					const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+					if (retryResponse.ok) {
+						console.log("Retry successful after rate limit backoff");
+
+						if (retryResponse.status === 204) return undefined as T;
+
+						const contentType = retryResponse.headers.get("content-type");
+						if (contentType && contentType.includes("application/json")) {
+							const responseData = await retryResponse.json();
+
+							// Handle the same response structure logic as below
+							let data: T;
+							if (responseData && typeof responseData === 'object' && 'success' in responseData) {
+								if (responseData.data !== undefined) {
+									if (Array.isArray(responseData.data) && responseData.pagination) {
+										data = {
+											...responseData.data,
+											pagination: responseData.pagination
+										} as T;
+									} else {
+										data = responseData.data;
+									}
+								} else {
+									data = responseData;
+								}
+							} else {
+								data = responseData;
+							}
+
+							// Cache successful GET responses
+							if (method === "GET") {
+								apiCache.set(method, endpoint, data, retryResponse.status);
+							}
+
+							return data;
+						}
+
+						return undefined as T;
+					} else {
+						// If retry also fails, throw the original rate limit error
+						throw new ApiError(
+							`Rate limit exceeded. Please try again later. (Retry also failed: ${retryResponse.status})`,
+							429,
+							errorData
+						);
+					}
+				} catch (retryError) {
+					console.error("Retry after rate limit failed:", retryError);
+					// Throw the original rate limit error
+					throw new ApiError(
+						"Rate limit exceeded. Please try again later.",
+						429,
+						errorData
+					);
+				}
+			}
 
 			// Handle 401 Unauthorized errors (expired token, etc.)
 			if (response.status === 401 && !skipAuthRefresh) {
@@ -397,6 +485,11 @@ async function apiClient<T>(
 			// Cache successful GET responses
 			if (method === "GET") {
 				apiCache.set(method, endpoint, data, response.status);
+			}
+
+			// Record successful request for rate limiting
+			if (IS_LIVE_API) {
+				apiRateLimiter.recordRequest(endpoint);
 			}
 
 			return data;

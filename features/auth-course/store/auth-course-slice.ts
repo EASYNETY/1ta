@@ -85,8 +85,17 @@ export const fetchAuthCourses = createAsyncThunk<
 
 		return courses;
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Failed to fetch courses";
+		let message = "Failed to fetch courses";
+
+		if (error instanceof Error) {
+			message = error.message;
+
+			// Handle rate limiting specifically
+			if (error.message.includes("429") || error.message.includes("Too Many Requests")) {
+				message = "Too many requests. Please wait a moment before trying again.";
+			}
+		}
+
 		console.error("fetchAuthCourses Thunk Error:", message);
 		return rejectWithValue(message);
 	}
