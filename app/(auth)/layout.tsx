@@ -8,6 +8,7 @@ import { AbstractBackground } from "@/components/layout/abstract-background"
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 
 export default function AuthLayout({
   children,
@@ -31,12 +32,15 @@ export default function AuthLayout({
           <div className="flex items-center justify-center mb-8">
             {mounted && currentTheme && (
               <Image
-                src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                src="/images/logos/1tech-academy-no-bg.png"
                 alt="1techacademy Logo"
-                className="h-10 w-auto"
+                className={cn(
+                  "h-10 w-auto",
+                  currentTheme === "dark" && "bg-white/90 rounded-sm px-2"
+                )}
                 priority
-                width={80}
-                height={14}
+                width={120}
+                height={40}
               />
             )}
             {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}

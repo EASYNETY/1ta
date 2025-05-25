@@ -47,7 +47,7 @@ export default function LandingPage() {
   const missionContent = {
     title: "Our Mission",
     subtitle: "Empowering Africa's Tech Leaders",
-    imageSrc: "https://images.pexels.com/photos/7689856/pexels-photo-7689856.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1", // Replace with relevant image
+    imageSrc: "/images/mission-vision/mission.jpg",
     imageAlt: "Students collaborating on a tech project",
     modalContent: {
       bio: "At 1Tech Academy, our mission is to empower Africa’s next generation of tech leaders by delivering world-class, hands-on training through in-person mentorship, global expertise, and an uncompromising standard of excellence.",
@@ -58,8 +58,7 @@ export default function LandingPage() {
   const visionContent = {
     title: "Our Vision",
     subtitle: "Shaping the Future of Tech in Africa",
-    imageSrc: "https://img.freepik.com/free-photo/black-woman-experiencing-virtual-reality-with-vr-headset_53876-137559.jpg?t=st=1745919842~exp=1745923442~hmac=8f8854025973efa823ba857549a70fe3ff1fa013ad4c0225e4e81e97bc847092&w=740",
-    // imageSrc: "./vision.png",
+    imageSrc: "/images/mission-vision/vision.png",
     imageAlt: "Abstract representation of digital transformation in Africa",
     modalContent: {
       bio: "To shape Africa’s next generation of tech leaders by combining global expertise with local excellence — in a space built for bold ambition and real transformation.",

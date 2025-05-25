@@ -140,7 +140,16 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                 )}>
                     <span suppressHydrationWarning className="h-6 w-auto">
                         {mounted ? (
-                            <Image src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"} alt="1Tech Logo" width={80} height={14} className="h-6 w-auto" />
+                            <Image
+                                src="/images/logos/1tech-academy-no-bg.png"
+                                alt="1Tech Logo"
+                                width={120}
+                                height={40}
+                                className={cn(
+                                    "h-6 w-auto",
+                                    currentTheme === "dark" && "bg-white/90 rounded-sm px-1"
+                                )}
+                            />
                         ) : (
                             <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>
                         )}

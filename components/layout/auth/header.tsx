@@ -177,12 +177,15 @@ export function Header() {
                                         <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0">
                                             {mounted && currentTheme && (
                                                 <Image
-                                                    src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                                    src="/images/logos/1tech-academy-no-bg.png"
                                                     alt="1techacademy Logo"
-                                                    className="h-6 w-auto"
+                                                    className={cn(
+                                                        "h-6 w-auto",
+                                                        currentTheme === "dark" && "bg-white/90 rounded-sm px-1"
+                                                    )}
                                                     priority
-                                                    width={80}
-                                                    height={14}
+                                                    width={120}
+                                                    height={40}
                                                 />
                                             )}
                                             {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
@@ -298,12 +301,15 @@ export function Header() {
                             <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
                                 {mounted && currentTheme && (
                                     <Image
-                                        src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                        src="/images/logos/1tech-academy-no-bg.png"
                                         alt="1techacademy Logo"
-                                        className="h-6 w-auto"
+                                        className={cn(
+                                            "h-6 w-auto",
+                                            currentTheme === "dark" && "bg-white/90 rounded-sm px-1"
+                                        )}
                                         priority
-                                        width={80}
-                                        height={14}
+                                        width={120}
+                                        height={40}
                                     />
                                 )}
                                 {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
