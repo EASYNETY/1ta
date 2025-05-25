@@ -11,7 +11,7 @@ import { ErrorBoundary } from "@/providers/error-boundary";
 import { Toaster } from "sonner";
 import { cacheManager } from "@/lib/cache-manager";
 import { UpdateDetector } from "@/components/app/UpdateDetector";
-import { AppWithSplash } from "@/components/layout/AppWithSplash";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,27 +76,24 @@ export default function RootLayout({
             <ErrorBoundary>
               <AuthProvider>
                 <MouseTrackerProvider>
-                  {/* Splash screen wrapper for the entire app */}
-                  <AppWithSplash enableSplash={true}>
-                    {/* Your main application content */}
-                    {children}
-                    {/* Toaster outside main content usually */}
-                    <Toaster
-                      position="top-right"
-                      richColors
-                      closeButton
-                      // Apply theme directly to Toaster if needed,
-                      // or ensure its styles adapt via Tailwind dark: prefix
-                      theme={"dark"}
-                      toastOptions={{
-                        classNames: {
-                          toast: "rounded-lg", // Ensure your toast styles support dark mode
-                        },
-                      }}
-                    />
-                    {/* Simple, reliable update detection */}
-                    <UpdateDetector />
-                  </AppWithSplash>
+                  {/* Your main application content */}
+                  {children}
+                  {/* Toaster outside main content usually */}
+                  <Toaster
+                    position="top-right"
+                    richColors
+                    closeButton
+                    // Apply theme directly to Toaster if needed,
+                    // or ensure its styles adapt via Tailwind dark: prefix
+                    theme={"dark"}
+                    toastOptions={{
+                      classNames: {
+                        toast: "rounded-lg", // Ensure your toast styles support dark mode
+                      },
+                    }}
+                  />
+                  {/* Simple, reliable update detection */}
+                  <UpdateDetector />
                 </MouseTrackerProvider>
               </AuthProvider>
             </ErrorBoundary>

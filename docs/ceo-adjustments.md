@@ -208,7 +208,7 @@ STU-0001 | Jane Doe | INV-2024-01 | Tuition - Term 1 | 01-Sep-2024 | ₦100,000 
 - **Logo Animation Frames:** 102 SVG animation frames (2560x1440) added to `public/animations/pulsating-background/`
 - **Logo Assets:** 1Tech Academy logo (no background) added to `public/images/logos/`
 - **Mission & Vision Images:** New images added to `public/images/mission-vision/`
-- **Splash Screen System:** Comprehensive splash screen components created for logo animation
+
 
 ---
 
