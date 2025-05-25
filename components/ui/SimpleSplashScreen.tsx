@@ -49,65 +49,21 @@ export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreen
       exit={{ opacity: 0 }}
       className={`fixed inset-0 z-50 flex items-center justify-center bg-white ${className || ''}`}
     >
-      <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4">
-        {/* Logo Animation - Properly sized for 2560x1440 aspect ratio */}
-        <div className="relative w-full max-w-2xl mx-auto mb-8">
+      <div className="flex items-center justify-center w-full h-full">
+        {/* Pure Logo Animation - Clean and Simple */}
+        <div className="relative w-full max-w-4xl mx-auto px-8">
           {/* Maintain 16:9 aspect ratio (2560x1440) */}
           <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
             <Image
               src={getFramePath(currentFrame)}
-              alt="1Tech Academy Logo Animation"
+              alt="Logo Animation"
               fill
               className="object-contain object-center"
               priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 768px"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1024px"
             />
           </div>
         </div>
-
-        {/* Company Name */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.8 }}
-          className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 text-center mb-4"
-        >
-          1Tech Academy
-        </motion.h1>
-
-        {/* Tagline */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.3, duration: 0.8 }}
-          className="text-base md:text-lg lg:text-xl text-gray-600 text-center mb-8"
-        >
-          Empowering Africa's Tech Leaders
-        </motion.p>
-
-        {/* Loading indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 0.5 }}
-          className="flex justify-center space-x-2"
-        >
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="w-3 h-3 bg-blue-600 rounded-full"
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                delay: i * 0.2,
-              }}
-            />
-          ))}
-        </motion.div>
       </div>
     </motion.div>
   )
