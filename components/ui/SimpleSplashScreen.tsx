@@ -12,7 +12,7 @@ interface SimpleSplashScreenProps {
 export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreenProps) {
   const [currentFrame, setCurrentFrame] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
-  
+
   const totalFrames = 102
   const frameDelay = 80 // 80ms per frame = ~12.5 FPS for smooth animation
 
@@ -49,35 +49,38 @@ export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreen
       exit={{ opacity: 0 }}
       className={`fixed inset-0 z-50 flex items-center justify-center bg-white ${className || ''}`}
     >
-      <div className="flex flex-col items-center">
-        {/* Logo Animation - Sized appropriately for 2560x1440 source */}
-        <div className="relative w-80 h-48 md:w-96 md:h-56 lg:w-[32rem] lg:h-72">
-          <Image
-            src={getFramePath(currentFrame)}
-            alt="1Tech Academy Logo Animation"
-            fill
-            className="object-contain"
-            priority
-            sizes="(max-width: 768px) 320px, (max-width: 1024px) 384px, 512px"
-          />
+      <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto px-4">
+        {/* Logo Animation - Properly sized for 2560x1440 aspect ratio */}
+        <div className="relative w-full max-w-2xl mx-auto mb-8">
+          {/* Maintain 16:9 aspect ratio (2560x1440) */}
+          <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+            <Image
+              src={getFramePath(currentFrame)}
+              alt="1Tech Academy Logo Animation"
+              fill
+              className="object-contain object-center"
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 768px"
+            />
+          </div>
         </div>
-        
+
         {/* Company Name */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.8 }}
-          className="mt-8 text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 text-center"
+          className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 text-center mb-4"
         >
           1Tech Academy
         </motion.h1>
-        
+
         {/* Tagline */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.3, duration: 0.8 }}
-          className="mt-4 text-lg md:text-xl text-gray-600 text-center"
+          className="text-base md:text-lg lg:text-xl text-gray-600 text-center mb-8"
         >
           Empowering Africa's Tech Leaders
         </motion.p>
@@ -87,7 +90,7 @@ export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreen
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2, duration: 0.5 }}
-          className="mt-8 flex space-x-2"
+          className="flex justify-center space-x-2"
         >
           {[0, 1, 2].map((i) => (
             <motion.div
@@ -125,7 +128,7 @@ export default function App() {
       {showSplash && (
         <SimpleSplashScreen onComplete={() => setShowSplash(false)} />
       )}
-      
+
       {!showSplash && (
         <main>
           Your app content here
