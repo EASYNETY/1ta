@@ -113,7 +113,7 @@ export const standOutPointsData: StandOutPoint[] = [
 //   title: "Awaken Your Tech Future with 1Tech Academy.",
 //   subtitle:
 //     "Empowering tomorrow’s tech leaders through real-world projects, professional certifications, and a transformative learning environment.",
-//   ctaPrimary: { text: "Enroll Now", href: "/signup" },
+//   ctaPrimary: { text: "Enrol now", href: "/signup" },
 //   ctaSecondary: { text: "Learn More", href: "#why_us" },
 // };
 

@@ -143,11 +143,73 @@ export function CoursesSection() {
     // --- 4. Success State ---
     // Use featuredCourses, courseCategories, coursesByCategory from useAppSelector
 
+    // Split courses into current and future based on category
+    const currentCourses = allCourses.filter(course =>
+        course.category === 'current' || course.category === 'Current' ||
+        course.category === 'available' || course.category === 'Available'
+    )
+    const futureCourses = allCourses.filter(course =>
+        course.category === 'future' || course.category === 'Future' ||
+        course.category === 'upcoming' || course.category === 'Upcoming'
+    )
+
     return (
         <div className="space-y-16">
+            {/* Current Courses Section */}
+            {currentCourses.length > 0 && (
+                <motion.div
+                    ref={categoryRef}
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate={'visible'}
+                >
+                    <SectionHeader
+                        title="Current Courses"
+                        description="Courses currently available for enrollment"
+                    />
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    >
+                        {currentCourses.map((course, index) => (
+                            <motion.div key={`current-${course.id}-${index}`} variants={itemVariants}>
+                                <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </motion.div>
+            )}
 
-            {/* All Courses Section - Simple Grid Display */}
-            {allCourses.length > 0 && (
+            {/* Future Courses Section */}
+            {futureCourses.length > 0 && (
+                <motion.div
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate={'visible'}
+                >
+                    <SectionHeader
+                        title="Future Courses"
+                        description="Upcoming courses that will be available soon"
+                    />
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                    >
+                        {futureCourses.map((course, index) => (
+                            <motion.div key={`future-${course.id}-${index}`} variants={itemVariants}>
+                                <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </motion.div>
+            )}
+
+            {/* Fallback: Show all courses if no current/future categorization */}
+            {currentCourses.length === 0 && futureCourses.length === 0 && allCourses.length > 0 && (
                 <motion.div
                     ref={categoryRef}
                     variants={containerVariants}
@@ -161,7 +223,7 @@ export function CoursesSection() {
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                     >
                         {allCourses.map((course, index) => (
-                            <motion.div key={`${course.id}-${index}`} variants={itemVariants}>
+                            <motion.div key={`all-${course.id}-${index}`} variants={itemVariants}>
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}

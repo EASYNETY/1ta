@@ -37,37 +37,37 @@ export default function ContactPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof contactFormSchema>) {
+  async function onSubmit(values: z.infer<typeof contactFormSchema>) {
     setIsSubmitting(true);
 
-    // Create mailto link with form data
-    const subject = encodeURIComponent(`Contact Form: ${values.inquiryType}`);
-    const body = encodeURIComponent(`
-Hello,
+    try {
+      // Send email via API route
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
 
-I am contacting you through your website contact form.
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
 
-Name: ${values.name}
-Email: ${values.email}
-Phone: ${values.phone || 'Not provided'}
-Inquiry Type: ${values.inquiryType}
+      const result = await response.json();
 
-Message:
-${values.message}
-
-Best regards,
-${values.name}
-    `);
-
-    // Open mailto link
-    window.location.href = `mailto:info@1techacademy.com?subject=${subject}&body=${body}`;
-
-    // Show success message and reset form
-    setTimeout(() => {
-      toast.success('Your email client has been opened. Please send the email to complete your inquiry.');
-      form.reset();
+      if (result.success) {
+        toast.success('Your message has been sent successfully! We\'ll get back to you soon.');
+        form.reset();
+      } else {
+        throw new Error(result.error || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      toast.error('Failed to send message. Please try again or contact us directly at info@1techacademy.com');
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   }
 
   return (

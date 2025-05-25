@@ -90,7 +90,7 @@ export default function LandingPage() {
                 <div className="flex flex-row gap-4 pt-4">
                   <DyraneButton size="lg" asChild>
                     <Link href="/signup">
-                      Enroll Now
+                      Enrol now
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </DyraneButton>
@@ -300,7 +300,7 @@ export default function LandingPage() {
               />
               <OnboardingStep
                 number={3}
-                title="Enroll in Session"
+                title="Enrol in Session"
                 description="Choose an available session with open seats that fits your schedule."
               />
               <OnboardingStep
@@ -330,7 +330,7 @@ export default function LandingPage() {
 
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Technologies We Teach"
+              title="Available Courses"
               description="Master the tools and platforms shaping the future of tech."
             />
 

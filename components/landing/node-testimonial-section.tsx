@@ -25,7 +25,7 @@ const testimonials: Testimonial[] = [
       quote:
         "Managing inventory and payments used to be a hassle. 1TechAcademy's integrated system streamlined everything for my boutique. Truly a game-changer!",
       image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2076&q=80",
+        "https://images.pexels.com/photos/3760263/pexels-photo-3760263.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
     {
       id: "2",
@@ -35,7 +35,7 @@ const testimonials: Testimonial[] = [
       quote:
         "As a graphic designer, receiving international payments was always complex. 1TechAcademy made it seamless. Now I focus more on creativity, less on admin.",
       image:
-        "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
     {
       id: "3",
@@ -45,7 +45,7 @@ const testimonials: Testimonial[] = [
       quote:
         "The courses at 1TechAcademy gave me the digital skills I needed. Now I use their platform to manage my online store effectively. Great ecosystem!",
       image:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1998&q=80",
+        "https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
     {
       id: "4",
@@ -55,7 +55,7 @@ const testimonials: Testimonial[] = [
       quote:
         "The reliability of 1TechAcademy's logistics service helped my e-commerce business grow. Customers in Ibadan get their orders faster than ever.",
       image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
     {
       id: "5",
@@ -65,7 +65,7 @@ const testimonials: Testimonial[] = [
       quote:
         "We integrated 1TechAcademy's payment gateway into our app. The API was developer-friendly, and their support team was very responsive.",
       image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2076&q=80",
+        "https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
     {
       id: "6",
@@ -75,7 +75,7 @@ const testimonials: Testimonial[] = [
       quote:
         "Accessing business tools without breaking the bank was crucial for my startup. 1TechAcademy provided affordable and powerful solutions.",
       image:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
+        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
     {
       id: "7",
@@ -86,7 +86,7 @@ const testimonials: Testimonial[] = [
       quote:
         "From POS solutions for my restaurant chain to managing payroll, 1TechAcademy is the backbone of our operations across Nigeria. Highly dependable.",
       image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80",
+        "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
     },
   ]
 const nodePositions: Record<ScreenSize, NodePosition[]> = { /* ... your positions ... */

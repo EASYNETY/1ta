@@ -50,7 +50,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
         }
     };
 
-    const teacherNames = room.participants
+    const facilitatorNames = room.participants
         .filter((p) => p.role === "teacher")
         .map((t) => t.name)
         .join(", ");
@@ -84,18 +84,18 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
                 </div>
             </div>
 
-            {/* Teacher Info - only show if there are teachers and not an announcement room */}
-            {teacherNames && room.type !== ChatRoomType.ANNOUNCEMENT && (
+            {/* Facilitator Info - only show if there are facilitators and not an announcement room */}
+            {facilitatorNames && room.type !== ChatRoomType.ANNOUNCEMENT && (
                 <div className="ml-2 flex-shrink-0"> {/* Added ml-2 for spacing */}
                     <TooltipProvider delayDuration={300}>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Badge variant="secondary" className="cursor-default text-xs px-2 py-0.5 h-5">
-                                    {room.participants.filter((p) => p.role === "teacher").length} teacher{room.participants.filter((p) => p.role === "teacher").length !== 1 ? 's' : ''}
+                                    {room.participants.filter((p) => p.role === "teacher").length} facilitator{room.participants.filter((p) => p.role === "teacher").length !== 1 ? 's' : ''}
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p className="text-xs max-w-[200px]">{teacherNames || "No teachers listed"}</p>
+                                <p className="text-xs max-w-[200px]">{facilitatorNames || "No facilitators listed"}</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

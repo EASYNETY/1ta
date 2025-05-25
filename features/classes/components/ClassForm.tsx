@@ -116,7 +116,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                             name="courseTitle"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Class Title</FormLabel>
+                                    <FormLabel>Course Title</FormLabel>
                                     <FormControl><Input {...field} placeholder="e.g., PMP Bootcamp - Fall 2024" /></FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -129,13 +129,13 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                             name="teacherId"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Assign Teacher (Optional)</FormLabel>
+                                    <FormLabel>Assign Facilitator (Optional)</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                                         <FormControl>
-                                            <SelectTrigger><SelectValue placeholder="Select a teacher" /></SelectTrigger>
+                                            <SelectTrigger><SelectValue placeholder="Select a facilitator" /></SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="No-teacher">-- No Teacher --</SelectItem>
+                                            <SelectItem value="No-teacher">-- No Facilitator --</SelectItem>
                                             {users.map(teacher => (
                                                 <SelectItem key={teacher.id} value={teacher.id}>{teacher.name}</SelectItem>
                                             ))}
