@@ -261,6 +261,8 @@ class IconQueueManager {
     validationTime: 0,
     lastResetTime: 0
   };
+  private loggedCacheHits = new Set<string>(); // Track which cache hits we've already logged
+  private verboseLogging = false; // Control verbose logging - disabled by default to reduce noise
 
   constructor() {
     this.initializeQueue();
@@ -334,7 +336,9 @@ class IconQueueManager {
     this.iconUsageCount.set(iconUrl, currentCount + 1);
 
     const iconName = iconUrl.split('/').pop()?.replace('.svg.png', '').replace('.png', '');
-    console.log(`🔒 Reserved: ${iconName} (${this.usedIcons.size}/${this.iconQueue.length}) [usage: ${currentCount + 1}]`);
+    if (this.verboseLogging) {
+      console.log(`🔒 Reserved: ${iconName} (${this.usedIcons.size}/${this.iconQueue.length}) [usage: ${currentCount + 1}]`);
+    }
 
     return iconUrl;
   }
@@ -362,7 +366,9 @@ class IconQueueManager {
       const endTime = performance.now();
       this.performanceMetrics.assignmentTime += (endTime - startTime);
       const usageCount = this.iconUsageCount.get(selectedIcon) || 0;
-      console.log(`📋 Least-used assigned: ${selectedIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} [previous usage: ${usageCount}] [${(endTime - startTime).toFixed(2)}ms]`);
+      if (this.verboseLogging) {
+        console.log(`📋 Least-used assigned: ${selectedIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} [previous usage: ${usageCount}] [${(endTime - startTime).toFixed(2)}ms]`);
+      }
       return this.reserveIcon(selectedIcon);
     }
 
@@ -422,6 +428,34 @@ class IconQueueManager {
     return result;
   }
 
+  // Check if we should log this cache hit (to reduce noise)
+  shouldLogCacheHit(courseName: string): boolean {
+    if (!this.verboseLogging) return false;
+
+    // Only log each course's cache hit once per session
+    if (this.loggedCacheHits.has(courseName)) {
+      return false;
+    }
+
+    this.loggedCacheHits.add(courseName);
+    return true;
+  }
+
+  // Enable/disable verbose logging
+  setVerboseLogging(enabled: boolean): void {
+    this.verboseLogging = enabled;
+    if (!enabled) {
+      console.log('🔇 Icon cache verbose logging disabled');
+    } else {
+      console.log('🔊 Icon cache verbose logging enabled');
+    }
+  }
+
+  // Get verbose logging status
+  isVerboseLogging(): boolean {
+    return this.verboseLogging;
+  }
+
   // Cache an icon for a course
   setCachedIcon(courseName: string, iconUrl: string): void {
     this.iconCache.set(courseName, iconUrl);
@@ -430,8 +464,8 @@ class IconQueueManager {
   reset() {
     const startTime = performance.now();
 
-    // Log usage distribution before reset for analysis
-    if (this.iconUsageCount.size > 0) {
+    // Log usage distribution before reset for analysis (only in verbose mode)
+    if (this.verboseLogging && this.iconUsageCount.size > 0) {
       const usageStats = Array.from(this.iconUsageCount.entries())
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5); // Top 5 most used
@@ -445,14 +479,17 @@ class IconQueueManager {
     this.queueIndex = 0;
     this.iconCache.clear(); // Clear cache on reset
     this.iconUsageCount.clear(); // Clear usage tracking
+    this.loggedCacheHits.clear(); // Clear logged cache hits to allow fresh logging
 
-    // Reset performance metrics
+    // Reset performance metrics (only log in verbose mode)
     const totalTime = startTime - this.performanceMetrics.lastResetTime;
     const cacheHitRate = this.performanceMetrics.cacheHits / (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) * 100;
 
-    console.log(`🔄 Icon Queue Manager reset - fresh distribution cycle`);
-    console.log(`⚡ Performance Summary: ${this.performanceMetrics.cacheHits} cache hits, ${this.performanceMetrics.cacheMisses} misses (${cacheHitRate.toFixed(1)}% hit rate)`);
-    console.log(`⏱️ Timing: Assignment ${this.performanceMetrics.assignmentTime.toFixed(2)}ms, Validation ${this.performanceMetrics.validationTime.toFixed(2)}ms, Total cycle ${totalTime.toFixed(2)}ms`);
+    if (this.verboseLogging) {
+      console.log(`🔄 Icon Queue Manager reset - fresh distribution cycle`);
+      console.log(`⚡ Performance Summary: ${this.performanceMetrics.cacheHits} cache hits, ${this.performanceMetrics.cacheMisses} misses (${cacheHitRate.toFixed(1)}% hit rate)`);
+      console.log(`⏱️ Timing: Assignment ${this.performanceMetrics.assignmentTime.toFixed(2)}ms, Validation ${this.performanceMetrics.validationTime.toFixed(2)}ms, Total cycle ${totalTime.toFixed(2)}ms`);
+    }
 
     this.performanceMetrics = {
       cacheHits: 0,
@@ -535,6 +572,20 @@ const resetIconUsage = () => {
   iconManager.reset();
 };
 
+// Global functions for controlling icon logging (for debugging)
+const enableIconLogging = () => iconManager.setVerboseLogging(true);
+const disableIconLogging = () => iconManager.setVerboseLogging(false);
+
+// Add to window object for easy debugging access
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).iconDebug = {
+    enableLogging: enableIconLogging,
+    disableLogging: disableIconLogging,
+    getStats: () => iconManager.getUsageStats(),
+    reset: resetIconUsage
+  };
+}
+
 // Intelligent Technology Icon Mapping System - LLM-like semantic analysis with deduplication
 const getTechnologyIcon = (name: string): string => {
   const startTime = performance.now();
@@ -543,15 +594,20 @@ const getTechnologyIcon = (name: string): string => {
   const cachedIcon = iconManager.getCachedIcon(name);
   if (cachedIcon) {
     const endTime = performance.now();
-    console.log(`💾 Cache hit: "${name}" → ${cachedIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} [${(endTime - startTime).toFixed(2)}ms]`);
+    // Only log cache hits once per course to reduce noise
+    if (iconManager.shouldLogCacheHit(name)) {
+      console.log(`💾 Cache hit: "${name}" → ${cachedIcon.split('/').pop()?.replace('.svg.png', '').replace('.png', '')} [${(endTime - startTime).toFixed(2)}ms]`);
+    }
     return cachedIcon;
   }
 
   // Pre-compute lowercase for efficiency
   const lowerName = name.toLowerCase();
 
-  // Debug logging to see what course names we're processing
-  console.log('🤖 AI Icon Mapper analyzing:', name);
+  // Debug logging to see what course names we're processing (only in verbose mode)
+  if (iconManager.isVerboseLogging()) {
+    console.log('🤖 AI Icon Mapper analyzing:', name);
+  }
 
   // Helper function to check if icon is available (not used)
   const isIconAvailable = (iconUrl: string): boolean => {
@@ -671,12 +727,16 @@ const getTechnologyIcon = (name: string): string => {
   if (bestMatch) {
     const primaryIcon = bestMatch.pattern.icon;
     if (isIconAvailable(primaryIcon)) {
-      console.log(`🎯 AI Match: "${name}" → ${bestMatch.category} (confidence: ${(bestMatch.confidence * 100).toFixed(1)}%)`);
+      if (iconManager.isVerboseLogging()) {
+        console.log(`🎯 AI Match: "${name}" → ${bestMatch.category} (confidence: ${(bestMatch.confidence * 100).toFixed(1)}%)`);
+      }
       const assignedIcon = reserveIcon(primaryIcon);
       iconManager.setCachedIcon(name, assignedIcon);
       return assignedIcon;
     } else {
-      console.log(`⚠️ Primary icon taken for "${name}" → ${bestMatch.category}, finding alternative...`);
+      if (iconManager.isVerboseLogging()) {
+        console.log(`⚠️ Primary icon taken for "${name}" → ${bestMatch.category}, finding alternative...`);
+      }
       // Continue to next matching system
     }
   }
@@ -748,7 +808,9 @@ const getTechnologyIcon = (name: string): string => {
 
   for (const match of techMatches) {
     if (isIconAvailable(match.icon)) {
-      console.log(`🔧 Tech Match: "${name}" → ${match.tech} (${match.category}) [priority: ${match.priority}]`);
+      if (iconManager.isVerboseLogging()) {
+        console.log(`🔧 Tech Match: "${name}" → ${match.tech} (${match.category}) [priority: ${match.priority}]`);
+      }
       const assignedIcon = reserveIcon(match.icon);
       iconManager.setCachedIcon(name, assignedIcon);
       return assignedIcon;
@@ -799,7 +861,9 @@ const getTechnologyIcon = (name: string): string => {
 
     for (const { condition, icon, type } of characteristicMappings) {
       if (condition && isIconAvailable(icon)) {
-        console.log(`🎯 Characteristic Match: "${name}" → ${type}`);
+        if (iconManager.isVerboseLogging()) {
+          console.log(`🎯 Characteristic Match: "${name}" → ${type}`);
+        }
         const assignedIcon = reserveIcon(icon);
         iconManager.setCachedIcon(name, assignedIcon);
         return assignedIcon;
@@ -807,14 +871,18 @@ const getTechnologyIcon = (name: string): string => {
     }
 
     // Use the queue manager for final fallback - ensures even distribution
-    console.log(`🎯 Using queue manager for final assignment: "${name}"`);
+    if (iconManager.isVerboseLogging()) {
+      console.log(`🎯 Using queue manager for final assignment: "${name}"`);
+    }
     const queueIcon = iconManager.getNextAvailableIcon();
     iconManager.setCachedIcon(name, queueIcon);
     return queueIcon;
   };
 
   const fallbackIcon = intelligentFallback();
-  console.log(`🧠 Intelligent Fallback: "${name}" → Smart analysis complete`);
+  if (iconManager.isVerboseLogging()) {
+    console.log(`🧠 Intelligent Fallback: "${name}" → Smart analysis complete`);
+  }
 
   // The fallback icon is already reserved and cached by the queue manager
   return fallbackIcon;
@@ -951,7 +1019,9 @@ export function AppleTechnologyDisplay() {
   // Enhanced pre-assignment with deduplication verification and performance optimization
   const preAssignIcons = (courses: CourseListing[]) => {
     const batchStartTime = performance.now();
-    console.log(`🎯 Pre-assigning icons for ${courses.length} courses with deduplication...`);
+    if (iconManager.isVerboseLogging()) {
+      console.log(`🎯 Pre-assigning icons for ${courses.length} courses with deduplication...`);
+    }
 
     const assignedIcons = new Set<string>();
     const duplicateDetection: { [key: string]: string[] } = {};
@@ -990,12 +1060,14 @@ export function AppleTechnologyDisplay() {
     const uniqueIcons = assignedIcons.size;
     const duplicateCount = courses.length - uniqueIcons;
 
-    console.log(`📊 Pre-assignment complete: ${stats.used}/${stats.total} icons assigned (${stats.utilizationRate}% utilization) [${(batchEndTime - batchStartTime).toFixed(2)}ms]`);
-    console.log(`💾 Cache Status: ${stats.cached} courses cached (${stats.performance.cacheHitRate}% hit rate)`);
-    console.log(`⚡ Performance: ${stats.performance.cacheHits} hits, ${stats.performance.cacheMisses} misses, avg ${stats.performance.avgAssignmentTime}ms per assignment`);
-    console.log(`🎯 Deduplication Status: ${uniqueIcons} unique icons, ${duplicateCount} duplicates ${duplicateCount === 0 ? '✅' : '❌'}`);
-    console.log(`📈 Distribution: max ${stats.distribution.maxUsage}, min ${stats.distribution.minUsage}, avg ${stats.distribution.avgUsage}, variance ${stats.distribution.variance} ${stats.distribution.evenDistribution ? '✅' : '⚠️'}`);
-    console.log(stats.validationReport);
+    if (iconManager.isVerboseLogging()) {
+      console.log(`📊 Pre-assignment complete: ${stats.used}/${stats.total} icons assigned (${stats.utilizationRate}% utilization) [${(batchEndTime - batchStartTime).toFixed(2)}ms]`);
+      console.log(`💾 Cache Status: ${stats.cached} courses cached (${stats.performance.cacheHitRate}% hit rate)`);
+      console.log(`⚡ Performance: ${stats.performance.cacheHits} hits, ${stats.performance.cacheMisses} misses, avg ${stats.performance.avgAssignmentTime}ms per assignment`);
+      console.log(`🎯 Deduplication Status: ${uniqueIcons} unique icons, ${duplicateCount} duplicates ${duplicateCount === 0 ? '✅' : '❌'}`);
+      console.log(`📈 Distribution: max ${stats.distribution.maxUsage}, min ${stats.distribution.minUsage}, avg ${stats.distribution.avgUsage}, variance ${stats.distribution.variance} ${stats.distribution.evenDistribution ? '✅' : '⚠️'}`);
+      console.log(stats.validationReport);
+    }
 
     if (Object.keys(duplicateDetection).length > 0) {
       console.warn('🚨 Duplicate icons detected in assignment:', duplicateDetection);
@@ -1003,7 +1075,7 @@ export function AppleTechnologyDisplay() {
 
     if (!stats.deduplicationValid) {
       console.error('🔴 CRITICAL: Cache validation failed - system integrity compromised!');
-    } else {
+    } else if (iconManager.isVerboseLogging()) {
       console.log('✅ Perfect deduplication achieved - all icons are unique!');
     }
   };
@@ -1023,7 +1095,9 @@ export function AppleTechnologyDisplay() {
     }
 
     const effectEndTime = performance.now();
-    console.log(`🔄 useEffect completed in ${(effectEndTime - effectStartTime).toFixed(2)}ms`);
+    if (iconManager.isVerboseLogging()) {
+      console.log(`🔄 useEffect completed in ${(effectEndTime - effectStartTime).toFixed(2)}ms`);
+    }
 
   }, [activeTab, listings.length]); // Optimized dependencies - only re-run when tab or course count changes
 
