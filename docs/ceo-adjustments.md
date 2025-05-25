@@ -158,9 +158,10 @@ STU-0001 | Jane Doe | INV-2024-01 | Tuition - Term 1 | 01-Sep-2024 | ₦100,000 
 ## Assets Added
 
 ### ✅ Completed Asset Additions (January 25, 2025)
-- **Pulsating Background Animations:** 102 SVG animation frames added to `public/animations/pulsating-background/`
+- **Logo Animation Frames:** 102 SVG animation frames (2560x1440) added to `public/animations/pulsating-background/`
 - **Logo Assets:** 1Tech Academy logo (no background) added to `public/images/logos/`
 - **Mission & Vision Images:** New images added to `public/images/mission-vision/`
+- **Splash Screen System:** Comprehensive splash screen components created for logo animation
 
 ---
 
@@ -173,6 +174,7 @@ STU-0001 | Jane Doe | INV-2024-01 | Tuition - Term 1 | 01-Sep-2024 | ₦100,000 
 | 2025-01-25 | Repository organized | ✅ Complete | Moved docs to docs/ folder, clean root structure |
 | 2025-01-25 | Mission/Vision images updated | ✅ Complete | Successfully implemented local image files |
 | 2025-01-25 | Logo update attempted | ❌ Reverted | Dimension mismatch - need to check logo dimensions first |
+| 2025-01-25 | Splash screen system created | ✅ Complete | Logo animation splash screen for app loading |
 
 ---
 
