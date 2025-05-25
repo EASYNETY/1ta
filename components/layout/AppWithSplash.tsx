@@ -1,12 +1,24 @@
 'use client'
 
-import React, { ReactNode, useState, useEffect } from 'react'
+import React, { ReactNode, useState, useEffect, createContext, useContext } from 'react'
 import { SimpleSplashScreen } from '@/components/ui/SimpleSplashScreen'
 
 interface AppWithSplashProps {
   children: ReactNode
   enableSplash?: boolean
 }
+
+interface SplashContextType {
+  isSplashVisible: boolean
+  isSplashEnabled: boolean
+}
+
+const SplashContext = createContext<SplashContextType>({
+  isSplashVisible: false,
+  isSplashEnabled: false
+})
+
+export const useSplashContext = () => useContext(SplashContext)
 
 export function AppWithSplash({ children, enableSplash = true }: AppWithSplashProps) {
   const [showSplash, setShowSplash] = useState(enableSplash)
@@ -51,13 +63,18 @@ export function AppWithSplash({ children, enableSplash = true }: AppWithSplashPr
     setShowSplash(false)
   }
 
+  const contextValue: SplashContextType = {
+    isSplashVisible: showSplash,
+    isSplashEnabled: enableSplash
+  }
+
   return (
-    <>
+    <SplashContext.Provider value={contextValue}>
       {showSplash && (
         <SimpleSplashScreen onComplete={handleSplashComplete} />
       )}
       {(!showSplash || !enableSplash) && children}
-    </>
+    </SplashContext.Provider>
   )
 }
 

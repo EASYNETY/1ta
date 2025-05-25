@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isStudent } from "@/types/user.types";
 import { clearCart } from "@/features/cart/store/cart-slice";
 import { AuthListener } from "@/lib/auth-listener";
+import { useSplashContext } from "@/components/layout/AppWithSplash";
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticated, isInitialized, user, skipOnboarding } = useAppSelector((state) => state.auth);
   const router = useRouter();
   const pathname = usePathname();
+  const { isSplashVisible } = useSplashContext();
 
   const [isMounted, setIsMounted] = useState(false);
   const hasFetchedProfile = useRef(false);
@@ -142,7 +144,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // --- Loading State ---
   // Show only while waiting for Redux state initialization AND component mount
-  if (!isInitialized || !isMounted) {
+  // BUT NOT if splash screen is currently visible (to avoid double loading states)
+  if ((!isInitialized || !isMounted) && !isSplashVisible) {
     return (
       <div className="flex h-screen w-screen items-center justify-center">
         <div className="text-center">
@@ -153,6 +156,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         </div>
       </div>
     );
+  }
+
+  // If splash is visible, don't render anything (let splash handle the loading)
+  if (isSplashVisible) {
+    return null;
   }
 
   // Render children once initialization is complete and component is mounted
