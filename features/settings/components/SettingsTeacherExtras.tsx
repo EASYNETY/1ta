@@ -39,19 +39,19 @@ const SettingsTeacherExtras: React.FC = () => {
                 <div className="space-y-2">
                     <Label htmlFor="subjects">Subjects / Expertise</Label>
                     <Input id="subjects" placeholder="e.g., PMP Certification, React, Node.js" disabled />
-                    <p className="text-xs text-muted-foreground">List the main subjects you teach or specialize in.</p>
+                    <p className="text-xs text-muted-foreground">List the main subjects you facilitate or specialize in.</p>
                 </div>
 
                 <Alert variant="default" className="bg-amber-50 border-amber-200">
                     <Construction className="h-5 w-5 text-amber-700" />
                     <AlertTitle className="font-semibold text-amber-800">Under Construction</AlertTitle>
                     <AlertDescription className="text-amber-700">
-                        Teacher-specific settings are coming soon.
+                        Facilitator-specific settings are coming soon.
                     </AlertDescription>
                 </Alert>
             </CardContent>
             <CardFooter>
-                <DyraneButton disabled>Save Teaching Settings</DyraneButton>
+                <DyraneButton disabled>Save Facilitator Settings</DyraneButton>
             </CardFooter>
         </DyraneCard>
     );

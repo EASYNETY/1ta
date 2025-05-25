@@ -256,9 +256,9 @@ export default function BarcodeScanningScanningPage() {
             defaultTab="teacher"
             teacherContent={
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">For Teachers</h3>
+                <h3 className="text-lg font-medium">For Facilitators</h3>
                 <p>
-                  As a teacher, efficient attendance tracking is crucial for classroom management:
+                  As a facilitator, efficient attendance tracking is crucial for classroom management:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Consider designating a student assistant to help with scanning for large classes</li>

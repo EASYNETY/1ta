@@ -48,14 +48,14 @@ export default function PlatformOverviewPage() {
         <TabsList className="mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="students">For Students</TabsTrigger>
-          <TabsTrigger value="teachers">For Teachers</TabsTrigger>
+          <TabsTrigger value="facilitators">For Facilitators</TabsTrigger>
           <TabsTrigger value="admins">For Admins</TabsTrigger>
         </TabsList>
-        
+
         {/* General Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
           <p className="text-lg">
-            Welcome to the 1Tech Academy platform! This comprehensive learning management system is designed to facilitate education, 
+            Welcome to the 1Tech Academy platform! This comprehensive learning management system is designed to facilitate education,
             track progress, and connect students with teachers in a seamless digital environment.
           </p>
 
@@ -71,39 +71,39 @@ export default function PlatformOverviewPage() {
           <Separator className="my-2" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <FeatureCard 
-              icon={GraduationCap} 
-              title="Courses" 
+            <FeatureCard
+              icon={GraduationCap}
+              title="Courses"
               description="Browse, enroll, and access course materials all in one place."
               href="/help/courses"
             />
-            <FeatureCard 
-              icon={CheckCircle} 
-              title="Attendance" 
+            <FeatureCard
+              icon={CheckCircle}
+              title="Attendance"
               description="Track and manage class attendance with barcode scanning."
               href="/help/attendance"
             />
-            <FeatureCard 
-              icon={Calendar} 
-              title="Timetable" 
+            <FeatureCard
+              icon={Calendar}
+              title="Timetable"
               description="View your schedule and upcoming classes."
               href="/help/timetable"
             />
-            <FeatureCard 
-              icon={MessageSquare} 
-              title="Discussions" 
+            <FeatureCard
+              icon={MessageSquare}
+              title="Discussions"
               description="Communicate with peers and instructors through chat."
               href="/help/discussions"
             />
-            <FeatureCard 
-              icon={CreditCard} 
-              title="Payments" 
+            <FeatureCard
+              icon={CreditCard}
+              title="Payments"
               description="Manage course payments and view transaction history."
               href="/help/payments"
             />
-            <FeatureCard 
-              icon={User} 
-              title="Account Management" 
+            <FeatureCard
+              icon={User}
+              title="Account Management"
               description="Update your profile and manage account settings."
               href="/help/account"
             />
@@ -122,14 +122,14 @@ export default function PlatformOverviewPage() {
             <li>Set up your notification preferences to stay informed</li>
           </ol>
         </TabsContent>
-        
+
         {/* Student-specific Tab */}
         <TabsContent value="students" className="space-y-6">
           <h2 className="text-2xl font-bold">For Students</h2>
           <p>
             As a student, the platform provides you with all the tools you need to succeed in your educational journey.
           </p>
-          
+
           <h3 className="text-xl font-semibold mt-4">Key Features for Students</h3>
           <ul className="list-disc pl-6 space-y-2 mt-2">
             <li>Browse and enroll in courses</li>
@@ -139,7 +139,7 @@ export default function PlatformOverviewPage() {
             <li>Communicate with instructors and peers</li>
             <li>Manage payments and view receipts</li>
           </ul>
-          
+
           <Alert className="mt-4">
             <BookOpen className="h-4 w-4" />
             <AlertTitle>Student Tip</AlertTitle>
@@ -148,23 +148,23 @@ export default function PlatformOverviewPage() {
             </AlertDescription>
           </Alert>
         </TabsContent>
-        
-        {/* Teacher-specific Tab */}
-        <TabsContent value="teachers" className="space-y-6">
-          <h2 className="text-2xl font-bold">For Teachers</h2>
+
+        {/* Facilitator-specific Tab */}
+        <TabsContent value="facilitators" className="space-y-6">
+          <h2 className="text-2xl font-bold">For Facilitators</h2>
           <p>
-            As a teacher, the platform equips you with tools to effectively manage your classes and engage with students.
+            As a facilitator, the platform equips you with tools to effectively manage your classes and engage with students.
           </p>
-          
-          <h3 className="text-xl font-semibold mt-4">Key Features for Teachers</h3>
+
+          <h3 className="text-xl font-semibold mt-4">Key Features for Facilitators</h3>
           <ul className="list-disc pl-6 space-y-2 mt-2">
             <li>Manage course content and materials</li>
             <li>Track student attendance</li>
-            <li>View your teaching schedule</li>
+            <li>View your facilitation schedule</li>
             <li>Communicate with students through chat</li>
             <li>Monitor student progress</li>
           </ul>
-          
+
           <Alert className="mt-4">
             <BookOpen className="h-4 w-4" />
             <AlertTitle>Teacher Tip</AlertTitle>
@@ -173,24 +173,24 @@ export default function PlatformOverviewPage() {
             </AlertDescription>
           </Alert>
         </TabsContent>
-        
+
         {/* Admin-specific Tab */}
         <TabsContent value="admins" className="space-y-6">
           <h2 className="text-2xl font-bold">For Administrators</h2>
           <p>
             As an administrator, you have access to powerful tools to manage the entire platform.
           </p>
-          
+
           <h3 className="text-xl font-semibold mt-4">Key Features for Administrators</h3>
           <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li>Manage users (students, teachers)</li>
+            <li>Manage users (students, facilitators)</li>
             <li>Create and manage courses</li>
             <li>Monitor attendance and generate reports</li>
             <li>Handle support tickets</li>
             <li>Process payments and refunds</li>
             <li>Access system-wide analytics</li>
           </ul>
-          
+
           <Alert className="mt-4">
             <BookOpen className="h-4 w-4" />
             <AlertTitle>Admin Tip</AlertTitle>
@@ -208,7 +208,7 @@ export default function PlatformOverviewPage() {
         <ul className="space-y-2 mt-2">
           {relatedTopics.map((topic, index) => (
             <li key={index}>
-              <Link 
+              <Link
                 href={topic.href}
                 className="flex items-center text-sm hover:text-primary transition-colors"
               >
@@ -240,9 +240,9 @@ export default function PlatformOverviewPage() {
 }
 
 // Feature Card Component
-function FeatureCard({ icon: Icon, title, description, href }: { 
-  icon: React.ElementType, 
-  title: string, 
+function FeatureCard({ icon: Icon, title, description, href }: {
+  icon: React.ElementType,
+  title: string,
   description: string,
   href: string
 }) {
@@ -256,7 +256,7 @@ function FeatureCard({ icon: Icon, title, description, href }: {
       </DyraneCardHeader>
       <DyraneCardContent>
         <DyraneCardDescription>{description}</DyraneCardDescription>
-        <Link 
+        <Link
           href={href}
           className="text-sm text-primary hover:underline mt-2 inline-block"
         >

@@ -1,4 +1,4 @@
-// app/(authenticated)/attendance/teacher/page.tsx OR wherever TeacherAttendanceView is used
+// app/(authenticated)/attendance/facilitator/page.tsx OR wherever FacilitatorAttendanceView is used
 "use client";
 
 import * as React from "react";
@@ -68,7 +68,7 @@ const months = Array.from({ length: 12 }, (_, i) => ({
 
 // const formatDateKey = (date: Date): string => format(date, "yyyy-MM-dd"); // Not used, consider removing
 
-export function TeacherAttendanceView() {
+export function FacilitatorAttendanceView() {
   const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
   const { toast } = useToast();
@@ -95,7 +95,7 @@ export function TeacherAttendanceView() {
 
   useEffect(() => {
     if (user === undefined) { // Wait for auth slice to determine user
-        console.log("TeacherAttendanceView: User data is undefined.");
+        console.log("FacilitatorAttendanceView: User data is undefined.");
         return;
     }
     // No role check here as this view might be accessible to students too, adjust if needed.
@@ -106,11 +106,11 @@ export function TeacherAttendanceView() {
         (classOptionsStatus === 'succeeded' && (!classOptions || classOptions.length === 0) && !initialFetchAttempted.current);
 
     if (needsFetch) {
-        console.log(`TeacherAttendanceView: Triggering fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}, Initial Fetch Attempted: ${initialFetchAttempted.current}`);
+        console.log(`FacilitatorAttendanceView: Triggering fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}, Initial Fetch Attempted: ${initialFetchAttempted.current}`);
         dispatch(fetchCourseClassOptionsForScanner());
         initialFetchAttempted.current = true;
     } else {
-        console.log(`TeacherAttendanceView: Skipping fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}`);
+        console.log(`FacilitatorAttendanceView: Skipping fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}`);
     }
   }, [user, dispatch, classOptionsStatus, classOptions]); // Removed fetchCourseClassOptionsForScanner from deps as it's a stable dispatch
 
@@ -118,7 +118,7 @@ export function TeacherAttendanceView() {
   useEffect(() => {
     if (classOptionsStatus === 'loading') {
       const timer = setTimeout(() => {
-        console.log("TeacherAttendanceView: Class options loading timeout, forcing status to succeeded");
+        console.log("FacilitatorAttendanceView: Class options loading timeout, forcing status to succeeded");
         dispatch(setCourseClassOptionStatus('succeeded'));
       }, 5000); // 5 seconds timeout
 
@@ -130,7 +130,7 @@ export function TeacherAttendanceView() {
   // Fetch attendance data when a class is selected
   useEffect(() => {
     if (selectedClass?.id) {
-      console.log(`TeacherAttendanceView: Fetching attendance data for class ${selectedClass.id}`);
+      console.log(`FacilitatorAttendanceView: Fetching attendance data for class ${selectedClass.id}`);
       dispatch(fetchCourseAttendance(selectedClass.id));
     }
   }, [dispatch, selectedClass?.id]);
@@ -513,3 +513,6 @@ export function TeacherAttendanceView() {
     </div>
   );
 }
+
+// Backward compatibility export
+export const TeacherAttendanceView = FacilitatorAttendanceView;

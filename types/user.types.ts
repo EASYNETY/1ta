@@ -79,15 +79,15 @@ export interface StudentUser extends BaseUser {
 	class?: any | null;
 }
 
-// --- Teacher Specific Information ---
-// Extends BaseUser. `role` is fixed to `"teacher"`.
+// --- Facilitator Specific Information ---
+// Extends BaseUser. `role` is fixed to `"teacher"` (backend role remains "teacher").
 export interface TeacherUser extends BaseUser {
 	role: "teacher";
-	/** Subjects or areas of expertise the teacher handles. Optional. Editable via Settings. */
+	/** Subjects or areas of expertise the facilitator handles. Optional. Editable via Settings. */
 	subjects?: string[] | null;
 	/** Text description of availability (e.g., "Mon 2-4 PM via Zoom"). Optional. Editable via Settings. */
 	officeHours?: string | null;
-	// Note: List of taught classes (`taughtClassIds`) is fetched separately.
+	// Note: List of facilitated classes (`taughtClassIds`) is fetched separately.
 }
 
 // --- Admin Specific Information ---

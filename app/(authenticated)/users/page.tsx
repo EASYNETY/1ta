@@ -29,7 +29,7 @@ export default function UsersPage() {
         if (activeTab === "all-users") {
             dispatch(fetchAllUsers({ search: searchQuery }))
         } else {
-            const role = activeTab === "admins" ? "admin" : activeTab === "teachers" ? "teacher" : "student"
+            const role = activeTab === "admins" ? "admin" : activeTab === "facilitators" ? "teacher" : "student"
             dispatch(fetchUsersByRole({ role, search: searchQuery }))
         }
     }, [dispatch, activeTab, searchQuery])
@@ -73,7 +73,7 @@ export default function UsersPage() {
                         <TabsList className="mb-4 grid w-full grid-cols-2 sm:grid-cols-4">
                             <TabsTrigger value="all-users">All Users</TabsTrigger>
                             <TabsTrigger value="students">Students</TabsTrigger>
-                            <TabsTrigger value="teachers">Teachers</TabsTrigger>
+                            <TabsTrigger value="facilitators">Facilitators</TabsTrigger>
                             <TabsTrigger value="admins">Administrators</TabsTrigger>
                         </TabsList>
                         <ScrollBar orientation="horizontal" />

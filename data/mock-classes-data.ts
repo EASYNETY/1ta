@@ -260,10 +260,10 @@ export const deleteMockClass = async (classId: string): Promise<void> => {
 	// No return value needed for DELETE typically, maybe just success/fail
 };
 
-// --- Helper Data (Example teacher list used in create/update) ---
-// In a real app, this would likely come from a user/teacher store/API
+// --- Helper Data (Example facilitator list used in create/update) ---
+// In a real app, this would likely come from a user/facilitator store/API
 const mockTeachers = [
 	{ id: "teacher_1", name: "Dr. Sarah Johnson" },
 	{ id: "teacher_2", name: "Michael Chen" },
-	// Add more mock teachers
+	// Add more mock facilitators
 ];

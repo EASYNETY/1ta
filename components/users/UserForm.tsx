@@ -346,7 +346,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <BookOpen className="h-5 w-5 text-primary" />
-                                    Teacher Information
+                                    Facilitator Information
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">

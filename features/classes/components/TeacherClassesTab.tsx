@@ -79,7 +79,7 @@ const TeacherClassesTab: React.FC = () => {
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-medium mb-2">No Classes Assigned</h3>
                 <p className="text-muted-foreground max-w-md mb-6">
-                    You are not currently assigned to teach any classes. Contact administration if this seems incorrect.
+                    You are not currently assigned to facilitate any classes. Contact administration if this seems incorrect.
                 </p>
             </div>
         )

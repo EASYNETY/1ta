@@ -223,7 +223,7 @@ export function AssignmentsTab() {
                             </CardTitle>
                             <CardDescription>View upcoming and past assignments.</CardDescription> {/* Added description */}
                         </div>
-                        {/* --- Add Manage/Create Button for Teacher/Admin --- */}
+                        {/* --- Add Manage/Create Button for Facilitator/Admin --- */}
                         {(user.role === "teacher" || user.role === "admin") && (
                             <DyraneButton asChild size="sm">
                                 {/* Link to the main assignments management page */}

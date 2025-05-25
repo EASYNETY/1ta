@@ -103,7 +103,7 @@ const AdminClassesTab: React.FC = () => {
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
-                            placeholder="Search by title or teacher..."
+                            placeholder="Search by title or facilitator..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus-visible:ring-blue-500"
