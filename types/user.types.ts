@@ -1,7 +1,7 @@
 // types/user.types.ts
 
 // Defines the possible primary roles within the platform
-export type UserRole = "admin" | "teacher" | "student";
+export type UserRole = "super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student";
 
 // Defines the nature of the account, often defaulted by backend or set by Admin
 export type AccountType = "individual" | "corporate" | "institutional";
@@ -90,6 +90,14 @@ export interface TeacherUser extends BaseUser {
 	// Note: List of facilitated classes (`taughtClassIds`) is fetched separately.
 }
 
+// --- Super Admin Specific Information ---
+// Extends BaseUser. `role` is fixed to `"super_admin"`.
+export interface SuperAdminUser extends BaseUser {
+	role: "super_admin";
+	/** List of specific super admin permissions (e.g., 'delete_users', 'manage_system'). Optional for future granular control. */
+	permissions?: string[] | null;
+}
+
 // --- Admin Specific Information ---
 // Extends BaseUser. `role` is fixed to `"admin"`.
 export interface AdminUser extends BaseUser {
@@ -98,9 +106,29 @@ export interface AdminUser extends BaseUser {
 	permissions?: string[] | null;
 }
 
+// --- Accounting Specific Information ---
+// Extends BaseUser. `role` is fixed to `"accounting"`.
+export interface AccountingUser extends BaseUser {
+	role: "accounting";
+	/** List of specific accounting permissions (e.g., 'view_payments', 'generate_reports'). Optional for future granular control. */
+	permissions?: string[] | null;
+	/** Department or team within accounting */
+	department?: string | null;
+}
+
+// --- Customer Care Specific Information ---
+// Extends BaseUser. `role` is fixed to `"customer_care"`.
+export interface CustomerCareUser extends BaseUser {
+	role: "customer_care";
+	/** List of specific customer care permissions (e.g., 'view_tickets', 'scan_barcodes'). Optional for future granular control. */
+	permissions?: string[] | null;
+	/** Shift or schedule information */
+	shift?: string | null;
+}
+
 // --- Union Type ---
 // The primary type used across the frontend to represent any authenticated user.
-export type User = StudentUser | TeacherUser | AdminUser;
+export type User = StudentUser | TeacherUser | SuperAdminUser | AdminUser | AccountingUser | CustomerCareUser;
 
 // --- Type Guards (Utility Functions) ---
 // Helper functions to easily check the role of a `User` object.
@@ -113,8 +141,30 @@ export function isTeacher(user: User | null | undefined): user is TeacherUser {
 	return user?.role === "teacher";
 }
 
+export function isSuperAdmin(user: User | null | undefined): user is SuperAdminUser {
+	return user?.role === "super_admin";
+}
+
 export function isAdmin(user: User | null | undefined): user is AdminUser {
 	return user?.role === "admin";
+}
+
+export function isAccounting(user: User | null | undefined): user is AccountingUser {
+	return user?.role === "accounting";
+}
+
+export function isCustomerCare(user: User | null | undefined): user is CustomerCareUser {
+	return user?.role === "customer_care";
+}
+
+// Helper function to check if user has admin-level access (super_admin or admin)
+export function hasAdminAccess(user: User | null | undefined): boolean {
+	return user?.role === "super_admin" || user?.role === "admin";
+}
+
+// Helper function to check if user has staff-level access (all roles except student)
+export function hasStaffAccess(user: User | null | undefined): boolean {
+	return user?.role !== "student" && user?.role !== undefined;
 }
 
 // --- AuthState Interface (Redux) ---

@@ -279,7 +279,7 @@ export default function BarcodeScanningScanningPage() {
                   As an administrator, you can optimize the scanning system for your institution:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Configure default scanner settings for all teachers</li>
+                  <li>Configure default scanner settings for all facilitators</li>
                   <li>Set up dedicated scanning stations at key entry points for high-traffic periods</li>
                   <li>Implement attendance policies that leverage the scanning system's capabilities</li>
                   <li>Monitor system usage and provide additional training where needed</li>

@@ -258,7 +258,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                                 {isAlreadyInCart ? (
                                     <span className="text-sm">Selected</span>
                                 ) : (
-                                    <span className="text-sm">Enroll Now</span>
+                                    <span className="text-sm">Enrol now</span>
                                 )}
                             </DyraneButton>
 

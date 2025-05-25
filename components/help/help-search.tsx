@@ -92,6 +92,14 @@ export const helpArticles: HelpArticle[] = [
     keywords: ['barcode', 'scanner', 'scan', 'attendance', 'qr code', 'tracking']
   },
   {
+    title: 'Customer Care Scanning',
+    description: 'Guide for customer care staff to scan student barcodes and view instant information.',
+    href: '/help/attendance/customer-care-scanning',
+    category: 'Attendance',
+    categoryIcon: CheckCircle,
+    keywords: ['customer care', 'barcode', 'scanner', 'student information', 'payment status', 'instant display', 'staff']
+  },
+  {
     title: 'Attendance Reports',
     description: 'Generate and analyze attendance data',
     href: '/help/attendance/reports',

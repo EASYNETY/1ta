@@ -549,7 +549,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                           ) : (
                             <>
                               <GraduationCap className="h-4 w-4" />
-                              <span>Enroll Now</span>
+                              <span>Enrol now</span>
                             </>
                           )}
                         </DyraneButton>

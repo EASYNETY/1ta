@@ -285,7 +285,7 @@ export default function NavBar() {
                                         </SheetClose>
                                         <SheetClose asChild>
                                             <DyraneButton asChild size="sm" className="w-full">
-                                                <Link href="/signup">Enroll Now</Link>
+                                                <Link href="/signup">Enrol now</Link>
                                             </DyraneButton>
                                         </SheetClose>
                                     </div>

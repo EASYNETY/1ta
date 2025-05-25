@@ -10,6 +10,9 @@ export interface PaymentRecord {
 	status: "pending" | "succeeded" | "failed" | "refunded";
 	provider: "paystack" | "stripe" | "mock" | "corporate"; // Added corporate possibility
 	providerReference: string; // Transaction ID/Reference from the provider
+	gatewayRef?: string; // Gateway reference number for reconciliation
+	transactionId?: string; // Internal transaction ID for tracking
+	reconciliationStatus?: "pending" | "reconciled" | "disputed" | "failed"; // Reconciliation status
 	description: string; // e.g., "Enrollment: Course Title(s)"
 	createdAt: string; // ISO Date string
 	// Optional: Link to items purchased

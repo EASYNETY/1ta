@@ -116,7 +116,7 @@ export function ClassAvailabilityNotification({
         <AlertDialogFooter>
           <AlertDialogCancel>Remind Me Later</AlertDialogCancel>
           <AlertDialogAction onClick={handleEnroll}>
-            Enroll Now
+            Enrol now
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

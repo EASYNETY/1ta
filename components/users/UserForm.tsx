@@ -173,7 +173,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="student">Student</SelectItem>
-                                        <SelectItem value="teacher">Teacher</SelectItem>
+                                        <SelectItem value="teacher">Facilitator</SelectItem>
                                         <SelectItem value="admin">Admin</SelectItem>
                                     </SelectContent>
                                 </Select>

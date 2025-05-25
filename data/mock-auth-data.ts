@@ -4,7 +4,10 @@ import type {
 	User,
 	StudentUser,
 	TeacherUser,
+	SuperAdminUser,
 	AdminUser,
+	AccountingUser,
+	CustomerCareUser,
 } from "@/types/user.types";
 import { isStudent } from "@/types/user.types";
 import type { AuthResponse } from "@/features/auth/types/auth-types";
@@ -15,7 +18,7 @@ export type MockUser = {
 	name: string;
 	email: string;
 	password: string;
-	role: "admin" | "teacher" | "student";
+	role: "super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student";
 	dateOfBirth: string | null;
 	classId: string | null;
 	barcodeId: string;
@@ -40,14 +43,37 @@ export type MockUser = {
 	officeHours?: string;
 	// Admin specific
 	permissions?: string[];
+	// Accounting specific
+	department?: string | null;
+	// Customer Care specific
+	shift?: string | null;
 };
 
 // Mock user database with enhanced user data
 export const users: MockUser[] = [
 	{
+		id: "super_admin_1",
+		name: "Super Admin",
+		email: "superadmin@1techacademy.com",
+		password: "password123",
+		role: "super_admin",
+		dateOfBirth: "1985-01-01T00:00:00.000Z",
+		classId: null,
+		barcodeId: "SUPER-ADMIN-001",
+		guardianId: null,
+		onboardingStatus: "complete",
+		accountType: "individual",
+		isActive: true,
+		status: "active",
+		createdAt: "2023-01-01T00:00:00.000Z",
+		updatedAt: "2023-01-01T00:00:00.000Z",
+		lastLogin: "2023-05-01T08:00:00.000Z",
+		permissions: ["manage_users", "manage_courses", "manage_billing", "delete_users", "manage_system", "view_analytics"],
+	},
+	{
 		id: "admin_1",
 		name: "Admin User",
-		email: "admin@example.com",
+		email: "admin@1techacademy.com",
 		password: "password123",
 		role: "admin",
 		dateOfBirth: "1990-01-01T00:00:00.000Z",
@@ -61,7 +87,47 @@ export const users: MockUser[] = [
 		createdAt: "2023-01-01T00:00:00.000Z",
 		updatedAt: "2023-01-01T00:00:00.000Z",
 		lastLogin: "2023-05-01T10:30:00.000Z",
-		permissions: ["manage_users", "manage_courses", "manage_billing"],
+		permissions: ["manage_users", "manage_courses", "view_billing"],
+	},
+	{
+		id: "accounting_1",
+		name: "Accounting Manager",
+		email: "accounting@1techacademy.com",
+		password: "password123",
+		role: "accounting",
+		dateOfBirth: "1988-03-15T00:00:00.000Z",
+		classId: null,
+		barcodeId: "ACCOUNTING-001",
+		guardianId: null,
+		onboardingStatus: "complete",
+		accountType: "individual",
+		isActive: true,
+		status: "active",
+		createdAt: "2023-01-05T00:00:00.000Z",
+		updatedAt: "2023-01-05T00:00:00.000Z",
+		lastLogin: "2023-05-01T09:00:00.000Z",
+		permissions: ["view_payments", "generate_reports", "manage_billing"],
+		department: "Finance",
+	},
+	{
+		id: "customer_care_1",
+		name: "Customer Care Agent",
+		email: "customercare@1techacademy.com",
+		password: "password123",
+		role: "customer_care",
+		dateOfBirth: "1992-07-20T00:00:00.000Z",
+		classId: null,
+		barcodeId: "CARE-001",
+		guardianId: null,
+		onboardingStatus: "complete",
+		accountType: "individual",
+		isActive: true,
+		status: "active",
+		createdAt: "2023-01-10T00:00:00.000Z",
+		updatedAt: "2023-01-10T00:00:00.000Z",
+		lastLogin: "2023-05-01T08:30:00.000Z",
+		permissions: ["view_tickets", "scan_barcodes", "view_student_info"],
+		shift: "Morning (8AM-4PM)",
 	},
 	{
 		id: "teacher_1",
@@ -251,12 +317,35 @@ export function convertToUserType(mockUser: MockUser): User {
 	const { password, ...baseUser } = mockUser;
 
 	switch (mockUser.role) {
+		case "super_admin":
+			return {
+				...baseUser,
+				role: "super_admin",
+				permissions: mockUser.permissions || [],
+			} as SuperAdminUser;
+
 		case "admin":
 			return {
 				...baseUser,
 				role: "admin",
 				permissions: mockUser.permissions || [],
 			} as AdminUser;
+
+		case "accounting":
+			return {
+				...baseUser,
+				role: "accounting",
+				permissions: mockUser.permissions || [],
+				department: mockUser.department || null,
+			} as AccountingUser;
+
+		case "customer_care":
+			return {
+				...baseUser,
+				role: "customer_care",
+				permissions: mockUser.permissions || [],
+				shift: mockUser.shift || null,
+			} as CustomerCareUser;
 
 		case "teacher":
 			return {

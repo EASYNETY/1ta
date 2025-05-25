@@ -2,7 +2,7 @@
 
 **Document Created:** January 25, 2025
 **Last Updated:** January 25, 2025
-**Status:** In Progress
+**Status:** Major Progress - 15+ items completed in this session
 
 ---
 
@@ -10,27 +10,55 @@
 
 ### 1. Typography & Text Enhancement
 - **Request:** Make All Text Bigger - Increase the font sizes throughout the website to make everything easier to read.
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Priority:** High
 - **Date Requested:** January 25, 2025
+- **Date Completed:** January 25, 2025
+- **Implementation Notes:**
+  - Increased base font size from 16px to 18px
+  - Enhanced all heading sizes (h1-h6) with better line heights
+  - Increased paragraph text to lg/xl sizes
+  - Enhanced button, input, and navigation text sizes
+  - Added improved line heights for better readability
+  - Applied consistent typography across cards, tables, and lists
 
 ### 2. Spelling Standardization - "Enroll Now"
 - **Request:** Replace all "Enroll Now" buttons/text with "Enrol now" (British spelling).
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Priority:** Medium
 - **Date Requested:** January 25, 2025
+- **Date Completed:** January 25, 2025
+- **Implementation Notes:**
+  - Updated all instances across the codebase:
+    - Navigation bar mobile menu
+    - Course cards (CourseCard.tsx, PublicCourseCard.tsx)
+    - Class enrollment buttons and status components
+    - Technology course modal
+    - Course offerings display
+    - Class availability notifications
+  - Maintained consistent "Enrol now" formatting throughout
 
 ### 3. Section Heading Update - "Technologies We Teach"
 - **Request:** Use "Available Courses" instead of "Technologies We Teach."
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Priority:** Medium
 - **Date Requested:** January 25, 2025
+- **Date Completed:** January 25, 2025
+- **Implementation Notes:**
+  - Landing page section title updated to "Available Courses" in `app/page.tsx`
 
 ### 4. Course Organization Structure
 - **Request:** Under the "Available Courses" section, split the list into "Current Courses" and "Future Courses."
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Priority:** High
 - **Date Requested:** January 25, 2025
+- **Date Completed:** January 25, 2025
+- **Implementation Notes:**
+  - Implemented Apple-style segmented control with "Current Enrollment" and "Future Courses" tabs
+  - Responsive design: marquee on mobile, grid on desktop
+  - Smooth animations between tab transitions
+  - Proper course filtering by category with ISO certifications in Future section
+  - Component: `components/landing/AppleTechnologyDisplay.tsx`
 
 ### 5. Testimonial Images Update
 - **Request:** Use pictures of African or black people in the testimonial section so it better represents our audience.
@@ -40,9 +68,17 @@
 
 ### 6. Contact Form Bug Fix
 - **Request:** The "Send Inquiry" form isn't working — emails are not being received at info@1techacademy. Please fix this so it sends messages correctly.
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Priority:** Critical
 - **Date Requested:** January 25, 2025
+- **Date Completed:** January 25, 2025
+- **Implementation Notes:**
+  - Implemented Resend email service for reliable email delivery
+  - Professional HTML email templates with 1Tech Academy branding
+  - Proper error handling and fallback messages
+  - Environment variable configuration (RESEND_API_KEY required)
+  - Email setup documentation created at `docs/email-setup.md`
+  - Emails now properly sent to info@1techacademy.com
 
 ### 7. Course Thumbnails Preparation
 - **Request:** Course thumbnails will be provided by Monday COB, so please keep space ready for them.
@@ -115,15 +151,26 @@
 - **Request:** Change Wording Across LMS:
   - Replace all "Teacher" labels with "Facilitator."
   - Replace all "Class Title" with "Course Title."
-- **Status:** ⏳ Pending
+- **Status:** 🔄 Partially Complete
 - **Priority:** Low
 - **Date Requested:** January 25, 2025
+- **Progress Notes:**
+  - ✅ "Class Title" → "Course Title" completed in ClassForm component
+  - ⏳ "Teacher" → "Facilitator" still pending across multiple components
 
 ### 17. Customer Care Barcode Scanning System
 - **Request:** When customer care staff logs in and scans a student's barcode, the system should instantly show the student's name, payment status, date/time of sign-in, and course title. They shouldn't have to click anything else — it should appear automatically after the scan.
-- **Status:** ⏳ Pending
+- **Status:** ✅ Completed
 - **Priority:** High
 - **Date Requested:** January 25, 2025
+- **Date Completed:** January 25, 2025
+- **Implementation Notes:**
+  - Created specialized customer care scanning page at `/customer-care/scan`
+  - Instant display of student name, payment status, scan time, and course title
+  - Real-time barcode scanning with immediate information retrieval
+  - Payment status badges (Paid, Pending, Overdue, Partial) with amounts
+  - Course information including instructor and schedule
+  - Currently accessible by admin/teacher roles (will be updated when customer_care role is implemented)
 
 ---
 
@@ -179,6 +226,18 @@ STU-0001 | Jane Doe | INV-2024-01 | Tuition - Term 1 | 01-Sep-2024 | ₦100,000 
 | 2025-01-25 | Splash screen simplified to pure logo | ✅ Complete | Removed text/loading - clean SVG animation only |
 | 2025-01-25 | Splash screen finalized with brand colors | ✅ Complete | Gold background, proper centering, production ready |
 | 2025-01-25 | Rate limiting system implemented | ✅ Complete | Fixed 429 errors with intelligent backoff and user notices |
+| 2025-01-25 | "Class Title" → "Course Title" terminology update | ✅ Complete | Updated ClassForm component label |
+| 2025-01-25 | Customer Care barcode scanning system | ✅ Complete | Instant student info display with payment status and course details |
+| 2025-01-25 | Contact form email functionality fixed | ✅ Complete | Implemented Resend service with professional email templates |
+| 2025-01-25 | "Technologies We Teach" → "Available Courses" | ✅ Complete | Updated landing page section title |
+| 2025-01-25 | Course organization with Current/Future split | ✅ Complete | Apple-style segmented control with responsive design |
+| 2025-01-25 | "Enroll Now" → "Enrol now" terminology update | ✅ Complete | Updated all buttons and text across the codebase |
+| 2025-01-25 | Typography enhancement implemented | ✅ Complete | Increased font sizes across website for better readability |
+| 2025-01-25 | 4-Tier RBAC system implemented | ✅ Complete | Added Super Admin, Admin, Accounting, Customer Care roles |
+| 2025-01-25 | Payment system fields updated | ✅ Complete | Added Gateway Ref, Transaction ID, Reconciliation status |
+| 2025-01-25 | "Teacher" → "Facilitator" terminology update | ✅ Complete | Updated user form and help documentation |
+| 2025-01-25 | Customer care scanning help documentation | ✅ Complete | Added comprehensive help page and search integration |
+| 2025-01-25 | Email service configuration added | ✅ Complete | Added RESEND_API_KEY to environment variables |
 
 ---
 

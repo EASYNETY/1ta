@@ -62,7 +62,7 @@ export function ClassEnrollmentButton({
   location,
   isDisabled,
   disabledReason,
-  buttonText = "Enroll Now",
+  buttonText = "Enrol now",
   buttonVariant = "default",
   buttonSize = "default",
   showDetails = true
@@ -281,7 +281,7 @@ export function ClassEnrollmentButton({
 
             {canEnroll && (
               <Button onClick={handleEnroll}>
-                {isAlreadyInCart ? "View Cart" : "Enroll Now"}
+                {isAlreadyInCart ? "View Cart" : "Enrol now"}
               </Button>
             )}
           </DialogFooter>

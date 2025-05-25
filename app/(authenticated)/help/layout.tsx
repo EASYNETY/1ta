@@ -41,6 +41,7 @@ const helpNavigation = [
     items: [
       { title: 'Marking Attendance', href: '/help/attendance/marking' },
       { title: 'Using the Barcode Scanner', href: '/help/attendance/scanning' },
+      { title: 'Customer Care Scanning', href: '/help/attendance/customer-care-scanning' },
       { title: 'Attendance Reports', href: '/help/attendance/reports' },
     ]
   },

@@ -337,7 +337,7 @@ export function CourseCards() {
                             <motion.div key="enroll-button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                               <Button className="w-full text-base py-3" size="lg" asChild onClick={handleCloseDetails}>
                                 <Link href='/#courses' className="flex items-center justify-center">
-                                  Enroll Now <ArrowRight className="ml-2 w-5 h-5" />
+                                  Enrol now <ArrowRight className="ml-2 w-5 h-5" />
                                 </Link>
                               </Button>
                             </motion.div>

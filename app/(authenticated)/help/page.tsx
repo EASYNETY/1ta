@@ -45,6 +45,7 @@ const helpCategories = [
     topics: [
       { id: 'marking', title: 'Marking Attendance', href: '/help/attendance/marking' },
       { id: 'scanning', title: 'Using the Barcode Scanner', href: '/help/attendance/scanning' },
+      { id: 'customer-care-scanning', title: 'Customer Care Scanning', href: '/help/attendance/customer-care-scanning' },
       { id: 'reports', title: 'Attendance Reports', href: '/help/attendance/reports' },
     ]
   },
