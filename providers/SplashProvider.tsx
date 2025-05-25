@@ -50,9 +50,7 @@ export function SplashProvider({
       {enableSplash && isVisible && (
         <SplashScreen
           onComplete={handleSplashComplete}
-          duration={8}
           minDisplayTime={minDisplayTime}
-          showProgress={true}
           companyName="1Tech Academy"
         />
       )}

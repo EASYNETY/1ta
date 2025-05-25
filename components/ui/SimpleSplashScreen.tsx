@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
+import React, { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 
 interface SimpleSplashScreenProps {
@@ -10,35 +9,44 @@ interface SimpleSplashScreenProps {
 }
 
 export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreenProps) {
-  const [currentFrame, setCurrentFrame] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  const totalFrames = 102
-  const frameDelay = 80 // 80ms per frame = ~12.5 FPS for smooth animation
-
-  // Format frame number with leading zeros
-  const getFramePath = (frameNumber: number) => {
-    const paddedNumber = frameNumber.toString().padStart(3, '0')
-    return `/animations/pulsating-background/pulsating background_${paddedNumber}.svg`
-  }
-
+  // Handle video events
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFrame(prev => {
-        if (prev >= totalFrames - 1) {
-          // Animation complete, hide splash after a brief pause
-          setTimeout(() => {
-            setIsVisible(false)
-            onComplete?.()
-          }, 500)
-          return totalFrames - 1
-        }
-        return prev + 1
-      })
-    }, frameDelay)
+    const video = videoRef.current
+    if (!video) return
 
-    return () => clearInterval(interval)
-  }, [frameDelay, totalFrames, onComplete])
+    const handleLoadedData = () => {
+      setVideoLoaded(true)
+      video.play().catch(console.error)
+    }
+
+    const handleEnded = () => {
+      setIsVisible(false)
+      setTimeout(() => onComplete?.(), 500) // Wait for fade out
+    }
+
+    const handleError = () => {
+      console.warn('Video failed to load, showing fallback')
+      // If video fails, show for minimum time then complete
+      setTimeout(() => {
+        setIsVisible(false)
+        setTimeout(() => onComplete?.(), 500)
+      }, 3000)
+    }
+
+    video.addEventListener('loadeddata', handleLoadedData)
+    video.addEventListener('ended', handleEnded)
+    video.addEventListener('error', handleError)
+
+    return () => {
+      video.removeEventListener('loadeddata', handleLoadedData)
+      video.removeEventListener('ended', handleEnded)
+      video.removeEventListener('error', handleError)
+    }
+  }, [onComplete])
 
   if (!isVisible) return null
 
@@ -47,50 +55,65 @@ export function SimpleSplashScreen({ onComplete, className }: SimpleSplashScreen
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-primary ${className || ''}`}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-white ${className || ''}`}
     >
-      <div className="flex items-center justify-center w-full h-full p-2 sm:p-4">
-        {/* Pure Logo Animation - Clean and Simple */}
-        <div className="relative w-full max-w-6xl sm:max-w-5xl">
-          {/* Maintain 16:9 aspect ratio (2560x1440) */}
-          <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-            <Image
-              src={getFramePath(currentFrame)}
-              alt="Logo Animation"
-              fill
-              className="object-contain"
-              priority
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1280px"
-            />
+      <div className="flex items-center justify-center w-full h-full">
+        {/* Video Container */}
+        <video
+          ref={videoRef}
+          className="w-full h-full object-contain"
+          muted
+          playsInline
+          preload="auto"
+        >
+          {/* Add video source when video file is available */}
+          <source src="/animations/splash-video.mp4" type="video/mp4" />
+          <source src="/animations/splash-video.webm" type="video/webm" />
+          
+          {/* Fallback content if video doesn't load */}
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-center">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="mb-6"
+              >
+                <h1 className="text-4xl md:text-6xl font-bold text-gray-800 tracking-wide">
+                  1Tech Academy
+                </h1>
+                <p className="text-lg md:text-xl text-gray-600 mt-4 font-light">
+                  Empowering Africa's Tech Leaders
+                </p>
+              </motion.div>
+              
+              {/* Loading animation */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="flex justify-center space-x-2"
+              >
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="w-3 h-3 bg-blue-600 rounded-full"
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      opacity: [0.5, 1, 0.5],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                    }}
+                  />
+                ))}
+              </motion.div>
+            </div>
           </div>
-        </div>
+        </video>
       </div>
     </motion.div>
   )
 }
-
-// Usage Example:
-/*
-'use client'
-
-import { useState } from 'react'
-import { SimpleSplashScreen } from '@/components/ui/SimpleSplashScreen'
-
-export default function App() {
-  const [showSplash, setShowSplash] = useState(true)
-
-  return (
-    <>
-      {showSplash && (
-        <SimpleSplashScreen onComplete={() => setShowSplash(false)} />
-      )}
-
-      {!showSplash && (
-        <main>
-          Your app content here
-        </main>
-      )}
-    </>
-  )
-}
-*/

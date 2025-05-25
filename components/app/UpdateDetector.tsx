@@ -5,11 +5,17 @@ import { toast } from 'sonner';
 import { SimpleVersionChecker } from '@/lib/simple-version-checker';
 
 /**
- * Detects when Next.js chunks fail to load (indicating new deployment)
- * and provides automatic update detection
+ * Update detector disabled - intrusive toasts removed per user request
+ * Component kept for potential future use but functionality disabled
  */
 export function UpdateDetector() {
   useEffect(() => {
+    // Update detection disabled - no more intrusive toasts
+    console.log('UpdateDetector: Automatic update notifications disabled');
+    return;
+
+    // Original code commented out to prevent intrusive toasts
+    /*
     // Don't run in development mode
     if (process.env.NODE_ENV === 'development') {
       return;
@@ -17,12 +23,11 @@ export function UpdateDetector() {
 
     let hasShownChunkError = false;
 
-    /**
-     * Handle chunk loading errors (most reliable update detection)
-     */
+    // All update detection functionality disabled
+    /*
     const handleChunkError = (event: PromiseRejectionEvent) => {
       const error = event.reason;
-      
+
       // Check if it's a chunk loading error
       const isChunkError = error?.message?.includes('Loading chunk') ||
                           error?.message?.includes('Loading CSS chunk') ||
@@ -31,9 +36,9 @@ export function UpdateDetector() {
 
       if (isChunkError && !hasShownChunkError) {
         hasShownChunkError = true;
-        
+
         console.log('🔄 Chunk loading failed - new version detected');
-        
+
         toast.info('New version available!', {
           description: 'The app has been updated. Refresh to get the latest version.',
           duration: 10000, // 10 seconds
@@ -54,21 +59,20 @@ export function UpdateDetector() {
       }
     };
 
-    /**
-     * Handle navigation errors (Next.js router failures)
-     */
+    // All remaining functionality disabled to prevent intrusive toasts
+    /*
     const handleRouteError = (event: ErrorEvent) => {
       const error = event.error;
-      
+
       // Check if it's a route/navigation error due to missing chunks
       const isRouteError = error?.message?.includes('Loading chunk') ||
                           error?.message?.includes('Failed to fetch dynamically imported module');
 
       if (isRouteError && !hasShownChunkError) {
         hasShownChunkError = true;
-        
+
         console.log('🔄 Route navigation failed - new version detected');
-        
+
         toast.warning('App update detected!', {
           description: 'Please refresh the page to continue.',
           duration: 8000,
@@ -80,16 +84,13 @@ export function UpdateDetector() {
       }
     };
 
-    /**
-     * Periodic version checking (less frequent, backup method)
-     */
     const checkVersion = async () => {
       try {
         const result = await SimpleVersionChecker.checkForUpdates();
-        
+
         if (result.hasUpdate && !hasShownChunkError) {
           console.log('🔄 Server version check detected update');
-          
+
           toast.success('New version available!', {
             description: `Version ${result.serverVersion?.version} is ready.`,
             duration: 8000,
@@ -116,9 +117,6 @@ export function UpdateDetector() {
       }
     };
 
-    /**
-     * Force update with cache clearing
-     */
     const handleForceUpdate = async () => {
       try {
         // Clear browser caches if available
@@ -132,7 +130,7 @@ export function UpdateDetector() {
         // Clear localStorage except auth data
         const authKeys = ['auth-token', 'auth-user', 'refresh-token'];
         const authData: Record<string, string | null> = {};
-        
+
         authKeys.forEach(key => {
           authData[key] = localStorage.getItem(key);
         });
@@ -180,6 +178,8 @@ export function UpdateDetector() {
       }
     };
 
+    // All event listeners and periodic checks disabled
+    /*
     // Add event listeners
     window.addEventListener('unhandledrejection', handleChunkError);
     window.addEventListener('error', handleRouteError);
@@ -207,6 +207,7 @@ export function UpdateDetector() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(versionCheckInterval);
     };
+    */
   }, []);
 
   // This component doesn't render anything
