@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isStudent } from "@/types/user.types";
 import { clearCart } from "@/features/cart/store/cart-slice";
 import { AuthListener } from "@/lib/auth-listener";
+import { SleekLogoLoader } from "@/components/ui/SleekLogoLoader";
 
 
 interface AuthProviderProps {
@@ -146,14 +147,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Show loading while waiting for Redux state initialization AND component mount
   if (!isInitialized || !isMounted) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="text-center">
-          {/* Spinner */}
-          <div style={{ border: "4px solid goldenrod", width: "36px", height: "36px", borderRadius: "50%", borderTopColor: "#D4AF3733", borderRightColor: "#D4AF37", borderBottomColor: "#D4AF3733", animation: "spin 1s ease infinite", margin: "0 auto" }}></div>
-          <style jsx global>{` @keyframes spin { to { transform: rotate(360deg); } } `}</style>
-          <p className="mt-4" style={{ color: "goldenrod" }}>Initializing...</p>
-        </div>
-      </div>
+      // <div className="flex h-screen w-screen items-center justify-center">
+      //   <div className="text-center">
+      //     {/* Spinner */}
+      //     <div style={{ border: "4px solid goldenrod", width: "36px", height: "36px", borderRadius: "50%", borderTopColor: "#D4AF3733", borderRightColor: "#D4AF37", borderBottomColor: "#D4AF3733", animation: "spin 1s ease infinite", margin: "0 auto" }}></div>
+      //     <style jsx global>{` @keyframes spin { to { transform: rotate(360deg); } } `}</style>
+      //     <p className="mt-4" style={{ color: "goldenrod" }}>Initializing...</p>
+      //   </div>
+      // </div>
+      <SleekLogoLoader />
     );
   }
 
