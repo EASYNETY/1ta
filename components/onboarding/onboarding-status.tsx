@@ -32,7 +32,7 @@ export function OnboardingStatusCard() {
       case "admin":
         return "As an administrator, completing your profile helps with system management and user communication."
       case "teacher":
-        return "As a teacher, completing your profile helps students learn more about you and your teaching style."
+        return "As a facilitator, completing your profile helps students learn more about you and your teaching style."
       case "student":
       default:
         return (

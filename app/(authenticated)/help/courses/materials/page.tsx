@@ -85,14 +85,14 @@ export default function CourseMaterialsHelpPage() {
       </p>
 
       <StepByStepGuide title="Accessing Course Materials" description="Follow these steps to access your course materials:">
-        <Step number={1} title="Navigate to My Classes">
-          From the main sidebar, click on "My Classes" or "Timetable" to see a list of all your enrolled classes.
+        <Step number={1} title="Navigate to My Courses">
+          From the main sidebar, click on "Courses" or "Timetable" to see a list of all your enrolled courses.
         </Step>
-        <Step number={2} title="Select a Class">
-          Click on the class title to open the class dashboard. You can also access your classes through the course page by selecting the specific class session you're enrolled in.
+        <Step number={2} title="Select a Course">
+          Click on the course title to open the course dashboard. You can also access your courses through the course page by selecting the specific course session you're enrolled in.
         </Step>
-        <Step number={3} title="Browse Class Content">
-          Use the class navigation menu to browse different sections of the class, such as Modules, Assignments, or Resources. Materials are organized by the instructor for your specific class session.
+        <Step number={3} title="Browse Course Content">
+          Use the course navigation menu to browse different sections of the course, such as Modules, Assignments, or Resources. Materials are organized by the facilitator for your specific course session.
         </Step>
         <Step number={4} title="Access Course-Wide Materials">
           Some materials may be available to all class sessions of a course. These can typically be found in the "Course Resources" section, accessible from either the class dashboard or the main course page.

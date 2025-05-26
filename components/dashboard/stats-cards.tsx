@@ -48,7 +48,7 @@ export function StatsCards() {
                         icon={<Users className="h-4 w-4" />}
                     />
                     <StatsCard
-                        title="Total Teachers"
+                        title="Total Facilitators"
                         value="18"
                         subtitle="+3 this month"
                         icon={<GraduationCap className="h-4 w-4" />}

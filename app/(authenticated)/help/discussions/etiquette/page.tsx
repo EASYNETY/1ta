@@ -2,24 +2,24 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  MessageSquare, 
-  Shield, 
-  Users, 
-  Clock, 
-  ThumbsUp, 
-  AlertTriangle, 
-  Flag, 
-  BookOpen, 
-  Check, 
-  ChevronRight 
+import {
+  MessageSquare,
+  Shield,
+  Users,
+  Clock,
+  ThumbsUp,
+  AlertTriangle,
+  Flag,
+  BookOpen,
+  Check,
+  ChevronRight
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ArticleHeader, 
-  ArticleFooter, 
-  HelpCallout, 
-  RelatedTopics, 
+import {
+  ArticleHeader,
+  ArticleFooter,
+  HelpCallout,
+  RelatedTopics,
   RoleContent,
   StepByStepGuide,
   Step,
@@ -29,18 +29,18 @@ import {
 
 // Define related topics for this help article
 const relatedTopics = [
-  { 
-    title: 'Using Chatrooms', 
+  {
+    title: 'Using Chatrooms',
     href: '/help/discussions/chatrooms',
     description: 'Learn how to participate in group discussions'
   },
-  { 
-    title: 'Direct Messaging', 
+  {
+    title: 'Direct Messaging',
     href: '/help/discussions/messaging',
     description: 'Send private messages to individuals'
   },
-  { 
-    title: 'Account Settings', 
+  {
+    title: 'Account Settings',
     href: '/help/account/settings',
     description: 'Manage your account preferences and privacy settings'
   },
@@ -363,9 +363,9 @@ export default function CommunicationGuidelinesHelpPage() {
         }
         teacherContent={
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">For Teachers</h3>
+            <h3 className="text-lg font-medium">For Facilitators</h3>
             <p>
-              As a teacher, you set the tone for communication in your courses:
+              As a facilitator, you set the tone for communication in your courses:
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Clearly communicate your expectations for student interactions at the beginning of the course</li>
@@ -395,7 +395,7 @@ export default function CommunicationGuidelinesHelpPage() {
       <RelatedTopics topics={relatedTopics} />
 
       {/* Article Footer with feedback */}
-      <ArticleFooter 
+      <ArticleFooter
         previousArticle={{
           title: "Direct Messaging",
           href: "/help/discussions/messaging"

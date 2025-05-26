@@ -132,7 +132,7 @@ export default function ViewManagedStudentPage() {
                                 <div className="flex items-center gap-3 border-b pb-3">
                                     <BookOpen className="h-5 w-5 text-muted-foreground" />
                                     <div>
-                                        <p className="text-sm font-medium">Assigned Class/Course</p>
+                                        <p className="text-sm font-medium">Assigned Course</p>
                                         <p className="text-sm text-muted-foreground">{currentStudent.classId || 'None'}</p>
                                         {/* TODO: Fetch and display class name */}
                                     </div>

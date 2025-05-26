@@ -58,7 +58,7 @@ export function RoleContent({
               {teacherContent && (
                 <TabsTrigger value="teacher" className="flex items-center gap-2 whitespace-nowrap">
                   <Presentation className="h-4 w-4 flex-shrink-0" />
-                  <span>For Teachers</span>
+                  <span>For Facilitators</span>
                 </TabsTrigger>
               )}
               {adminContent && (

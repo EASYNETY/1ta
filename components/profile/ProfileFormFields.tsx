@@ -212,11 +212,11 @@ export function ProfileFormFields({
                     name="classId"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Primary Class/Course</FormLabel>
+                            <FormLabel>Primary Course</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value || ""} disabled={isCorporateStudent}>
                                 <FormControl>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select your primary class or course" />
+                                        <SelectValue placeholder="Select your primary course" />
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
