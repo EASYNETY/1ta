@@ -66,7 +66,7 @@ export function DemoRequestForm() {
 
     try {
       // Send data to backend API
-      const response = await fetch('/api/contact/inquiry', {
+      const response = await fetch('http://34.249.241.206:5000/api/contact/inquiry', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

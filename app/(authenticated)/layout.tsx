@@ -28,8 +28,8 @@ export default function AuthenticatedLayout({
     }, [isAuthenticated, dispatch])
 
     return (
-        // Set defaultOpen to false here
-        <SidebarProvider defaultOpen={false}>
+        // Set defaultOpen to true to show sidebar expanded by default
+        <SidebarProvider defaultOpen={true}>
             {/* Set collapsible to "icon" to enable the icon-only state */}
             <AppSidebar collapsible="icon" />
             <SidebarInset>
