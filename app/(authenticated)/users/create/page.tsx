@@ -14,6 +14,7 @@ import { PageHeader } from '@/components/layout/auth/page-header';
 import { useAppDispatch } from '@/store/hooks';
 import { createUserAdmin } from '@/features/auth/store/user-thunks';
 import type { User } from '@/types/user.types';
+import { signupThunk } from '@/features/auth';
 
 export default function CreateUserPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +26,9 @@ export default function CreateUserPage() {
         console.log("Creating user with data:", data);
         try {
             // Use the actual API call via Redux dispatch
-            const newUser = await dispatch(createUserAdmin(data)).unwrap();
+            const response = await dispatch(signupThunk(data as any)).unwrap();
+            const newUser = response.data.user
+
             toast.success(`User "${newUser.name}" created successfully!`);
             router.push('/users'); // Redirect to users list after creation
         } catch (error: any) {

@@ -8,59 +8,127 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import {
     User, Mail, Briefcase, CheckCircle, Phone, Building,
-    CalendarDays, GraduationCap, BookOpen, Clock, FileText
+    CalendarDays, GraduationCap, BookOpen, Clock, FileText, ShieldCheck, DollarSign, Users as UsersIcon // Renamed Users to UsersIcon to avoid conflict
 } from 'lucide-react';
 
-// Import the full User type
-import type { User as UserType } from '@/types/user.types';
+// Import the full User type and individual role types
+import type {
+    User as UserType,
+    UserRole,
+    AccountType,
+    OnboardingStatus,
+    // Import specific user types if you need to reference their exact structure for initialData, though UserType usually suffices
+} from '@/types/user.types';
 
 interface UserFormProps {
-    initialData?: UserType | null; // For editing
-    onSubmit: (data: Partial<UserType>) => Promise<void>;
+    initialData?: UserType | null; // For editing - UserType is a union, which is fine here
+    onSubmit: (data: Partial<UserType>) => Promise<void>; // onSubmit can still take Partial<UserType>
     isSubmitting?: boolean;
     mode: 'create' | 'edit';
 }
 
-// Define default values for the form
-const defaultValues: Partial<UserType> = {
+// Define a comprehensive interface for the form's data state.
+// This includes ALL possible fields from ALL user roles, mostly as optional.
+interface UserFormDataType {
+    id?: string;
+    name?: string; // from BaseUser
+    email?: string; // from BaseUser
+    role: UserRole; // from BaseUser - non-optional as it drives logic
+    isActive?: boolean; // from BaseUser
+    phone?: string | null; // from BaseUser
+    bio?: string | null; // from BaseUser
+    accountType?: AccountType; // from BaseUser
+    onboardingStatus?: OnboardingStatus; // from BaseUser
+    avatarUrl?: string | null; // from BaseUser
+    lastLogin?: string | null; // from BaseUser
+    corporateId?: string | null; // from BaseUser & StudentUser
+    corporateAccountName?: string | null; // from BaseUser
+    createdAt?: string; // from BaseUser
+    updatedAt?: string; // from BaseUser
+
+    // Student specific
+    dateOfBirth?: string | null; // from StudentUser
+    address?: string | null; // from StudentUser
+    barcodeId?: string; // from StudentUser
+    classId?: string | null; // from StudentUser
+    guardianId?: string | null; // from StudentUser
+    isCorporateManager?: boolean; // from StudentUser
+    purchasedStudentSlots?: number | null; // from StudentUser
+    class?: any | null; // from StudentUser
+
+    // Teacher specific
+    subjects?: string[] | null; // from TeacherUser
+    officeHours?: string | null; // from TeacherUser
+
+    // Admin/SuperAdmin/Accounting/CustomerCare specific permissions
+    permissions?: string[] | null; // from SuperAdminUser, AdminUser, AccountingUser, CustomerCareUser
+
+    // Staff specific department/shift (also on TeacherUser now)
+    department?: string | null; // from TeacherUser, SuperAdminUser, AdminUser, AccountingUser, CustomerCareUser
+    shift?: string | null; // from TeacherUser, SuperAdminUser, AdminUser, AccountingUser, CustomerCareUser
+}
+
+
+// Define default values for the form using the comprehensive type
+const defaultValues: UserFormDataType = {
     name: '',
     email: '',
-    role: 'student',
+    role: 'student', // Default role
     isActive: true,
     phone: '',
     bio: '',
     accountType: 'individual',
     onboardingStatus: 'incomplete',
-    // Role-specific defaults
+    avatarUrl: null,
+    lastLogin: null,
+    corporateId: null,
+    corporateAccountName: null,
+    createdAt: undefined, // Or set to a new Date().toISOString() if needed for create
+    updatedAt: undefined,
+
     // Student
     dateOfBirth: '',
+    address: '',
     barcodeId: '',
     classId: '',
+    guardianId: '',
+    isCorporateManager: false,
+    purchasedStudentSlots: null,
+    class: null,
+
     // Teacher
     subjects: [],
     officeHours: '',
-    // Admin
-    permissions: []
+
+    // Admin/Staff (permissions shared by multiple, department/shift also shared)
+    permissions: [],
+    department: '',
+    shift: '',
 };
 
 export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: UserFormProps) {
     const router = useRouter();
 
-    // Initialize state from initialData or defaults
-    const [formData, setFormData] = useState<Partial<UserType>>(() =>
-        initialData ? { ...defaultValues, ...initialData } : defaultValues
-    );
+    // Initialize state from initialData or defaults, using the comprehensive type
+    const [formData, setFormData] = useState<UserFormDataType>(() => {
+        if (initialData) {
+            // When initialData is provided, merge it with defaults.
+            // Assert initialData to UserFormDataType as it's compatible (UserType is a subset of fields in UserFormDataType)
+            return { ...defaultValues, ...(initialData as unknown as UserFormDataType) };
+        }
+        return defaultValues;
+    });
 
-    const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<keyof UserFormDataType, string>>>({});
 
     // Effect to reset form if initialData changes (for edit mode)
     useEffect(() => {
         if (mode === 'edit' && initialData) {
-            setFormData({ ...defaultValues, ...initialData });
+            setFormData({ ...defaultValues, ...(initialData as unknown as UserFormDataType) });
         } else if (mode === 'create') {
             setFormData(defaultValues);
         }
@@ -69,13 +137,12 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        // Clear specific error on change
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: undefined }));
+        if (errors[name as keyof UserFormDataType]) {
+            setErrors(prev => ({ ...prev, [name as keyof UserFormDataType]: undefined }));
         }
     };
 
-    const handleSelectChange = (name: string) => (value: string) => {
+    const handleSelectChange = (name: keyof UserFormDataType) => (value: string | boolean) => { // Allow boolean for switch
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: undefined }));
@@ -83,7 +150,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
     };
 
     const validateForm = (): boolean => {
-        const newErrors: Record<string, string> = {};
+        const newErrors: Partial<Record<keyof UserFormDataType, string>> = {};
         if (!formData.name?.trim()) newErrors.name = 'Name is required';
         if (!formData.email?.trim()) {
             newErrors.email = 'Email is required';
@@ -91,6 +158,12 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
             newErrors.email = 'Invalid email format';
         }
         if (!formData.role) newErrors.role = 'Role is required';
+
+        // Add more specific validations if needed based on role
+        // For example, if role is student, barcodeId might be required
+        if (formData.role === 'student' && !formData.barcodeId?.trim()) {
+            // newErrors.barcodeId = 'Barcode ID is required for students.'; // Optional: enable if strictly required
+        }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -103,20 +176,31 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
             return;
         }
         console.log("Submitting form data:", formData);
-        await onSubmit(formData);
+        // Before submitting, you might want to clean formData to only include relevant fields for the selected role
+        // For now, we pass the whole formData which is compatible with Partial<UserType>
+        await onSubmit(formData as Partial<UserType>); // Asserting here as UserFormDataType has all fields, compatible with Partial<UserType>
     };
 
-    // Determine if we should show role-specific fields
-    const isStudent = formData.role === 'student';
-    const isTeacher = formData.role === 'teacher';
-    const isAdmin = formData.role === 'admin';
+    // Determine which role-specific fields to show
+    const currentRole = formData.role || 'student';
+    const isStudent = currentRole === 'student';
+    const isTeacher = currentRole === 'teacher';
+    const isAdmin = currentRole === 'admin'; // Standard Admin
+    const isSuperAdmin = currentRole === 'super_admin';
+    const isAccounting = currentRole === 'accounting';
+    const isCustomerCare = currentRole === 'customer_care';
+
+    // Helper to determine if staff-specific fields (department, shift) should be shown
+    const isStaffRoleWithDeptShift = [
+        'admin', 'super_admin', 'accounting', 'customer_care', 'teacher'
+    ].includes(currentRole);
+
 
     return (
         <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Basic Information */}
                 <div className="lg:col-span-1 space-y-6">
-                    {/* Basic Information Card */}
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg flex items-center gap-2">
@@ -128,7 +212,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* Name Field */}
                             <div className="grid gap-1.5">
                                 <Label htmlFor="name">Full Name</Label>
                                 <Input
@@ -143,7 +226,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                 {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
                             </div>
 
-                            {/* Email Field */}
                             <div className="grid gap-1.5">
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input
@@ -159,14 +241,13 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                 {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
                             </div>
 
-                            {/* Role Select */}
                             <div className="grid gap-1.5">
                                 <Label htmlFor="role">Role</Label>
                                 <Select
                                     name="role"
-                                    value={formData.role || 'student'}
-                                    onValueChange={handleSelectChange('role')}
-                                    disabled={isSubmitting || mode === 'edit'} // Can't change role in edit mode
+                                    value={currentRole}
+                                    onValueChange={handleSelectChange('role') as (value: string) => void}
+                                    disabled={isSubmitting || mode === 'edit'}
                                 >
                                     <SelectTrigger id="role" aria-invalid={!!errors.role}>
                                         <SelectValue placeholder="Select role" />
@@ -175,12 +256,14 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                         <SelectItem value="student">Student</SelectItem>
                                         <SelectItem value="teacher">Facilitator</SelectItem>
                                         <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="super_admin">Super Admin</SelectItem>
+                                        <SelectItem value="accounting">Accounting</SelectItem>
+                                        <SelectItem value="customer_care">Customer Care</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
                             </div>
 
-                            {/* Phone Field */}
                             <div className="grid gap-1.5">
                                 <Label htmlFor="phone">Phone Number</Label>
                                 <Input
@@ -195,7 +278,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                         </CardContent>
                     </Card>
 
-                    {/* Status Card */}
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg flex items-center gap-2">
@@ -204,16 +286,13 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* Active Status Switch */}
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="isActive">Account Status</Label>
                                 <div className="flex items-center space-x-2">
                                     <Switch
                                         id="isActive"
                                         checked={formData.isActive || false}
-                                        onCheckedChange={(checked) => {
-                                            setFormData(prev => ({ ...prev, isActive: checked }));
-                                        }}
+                                        onCheckedChange={handleSelectChange('isActive')}
                                         disabled={isSubmitting}
                                     />
                                     <Label htmlFor="isActive" className="text-sm">
@@ -222,13 +301,12 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                 </div>
                             </div>
 
-                            {/* Account Type */}
                             <div className="grid gap-1.5">
                                 <Label htmlFor="accountType">Account Type</Label>
                                 <Select
                                     name="accountType"
                                     value={formData.accountType || 'individual'}
-                                    onValueChange={handleSelectChange('accountType')}
+                                    onValueChange={handleSelectChange('accountType') as (value: string) => void}
                                     disabled={isSubmitting}
                                 >
                                     <SelectTrigger id="accountType">
@@ -242,13 +320,12 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                 </Select>
                             </div>
 
-                            {/* Onboarding Status */}
                             <div className="grid gap-1.5">
                                 <Label htmlFor="onboardingStatus">Onboarding Status</Label>
                                 <Select
                                     name="onboardingStatus"
                                     value={formData.onboardingStatus || 'incomplete'}
-                                    onValueChange={handleSelectChange('onboardingStatus')}
+                                    onValueChange={handleSelectChange('onboardingStatus') as (value: string) => void}
                                     disabled={isSubmitting}
                                 >
                                     <SelectTrigger id="onboardingStatus">
@@ -267,7 +344,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
 
                 {/* Right Column - Role-Specific Information */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Role-Specific Information Card */}
                     {isStudent && (
                         <Card>
                             <CardHeader className="pb-3">
@@ -278,7 +354,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Barcode ID */}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="barcodeId">Barcode ID</Label>
                                         <Input
@@ -289,9 +364,9 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                             placeholder="e.g., STU123456"
                                             disabled={isSubmitting}
                                         />
+                                        {errors.barcodeId && <p className="text-sm text-red-600">{errors.barcodeId}</p>}
                                     </div>
 
-                                    {/* Date of Birth */}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="dateOfBirth">Date of Birth</Label>
                                         <Input
@@ -304,7 +379,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                         />
                                     </div>
 
-                                    {/* Class ID */}
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="classId">Class ID</Label>
                                         <Input
@@ -316,24 +390,28 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                             disabled={isSubmitting}
                                         />
                                     </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="address">Address</Label>
+                                        <Input
+                                            id="address"
+                                            name="address"
+                                            value={formData.address || ''}
+                                            onChange={handleChange}
+                                            placeholder="e.g., 123 Main St"
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
 
-                                    {/* Corporate Manager Switch */}
+
                                     {formData.accountType === 'corporate' && (
-                                        <div className="flex items-center justify-between">
-                                            <Label htmlFor="isCorporateManager">Corporate Manager</Label>
-                                            <div className="flex items-center space-x-2">
-                                                <Switch
-                                                    id="isCorporateManager"
-                                                    checked={formData.isCorporateManager || false}
-                                                    onCheckedChange={(checked) => {
-                                                        setFormData(prev => ({ ...prev, isCorporateManager: checked }));
-                                                    }}
-                                                    disabled={isSubmitting}
-                                                />
-                                                <Label htmlFor="isCorporateManager" className="text-sm">
-                                                    {formData.isCorporateManager ? 'Yes' : 'No'}
-                                                </Label>
-                                            </div>
+                                        <div className="flex items-center justify-between md:col-span-2 pt-2">
+                                            <Label htmlFor="isCorporateManager" className="text-sm font-medium">Is Corporate Manager?</Label>
+                                            <Switch
+                                                id="isCorporateManager"
+                                                checked={formData.isCorporateManager || false}
+                                                onCheckedChange={handleSelectChange('isCorporateManager')}
+                                                disabled={isSubmitting}
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -350,7 +428,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {/* Office Hours */}
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="officeHours">Office Hours</Label>
                                     <Input
@@ -363,7 +440,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                     />
                                 </div>
 
-                                {/* Subjects - Simple text input for now */}
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="subjects">Subjects (comma-separated)</Label>
                                     <Input
@@ -382,16 +458,16 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                         </Card>
                     )}
 
-                    {isAdmin && (
+                    {/* Permissions field for Admin (not Super Admin, who has all) and potentially other roles if they have configurable permissions */}
+                    {(isAdmin || isAccounting || isCustomerCare) && !isSuperAdmin && (
                         <Card>
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-lg flex items-center gap-2">
                                     <Briefcase className="h-5 w-5 text-primary" />
-                                    Admin Information
+                                    Role Permissions
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                {/* Permissions - Simple text input for now */}
                                 <div className="grid gap-1.5">
                                     <Label htmlFor="permissions">Permissions (comma-separated)</Label>
                                     <Input
@@ -402,15 +478,61 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                                             const permissionsArray = e.target.value.split(',').map(p => p.trim()).filter(Boolean);
                                             setFormData(prev => ({ ...prev, permissions: permissionsArray }));
                                         }}
-                                        placeholder="e.g., manage_users, manage_courses"
+                                        placeholder="e.g., manage_users, view_reports"
                                         disabled={isSubmitting}
                                     />
+                                    <p className="text-xs text-muted-foreground">
+                                        {isAdmin && "Define specific permissions for this Admin."}
+                                        {isAccounting && "Define specific permissions for Accounting."}
+                                        {isCustomerCare && "Define specific permissions for Customer Care."}
+                                        {" Super Admin has all permissions by default."}
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
                     )}
 
-                    {/* Bio Information - For all users */}
+                    {isStaffRoleWithDeptShift && (
+                        <Card>
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    {isSuperAdmin && <ShieldCheck className="h-5 w-5 text-primary" />}
+                                    {isAccounting && <DollarSign className="h-5 w-5 text-primary" />}
+                                    {isCustomerCare && <UsersIcon className="h-5 w-5 text-primary" />}
+                                    {(isAdmin || isTeacher) && !isSuperAdmin && !isAccounting && !isCustomerCare && <Briefcase className="h-5 w-5 text-primary" />}
+                                    Staff Details
+                                </CardTitle>
+                                <CardDescription>Department and shift information for staff members.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="department">Department</Label>
+                                        <Input
+                                            id="department"
+                                            name="department"
+                                            value={formData.department || ''}
+                                            onChange={handleChange}
+                                            placeholder="e.g., Finance, Support, Academics"
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div className="grid gap-1.5">
+                                        <Label htmlFor="shift">Shift</Label>
+                                        <Input
+                                            id="shift"
+                                            name="shift"
+                                            value={formData.shift || ''}
+                                            onChange={handleChange}
+                                            placeholder="e.g., Morning, Evening, Full-Time"
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
                     <Card>
                         <CardHeader className="pb-3">
                             <CardTitle className="text-lg flex items-center gap-2">
@@ -419,9 +541,8 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* Bio */}
                             <div className="grid gap-1.5">
-                                <Label htmlFor="bio">Biography</Label>
+                                <Label htmlFor="bio">Biography / Notes</Label>
                                 <Textarea
                                     id="bio"
                                     name="bio"
@@ -435,7 +556,6 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
                         </CardContent>
                     </Card>
 
-                    {/* Form Actions */}
                     <Card>
                         <CardContent className="pt-6">
                             <div className="flex justify-end gap-2">

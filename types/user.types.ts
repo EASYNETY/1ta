@@ -88,14 +88,22 @@ export interface TeacherUser extends BaseUser {
 	/** Text description of availability (e.g., "Mon 2-4 PM via Zoom"). Optional. Editable via Settings. */
 	officeHours?: string | null;
 	// Note: List of facilitated classes (`taughtClassIds`) is fetched separately.
+    /** Department the facilitator belongs to (e.g., Academics). Optional. */
+    department?: string | null; // ADDED
+    /** Shift or schedule information. Optional. */
+    shift?: string | null; // ADDED
 }
 
 // --- Super Admin Specific Information ---
 // Extends BaseUser. `role` is fixed to `"super_admin"`.
 export interface SuperAdminUser extends BaseUser {
 	role: "super_admin";
-	/** List of specific super admin permissions (e.g., 'delete_users', 'manage_system'). Optional for future granular control. */
+	/** List of specific super admin permissions (e.g., 'delete_users', 'manage_system'). Optional for future granular control. For Super Admin, this is often implicitly all '*' */
 	permissions?: string[] | null;
+    /** Department (e.g., Management, IT). Optional. */
+    department?: string | null; // ADDED
+    /** Shift or schedule information. Optional. */
+    shift?: string | null; // ADDED
 }
 
 // --- Admin Specific Information ---
@@ -104,6 +112,10 @@ export interface AdminUser extends BaseUser {
 	role: "admin";
 	/** List of specific admin permissions (e.g., 'manage_users'). Optional for future granular control. */
 	permissions?: string[] | null;
+    /** Department the admin belongs to. Optional. */
+    department?: string | null; // ADDED
+    /** Shift or schedule information. Optional. */
+    shift?: string | null; // ADDED
 }
 
 // --- Accounting Specific Information ---
@@ -113,7 +125,9 @@ export interface AccountingUser extends BaseUser {
 	/** List of specific accounting permissions (e.g., 'view_payments', 'generate_reports'). Optional for future granular control. */
 	permissions?: string[] | null;
 	/** Department or team within accounting */
-	department?: string | null;
+	department?: string | null; // This was already here
+    /** Shift or schedule information. Optional. */
+    shift?: string | null; // ADDED
 }
 
 // --- Customer Care Specific Information ---
@@ -122,8 +136,10 @@ export interface CustomerCareUser extends BaseUser {
 	role: "customer_care";
 	/** List of specific customer care permissions (e.g., 'view_tickets', 'scan_barcodes'). Optional for future granular control. */
 	permissions?: string[] | null;
+    /** Department the customer care agent belongs to (e.g., Support). Optional. */
+    department?: string | null; // ADDED
 	/** Shift or schedule information */
-	shift?: string | null;
+	shift?: string | null; // This was already here
 }
 
 // --- Union Type ---
@@ -164,7 +180,8 @@ export function hasAdminAccess(user: User | null | undefined): boolean {
 
 // Helper function to check if user has staff-level access (all roles except student)
 export function hasStaffAccess(user: User | null | undefined): boolean {
-	return user?.role !== "student" && user?.role !== undefined;
+	// Ensure user and user.role are defined before checking
+	return !!user && user.role !== "student";
 }
 
 // --- AuthState Interface (Redux) ---
