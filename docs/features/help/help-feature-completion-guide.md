@@ -13,7 +13,7 @@ The help feature currently has the following structure:
     - Overview
     - Navigation (newly added)
   - Courses
-    - Enrollment
+    - Enrolment
   - Attendance
     - Scanning
 
@@ -46,7 +46,7 @@ Based on the navigation structure defined in `app/(authenticated)/help/layout.ts
 - ✅ Setting Up Your Account (`/help/getting-started/account-setup`) - Implemented
 
 ### Courses
-- ✅ Course Enrollment (`/help/courses/enrollment`) - Implemented
+- ✅ Course Enrolment (`/help/courses/enrolment`) - Implemented
 - ✅ Accessing Course Materials (`/help/courses/materials`) - Implemented
 - ✅ Tracking Your Progress (`/help/courses/progress`) - Implemented
 

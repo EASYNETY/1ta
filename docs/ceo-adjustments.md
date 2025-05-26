@@ -32,7 +32,7 @@
   - Updated all instances across the codebase:
     - Navigation bar mobile menu
     - Course cards (CourseCard.tsx, PublicCourseCard.tsx)
-    - Class enrollment buttons and status components
+    - Class enrolment buttons and status components
     - Technology course modal
     - Course offerings display
     - Class availability notifications
@@ -54,7 +54,7 @@
 - **Date Requested:** January 25, 2025
 - **Date Completed:** January 25, 2025
 - **Implementation Notes:**
-  - Implemented Apple-style segmented control with "Current Enrollment" and "Future Courses" tabs
+  - Implemented Apple-style segmented control with "Current Enrolment" and "Future Courses" tabs
   - Responsive design: marquee on mobile, grid on desktop
   - Smooth animations between tab transitions
   - Proper course filtering by category with ISO certifications in Future section

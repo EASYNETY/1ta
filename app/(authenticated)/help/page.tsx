@@ -32,7 +32,7 @@ const helpCategories = [
     icon: GraduationCap,
     description: 'Everything about courses and learning',
     topics: [
-      { id: 'enrollment', title: 'Course Enrollment', href: '/help/courses/enrollment' },
+      { id: 'enrolment', title: 'Course Enrolment', href: '/help/courses/enrolment' },
       { id: 'materials', title: 'Accessing Course Materials', href: '/help/courses/materials' },
       { id: 'progress', title: 'Tracking Your Progress', href: '/help/courses/progress' },
     ]
@@ -97,7 +97,7 @@ const helpCategories = [
 
 // Popular topics for quick access
 const popularTopics = [
-  { title: 'How to enrol in a course', href: '/help/courses/enrollment' },
+  { title: 'How to enrol in a course', href: '/help/courses/enrolment' },
   { title: 'Marking attendance', href: '/help/attendance/marking' },
   { title: 'Viewing your schedule', href: '/help/timetable/viewing' },
   { title: 'Payment methods', href: '/help/payments/methods' },

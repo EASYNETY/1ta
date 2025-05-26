@@ -9,7 +9,7 @@ The Customer Care Barcode Scanning System provides instant access to student inf
 ### Instant Information Display
 - **Student Details**: Name, email, ID, and contact information
 - **Payment Status**: Real-time payment status with visual indicators
-- **Course Information**: Current course enrollment and schedule details
+- **Course Information**: Current course enrolment and schedule details
 - **Scan Timestamp**: Automatic recording of scan time and date
 
 ### Payment Status Indicators
@@ -33,7 +33,7 @@ The Customer Care Barcode Scanning System provides instant access to student inf
 ### 3. View Student Information
 1. Student information appears instantly after scan
 2. Payment status is displayed with color-coded badges
-3. Course details show current enrollment and schedule
+3. Course details show current enrolment and schedule
 4. Scan timestamp is recorded for audit purposes
 
 ### 4. Take Action (if needed)

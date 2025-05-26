@@ -139,7 +139,7 @@ export default function CheckoutPage() {
     // Handler after successful payment via PaystackCheckout
     const handlePaymentSuccess = (paystackReference: any) => {
         if (!user || checkoutItems.length === 0 || totalAmount <= 0) {
-            dispatch(setCheckoutError("Missing required information for enrollment."))
+            dispatch(setCheckoutError("Missing required information for enrolment."))
             dispatch(setShowPaymentModal(false)) // Close payment modal
             return
         }
@@ -157,7 +157,7 @@ export default function CheckoutPage() {
             corporateStudentCount: isCorporateManager ? corporateStudentCount : undefined,
         }
 
-        // Dispatch enrollment thunk
+        // Dispatch enrolment thunk
         dispatch(enrollCoursesAfterPayment(payload))
             .unwrap()
             .then((response) => {
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
 
                 toast({
                     variant: "success",
-                    title: "Enrollment Successful!",
+                    title: "Enrolment Successful!",
                     description: response.message || successMessage,
                 })
                 dispatch(clearCart()) // Clear the cart
@@ -177,8 +177,8 @@ export default function CheckoutPage() {
                 // Error state is set by the rejected case in the slice
                 toast({
                     variant: "destructive",
-                    title: "Enrollment Failed",
-                    description: errorMsg || "Could not complete enrollment after payment.",
+                    title: "Enrolment Failed",
+                    description: errorMsg || "Could not complete enrolment after payment.",
                 })
                 // Keep user on checkout page to see error?
             })
@@ -399,8 +399,8 @@ export default function CheckoutPage() {
                                 size="lg"
                             >
                                 {(isLoading || isEnrolling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isEnrolling ? "Processing Enrollment..." :
-                                 totalAmount === 0 ? "Complete Free Enrollment" : "Proceed to Payment"}
+                                {isEnrolling ? "Processing Enrolment..." :
+                                 totalAmount === 0 ? "Complete Free Enrolment" : "Proceed to Payment"}
                             </DyraneButton>
                             <p className="text-xs text-muted-foreground text-center">
                                 {isCorporateManager

@@ -346,7 +346,7 @@ I'll format it the way you'd write a proper internal or public **PRD (Product Re
 
 ## 🎯 Purpose:
 Integrate a responsive, live-updating **Cart Display** directly into the **Navbar**.
-Enhance visibility of selected courses and provide a frictionless transition toward checkout/enrollment.
+Enhance visibility of selected courses and provide a frictionless transition toward checkout/enrolment.
 
 ---
 

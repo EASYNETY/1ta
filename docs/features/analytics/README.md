@@ -21,7 +21,7 @@ The analytics feature provides administrators and teachers with insights into st
 
 - **Student Performance Analytics**: Track student performance over time.
 - **Attendance Analytics**: Analyze attendance patterns and trends.
-- **Course Analytics**: Analyze course enrollment, completion, and satisfaction.
+- **Course Analytics**: Analyze course enrolment, completion, and satisfaction.
 - **Teacher Analytics**: Analyze teacher performance and student feedback.
 - **Financial Analytics**: Track revenue, expenses, and other financial metrics.
 

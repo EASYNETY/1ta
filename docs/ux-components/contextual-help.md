@@ -38,8 +38,8 @@ export function SmartTooltip({ featureId, children, icon = false, className }: S
   // Get appropriate tooltip content based on user experience
   const getTooltipContent = () => {
     const tooltipContent = {
-      'course-enrollment': {
-        new: 'Click here to enrol in this course. You'll be guided through the enrollment process step by step.',
+      'course-enrolment': {
+        new: 'Click here to enrol in this course. You'll be guided through the enrolment process step by step.',
         returning: 'Enrol in this course to access all learning materials and assignments.',
         expert: 'Enrol in course'
       },
@@ -226,7 +226,7 @@ import { SmartTooltip } from '@/components/help/SmartTooltip';
 
 export function EnrollButton({ courseId }) {
   return (
-    <SmartTooltip featureId="course-enrollment">
+    <SmartTooltip featureId="course-enrolment">
       <DyraneButton>Enrol Now</DyraneButton>
     </SmartTooltip>
   );

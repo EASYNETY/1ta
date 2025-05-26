@@ -40,8 +40,8 @@ const relatedTopics = [
     description: 'View and manage your payment records'
   },
   { 
-    title: 'Course Enrollment', 
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment', 
+    href: '/help/courses/enrolment',
     description: 'Learn how to enrol in courses'
   },
 ];

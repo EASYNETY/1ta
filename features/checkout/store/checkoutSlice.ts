@@ -13,14 +13,14 @@ import type {
 import type { User } from "@/types/user.types"; // Import user type
 import { isStudent } from "@/types/user.types"; // Import type guard
 import type { PublicCourse } from "@/features/public-course/types/public-course-interface";
-// Assume an API client function exists or will be created for enrollment
+// Assume an API client function exists or will be created for enrolment
 import { post } from "@/lib/api-client";
 import type { CartItem } from "@/features/cart/store/cart-slice";
 // Import a way to get course details, maybe from another slice or direct fetch
 // For simplicity, assume we pass course data when preparing checkout
 // import { selectPublicCourseById } from '@/features/public-course/store/public-course-slice';
 
-// --- Async Thunk for Enrollment ---
+// --- Async Thunk for Enrolment ---
 export const enrollCoursesAfterPayment = createAsyncThunk<
 	EnrollCoursesResponse, // Return type
 	EnrollCoursesPayload, // Argument type
@@ -40,7 +40,7 @@ export const enrollCoursesAfterPayment = createAsyncThunk<
 			}
 		);
 		if (!response.success) {
-			throw new Error(response.message || "Enrollment failed on server.");
+			throw new Error(response.message || "Enrolment failed on server.");
 		}
 		return response;
 	} catch (error: any) {
@@ -205,11 +205,11 @@ const checkoutSlice = createSlice({
 				// Optionally clear items here or rely on clearCart dispatch from component
 				// state.items = [];
 				// state.totalAmount = 0;
-				console.log("Enrollment successful:", action.payload);
+				console.log("Enrolment successful:", action.payload);
 			})
 			.addCase(enrollCoursesAfterPayment.rejected, (state, action) => {
 				state.status = "failed";
-				state.error = action.payload ?? "Enrollment processing failed.";
+				state.error = action.payload ?? "Enrolment processing failed.";
 			});
 	},
 });

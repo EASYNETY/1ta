@@ -13,7 +13,7 @@ export interface PaymentRecord {
 	gatewayRef?: string; // Gateway reference number for reconciliation
 	transactionId?: string; // Internal transaction ID for tracking
 	reconciliationStatus?: "pending" | "reconciled" | "disputed" | "failed"; // Reconciliation status
-	description: string; // e.g., "Enrollment: Course Title(s)"
+	description: string; // e.g., "Enrolment: Course Title(s)"
 	createdAt: string; // ISO Date string
 	// Optional: Link to items purchased
 	relatedItemIds?: { type: "course" | "other"; id: string }[];

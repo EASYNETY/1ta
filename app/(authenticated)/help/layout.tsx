@@ -29,7 +29,7 @@ const helpNavigation = [
     title: 'Courses',
     icon: GraduationCap,
     items: [
-      { title: 'Course Enrollment', href: '/help/courses/enrollment' },
+      { title: 'Course Enrolment', href: '/help/courses/enrolment' },
       { title: 'Accessing Course Materials', href: '/help/courses/materials' },
       { title: 'Tracking Your Progress', href: '/help/courses/progress' },
     ]

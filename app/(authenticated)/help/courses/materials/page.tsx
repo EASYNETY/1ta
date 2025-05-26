@@ -30,8 +30,8 @@ import {
 // Define related topics for this help article
 const relatedTopics = [
   {
-    title: 'Course Enrollment',
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment',
+    href: '/help/courses/enrolment',
     description: 'Learn how to browse and enrol in courses'
   },
   {

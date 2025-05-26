@@ -29,8 +29,8 @@ const relatedTopics = [
     description: 'Understanding payment options and status'
   },
   {
-    title: 'Course Enrollment',
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment',
+    href: '/help/courses/enrolment',
     description: 'How students enrol in courses'
   },
 ];
@@ -171,7 +171,7 @@ export default function CustomerCareScanningPage() {
               <li>• Current course title</li>
               <li>• Instructor name</li>
               <li>• Class schedule</li>
-              <li>• Enrollment status</li>
+              <li>• Enrolment status</li>
             </ul>
           </div>
         </div>

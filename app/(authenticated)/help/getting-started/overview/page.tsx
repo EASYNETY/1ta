@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const relatedTopics = [
   { title: 'Navigating the Interface', href: '/help/getting-started/navigation' },
   { title: 'Setting Up Your Account', href: '/help/getting-started/account-setup' },
-  { title: 'Course Enrollment', href: '/help/courses/enrollment' },
+  { title: 'Course Enrolment', href: '/help/courses/enrolment' },
 ];
 
 export default function PlatformOverviewPage() {

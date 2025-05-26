@@ -185,7 +185,7 @@ export default function CourseDetailPage() {
         return `${minutes}m`;
     };
 
-    // Helper function to check if course is available for enrollment
+    // Helper function to check if course is available for enrolment
     const isAvailableForEnrollment = () => {
         return !(currentCourse.isAvailableForEnrollment === false || currentCourse.available_for_enrollment === false);
     };
@@ -193,7 +193,7 @@ export default function CourseDetailPage() {
 
     // Role-specific actions
     const getRoleActions = () => {
-        // Check if course is available for enrollment
+        // Check if course is available for enrolment
         const isAvailable = isAvailableForEnrollment();
 
         switch (user.role) {
@@ -209,7 +209,7 @@ export default function CourseDetailPage() {
                         {!isAvailable && (
                             <DyraneButton variant="outline" size="sm" className="text-green-600 border-green-300 hover:bg-green-50">
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                Enable Enrollment
+                                Enable Enrolment
                             </DyraneButton>
                         )}
                     </div>
@@ -226,7 +226,7 @@ export default function CourseDetailPage() {
                         {!isAvailable && (
                             <DyraneButton variant="outline" size="sm" disabled className="cursor-not-allowed opacity-60">
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                Request Enrollment Activation
+                                Request Enrolment Activation
                             </DyraneButton>
                         )}
                     </div>
@@ -363,14 +363,14 @@ export default function CourseDetailPage() {
                                 <Badge variant="outline" className="bg-primary/10 text-primary">
                                     {currentCourse.category}
                                 </Badge>
-                                {/* Enrollment Status Badge */}
+                                {/* Enrolment Status Badge */}
                                 {!isAvailableForEnrollment() ? (
                                     <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
-                                        Not Available for Enrollment
+                                        Not Available for Enrolment
                                     </Badge>
                                 ) : (
                                     <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
-                                        Available for Enrollment
+                                        Available for Enrolment
                                     </Badge>
                                 )}
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -475,18 +475,18 @@ export default function CourseDetailPage() {
                                             <h3>About this lesson</h3>
                                             <p>{currentLessonObj?.description || "No description available for this lesson."}</p>
 
-                                            {/* Enrollment Status Alert */}
+                                            {/* Enrolment Status Alert */}
                                             {!isAvailableForEnrollment() && (
                                                 <div className="mt-6 p-4 border border-red-200 bg-red-50 text-red-800 rounded-md">
                                                     <h4 className="font-semibold flex items-center">
                                                         <Bell className="mr-2 h-5 w-5" />
-                                                        Enrollment Notice
+                                                        Enrolment Notice
                                                     </h4>
                                                     <p className="mt-1">
                                                         This course is currently not available for new enrollments.
-                                                        {user.role === "student" && " You can request to be notified when enrollment opens."}
-                                                        {user.role === "teacher" && " Please contact an administrator to enable enrollment."}
-                                                        {user.role === "admin" && " You can enable enrollment from the course settings."}
+                                                        {user.role === "student" && " You can request to be notified when enrolment opens."}
+                                                        {user.role === "teacher" && " Please contact an administrator to enable enrolment."}
+                                                        {user.role === "admin" && " You can enable enrolment from the course settings."}
                                                     </p>
                                                 </div>
                                             )}

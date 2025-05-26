@@ -79,7 +79,7 @@ export function ClassEnrollmentButton({
     item.classId === classId || item.courseId === courseId
   )
 
-  // Calculate enrollment status
+  // Calculate enrolment status
   const hasAvailableSlots = availableSlots !== undefined && availableSlots > 0
   const enrollmentHasStarted = enrollmentStartDate
     ? new Date(enrollmentStartDate) <= new Date()
@@ -99,7 +99,7 @@ export function ClassEnrollmentButton({
     ? ((maxSlots - availableSlots) / maxSlots) * 100
     : 0
 
-  // Handle enrollment
+  // Handle enrolment
   const handleEnroll = () => {
     if (isAlreadyInCart) {
       toast({
@@ -150,22 +150,22 @@ export function ClassEnrollmentButton({
     if (!enrollmentHasStarted) {
       return {
         type: "warning",
-        title: "Enrollment Not Yet Open",
-        message: `Enrollment for this class will open on ${formattedEnrollmentStartDate}.`
+        title: "Enrolment Not Yet Open",
+        message: `Enrolment for this class will open on ${formattedEnrollmentStartDate}.`
       }
     }
 
     if (isDisabled && disabledReason) {
       return {
         type: "error",
-        title: "Enrollment Unavailable",
+        title: "Enrolment Unavailable",
         message: disabledReason
       }
     }
 
     return {
       type: "success",
-      title: "Available for Enrollment",
+      title: "Available for Enrolment",
       message: `This class has ${availableSlots} available slots. Enrol now to secure your spot!`
     }
   }
@@ -186,7 +186,7 @@ export function ClassEnrollmentButton({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Class Enrollment</DialogTitle>
+            <DialogTitle>Class Enrolment</DialogTitle>
             <DialogDescription>
               Review class details before enrolling
             </DialogDescription>

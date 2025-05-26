@@ -558,7 +558,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                           disabled
                           className="gap-1.5 cursor-not-allowed opacity-70"
                         >
-                          <span>Not Available for Enrollment</span>
+                          <span>Not Available for Enrolment</span>
                         </DyraneButton>
                       )
                     ) : (

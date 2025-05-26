@@ -345,7 +345,7 @@ export function CourseCards() {
                             <motion.div key="not-available" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                               <Button className="w-full text-base py-3" size="lg" disabled>
                                 <span className="flex items-center justify-center">
-                                  Not Available for Enrollment
+                                  Not Available for Enrolment
                                 </span>
                               </Button>
                             </motion.div>

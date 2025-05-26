@@ -26,14 +26,14 @@ export const searchService = {
         classItem.location?.toLowerCase().includes(lowerQuery) ||
         classItem.schedule?.toLowerCase().includes(lowerQuery)
       ) {
-        // Check if class has available slots and enrollment has started
+        // Check if class has available slots and enrolment has started
         const hasAvailableSlots = classItem.maxSlots && classItem.studentCount
           ? classItem.maxSlots > classItem.studentCount
           : true;
-        const enrollmentStarted = classItem.enrollmentStartDate
-          ? new Date(classItem.enrollmentStartDate) <= new Date()
+        const enrolmentStarted = classItem.enrolmentStartDate
+          ? new Date(classItem.enrolmentStartDate) <= new Date()
           : true;
-        const enrollmentStatus = hasAvailableSlots && enrollmentStarted ? 'open' : 'closed';
+        const enrolmentStatus = hasAvailableSlots && enrolmentStarted ? 'open' : 'closed';
 
         results.push({
           id: classItem.id,
@@ -90,7 +90,7 @@ export const searchService = {
             ...(course.moduleCount && { moduleCount: course.moduleCount }),
             courseId: course.id,
             slug: course.slug,
-            available_for_enrollment: course.available_for_enrollment // Add enrollment availability
+            available_for_enrollment: course.available_for_enrollment // Add enrolment availability
           }
         });
       }

@@ -58,7 +58,7 @@ export default function StudentBiodataReportsPage() {
     <div className="space-y-6">
       <PageHeader
         heading="Student Biodata Reports"
-        subheading="Analyze student demographics and enrollment patterns"
+        subheading="Analyze student demographics and enrolment patterns"
         actions={
           <Button onClick={exportReport} className="flex items-center gap-2">
             <Download className="h-4 w-4" />
@@ -149,7 +149,7 @@ export default function StudentBiodataReportsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="startDate">Enrollment Start Date</Label>
+              <Label htmlFor="startDate">Enrolment Start Date</Label>
               <DatePicker
                 id="startDate"
                 value={filter.startDate ? new Date(filter.startDate) : undefined}
@@ -157,7 +157,7 @@ export default function StudentBiodataReportsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Enrollment End Date</Label>
+              <Label htmlFor="endDate">Enrolment End Date</Label>
               <DatePicker
                 id="endDate"
                 value={filter.endDate ? new Date(filter.endDate) : undefined}
@@ -199,7 +199,7 @@ export default function StudentBiodataReportsPage() {
                   <TableHead>Age</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Account Type</TableHead>
-                  <TableHead>Enrollment Date</TableHead>
+                  <TableHead>Enrolment Date</TableHead>
                   <TableHead>Completion Rate</TableHead>
                 </TableRow>
               </TableHeader>

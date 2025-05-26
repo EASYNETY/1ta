@@ -56,7 +56,7 @@ export default function StudentBiodataDashboard() {
     <div className="space-y-6">
       <PageHeader
         heading="Student Demographics"
-        subheading="Analyze student demographics and enrollment patterns"
+        subheading="Analyze student demographics and enrolment patterns"
         actions={
           <div className="flex gap-2">
             <DyraneButton asChild>
@@ -71,7 +71,7 @@ export default function StudentBiodataDashboard() {
           <TabsList className="mb-4 overflow-x-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="demographics">Demographics</TabsTrigger>
-            <TabsTrigger value="enrollment">Enrollment Trends</TabsTrigger>
+            <TabsTrigger value="enrolment">Enrolment Trends</TabsTrigger>
             <TabsTrigger value="completion">Completion Analysis</TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" />
@@ -449,12 +449,12 @@ export default function StudentBiodataDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="enrollment">
+        <TabsContent value="enrolment">
           <div className="space-y-6">
-            {/* Enrollment Trends Chart */}
+            {/* Enrolment Trends Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Monthly Enrollment Trends</CardTitle>
+                <CardTitle>Monthly Enrolment Trends</CardTitle>
               </CardHeader>
               <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
@@ -509,10 +509,10 @@ export default function StudentBiodataDashboard() {
               </CardContent>
             </Card>
 
-            {/* Enrollment by Course Category */}
+            {/* Enrolment by Course Category */}
             <Card>
               <CardHeader>
-                <CardTitle>Enrollment by Course Category</CardTitle>
+                <CardTitle>Enrolment by Course Category</CardTitle>
               </CardHeader>
               <CardContent className="min-h-80 h-auto">
                 {isLoading ? (

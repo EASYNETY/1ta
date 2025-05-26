@@ -39,8 +39,8 @@ const relatedTopics = [
     description: 'Access and download payment documentation'
   },
   { 
-    title: 'Course Enrollment', 
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment', 
+    href: '/help/courses/enrolment',
     description: 'Learn how to enrol in courses'
   },
 ];
@@ -353,7 +353,7 @@ export default function PaymentMethodsHelpPage() {
           </h4>
           <p className="text-sm text-muted-foreground mt-2">
             Refund policies vary by course. Please check the specific course's refund policy before
-            enrolling. Generally, refunds are available within a limited time period after enrollment
+            enrolling. Generally, refunds are available within a limited time period after enrolment
             and before completing a certain percentage of the course.
           </p>
         </div>
@@ -390,7 +390,7 @@ export default function PaymentMethodsHelpPage() {
               As a student, understanding payment options helps you enrol in courses smoothly:
             </p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Keep your payment methods up to date to avoid enrollment delays</li>
+              <li>Keep your payment methods up to date to avoid enrolment delays</li>
               <li>Save your payment receipts for your records and potential tax purposes</li>
               <li>Check course prices and payment requirements before attempting to enrol</li>
               <li>Contact support promptly if you encounter any payment issues</li>

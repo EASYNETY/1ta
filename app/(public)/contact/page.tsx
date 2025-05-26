@@ -161,7 +161,7 @@ export default function ContactPage() {
                             <SelectContent>
                               <SelectItem value="general">General Inquiry</SelectItem>
                               <SelectItem value="courses">Course Information</SelectItem>
-                              <SelectItem value="enrollment">Enrollment Assistance</SelectItem>
+                              <SelectItem value="enrolment">Enrolment Assistance</SelectItem>
                               <SelectItem value="corporate">Corporate Training</SelectItem>
                               <SelectItem value="technical">Technical Support</SelectItem>
                               <SelectItem value="other">Other</SelectItem>

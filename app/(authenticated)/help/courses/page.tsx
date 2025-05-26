@@ -12,11 +12,11 @@ import { HelpCallout } from '@/components/help';
 // Define the topics for this category
 const topics = [
   { 
-    id: 'enrollment', 
-    title: 'Course Enrollment', 
+    id: 'enrolment', 
+    title: 'Course Enrolment', 
     description: 'Learn how to browse, select, and enrol in courses on the platform.',
-    href: '/help/courses/enrollment',
-    icon: '/images/help/enrollment-icon.jpg'
+    href: '/help/courses/enrolment',
+    icon: '/images/help/enrolment-icon.jpg'
   },
   { 
     id: 'materials', 
@@ -40,7 +40,7 @@ const learningPaths = [
     title: 'New Student Path',
     description: 'If you\'re new to the platform, follow this sequence:',
     steps: [
-      { title: 'Course Enrollment', href: '/help/courses/enrollment' },
+      { title: 'Course Enrolment', href: '/help/courses/enrolment' },
       { title: 'Accessing Course Materials', href: '/help/courses/materials' },
       { title: 'Tracking Your Progress', href: '/help/courses/progress' },
     ]
@@ -50,7 +50,7 @@ const learningPaths = [
     description: 'If you\'re already familiar with the platform:',
     steps: [
       { title: 'Tracking Your Progress', href: '/help/courses/progress' },
-      { title: 'Course Enrollment', href: '/help/courses/enrollment' },
+      { title: 'Course Enrolment', href: '/help/courses/enrolment' },
     ]
   }
 ];
@@ -156,7 +156,7 @@ export default function CoursesHelpPage() {
           <div>
             <h3 className="text-lg font-medium">Can I get a refund if I change my mind about a course?</h3>
             <p className="text-muted-foreground mt-1">
-              Refund policies vary by course. Generally, refunds are available within 7 days of enrollment if you 
+              Refund policies vary by course. Generally, refunds are available within 7 days of enrolment if you 
               haven't accessed more than 25% of the course content. Check the specific refund policy on the course 
               details page.
             </p>
@@ -165,7 +165,7 @@ export default function CoursesHelpPage() {
           <div>
             <h3 className="text-lg font-medium">How long do I have access to course materials?</h3>
             <p className="text-muted-foreground mt-1">
-              Access duration varies by course. Most courses provide access for at least 6 months after enrollment, 
+              Access duration varies by course. Most courses provide access for at least 6 months after enrolment, 
               while some offer lifetime access. The access period is specified on the course details page.
             </p>
           </div>

@@ -335,7 +335,7 @@ Test each feature with the real API:
 Test complete user flows:
 
 1. Registration and login
-2. Course browsing and enrollment
+2. Course browsing and enrolment
 3. Payment processing
 4. Course completion
 

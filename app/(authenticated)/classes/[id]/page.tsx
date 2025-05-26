@@ -214,7 +214,7 @@ export default function ViewClassPage() {
                                 </DyraneCardFooter>
                             </DyraneCard>
 
-                            {/* Enrollment Status */}
+                            {/* Enrolment Status */}
                             {course && (
                                 <ClassEnrollmentStatus
                                     classId={classId}

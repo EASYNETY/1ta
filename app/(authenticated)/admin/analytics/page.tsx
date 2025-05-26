@@ -207,7 +207,7 @@ export default function AnalyticsDashboard() {
               </CardContent>
             </Card>
 
-            {/* Enrollment Distribution Chart */}
+            {/* Enrolment Distribution Chart */}
             <Card>
               <CardHeader>
                 <CardTitle>Course Enrollments</CardTitle>

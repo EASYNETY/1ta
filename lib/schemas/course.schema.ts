@@ -37,8 +37,8 @@ export const courseSchema = z.object({
 	// Media fields
 	image: z.string().optional().nullable(),
 	previewVideoUrl: z.string().optional().nullable(),
-	// Enrollment availability
-	available_for_enrollment: z.boolean().optional().default(true),
+	// Enrolment availability
+	available_for_enrolment: z.boolean().optional().default(true),
 	// USD Pricing
 	price: z.coerce
 		.number()
@@ -110,7 +110,7 @@ export const defaultCourseValues: Partial<CourseFormValues> = {
 	priceNaira: 0,
 	discountPrice: undefined,
 	discountPriceNaira: undefined,
-	available_for_enrollment: true,
+	available_for_enrolment: true,
 	language: "English",
 	certificate: true,
 	accessType: "Lifetime",

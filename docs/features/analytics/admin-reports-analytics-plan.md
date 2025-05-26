@@ -42,7 +42,7 @@ The admin reports and analytics system will provide a comprehensive set of tools
 ### 3. Data Visualization
 - Interactive charts using Recharts library
 - Trend analysis with historical data
-- Predictive analytics for enrollment and revenue projections
+- Predictive analytics for enrolment and revenue projections
 - Demographic visualizations for student population analysis
 
 ## Data Sources
@@ -186,7 +186,7 @@ Report pages will include:
 - Payment history and status
 
 ### 2. Course Reports
-- Enrollment statistics
+- Enrolment statistics
 - Completion rates
 - Revenue generation
 - Student satisfaction metrics
@@ -207,7 +207,7 @@ Report pages will include:
 - Demographic information (age, gender)
 - Corporate vs. individual distribution
 - Geographic distribution
-- Enrollment trends and projections
+- Enrolment trends and projections
 
 ## Analytics Features
 
@@ -218,7 +218,7 @@ Report pages will include:
 - Year-over-year comparisons
 
 ### 2. Predictive Analytics
-- Enrollment projections
+- Enrolment projections
 - Revenue forecasting
 - Completion rate predictions
 - Retention analysis
@@ -331,7 +331,7 @@ This step-by-step implementation plan outlines the sequence of tasks to efficien
     - Create printable report views
 
 13. **Add Predictive Analytics**
-    - Implement enrollment trend projections
+    - Implement enrolment trend projections
     - Add revenue forecasting
     - Create completion rate predictions
     - Build retention analysis tools
@@ -382,7 +382,7 @@ This step-by-step implementation plan outlines the sequence of tasks to efficien
 
 2. **Data Requirements**
    - Student demographic data available in API
-   - Course enrollment and completion data
+   - Course enrolment and completion data
    - Payment transaction history
    - Attendance records with timestamps
 

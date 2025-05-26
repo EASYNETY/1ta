@@ -47,8 +47,8 @@ export function deriveDashboardStats(state: RootState): DashboardStats {
   // Course stats
   const totalCourses = courses.length;
 
-  // Define enrollment type
-  interface Enrollment {
+  // Define enrolment type
+  interface Enrolment {
     studentId: string;
     courseId: string;
     progress?: number;
@@ -56,15 +56,15 @@ export function deriveDashboardStats(state: RootState): DashboardStats {
   }
 
   // Create mock enrollments array
-  const courseEnrollments: Enrollment[] = [];
+  const courseEnrollments: Enrolment[] = [];
 
   // Calculate average completion rate
   let totalCompletionRate = 0;
   let completionCount = 0;
 
-  courseEnrollments.forEach((enrollment: Enrollment) => {
-    if (enrollment.progress && enrollment.progress > 0) {
-      totalCompletionRate += enrollment.progress;
+  courseEnrollments.forEach((enrolment: Enrolment) => {
+    if (enrolment.progress && enrolment.progress > 0) {
+      totalCompletionRate += enrolment.progress;
       completionCount++;
     }
   });
@@ -302,8 +302,8 @@ export function deriveStudentReports(
   // Default empty values for safety
   const students = state.auth?.users?.filter(user => user.role === "student") || [];
 
-  // Define enrollment type
-  interface Enrollment {
+  // Define enrolment type
+  interface Enrolment {
     studentId: string;
     courseId: string;
     progress?: number;
@@ -311,7 +311,7 @@ export function deriveStudentReports(
   }
 
   // Create mock enrollments array
-  const enrollments: Enrollment[] = [];
+  const enrollments: Enrolment[] = [];
 
   // Define payment type
   interface Payment {
@@ -361,9 +361,9 @@ export function deriveStudentReports(
 
   if (filter.courseId) {
     filteredStudents = filteredStudents.filter(student =>
-      enrollments.some((enrollment: Enrollment) =>
-        enrollment.studentId === student.id &&
-        enrollment.courseId === filter.courseId
+      enrollments.some((enrolment: Enrolment) =>
+        enrolment.studentId === student.id &&
+        enrolment.courseId === filter.courseId
       )
     );
   }
@@ -378,22 +378,22 @@ export function deriveStudentReports(
   const reports: StudentReport[] = filteredStudents.map(student => {
     // Get student enrollments
     const studentEnrollments = enrollments.filter(
-      (enrollment: Enrollment) => enrollment.studentId === student.id
+      (enrolment: Enrolment) => enrolment.studentId === student.id
     );
 
     // Calculate courses enrolled and completed
     const coursesEnrolled = studentEnrollments.length;
     const coursesCompleted = studentEnrollments.filter(
-      (enrollment: Enrollment) => enrollment.progress === 100
+      (enrolment: Enrolment) => enrolment.progress === 100
     ).length;
 
     // Calculate average grade
     let totalGrade = 0;
     let gradeCount = 0;
 
-    studentEnrollments.forEach((enrollment: Enrollment) => {
-      if (enrollment.grade && enrollment.grade > 0) {
-        totalGrade += enrollment.grade;
+    studentEnrollments.forEach((enrolment: Enrolment) => {
+      if (enrolment.grade && enrolment.grade > 0) {
+        totalGrade += enrolment.grade;
         gradeCount++;
       }
     });

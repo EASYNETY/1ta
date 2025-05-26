@@ -165,7 +165,7 @@ export function CoursesSection() {
                 >
                     <SectionHeader
                         title="Current Courses"
-                        description="Courses currently available for enrollment"
+                        description="Courses currently available for enrolment"
                     />
                     <motion.div
                         variants={containerVariants}

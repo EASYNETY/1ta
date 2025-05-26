@@ -185,7 +185,7 @@ app/(authenticated)/help/
 │   ├── navigation/
 │   └── account-setup/
 ├── courses/
-│   ├── enrollment/
+│   ├── enrolment/
 │   ├── materials/
 │   └── progress/
 ├── attendance/

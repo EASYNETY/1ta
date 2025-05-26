@@ -69,10 +69,10 @@ export function ClassAvailabilityNotification({
     }
   }, [availableSlots, pendingEntries, dispatch, notifiedEntries]);
 
-  // Handle enrollment from waitlist
+  // Handle enrolment from waitlist
   const handleEnroll = () => {
     toast({
-      title: "Enrollment Started",
+      title: "Enrolment Started",
       description: `You're being enrolled in ${courseTitle} from the waitlist.`,
       variant: "success"
     });

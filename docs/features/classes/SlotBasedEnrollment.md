@@ -1,16 +1,16 @@
-# Slot-Based Enrollment System with Waitlist
+# Slot-Based Enrolment System with Waitlist
 
 ## Overview
 
-This document provides a comprehensive guide to the enhanced slot-based enrollment system with waitlist functionality. The system allows students to join a waitlist when classes are full and receive notifications when slots become available.
+This document provides a comprehensive guide to the enhanced slot-based enrolment system with waitlist functionality. The system allows students to join a waitlist when classes are full and receive notifications when slots become available.
 
 ## Key Features
 
-1. **Slot-Based Enrollment**: Classes have a maximum number of slots and track available slots in real-time
+1. **Slot-Based Enrolment**: Classes have a maximum number of slots and track available slots in real-time
 2. **Waitlist Management**: Students can join a waitlist when classes are full
 3. **Availability Notifications**: Students receive notifications when slots become available
-4. **Enrollment Status Tracking**: The system tracks enrollment status for each student
-5. **Class-Specific Enrollment**: Enrollment is managed at the class level rather than the course level
+4. **Enrolment Status Tracking**: The system tracks enrolment status for each student
+5. **Class-Specific Enrolment**: Enrolment is managed at the class level rather than the course level
 
 ## Table of Contents
 
@@ -22,11 +22,11 @@ This document provides a comprehensive guide to the enhanced slot-based enrollme
 
 ## Components
 
-The slot-based enrollment system includes several React components that work together to provide a seamless enrollment experience:
+The slot-based enrolment system includes several React components that work together to provide a seamless enrolment experience:
 
 ### ClassEnrollmentButton
 
-This component handles the enrollment process for a class. It checks for available slots and enrollment start dates before allowing enrollment.
+This component handles the enrolment process for a class. It checks for available slots and enrolment start dates before allowing enrolment.
 
 ```tsx
 <ClassEnrollmentButton
@@ -41,10 +41,10 @@ This component handles the enrollment process for a class. It checks for availab
 ```
 
 Key features:
-- Checks if enrollment has started
+- Checks if enrolment has started
 - Verifies available slots
-- Handles enrollment through the cart system
-- Displays enrollment status and details
+- Handles enrolment through the cart system
+- Displays enrolment status and details
 
 ### ClassWaitlistButton
 
@@ -84,11 +84,11 @@ This component displays a notification when slots become available for students 
 Key features:
 - Automatically detects when slots become available
 - Notifies waitlisted students in order
-- Provides a direct enrollment option from the notification
+- Provides a direct enrolment option from the notification
 
 ### ClassEnrollmentStatus
 
-This component displays the enrollment status of a class, including available slots, waitlist status, and enrollment options.
+This component displays the enrolment status of a class, including available slots, waitlist status, and enrolment options.
 
 ```tsx
 <ClassEnrollmentStatus
@@ -108,13 +108,13 @@ This component displays the enrollment status of a class, including available sl
 
 Key features:
 - Displays available slots with a progress bar
-- Shows enrollment status (open, full, coming soon, etc.)
-- Integrates enrollment and waitlist buttons
+- Shows enrolment status (open, full, coming soon, etc.)
+- Integrates enrolment and waitlist buttons
 - Displays class schedule and location information
 
 ## State Management
 
-The slot-based enrollment system uses Redux for state management. The following slices are involved:
+The slot-based enrolment system uses Redux for state management. The following slices are involved:
 
 ### Classes Slice
 
@@ -152,12 +152,12 @@ Key actions:
 
 ### Cart Slice
 
-The cart slice has been updated to handle class-based enrollment:
+The cart slice has been updated to handle class-based enrolment:
 
 ```typescript
 export interface CartItem {
   courseId: string;
-  classId?: string; // Added for class-based enrollment
+  classId?: string; // Added for class-based enrolment
   title: string;
   price: number;
   discountPrice?: number;
@@ -199,7 +199,7 @@ When slots become available, the system notifies students on the waitlist:
 
 ## Integration with Cart
 
-The slot-based enrollment system integrates with the cart system to handle enrollment:
+The slot-based enrolment system integrates with the cart system to handle enrolment:
 
 1. When a student clicks "Enrol Now", the class is added to the cart
 2. The cart item includes both courseId and classId
@@ -208,7 +208,7 @@ The slot-based enrollment system integrates with the cart system to handle enrol
 
 ## Usage Examples
 
-### Basic Enrollment Button
+### Basic Enrolment Button
 
 ```tsx
 import { ClassEnrollmentButton } from '@/components/classes/ClassEnrollmentButton';
@@ -230,7 +230,7 @@ export default function ClassDetailsPage({ classData }) {
 }
 ```
 
-### Complete Enrollment Status Display
+### Complete Enrolment Status Display
 
 ```tsx
 import { ClassEnrollmentStatus } from '@/components/classes/ClassEnrollmentStatus';
@@ -269,6 +269,6 @@ export default function ClassDetailsPage({ classData }) {
 
 ## Conclusion
 
-The slot-based enrollment system with waitlist functionality provides a comprehensive solution for managing class enrollments. By implementing this system, educational institutions can efficiently manage class capacity, provide a fair enrollment process, and improve the student experience.
+The slot-based enrolment system with waitlist functionality provides a comprehensive solution for managing class enrollments. By implementing this system, educational institutions can efficiently manage class capacity, provide a fair enrolment process, and improve the student experience.
 
 The system is designed to be flexible and can be integrated into various parts of the application, from class details pages to search results and course listings.

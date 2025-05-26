@@ -174,7 +174,7 @@ export default function CorporateManagementDashboardPage() {
                        )} */}
                 </Card>
 
-                {/* TODO: Add Class Enrollment Management Section */}
+                {/* TODO: Add Class Enrolment Management Section */}
 
             </div>
 

@@ -40,8 +40,8 @@ const relatedTopics = [
     description: 'Complete your profile and configure your account settings'
   },
   { 
-    title: 'Course Enrollment', 
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment', 
+    href: '/help/courses/enrolment',
     description: 'Learn how to browse and enrol in courses'
   },
 ];

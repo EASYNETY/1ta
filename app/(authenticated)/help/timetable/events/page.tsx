@@ -40,8 +40,8 @@ const relatedTopics = [
     description: 'Set up reminders for your scheduled events'
   },
   { 
-    title: 'Course Enrollment', 
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment', 
+    href: '/help/courses/enrolment',
     description: 'Learn how to enrol in courses that will appear in your schedule'
   },
 ];

@@ -36,7 +36,7 @@ The SmartEdu platform follows a set of core UI design principles that create an 
 **Example:** Course card interactions:
 - Card slightly elevates on hover
 - Button changes color when pressed
-- Enrollment status badge animates when updated
+- Enrolment status badge animates when updated
 
 ### 3. Motion Design
 

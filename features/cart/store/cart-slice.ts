@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 export interface CartItem {
 	courseId: string;
-	classId?: string; // Added for class-based enrollment
+	classId?: string; // Added for class-based enrolment
 	title: string;
 	price: number;
 	discountPrice?: number;

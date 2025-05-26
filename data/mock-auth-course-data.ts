@@ -157,16 +157,16 @@ export interface Assignment {
 
 export interface AuthCourse extends PublicCourse {
 	modules: AuthModule[]; // Override modules with the authenticated structure
-	enrollmentStatus: "enrolled" | "not_enrolled" | "pending";
+	enrolmentStatus: "enrolled" | "not_enrolled" | "pending";
 	progress: number; // Percentage completion (0-100)
 	completedLessons: string[]; // Array of completed lesson IDs
 	quizScores: Record<string, number>; // quizId: score
 	notes: any[]; // Define a specific Note type if possible
 	discussions: any[]; // Define a specific Discussion thread type if possible
 	assignments?: Assignment[];
-	enrollmentDate?: string; // ISO date string
+	enrolmentDate?: string; // ISO date string
 	lastAccessed?: string; // ISO date string
-	isAvailableForEnrollment?: boolean; // Whether the course is available for enrollment
+	isAvailableForEnrolment?: boolean; // Whether the course is available for enrolment
 }
 
 // --- Public Mock Course Data Generation ---
@@ -918,7 +918,7 @@ export let mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
 		const authCourse: AuthCourse = {
 			...publicCourse, // Spread all properties from PublicCourse
 			modules: authModules, // Override with detailed AuthModule structure
-			enrollmentStatus: "enrolled",
+			enrolmentStatus: "enrolled",
 			progress: progress,
 			completedLessons: [], // Initially empty
 			quizScores: {}, // Initially empty

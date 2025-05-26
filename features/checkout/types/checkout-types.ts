@@ -29,7 +29,7 @@ export interface CheckoutState {
 	skipCheckout: boolean; // To skip checkout process
 }
 
-// Payload for the enrollment thunk after payment success
+// Payload for the enrolment thunk after payment success
 export interface EnrollCoursesPayload {
 	userId: string;
 	courseIds: string[];
@@ -39,7 +39,7 @@ export interface EnrollCoursesPayload {
 	corporateStudentCount?: number; // Number of students for corporate managers
 }
 
-// Response type from backend enrollment endpoint
+// Response type from backend enrolment endpoint
 export interface EnrollCoursesResponse {
 	success: boolean;
 	message?: string;

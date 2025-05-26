@@ -164,7 +164,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                                 </DyraneButton>
                             ) : (
                                 <DyraneButton size="lg" disabled className="cursor-not-allowed opacity-70">
-                                    <span className="text-sm">Not Available for Enrollment</span>
+                                    <span className="text-sm">Not Available for Enrolment</span>
                                 </DyraneButton>
                             )}
                         </div>

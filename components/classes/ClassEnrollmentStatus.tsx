@@ -57,7 +57,7 @@ export function ClassEnrollmentStatus({
   // Calculate available slots
   const availableSlots = maxSlots ? maxSlots - studentCount : undefined
 
-  // Check if enrollment has started
+  // Check if enrolment has started
   const enrollmentHasStarted = enrollmentStartDate
     ? new Date(enrollmentStartDate) <= new Date()
     : true
@@ -80,7 +80,7 @@ export function ClassEnrollmentStatus({
     entry.status === 'pending' || entry.status === 'notified'
   ).length
 
-  // Determine enrollment status
+  // Determine enrolment status
   const getEnrollmentStatus = () => {
     if (status === 'inactive' || status === 'cancelled') {
       return {
@@ -112,7 +112,7 @@ export function ClassEnrollmentStatus({
 
     if (status === 'upcoming') {
       return {
-        label: 'Open for Enrollment',
+        label: 'Open for Enrolment',
         color: 'success'
       }
     }
@@ -130,7 +130,7 @@ export function ClassEnrollmentStatus({
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
-            <CardTitle>Enrollment Status</CardTitle>
+            <CardTitle>Enrolment Status</CardTitle>
             <Badge variant={
               enrollmentStatus.color as 'default' | 'secondary' | 'destructive' | 'outline'
             }>
@@ -139,7 +139,7 @@ export function ClassEnrollmentStatus({
           </div>
           <CardDescription>
             {!enrollmentHasStarted && formattedEnrollmentStartDate
-              ? `Enrollment opens on ${formattedEnrollmentStartDate}`
+              ? `Enrolment opens on ${formattedEnrollmentStartDate}`
               : availableSlots !== undefined && availableSlots <= 0
                 ? 'This class is currently full'
                 : 'Enrol in this class to secure your spot'
@@ -237,8 +237,8 @@ export function ClassEnrollmentStatus({
               isDisabled={!enrollmentHasStarted || status === 'inactive' || status === 'cancelled' || status === 'archived'}
               disabledReason={
                 !enrollmentHasStarted
-                  ? `Enrollment opens on ${formattedEnrollmentStartDate}`
-                  : 'This class is not available for enrollment'
+                  ? `Enrolment opens on ${formattedEnrollmentStartDate}`
+                  : 'This class is not available for enrolment'
               }
               buttonText="Enrol now"
               buttonVariant="default"

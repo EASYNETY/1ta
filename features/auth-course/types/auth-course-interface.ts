@@ -18,8 +18,8 @@ export interface AuthCourse {
 	};
 	level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
 	tags?: string[];
-	available_for_enrollment?: boolean; // Whether the course is available for enrollment
-	isAvailableForEnrollment?: boolean; // Alternative field name for available_for_enrollment
+	available_for_enrolment?: boolean; // Whether the course is available for enrolment
+	isAvailableForEnrolment?: boolean; // Alternative field name for available_for_enrolment
 	priceUSD: number;
 	priceNaira?: number; // Price in Naira
 	discountPriceUSD?: number;
@@ -124,8 +124,8 @@ export interface AuthCourse {
 	};
 	level: "Beginner" | "Intermediate" | "Advanced" | "All Levels";
 	tags?: string[];
-	available_for_enrollment?: boolean; // Whether the course is available for enrollment
-	isAvailableForEnrollment?: boolean; // Alternative field name for available_for_enrollment
+	available_for_enrolment?: boolean; // Whether the course is available for enrolment
+	isAvailableForEnrolment?: boolean; // Alternative field name for available_for_enrolment
 	priceUSD: number;
 	priceNaira?: number; // Price in Naira
 	discountPriceUSD?: number;
@@ -142,8 +142,8 @@ export interface AuthCourse {
 	supportType?: "Instructor" | "Community" | "Both" | "None";
 
 	// Auth-specific fields (Add missing ones here)
-	enrollmentStatus: "enrolled" | "not_enrolled" | "pending"; // <-- ADDED
-	enrollmentDate?: string;
+	enrolmentStatus: "enrolled" | "not_enrolled" | "pending"; // <-- ADDED
+	enrolmentDate?: string;
 	expiryDate?: string;
 	progress?: number; // 0-100
 	lastAccessedDate?: string;

@@ -112,7 +112,7 @@ export function DashboardStats() {
     return new Date(e.startTime) > new Date();
   }).length;
 
-  // For courses, check the correct enrollment status values
+  // For courses, check the correct enrolment status values
   const completedCourses = safeFilter(courses, c => {
     if (c?.enrollmentStatus !== 'enrolled') return false;
     return c.progress === 100;

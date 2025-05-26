@@ -27,7 +27,7 @@ const supportFormSchema = z.object({
 
 // FAQ categories and data
 const faqCategories = [
-  { id: 'enrollment', label: 'Enrollment & Access', icon: BookOpen },
+  { id: 'enrolment', label: 'Enrolment & Access', icon: BookOpen },
   { id: 'courses', label: 'Courses & Content', icon: GraduationCap },
   { id: 'payments', label: 'Payments & Billing', icon: CreditCard },
   { id: 'account', label: 'Account & Profile', icon: User },
@@ -35,10 +35,10 @@ const faqCategories = [
 ];
 
 const faqItemsByCategory = {
-  enrollment: [
+  enrolment: [
     {
       question: 'How do I enrol in a course?',
-      answer: 'You can enrol in a course by navigating to the Courses section, selecting your desired course, and clicking the "Enrol" button. Follow the prompts to complete your enrollment.'
+      answer: 'You can enrol in a course by navigating to the Courses section, selecting your desired course, and clicking the "Enrol" button. Follow the prompts to complete your enrolment.'
     },
     {
       question: 'How long do I have access to a course after enrolling?',
@@ -46,7 +46,7 @@ const faqItemsByCategory = {
     },
     {
       question: 'Can I enrol in multiple courses at once?',
-      answer: 'Yes, you can enrol in multiple courses simultaneously. Each course will be accessible from your dashboard after enrollment.'
+      answer: 'Yes, you can enrol in multiple courses simultaneously. Each course will be accessible from your dashboard after enrolment.'
     },
   ],
   courses: [
@@ -74,7 +74,7 @@ const faqItemsByCategory = {
     },
     {
       question: 'Can I get a refund if I\'m not satisfied with a course?',
-      answer: 'Yes, we offer a 7-day money-back guarantee for most courses. Please contact our support team within 7 days of enrollment if you wish to request a refund.'
+      answer: 'Yes, we offer a 7-day money-back guarantee for most courses. Please contact our support team within 7 days of enrolment if you wish to request a refund.'
     },
     {
       question: 'Do you offer any discounts or promotions?',
@@ -117,7 +117,7 @@ const faqItemsByCategory = {
 
 export default function SupportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('enrollment');
+  const [selectedCategory, setSelectedCategory] = useState<string>('enrolment');
   const [searchQuery, setSearchQuery] = useState('');
 
   const form = useForm<z.infer<typeof supportFormSchema>>({

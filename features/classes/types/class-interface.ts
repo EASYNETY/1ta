@@ -26,7 +26,7 @@ export interface ClassWithCourse extends Class {
     description: string;
     category: string;
     is_iso_certification: boolean;
-    available_for_enrollment: boolean;
+    available_for_enrolment: boolean;
     image_url: string;
     icon_url: string;
   };
@@ -38,26 +38,26 @@ export interface ClassWithCourse extends Class {
   };
 }
 
-export interface ClassEnrollment {
+export interface ClassEnrolment {
   id: string;
   class_id: string;
   student_id: string;
-  enrollment_date: string;
+  enrolment_date: string;
   status: string; // 'active', 'completed', 'dropped', etc.
   created_at: string;
   updated_at: string;
 }
 
-export interface EnrollmentRequest {
+export interface EnrolmentRequest {
   class_id: string;
   student_id: string;
 }
 
-export interface EnrollmentResponse {
+export interface EnrolmentResponse {
   success: boolean;
   message: string;
   data?: {
-    enrollment: ClassEnrollment;
+    enrolment: ClassEnrolment;
     class: Class;
   };
   error?: string;

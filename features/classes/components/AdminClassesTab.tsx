@@ -152,7 +152,7 @@ const AdminClassesTab: React.FC = () => {
                                     <TableHead className="font-medium text-gray-600 dark:text-gray-300">Class Name</TableHead>
                                     <TableHead className="font-medium text-gray-600 dark:text-gray-300">Course</TableHead>
                                     <TableHead className="font-medium text-gray-600 dark:text-gray-300">Instructor</TableHead>
-                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300 text-center">Enrollment</TableHead>
+                                    <TableHead className="font-medium text-gray-600 dark:text-gray-300 text-center">Enrolment</TableHead>
                                     <TableHead className="font-medium text-gray-600 dark:text-gray-300">Schedule</TableHead>
                                     <TableHead className="font-medium text-gray-600 dark:text-gray-300">Status</TableHead>
                                     <TableHead className="font-medium text-gray-600 dark:text-gray-300 text-right">Actions</TableHead>

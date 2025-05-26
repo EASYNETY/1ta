@@ -20,7 +20,7 @@ const relatedTopics = [
   {
     title: 'Accessing Course Materials',
     href: '/help/courses/materials',
-    description: 'Learn how to access course content after enrollment'
+    description: 'Learn how to access course content after enrolment'
   },
   {
     title: 'Tracking Your Progress',
@@ -30,7 +30,7 @@ const relatedTopics = [
   {
     title: 'Payment Methods',
     href: '/help/payments/methods',
-    description: 'Available payment options for course enrollment'
+    description: 'Available payment options for course enrolment'
   },
 ];
 
@@ -38,13 +38,13 @@ export default function CourseEnrollmentPage() {
   return (
     <div className="mx-auto py-6 space-y-6">
       <ArticleHeader
-        title="Course Enrollment"
+        title="Course Enrolment"
         icon={GraduationCap}
         description="Learn how to browse, select, and enrol in courses on the platform."
         breadcrumbs={[
           { label: 'Help Center', href: '/help' },
           { label: 'Courses', href: '/help/courses' },
-          { label: 'Course Enrollment' },
+          { label: 'Course Enrolment' },
         ]}
       />
 
@@ -56,16 +56,16 @@ export default function CourseEnrollmentPage() {
             and enrol in specific class sessions that match your interests, goals, and schedule.
           </p>
 
-          <HelpCallout type="important" title="Course vs. Class Enrollment">
-            Our platform uses a class-based enrollment system. This means you don't just enrol in a course;
+          <HelpCallout type="important" title="Course vs. Class Enrolment">
+            Our platform uses a class-based enrolment system. This means you don't just enrol in a course;
             you enrol in a specific class session of that course. Each class has its own schedule, instructor,
             and limited number of available slots.
           </HelpCallout>
 
           <HelpImage
-            src="/images/help/course-enrollment.jpg"
-            alt="Course enrollment page showing available courses"
-            caption="The course catalog page displaying available courses for enrollment"
+            src="/images/help/course-enrolment.jpg"
+            alt="Course enrolment page showing available courses"
+            caption="The course catalog page displaying available courses for enrolment"
           />
 
           <h2 id="finding-courses" className="text-2xl font-bold mt-8">Finding Courses</h2>
@@ -95,7 +95,7 @@ export default function CourseEnrollmentPage() {
             revisit them later when you're ready to enrol.
           </HelpCallout>
 
-          <h2 id="enrollment-process" className="text-2xl font-bold mt-8">Enrollment Process</h2>
+          <h2 id="enrolment-process" className="text-2xl font-bold mt-8">Enrolment Process</h2>
           <Separator className="my-2" />
 
           <StepByStepGuide title="How to Enrol in a Course" description="Follow these steps to successfully enrol in a course:">
@@ -106,7 +106,7 @@ export default function CourseEnrollmentPage() {
               <HelpImage
                 src="/images/help/course-details.jpg"
                 alt="Course details page"
-                caption="Course details page showing curriculum, instructor, and enrollment options"
+                caption="Course details page showing curriculum, instructor, and enrolment options"
                 className="mt-4"
               />
             </Step>
@@ -120,7 +120,7 @@ export default function CourseEnrollmentPage() {
                 <li>Instructor name</li>
                 <li>Location (physical or virtual)</li>
                 <li>Available slots</li>
-                <li>Enrollment status (open or closed)</li>
+                <li>Enrolment status (open or closed)</li>
               </ul>
             </Step>
 
@@ -129,7 +129,7 @@ export default function CourseEnrollmentPage() {
               <ul className="list-disc pl-6 space-y-1 mt-2">
                 <li>Classes have limited slots that fill on a first-come, first-served basis</li>
                 <li>Some classes may be full (no available slots)</li>
-                <li>Some classes may not be open for enrollment yet</li>
+                <li>Some classes may not be open for enrolment yet</li>
                 <li>Different classes may have different instructors or schedules</li>
               </ul>
 
@@ -178,7 +178,7 @@ export default function CourseEnrollmentPage() {
                   <li>Check course prerequisites to ensure you meet the requirements</li>
                   <li>Review the class schedule to confirm you can attend all sessions</li>
                   <li>Check that the class has available slots before attempting to enrol</li>
-                  <li>Verify that enrollment is open for the class (some classes have specific enrollment start dates)</li>
+                  <li>Verify that enrolment is open for the class (some classes have specific enrolment start dates)</li>
                   <li>Consider your workload before enrolling in multiple classes simultaneously</li>
                   <li>Some courses offer a preview or free introduction to help you decide</li>
                 </ul>
@@ -192,15 +192,15 @@ export default function CourseEnrollmentPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">For Teachers</h3>
                 <p>
-                  As a teacher, you can view enrollment statistics for your classes and manage student access:
+                  As a teacher, you can view enrolment statistics for your classes and manage student access:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Monitor available slots and enrollment numbers from your Teacher Dashboard</li>
+                  <li>Monitor available slots and enrolment numbers from your Teacher Dashboard</li>
                   <li>Review student profiles as they enrol in your classes</li>
-                  <li>Set maximum slots for your classes to control enrollment capacity</li>
-                  <li>Set enrollment start dates to control when students can begin enrolling</li>
+                  <li>Set maximum slots for your classes to control enrolment capacity</li>
+                  <li>Set enrolment start dates to control when students can begin enrolling</li>
                   <li>Configure class visibility (public, private, etc.) to control who can see and enrol in your classes</li>
-                  <li>Manually approve enrollments if you've enabled this option</li>
+                  <li>Manually approve enrolments if you've enabled this option</li>
                 </ul>
                 <HelpCallout type="important">
                   If you need to make changes to your class after students have enrolled, be sure to notify them
@@ -212,13 +212,13 @@ export default function CourseEnrollmentPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">For Administrators</h3>
                 <p>
-                  As an administrator, you have full control over class enrollments:
+                  As an administrator, you have full control over class enrolments:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li>Manage enrollment settings for all classes (slots, visibility, start dates)</li>
+                  <li>Manage enrolment settings for all classes (slots, visibility, start dates)</li>
                   <li>Override slot limitations when necessary</li>
                   <li>Process refunds or transfers between classes</li>
-                  <li>Generate enrollment reports and analytics</li>
+                  <li>Generate enrolment reports and analytics</li>
                   <li>Manually enrol or remove students from classes</li>
                   <li>Adjust maximum slots for classes based on demand</li>
                 </ul>
@@ -227,18 +227,18 @@ export default function CourseEnrollmentPage() {
                   <ul className="list-disc pl-6 space-y-1 mt-2">
                     <li>The class has available slots or you override the slot limitation</li>
                     <li>Payment records are properly updated to maintain accurate financial reporting</li>
-                    <li>The student is notified about their enrollment</li>
+                    <li>The student is notified about their enrolment</li>
                   </ul>
                 </HelpCallout>
               </div>
             }
           />
 
-          <h2 id="troubleshooting" className="text-2xl font-bold mt-8">Troubleshooting Enrollment Issues</h2>
+          <h2 id="troubleshooting" className="text-2xl font-bold mt-8">Troubleshooting Enrolment Issues</h2>
           <Separator className="my-2" />
 
           <p>
-            If you encounter any issues during the enrollment process, try these solutions:
+            If you encounter any issues during the enrolment process, try these solutions:
           </p>
 
           <div className="space-y-4 mt-4">
@@ -264,10 +264,10 @@ export default function CourseEnrollmentPage() {
             </div>
 
             <div>
-              <h3 className="font-medium">Enrollment Not Yet Open</h3>
+              <h3 className="font-medium">Enrolment Not Yet Open</h3>
               <p className="text-muted-foreground">
-                Some classes have specific enrollment start dates. If enrollment is not yet open, you'll see this
-                indicated on the class details. Make a note of the enrollment start date and return when enrollment opens.
+                Some classes have specific enrolment start dates. If enrolment is not yet open, you'll see this
+                indicated on the class details. Make a note of the enrolment start date and return when enrolment opens.
               </p>
             </div>
 
@@ -281,7 +281,7 @@ export default function CourseEnrollmentPage() {
           </div>
 
           <HelpCallout type="important" title="Need Assistance?">
-            If you continue to experience issues with course enrollment, please contact our support team through
+            If you continue to experience issues with course enrolment, please contact our support team through
             the Support section in your account or by clicking <a href="/support/create" className="text-primary hover:underline">here</a>.
           </HelpCallout>
         </article>

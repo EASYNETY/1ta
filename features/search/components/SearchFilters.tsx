@@ -87,8 +87,8 @@ const STATUS_OPTIONS = {
     { value: "refunded", label: "Refunded" }
   ],
   class: [
-    { value: "open", label: "Open for Enrollment" },
-    { value: "closed", label: "Closed for Enrollment" },
+    { value: "open", label: "Open for Enrolment" },
+    { value: "closed", label: "Closed for Enrolment" },
     { value: "active", label: "Active" },
     { value: "upcoming", label: "Upcoming" },
     { value: "completed", label: "Completed" }
@@ -424,20 +424,20 @@ export function SearchFilters() {
                       </label>
                     </div>
 
-                    {/* Enrollment Started Filter */}
+                    {/* Enrolment Started Filter */}
                     <div className="flex items-center gap-2">
                       <Checkbox
-                        id="enrollment-started"
+                        id="enrolment-started"
                         checked={filters.enrollmentStarted}
                         onCheckedChange={(checked) =>
                           dispatch(setFilters({ enrollmentStarted: checked === true ? true : undefined }))
                         }
                       />
                       <label
-                        htmlFor="enrollment-started"
+                        htmlFor="enrolment-started"
                         className="text-sm cursor-pointer"
                       >
-                        Enrollment has started
+                        Enrolment has started
                       </label>
                     </div>
 

@@ -15,7 +15,7 @@ let mockPayments: PaymentRecord[] = [
 		status: "succeeded",
 		provider: "paystack",
 		providerReference: "mock_trxref_abc1_success",
-		description: "Enrollment: PMP® Certification Training",
+		description: "Enrolment: PMP® Certification Training",
 		createdAt: formatISO(subDays(new Date(), 30)), // 30 days ago
 		relatedItemIds: [{ type: "course", id: "1" }], // Link to course ID '1'
 		cardType: "visa",
@@ -47,7 +47,7 @@ let mockPayments: PaymentRecord[] = [
 		status: "failed", // Example: Failed payment
 		provider: "mock", // Using mock provider
 		providerReference: "mock_trxref_def2_fail",
-		description: "Enrollment Attempt: Web Dev Bootcamp",
+		description: "Enrolment Attempt: Web Dev Bootcamp",
 		createdAt: formatISO(subDays(new Date(), 45)),
 		relatedItemIds: [{ type: "course", id: "webdev_101" }],
 		cardType: "mastercard",
@@ -62,7 +62,7 @@ let mockPayments: PaymentRecord[] = [
 		status: "succeeded",
 		provider: "paystack",
 		providerReference: "mock_trxref_ghi3_success",
-		description: "Enrollment: Intro to Python", // Another course
+		description: "Enrolment: Intro to Python", // Another course
 		createdAt: formatISO(subMonths(new Date(), 4)), // Older payment
 		relatedItemIds: [{ type: "course", id: "python_101" }], // Link to different course
 		cardType: "visa",
@@ -77,7 +77,7 @@ let mockPayments: PaymentRecord[] = [
 		status: "succeeded",
 		provider: "corporate", // Specific provider type for corporate billing
 		providerReference: "corp_acc_xyz", // Reference corporate account
-		description: "Enrollment (Corporate): PMP® Certification Training",
+		description: "Enrolment (Corporate): PMP® Certification Training",
 		createdAt: formatISO(subDays(new Date(), 10)),
 		relatedItemIds: [{ type: "course", id: "1" }], // Link to course ID '1'
 		// No card details for corporate

@@ -27,14 +27,14 @@ type CourseStatusType = {
 };
 
 const getCourseStatus = (course: AuthCourse): CourseStatusType => {
-    // Check if the course is available for enrollment
+    // Check if the course is available for enrolment
     const isAvailable = course.available_for_enrollment !== undefined
         ? course.available_for_enrollment
         : course.isAvailableForEnrollment !== undefined
             ? course.isAvailableForEnrollment
             : true; // Default to true if both fields are undefined
 
-    // If the course has an enrollment status, use that for more detailed status
+    // If the course has an enrolment status, use that for more detailed status
     if (course.enrollmentStatus) {
         switch (course.enrollmentStatus) {
             case "pending":
@@ -63,7 +63,7 @@ const getCourseStatus = (course: AuthCourse): CourseStatusType => {
                     className: "bg-green-100 text-green-800 border-green-300"
                 };
             default:
-                // For any other enrollment status
+                // For any other enrolment status
                 return {
                     label: "Active",
                     className: "bg-green-100 text-green-800 border-green-300"

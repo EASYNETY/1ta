@@ -40,8 +40,8 @@ const relatedTopics = [
     description: 'Access and download payment documentation'
   },
   { 
-    title: 'Course Enrollment', 
-    href: '/help/courses/enrollment',
+    title: 'Course Enrolment', 
+    href: '/help/courses/enrolment',
     description: 'Learn how to enrol in courses'
   },
 ];

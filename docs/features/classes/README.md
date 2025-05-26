@@ -5,18 +5,18 @@ This folder contains documentation related to the classes and courses features o
 ## Contents
 
 - [Classes & Courses Integration](./classes-courses-integration.md) - Documentation for classes and courses integration
-- [Enrollment Management System](./Enrollment.md) - Documentation for the slot-based enrollment system
-- [Slot-Based Enrollment with Waitlist](./SlotBasedEnrollment.md) - Documentation for the enhanced slot-based enrollment system with waitlist functionality
+- [Enrolment Management System](./Enrolment.md) - Documentation for the slot-based enrolment system
+- [Slot-Based Enrolment with Waitlist](./SlotBasedEnrollment.md) - Documentation for the enhanced slot-based enrolment system with waitlist functionality
 
 ## Overview
 
-The classes feature allows administrators and teachers to manage classes, courses, and student enrollment. It includes functionality for creating and managing classes, assigning teachers, enrolling students, and tracking class progress.
+The classes feature allows administrators and teachers to manage classes, courses, and student enrolment. It includes functionality for creating and managing classes, assigning teachers, enrolling students, and tracking class progress.
 
 ## Key Concepts
 
 - **Classes**: Specific instances of courses with assigned teachers, students, and schedules.
 - **Courses**: Educational content that can be taught in multiple classes.
-- **Enrollment**: Process of adding students to classes.
+- **Enrolment**: Process of adding students to classes.
 - **Scheduling**: Assigning times and locations for classes.
 
 ## Features
@@ -24,7 +24,7 @@ The classes feature allows administrators and teachers to manage classes, course
 - **Class Management**: Create, update, and delete classes.
 - **Course Management**: Create, update, and delete courses.
 - **Teacher Assignment**: Assign teachers to classes.
-- **Student Enrollment**: Enrol students in classes with slot-based capacity management.
+- **Student Enrolment**: Enrol students in classes with slot-based capacity management.
 - **Waitlist Management**: Allow students to join waitlists for full classes and notify them when slots become available.
 - **Class Scheduling**: Schedule classes with times and locations.
 - **Class Materials**: Manage materials for classes.

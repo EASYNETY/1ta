@@ -9,7 +9,7 @@ export interface AdminClassView {
 	teacherId?: string; // Important for assignment
 	teacher_id?: string; // Backend might use snake_case
 
-	// Enrollment and capacity fields
+	// Enrolment and capacity fields
 	studentCount?: number; // Frontend calculated field
 	max_students?: number; // Maximum number of students allowed
 	maxStudents?: number; // camelCase version

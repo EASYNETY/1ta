@@ -96,7 +96,7 @@ export default function TermsConditionsPage() {
               <TabsContent value="courses" className="mt-0">
                 <h2 className="text-xl font-semibold mb-4">Course Policies</h2>
 
-                <h3 className="text-lg font-medium mb-3">Enrollment and Access</h3>
+                <h3 className="text-lg font-medium mb-3">Enrolment and Access</h3>
                 <p className="mb-4 text-muted-foreground">
                   Upon enrolling in a course and making the required payment, you will be granted access to the course materials for the specified duration. Some courses may offer lifetime access, while others may have a limited access period.
                 </p>

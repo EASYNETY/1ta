@@ -258,7 +258,7 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 					teacher_id: cls.teacherId || cls.teacher_id || null,
 					teacher: cls.teacher,
 
-					// Enrollment and capacity
+					// Enrolment and capacity
 					studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
 					max_students: cls.maxStudents || cls.max_students || 30,
 					maxStudents: cls.maxStudents || cls.max_students || 30,
@@ -440,7 +440,7 @@ export const fetchClassById = createAsyncThunk<
 			teacher_id: cls.teacherId || cls.teacher_id || null,
 			teacher: cls.teacher,
 
-			// Enrollment and capacity
+			// Enrolment and capacity
 			studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
 			max_students: cls.maxStudents || cls.max_students || 30,
 			maxStudents: cls.maxStudents || cls.max_students || 30,
@@ -538,7 +538,7 @@ export const createClass = createAsyncThunk<
 			teacher_id: cls.teacherId || cls.teacher_id || null,
 			teacher: cls.teacher,
 
-			// Enrollment and capacity
+			// Enrolment and capacity
 			studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
 			max_students: cls.maxStudents || cls.max_students || 30,
 			maxStudents: cls.maxStudents || cls.max_students || 30,
@@ -638,7 +638,7 @@ export const updateClass = createAsyncThunk<
 			teacher_id: cls.teacherId || cls.teacher_id || null,
 			teacher: cls.teacher,
 
-			// Enrollment and capacity
+			// Enrolment and capacity
 			studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
 			max_students: cls.maxStudents || cls.max_students || 30,
 			maxStudents: cls.maxStudents || cls.max_students || 30,

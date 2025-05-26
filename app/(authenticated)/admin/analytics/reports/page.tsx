@@ -208,7 +208,7 @@ export default function ReportsPage() {
                     <TableRow>
                       <TableHead>Student</TableHead>
                       <TableHead>Email</TableHead>
-                      <TableHead>Enrollment Date</TableHead>
+                      <TableHead>Enrolment Date</TableHead>
                       <TableHead>Courses Enrolled</TableHead>
                       <TableHead>Courses Completed</TableHead>
                       <TableHead>Average Grade</TableHead>

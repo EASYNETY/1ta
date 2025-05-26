@@ -1,28 +1,28 @@
-# Class Enrollment Management System
+# Class Enrolment Management System
 
 ## Overview
 
-This document provides a comprehensive guide for frontend engineers on how to integrate with the slot-based enrollment management system. The system tracks available slots per class, manages student enrollment, and updates course availability based on slot capacity.
+This document provides a comprehensive guide for frontend engineers on how to integrate with the slot-based enrolment management system. The system tracks available slots per class, manages student enrolment, and updates course availability based on slot capacity.
 
 ## Key Features
 
-1. **Slot-Based Enrollment**: Classes now have a maximum number of slots and track available slots in real-time
-2. **Course Availability**: Courses automatically update their enrollment availability based on class slot capacity
-3. **Enrollment Status Tracking**: The system tracks enrollment status for each student
-4. **Bulk Enrollment**: Support for enrolling multiple students at once (for corporate accounts)
+1. **Slot-Based Enrolment**: Classes now have a maximum number of slots and track available slots in real-time
+2. **Course Availability**: Courses automatically update their enrolment availability based on class slot capacity
+3. **Enrolment Status Tracking**: The system tracks enrolment status for each student
+4. **Bulk Enrolment**: Support for enrolling multiple students at once (for corporate accounts)
 5. **Waitlist Management**: Support for waitlisting students when classes are full
 6. **Class Visibility Control**: Control who can see and enrol in classes (public, private, etc.)
-7. **Enrollment Start Date**: Set when enrollment becomes available for a class
+7. **Enrolment Start Date**: Set when enrolment becomes available for a class
 
-## Enrollment Settings Migration
+## Enrolment Settings Migration
 
-Enrollment settings have been moved from the course management system to the class management system. This change reflects the fact that enrollment is managed at the class level rather than the course level. The following settings have been moved:
+Enrolment settings have been moved from the course management system to the class management system. This change reflects the fact that enrolment is managed at the class level rather than the course level. The following settings have been moved:
 
 1. **Visibility**: Control who can see and enrol in the class (public, private, etc.)
-2. **Enrollment Limit**: Set the maximum number of students who can enrol in the class
-3. **Start Date**: Set when enrollment becomes available for the class
+2. **Enrolment Limit**: Set the maximum number of students who can enrol in the class
+3. **Start Date**: Set when enrolment becomes available for the class
 
-This change allows for more granular control over enrollment for each class instance of a course.
+This change allows for more granular control over enrolment for each class instance of a course.
 
 ## Table of Contents
 
@@ -51,52 +51,52 @@ export interface Class {
   is_active: boolean;
   status: string;              // Can be 'active', 'full', 'cancelled', etc.
   visibility: 'public' | 'private' | 'draft'; // Who can see and enrol in the class
-  enrollment_start_date: string; // When enrollment becomes available
+  enrolment_start_date: string; // When enrolment becomes available
   teacher_id: string;
   created_at: string;
   updated_at: string;
 }
 ```
 
-### Enrollment Interfaces
+### Enrolment Interfaces
 
 ```typescript
-export interface ClassEnrollment {
+export interface ClassEnrolment {
   id: string;
   class_id: string;
   student_id: string;
-  enrollment_date: string;
+  enrolment_date: string;
   status: string; // 'active', 'completed', 'dropped', etc.
   created_at: string;
   updated_at: string;
 }
 
-export interface EnrollmentRequest {
+export interface EnrolmentRequest {
   class_id: string;
   student_id: string;
 }
 
-export interface EnrollmentResponse {
+export interface EnrolmentResponse {
   success: boolean;
   message: string;
   data?: {
-    enrollment: ClassEnrollment;
+    enrolment: ClassEnrolment;
     class: Class;
   };
   error?: string;
 }
 
-export interface BulkEnrollmentRequest {
+export interface BulkEnrolmentRequest {
   class_id: string;
   student_ids: string[];
   corporate_id?: string;
 }
 
-export interface BulkEnrollmentResponse {
+export interface BulkEnrolmentResponse {
   success: boolean;
   message: string;
   data?: {
-    enrollments: ClassEnrollment[];
+    enrolments: ClassEnrolment[];
     class: Class;
   };
   error?: string;
@@ -105,10 +105,10 @@ export interface BulkEnrollmentResponse {
 
 ## API Endpoints
 
-### Enrollment Endpoints
+### Enrolment Endpoints
 
 ```
-POST /api/enrollment/enrol
+POST /api/enrolment/enrol
 ```
 
 **Request Body:**
@@ -125,11 +125,11 @@ POST /api/enrollment/enrol
   "success": true,
   "message": "Successfully enrolled in class",
   "data": {
-    "enrollment": {
-      "id": "enrollment_789",
+    "enrolment": {
+      "id": "enrolment_789",
       "class_id": "class_123",
       "student_id": "student_456",
-      "enrollment_date": "2023-06-15T10:30:00Z",
+      "enrolment_date": "2023-06-15T10:30:00Z",
       "status": "active",
       "created_at": "2023-06-15T10:30:00Z",
       "updated_at": "2023-06-15T10:30:00Z"
@@ -148,7 +148,7 @@ POST /api/enrollment/enrol
       "is_active": true,
       "status": "active",
       "visibility": "public",
-      "enrollment_start_date": "2023-06-01T00:00:00Z",
+      "enrolment_start_date": "2023-06-01T00:00:00Z",
       "teacher_id": "teacher_123",
       "created_at": "2023-05-15T14:20:00Z",
       "updated_at": "2023-06-15T10:30:00Z"
@@ -158,7 +158,7 @@ POST /api/enrollment/enrol
 ```
 
 ```
-POST /api/enrollment/bulk-enrol
+POST /api/enrolment/bulk-enrol
 ```
 
 **Request Body:**
@@ -186,7 +186,7 @@ POST /api/enrollment/bulk-enrol
         "created_at": "2023-06-15T10:30:00Z",
         "updated_at": "2023-06-15T10:30:00Z"
       },
-      // Additional enrollment objects...
+      // Additional enrolment objects...
     ],
     "class": {
       "id": "class_123",
@@ -200,7 +200,7 @@ POST /api/enrollment/bulk-enrol
 ```
 
 ```
-GET /api/enrollment/class/:classId/students
+GET /api/enrolment/class/:classId/students
 ```
 
 **Response:**
@@ -213,7 +213,7 @@ GET /api/enrollment/class/:classId/students
         "id": "student_456",
         "name": "John Doe",
         "email": "john.doe@example.com",
-        "enrollment_date": "2023-06-15T10:30:00Z",
+        "enrolment_date": "2023-06-15T10:30:00Z",
         "status": "active"
       },
       // Additional student objects...
@@ -230,7 +230,7 @@ GET /api/enrollment/class/:classId/students
 ```
 
 ```
-GET /api/enrollment/student/:studentId/classes
+GET /api/enrolment/student/:studentId/classes
 ```
 
 **Response:**
@@ -245,7 +245,7 @@ GET /api/enrollment/student/:studentId/classes
         "course_id": "course_789",
         "start_date": "2023-07-01T09:00:00Z",
         "end_date": "2023-08-30T17:00:00Z",
-        "enrollment_date": "2023-06-15T10:30:00Z",
+        "enrolment_date": "2023-06-15T10:30:00Z",
         "status": "active"
       },
       // Additional class objects...
@@ -266,7 +266,7 @@ PUT /api/classes/:classId
 {
   "max_slots": 40,
   "visibility": "public",
-  "enrollment_start_date": "2023-06-01T00:00:00Z"
+  "enrolment_start_date": "2023-06-01T00:00:00Z"
 }
 ```
 
@@ -291,7 +291,7 @@ PUT /api/classes/:classId
 
 ### Class Form Component
 
-The Class Form component should be updated to include the enrollment settings that were previously in the Course Settings:
+The Class Form component should be updated to include the enrolment settings that were previously in the Course Settings:
 
 ```tsx
 // features/classes/components/ClassForm.tsx
@@ -319,7 +319,7 @@ export function ClassForm({ initialData, onSubmit }) {
       {/* ... existing form fields */}
 
       <div className="space-y-4 mt-6">
-        <h3 className="text-lg font-medium">Enrollment Settings</h3>
+        <h3 className="text-lg font-medium">Enrolment Settings</h3>
 
         <FormField
           control={form.control}
@@ -355,7 +355,7 @@ export function ClassForm({ initialData, onSubmit }) {
           name="max_slots"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Enrollment Limit</FormLabel>
+              <FormLabel>Enrolment Limit</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -377,7 +377,7 @@ export function ClassForm({ initialData, onSubmit }) {
           name="enrollment_start_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Enrollment Start Date</FormLabel>
+              <FormLabel>Enrolment Start Date</FormLabel>
               <FormControl>
                 <DatePicker
                   date={field.value}
@@ -385,7 +385,7 @@ export function ClassForm({ initialData, onSubmit }) {
                 />
               </FormControl>
               <FormDescription>
-                When enrollment becomes available for this class
+                When enrolment becomes available for this class
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -399,9 +399,9 @@ export function ClassForm({ initialData, onSubmit }) {
 }
 ```
 
-### Enrollment Component
+### Enrolment Component
 
-Here's an example of an enrollment component that can be used to enrol students in a class:
+Here's an example of an enrolment component that can be used to enrol students in a class:
 
 ```tsx
 // features/classes/components/EnrollmentButton.tsx
@@ -439,13 +439,13 @@ export function EnrollmentButton({ classId, disabled }: EnrollmentButtonProps) {
       })).unwrap();
 
       toast({
-        title: "Enrollment Successful",
+        title: "Enrolment Successful",
         description: "You have been enrolled in this class",
         variant: "success",
       });
     } catch (error) {
       toast({
-        title: "Enrollment Failed",
+        title: "Enrolment Failed",
         description: error.message || "Failed to enrol in class",
         variant: "destructive",
       });
@@ -468,60 +468,60 @@ export function EnrollmentButton({ classId, disabled }: EnrollmentButtonProps) {
 
 ## Integration Steps
 
-To integrate the enrollment management system into your application, follow these steps:
+To integrate the enrolment management system into your application, follow these steps:
 
-1. **Update Class Interface**: Update your class interface to include the new fields for enrollment management:
+1. **Update Class Interface**: Update your class interface to include the new fields for enrolment management:
    - `max_slots`: Maximum number of slots available for the class
    - `available_slots`: Current number of available slots
    - `enrolled_students_count`: Number of students currently enrolled
    - `visibility`: Who can see and enrol in the class
-   - `enrollment_start_date`: When enrollment becomes available
+   - `enrolment_start_date`: When enrolment becomes available
 
-2. **Update Class Form**: Update your class form to include the enrollment settings that were previously in the Course Settings:
+2. **Update Class Form**: Update your class form to include the enrolment settings that were previously in the Course Settings:
    - Visibility setting
-   - Enrollment limit setting
-   - Enrollment start date setting
+   - Enrolment limit setting
+   - Enrolment start date setting
 
-3. **Update Course Interface**: Update your course interface to include the `available_for_enrollment` field:
+3. **Update Course Interface**: Update your course interface to include the `available_for_enrolment` field:
    - This field should be automatically updated based on the availability of slots in the associated classes
 
-4. **Update Enrollment Components**: Update your enrollment components to check for availability before allowing enrollment:
-   - Check if the course is available for enrollment
+4. **Update Enrolment Components**: Update your enrolment components to check for availability before allowing enrolment:
+   - Check if the course is available for enrolment
    - Check if the class has available slots
-   - Check if the enrollment start date has passed
+   - Check if the enrolment start date has passed
 
-5. **Implement Enrollment API Calls**: Implement the API calls for enrolling students in classes:
-   - Single enrollment
-   - Bulk enrollment
+5. **Implement Enrolment API Calls**: Implement the API calls for enrolling students in classes:
+   - Single enrolment
+   - Bulk enrolment
    - Fetching enrolled students
    - Fetching enrolled classes
 
-6. **Update UI Components**: Update your UI components to display enrollment information:
+6. **Update UI Components**: Update your UI components to display enrolment information:
    - Show available slots
-   - Show enrollment status
-   - Show enrollment start date
+   - Show enrolment status
+   - Show enrolment start date
 
 7. **Test the Integration**: Test the integration to ensure that:
-   - Enrollment works correctly
+   - Enrolment works correctly
    - Available slots are updated correctly
    - Course availability is updated correctly
-   - Enrollment start date is respected
+   - Enrolment start date is respected
 
 ## API Endpoints Reference
 
 | Method | Endpoint | Description | Authentication Required |
 |--------|----------|-------------|-------------------------|
-| POST | `/api/enrollment/enrol` | Enrol a student in a class | Yes |
-| POST | `/api/enrollment/bulk-enrol` | Enrol multiple students in a class | Yes |
-| GET | `/api/enrollment/class/:classId/students` | Get all students enrolled in a class | Yes |
-| GET | `/api/enrollment/student/:studentId/classes` | Get all classes a student is enrolled in | Yes |
-| PUT | `/api/classes/:classId` | Update class enrollment settings | Yes |
-| POST | `/api/enrollment/unenroll` | Unenroll a student from a class | Yes |
+| POST | `/api/enrolment/enrol` | Enrol a student in a class | Yes |
+| POST | `/api/enrolment/bulk-enrol` | Enrol multiple students in a class | Yes |
+| GET | `/api/enrolment/class/:classId/students` | Get all students enrolled in a class | Yes |
+| GET | `/api/enrolment/student/:studentId/classes` | Get all classes a student is enrolled in | Yes |
+| PUT | `/api/classes/:classId` | Update class enrolment settings | Yes |
+| POST | `/api/enrolment/unenroll` | Unenroll a student from a class | Yes |
 
 ## Conclusion
 
-The enrollment management system provides a comprehensive solution for managing class enrollments. By moving the enrollment settings from the course level to the class level, we can provide more granular control over enrollment for each class instance of a course.
+The enrolment management system provides a comprehensive solution for managing class enrolments. By moving the enrolment settings from the course level to the class level, we can provide more granular control over enrolment for each class instance of a course.
 
-The system tracks available slots in real-time, updates course availability based on slot capacity, and provides a seamless enrollment experience for students. It also supports bulk enrollment for corporate accounts and waitlisting for classes that are full.
+The system tracks available slots in real-time, updates course availability based on slot capacity, and provides a seamless enrolment experience for students. It also supports bulk enrolment for corporate accounts and waitlisting for classes that are full.
 
-By following the integration steps outlined in this document, you can successfully implement the enrollment management system in your application.
+By following the integration steps outlined in this document, you can successfully implement the enrolment management system in your application.

@@ -230,7 +230,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                             )}
                         />
 
-                        {/* Enrollment Capacity */}
+                        {/* Enrolment Capacity */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
@@ -267,7 +267,7 @@ export function ClassForm({ initialData, onSubmit, isSubmitting = false, mode }:
                                                 value={field.value || ''}
                                             />
                                         </FormControl>
-                                        <FormDescription>Maximum enrollment slots (if different from max students)</FormDescription>
+                                        <FormDescription>Maximum enrolment slots (if different from max students)</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

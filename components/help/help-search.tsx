@@ -50,12 +50,12 @@ export const helpArticles: HelpArticle[] = [
 
   // Courses
   {
-    title: 'Course Enrollment',
+    title: 'Course Enrolment',
     description: 'Learn how to browse, select, and enrol in courses on the platform.',
-    href: '/help/courses/enrollment',
+    href: '/help/courses/enrolment',
     category: 'Courses',
     categoryIcon: GraduationCap,
-    keywords: ['courses', 'enrollment', 'register', 'sign up', 'join', 'class']
+    keywords: ['courses', 'enrolment', 'register', 'sign up', 'join', 'class']
   },
   {
     title: 'Accessing Course Materials',
@@ -163,7 +163,7 @@ export const helpArticles: HelpArticle[] = [
   // Payments
   {
     title: 'Payment Methods',
-    description: 'Understand the available payment options for course enrollment.',
+    description: 'Understand the available payment options for course enrolment.',
     href: '/help/payments/methods',
     category: 'Payments',
     categoryIcon: CreditCard,

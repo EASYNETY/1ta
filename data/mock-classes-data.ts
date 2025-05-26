@@ -80,7 +80,7 @@ export const getMockEnrolledClasses = async (
 ): Promise<AuthCourse[]> => {
 	console.log(`MOCK: Fetching enrolled classes for student ${studentId}`);
 	await new Promise((res) => setTimeout(res, 450));
-	// Simulate enrollment based on mockAdminClasses student list if available,
+	// Simulate enrolment based on mockAdminClasses student list if available,
 	// or just return some courses for now.
 	// Example: Find classes this student might be in (requires more complex mock data)
 	// For now, return a subset of courses

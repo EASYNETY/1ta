@@ -129,7 +129,7 @@ export const initiatePayment = createAsyncThunk<
 - Verify loading states, error handling, and success states
 
 #### End-to-End Tests
-- Test complete user flows (registration, course enrollment, payment)
+- Test complete user flows (registration, course enrolment, payment)
 - Verify data persistence across sessions
 
 ### 4. Handling Zero Naira Values
@@ -170,7 +170,7 @@ Ensure proper loading states are displayed during API calls:
    - Prevent UI flashes during data loading
 
 2. **Action Loading**:
-   - Show loading indicators for user actions (payment, enrollment)
+   - Show loading indicators for user actions (payment, enrolment)
    - Disable buttons during loading
 
 3. **Error States**:
