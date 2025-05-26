@@ -16,13 +16,13 @@ export function SleekLogoLoader({
         {/* Logo with simple pulse animation */}
         {/* Use /logo_dark.png for larger screens and icon.png for small screens */}
         <div className="animate-pulse mx-auto">
-          {/* Large screens - use logo_dark.png (bigger size) */}
-          <div className="hidden md:block w-48 h-48">
+          {/* Large screens - use logo_dark.png (bigger size) aspect ratio is 5873/1024 */}
+          <div className="hidden md:block w[250px] h-[100px]">
             <Image
               src="/logo_dark.png"
               alt="1Tech Academy"
-              width={192}
-              height={192}
+              width={250}
+              height={100}
               className="w-full h-full object-contain"
               priority
             />
