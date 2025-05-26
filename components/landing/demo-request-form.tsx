@@ -65,33 +65,29 @@ export function DemoRequestForm() {
     setSubmitError(null); // Clear previous errors
 
     try {
-      // Create mailto link with form data
-      const subject = encodeURIComponent(`Inquiry: ${data.interest}`);
-      const body = encodeURIComponent(`
-Hello,
+      // Send data to backend API
+      const response = await fetch('/api/contact/inquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          interest: data.interest,
+          message: data.message
+        })
+      });
 
-I am interested in learning more about 1Tech Academy through your website.
+      const result = await response.json();
 
-Name: ${data.name}
-Email: ${data.email}
-Area of Interest: ${data.interest}
-
-${data.message ? `Additional Message:\n${data.message}` : ''}
-
-I would like to know more about your programs and how to get started.
-
-Best regards,
-${data.name}
-      `);
-
-      // Open mailto link
-      window.location.href = `mailto:info@1techacademy.com?subject=${subject}&body=${body}`;
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to send inquiry');
+      }
 
       // Show success state
-      setTimeout(() => {
-        setIsSubmitted(true);
-        reset(); // Clear form fields on success
-      }, 500);
+      setIsSubmitted(true);
+      reset(); // Clear form fields on success
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "An unknown error occurred.");
       console.error("Inquiry submission failed:", error);
@@ -141,7 +137,7 @@ ${data.name}
         </motion.div>
         <h3 className="text-lg font-semibold mb-1 text-foreground">Thank You!</h3> {/* Adjusted text */}
         <p className="text-muted-foreground mb-6 text-sm">
-          Your email client has been opened. Please send the email to complete your inquiry! {/* Adjusted text */}
+          Your inquiry has been sent successfully! We will get back to you within 24 hours. {/* Updated text */}
         </p>
         <DyraneButton variant="outline" size="sm" onClick={() => setIsSubmitted(false)}> {/* Smaller button */}
           Send Another Inquiry

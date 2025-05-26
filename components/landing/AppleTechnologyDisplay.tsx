@@ -1114,7 +1114,7 @@ export function AppleTechnologyDisplay() {
             }`}
             onClick={() => setActiveTab('current')}
           >
-            Current Enrolment
+            Current Courses
           </button>
           <button
             className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
