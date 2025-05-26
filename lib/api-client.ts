@@ -2469,30 +2469,49 @@ export async function handleMockRequest<T>(
 
 			const total = filteredUsers.length;
 			console.log(
-				`%cAPI Client MOCK: Total filtered users before pagination: ${total}`,
+				`%cAPI Client MOCK: Total filtered users: ${total}`,
 				"color: lightgreen;"
 			);
 
-			// Apply pagination
-			const paginatedUsers = filteredUsers.slice(
-				(page - 1) * limit,
-				page * limit
-			);
-			console.log(
-				`%cAPI Client MOCK: Paginated users count: ${paginatedUsers.length}`,
-				"color: lightgreen;"
-			);
+			// For hybrid approach: return all filtered users (no server-side pagination yet)
+			// When backend supports pagination, we'll use the page and limit parameters
+			const shouldPaginate = urlParams.has("page") && urlParams.has("limit");
 
-			// Convert MockUser to User type for the paginated results
-			const formattedUsers = paginatedUsers.map((user) =>
+			let finalUsers = filteredUsers;
+			let responseMetadata = {};
+
+			if (shouldPaginate) {
+				// Server-side pagination (future implementation)
+				const paginatedUsers = filteredUsers.slice(
+					(page - 1) * limit,
+					page * limit
+				);
+				finalUsers = paginatedUsers;
+				responseMetadata = {
+					totalUsers: total,
+					currentPage: page,
+					totalPages: Math.ceil(total / limit),
+				};
+				console.log(
+					`%cAPI Client MOCK: Server-side pagination - returning ${paginatedUsers.length} users`,
+					"color: lightgreen;"
+				);
+			} else {
+				// Client-side pagination (current implementation)
+				console.log(
+					`%cAPI Client MOCK: Client-side pagination - returning all ${total} users`,
+					"color: lightgreen;"
+				);
+			}
+
+			// Convert MockUser to User type
+			const formattedUsers = finalUsers.map((user) =>
 				convertToUserType(user)
 			);
 
 			return {
 				users: formattedUsers,
-				totalUsers: total,
-				currentPage: page,
-				totalPages: Math.ceil(total / limit),
+				...responseMetadata,
 			} as unknown as T;
 		} catch (error: any) {
 			console.error("Mock API Error for GET /admin/users:", error.message);
@@ -2590,6 +2609,78 @@ export async function handleMockRequest<T>(
 			if (error instanceof ApiError) throw error;
 			throw new ApiError(
 				error.message || "Failed to update user in mock",
+				error.status || 500
+			);
+		}
+	}
+
+	// NEW: POST /admin/users - Create User (Admin)
+	if (endpoint === "/admin/users" && method === "post") {
+		const userData = body as any; // Data sent in the request body
+
+		console.log(
+			`%cAPI Client MOCK: POST /admin/users with data:`,
+			"color: orange;",
+			userData
+		);
+
+		try {
+			// Import the users array and converter from mock-auth-data
+			const { users, convertToUserType } = await import(
+				"@/data/mock-auth-data"
+			);
+
+			// Generate a new user ID
+			const newUserId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+			// Create the new user object with all required MockUser fields
+			const newUser = {
+				id: newUserId,
+				name: userData.name || "New User",
+				email: userData.email || `user${Date.now()}@example.com`,
+				password: "defaultPassword123", // Required for MockUser
+				role: userData.role || "student",
+				dateOfBirth: userData.dateOfBirth || null,
+				classId: userData.classId || null,
+				barcodeId: userData.barcodeId || `USER-${Date.now()}`,
+				guardianId: null, // Required for MockUser
+				onboardingStatus: userData.onboardingStatus || "incomplete",
+				accountType: userData.accountType || "individual",
+				isActive: userData.isActive !== undefined ? userData.isActive : true,
+				status: "active", // Required for MockUser
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				phone: userData.phone || null,
+				bio: userData.bio || null,
+				// Role-specific fields
+				...(userData.role === "teacher" && {
+					subjects: userData.subjects || [],
+					officeHours: userData.officeHours || "",
+				}),
+				...(userData.role === "admin" && {
+					permissions: userData.permissions || [],
+				}),
+				...(userData.role === "accounting" && {
+					permissions: userData.permissions || [],
+					department: userData.department || null,
+				}),
+				...(userData.role === "customer_care" && {
+					permissions: userData.permissions || [],
+					shift: userData.shift || null,
+				}),
+			};
+
+			// In a real implementation, we would add the user to the array
+			// For mock purposes, we'll just return the created user
+			console.log(`Mock: Created user with ID ${newUserId}`);
+
+			// Convert to User type and return
+			return convertToUserType(newUser) as unknown as T;
+		} catch (error: any) {
+			console.error("Mock API Error for POST /admin/users:", error.message);
+			if (error instanceof ApiError) throw error;
+			throw new ApiError(
+				error.message || "Failed to create user in mock",
 				error.status || 500
 			);
 		}

@@ -9,6 +9,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 // Import modular components
 import { UsersPageHeader } from "@/components/users/UsersPageHeader"
 import { UserTable } from "@/components/users/UserTable"
+import { PaginationControls, PaginationInfo } from "@/components/ui/pagination-controls"
+import { PAGINATION_CONFIG, isServerPaginationEnabled } from "@/config/pagination"
 import { toast } from "sonner"
 import { AuthorizationGuard } from "@/components/auth/AuthenticationGuard"
 import { UserFilters } from "@/components/users/UserFilters"
@@ -17,24 +19,40 @@ import { User } from "@/types/user.types"
 
 export default function UsersPage() {
     const dispatch = useAppDispatch()
-    const { users, usersLoading, usersError } = useAppSelector((state) => state.auth)
+    const { users, usersLoading, usersError, totalUsers } = useAppSelector((state) => state.auth)
 
     const [searchQuery, setSearchQuery] = useState("")
     const [roleFilter, setRoleFilter] = useState<string | "all">("all")
     const [statusFilter, setStatusFilter] = useState<string | "all">("all")
     const [activeTab, setActiveTab] = useState("students")
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE)
 
-    // Fetch users based on active tab
+    // Configuration for pagination - now using server-side pagination
+    const serverPaginated = isServerPaginationEnabled('USERS_SERVER_PAGINATION')
+
+
+    // Fetch users based on active tab with server-side pagination
     useEffect(() => {
         if (activeTab === "all-users") {
-            dispatch(fetchAllUsers({ search: searchQuery }))
+            dispatch(fetchAllUsers({
+                search: searchQuery,
+                page: currentPage,
+                limit: itemsPerPage
+            }))
         } else {
             const role = activeTab === "admins" ? "admin" : activeTab === "facilitators" ? "teacher" : "student"
-            dispatch(fetchUsersByRole({ role, search: searchQuery }))
+            dispatch(fetchUsersByRole({
+                role,
+                search: searchQuery,
+                page: currentPage,
+                limit: itemsPerPage
+            }))
         }
-    }, [dispatch, activeTab, searchQuery])
+    }, [dispatch, activeTab, searchQuery, currentPage, itemsPerPage])
 
     // Filter users based on status filter (client-side filtering)
+    // Note: With server-side pagination, we apply this filter to the current page only
     const filteredUsers = useMemo(() => {
         if (statusFilter === "all") return users
         // Convert string status filter to boolean isActive
@@ -45,10 +63,24 @@ export default function UsersPage() {
             : []
     }, [users, statusFilter])
 
+    // Calculate pagination info from server response
+    const totalPages = Math.ceil((totalUsers || 0) / itemsPerPage)
+
     // Handle tab change
     const handleTabChange = (value: string) => {
         setActiveTab(value)
+        setCurrentPage(1) // Reset to first page when changing tabs
     }
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page)
+    }
+
+    // Reset to first page when search changes
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchQuery])
 
     // Handle delete user
     const handleDeleteUser = async (userId: string, userName: string) => {
@@ -94,6 +126,24 @@ export default function UsersPage() {
                         isLoading={usersLoading}
                         error={usersError}
                     />
+
+                    {/* Pagination Controls */}
+                    {!usersLoading && !usersError && totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 w-full border border-border/25 bg-card/5 backdrop-blur-sm p-2 rounded-md">
+                            <PaginationInfo
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={totalUsers || 0}
+                                itemsPerPage={itemsPerPage}
+                            />
+                            <PaginationControls
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                className="w-full flex-1 justify-end"
+                                onPageChange={handlePageChange}
+                            />
+                        </div>
+                    )}
                 </Tabs>
             </div>
         </AuthorizationGuard>

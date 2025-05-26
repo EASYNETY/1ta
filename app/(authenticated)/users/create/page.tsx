@@ -11,19 +11,22 @@ import Link from 'next/link';
 import { ArrowLeft } from 'phosphor-react';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { PageHeader } from '@/components/layout/auth/page-header';
+import { useAppDispatch } from '@/store/hooks';
+import { createUserAdmin } from '@/features/auth/store/user-thunks';
+import type { User } from '@/types/user.types';
 
 export default function CreateUserPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const router = useRouter();
+    const dispatch = useAppDispatch();
 
-    const handleCreateUser = async (data: Omit<UserData, 'id' | 'joinDate'>) => {
+    const handleCreateUser = async (data: Partial<User>) => {
         setIsSubmitting(true);
         console.log("Creating user with data:", data);
         try {
-            // TODO: Replace with actual API call / Redux dispatch for creating user
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-            // const newUser = await dispatch(createUser(data)).unwrap(); // Example Redux
-            toast.success(`User "${data.name}" created successfully!`);
+            // Use the actual API call via Redux dispatch
+            const newUser = await dispatch(createUserAdmin(data)).unwrap();
+            toast.success(`User "${newUser.name}" created successfully!`);
             router.push('/users'); // Redirect to users list after creation
         } catch (error: any) {
             console.error("Failed to create user:", error);

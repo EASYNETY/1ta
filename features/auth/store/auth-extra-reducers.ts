@@ -10,7 +10,14 @@ import {
 	createCorporateStudentSlotsThunk,
 } from "./auth-thunks";
 import type { AuthResponse } from "../types/auth-types";
-import { deleteUser, fetchAllUsers, fetchUserById, fetchUsersByRole } from "./user-thunks";
+import {
+	deleteUser,
+	fetchAllUsers,
+	fetchUserById,
+	fetchUsersByRole,
+	createUserAdmin,
+} from "./user-thunks";
+import { ContextMenuSeparator } from "@radix-ui/react-context-menu";
 
 export const addAuthExtraReducers = (builder: any) => {
 	// --- Handle Login/Signup Success ---
@@ -195,12 +202,12 @@ export const addAuthExtraReducers = (builder: any) => {
 		fetchAllUsers.fulfilled,
 		(
 			state: AuthState,
-			action: PayloadAction<{ users: User[]; total: number }>
+			action: PayloadAction<{ users: User[]; totalUsers: number }>
 		) => {
 			state.usersLoading = false;
 			// Ensure users is always an array, even if API returns null/undefined
 			state.users = action.payload.users || [];
-			state.totalUsers = action.payload.total || 0;
+			state.totalUsers = action.payload.totalUsers || 0;
 		}
 	);
 
@@ -222,12 +229,12 @@ export const addAuthExtraReducers = (builder: any) => {
 		fetchUsersByRole.fulfilled,
 		(
 			state: AuthState,
-			action: PayloadAction<{ users: User[]; total: number }>
+			action: PayloadAction<{ users: User[]; totalUsers: number }>
 		) => {
 			state.usersLoading = false;
 			// Ensure users is always an array, even if API returns null/undefined
 			state.users = action.payload.users || [];
-			state.totalUsers = action.payload.total || 0;
+			state.totalUsers = action.payload.totalUsers || 0;
 		}
 	);
 
@@ -270,11 +277,11 @@ export const addAuthExtraReducers = (builder: any) => {
 			state.usersLoading = false;
 
 			// If the user is not already in the users array, add it
-			if (!state.users.some(user => user.id === action.payload.id)) {
+			if (!state.users.some((user) => user.id === action.payload.id)) {
 				state.users = [...state.users, action.payload];
 			} else {
 				// Otherwise, update the existing user in the array
-				state.users = state.users.map(user =>
+				state.users = state.users.map((user) =>
 					user.id === action.payload.id ? action.payload : user
 				);
 			}
@@ -286,6 +293,29 @@ export const addAuthExtraReducers = (builder: any) => {
 		(state: AuthState, action: ReturnType<typeof fetchUserById.rejected>) => {
 			state.usersLoading = false;
 			state.usersError = action.payload ?? "Failed to fetch user";
+		}
+	);
+	// --- CREATE USER (ADMIN) ---
+	builder.addCase(createUserAdmin.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		createUserAdmin.fulfilled,
+		(state: AuthState, action: PayloadAction<User>) => {
+			state.usersLoading = false;
+			// Add the new user to the users array
+			state.users = [...state.users, action.payload];
+			state.totalUsers = state.totalUsers + 1;
+		}
+	);
+
+	builder.addCase(
+		createUserAdmin.rejected,
+		(state: AuthState, action: ReturnType<typeof createUserAdmin.rejected>) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to create user";
 		}
 	);
 };
