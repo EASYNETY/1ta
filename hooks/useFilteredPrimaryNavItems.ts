@@ -16,7 +16,7 @@ export interface NavItem {
 	title: string;
 	href: string;
 	icon: React.ElementType; // Keep generic React ElementType
-	roles: Array<"admin" | "teacher" | "student">;
+	roles: Array<"super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student">;
 	badgeCount?: number;
 	hidden?: boolean; // Flag to explicitly hide
 	requiredFlags?: Array<"isCorporateManager">; // Flag requirement
@@ -39,20 +39,20 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				// Dynamically set href based on manager status
 				href: isCorpManager ? "/corporate-management" : "/dashboard",
 				icon: LayoutDashboard,
-				roles: ["admin", "teacher", "student"],
+				roles: ["super_admin", "admin", "teacher", "student"],
 			},
 			{
 				title: "Courses",
 				href: "/courses",
 				icon: GraduationCap,
-				roles: ["student", "teacher", "admin"],
+				roles: ["student", "teacher", "super_admin", "admin"],
 				// A manager might still browse courses to assign, so not hidden by default
 			},
 			{
 				title: "Attendance",
 				href: "/attendance",
 				icon: CheckCircle,
-				roles: ["student", "teacher", "admin"],
+				roles: ["student", "teacher", "super_admin", "admin", "customer_care"],
 				// Hide for corporate managers (they manage student attendance via their dashboard)
 				hidden: isCorpManager,
 			},
@@ -60,7 +60,7 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				title: "Timetable",
 				href: "/timetable",
 				icon: Calendar, // Use Lucide icon
-				roles: ["student", "teacher", "admin"],
+				roles: ["student", "teacher", "super_admin", "admin", "customer_care"],
 				// Hide for corporate managers (they manage class schedules via class/event management)
 				hidden: isCorpManager,
 			},
@@ -68,7 +68,7 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				title: "Discussions",
 				href: "/chat",
 				icon: UsersThree, // Use Lucide icon
-				roles: ["student", "teacher", "admin"],
+				roles: ["student", "teacher", "super_admin", "admin", "customer_care"],
 				badgeCount: 0, // TODO: Get actual chat unread count here
 				// Hide for corporate managers? Or allow access to course chats they purchased?
 				// Let's hide for simplicity for now, assuming their focus is management.

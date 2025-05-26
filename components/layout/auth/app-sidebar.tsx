@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
 import { Avatar, AvatarFallback, AvatarImage, AvatarWithVerification } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Chat, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree } from "phosphor-react";
+import { Calendar, Chat, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree, FileText, MessageSquare, QrCode } from "phosphor-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
@@ -47,35 +47,49 @@ export interface NavItem {
     title: string;
     href: string;
     icon: React.ElementType;
-    roles: Array<"admin" | "teacher" | "student">;
+    roles: Array<"super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student">;
     badgeCount?: number;
 }
 
 // --- Define Navigation Items based on 1Tech Academy Docs ---
 // Primary Student/Teacher Items
 export const primaryNavItems: NavItem[] = [
-    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "teacher", "student"] },
-    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", 'admin'] },
-    { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", 'teacher', 'admin'] },
-    { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", 'admin'] },
-    { title: "Analytics", href: "/analytics", icon: BarChart3, roles: ["student", "teacher"] },
-    { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", 'admin'], badgeCount: 5 }, // Example badge
+    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "teacher", "student"] },
+    { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", "super_admin", "admin"] },
+    { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
+    { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
+    { title: "Analytics", href: "/analytics", icon: BarChart3, roles: ["student", "teacher"] }, // Removed admin per CEO requirements
+    { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", "super_admin", "admin", "customer_care"], badgeCount: 5 }, // Example badge
 ];
 
 // Admin Specific Items
 export const adminNavItems: NavItem[] = [
-    // { title: "Overview", href: "/dashboard", icon: LayoutDashboard, roles: ["admin"] }, // Often duplicate of primary dashboard
-    { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["admin"] },
-    // { title: "Pricing", href: "/admin/pricing", icon: Money, roles: ["admin"] },
-    { title: "Payments", href: "/payments", icon: Money, roles: ["admin"] },
-    { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["admin"] },
-    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["admin"] },
+    { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["super_admin", "admin"] },
+    { title: "Payments", href: "/payments", icon: Money, roles: ["super_admin", "admin", "accounting"] },
+    { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["super_admin"] }, // Only super admin
+    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin", "customer_care"] },
     {
         title: "Feedbacks",
         href: "/support/feedback",
         icon: Chat,
-        roles: ["admin"],
+        roles: ["super_admin", "admin", "customer_care"],
     }
+];
+
+// Accounting Specific Items
+export const accountingNavItems: NavItem[] = [
+    { title: "Payment Dashboard", href: "/accounting/dashboard", icon: BarChart3, roles: ["accounting"] },
+    { title: "Payment History", href: "/accounting/payments", icon: Money, roles: ["accounting"] },
+    { title: "Reports", href: "/accounting/reports", icon: FileText, roles: ["accounting"] },
+    { title: "Reconciliation", href: "/accounting/reconciliation", icon: CheckCircle, roles: ["accounting"] },
+];
+
+// Customer Care Specific Items
+export const customerCareNavItems: NavItem[] = [
+    { title: "Scan Student", href: "/customer-care/scan", icon: QrCode, roles: ["customer_care"] },
+    { title: "Student Info", href: "/customer-care/students", icon: AdminUsersIcon, roles: ["customer_care"] },
+    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["customer_care"] },
+    { title: "Feedback", href: "/support/feedback", icon: MessageSquare, roles: ["customer_care"] },
 ];
 
 
@@ -108,11 +122,20 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         return secondary.filter(item => !primaryHrefs.has(item.href));
     }
 
-    const visiblePrimaryItems = useFilteredPrimaryNavItems();    // Ensure admin routes are unique from primary ones if needed
+    const visiblePrimaryItems = useFilteredPrimaryNavItems();
+
+    // Filter admin items and remove duplicates
     const visibleAdminItems = removeDuplicateNavItems(
         visiblePrimaryItems.filter(item => item.roles.includes('admin')), // Filter primary for admin first
         filterItems(adminNavItems)
     );
+
+    // Filter accounting items
+    const visibleAccountingItems = filterItems(accountingNavItems);
+
+    // Filter customer care items
+    const visibleCustomerCareItems = filterItems(customerCareNavItems);
+
     const secondaryNavItems = useFilteredSecondaryNavItems(user);
     const visibleSecondaryItems = filterItems(secondaryNavItems);
 
@@ -178,6 +201,26 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
                         {isSidebarOpen && <SidebarGroupLabel>Admin Tools</SidebarGroupLabel>}
                         <SidebarGroupContent>
                             <NavMenuList items={visibleAdminItems} isSidebarOpen={isSidebarOpen} pathname={pathname} />
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
+
+                {/* Accounting Navigation */}
+                {visibleAccountingItems.length > 0 && (
+                    <SidebarGroup>
+                        {isSidebarOpen && <SidebarGroupLabel>Accounting</SidebarGroupLabel>}
+                        <SidebarGroupContent>
+                            <NavMenuList items={visibleAccountingItems} isSidebarOpen={isSidebarOpen} pathname={pathname} />
+                        </SidebarGroupContent>
+                    </SidebarGroup>
+                )}
+
+                {/* Customer Care Navigation */}
+                {visibleCustomerCareItems.length > 0 && (
+                    <SidebarGroup>
+                        {isSidebarOpen && <SidebarGroupLabel>Customer Care</SidebarGroupLabel>}
+                        <SidebarGroupContent>
+                            <NavMenuList items={visibleCustomerCareItems} isSidebarOpen={isSidebarOpen} pathname={pathname} />
                         </SidebarGroupContent>
                     </SidebarGroup>
                 )}

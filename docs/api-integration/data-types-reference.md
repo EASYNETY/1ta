@@ -5,7 +5,7 @@ This document provides a comprehensive reference of the data types used in the S
 ## Table of Contents
 1. [User Types](#user-types)
 2. [Course Types](#course-types)
-3. [Payment Types](#payment-types)
+3. [Payment Types](#payment-types) 
 4. [Class Types](#class-types)
 5. [Attendance Types](#attendance-types)
 6. [Support Types](#support-types)

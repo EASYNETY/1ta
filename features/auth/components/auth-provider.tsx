@@ -114,15 +114,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // C) Role-Based Access Control for Private Routes (add more as needed)
-      if (pathname.startsWith("/admin") && user.role !== "admin") {
+      // C) Role-Based Access Control for Private Routes
+
+      // Super Admin has access to everything, so check other roles first
+
+      // Admin routes - Super Admin and Admin only
+      if (pathname.startsWith("/admin") && !['super_admin', 'admin'].includes(user.role)) {
         router.push("/dashboard");
         return;
       }
-      if (pathname.startsWith("/teacher") && !['teacher', 'admin'].includes(user.role)) {
+
+      // Analytics dashboard - Super Admin only (Admin should not access)
+      if (pathname.startsWith("/admin/analytics") && user.role !== "super_admin") {
         router.push("/dashboard");
         return;
       }
+
+      // Accounting routes - Super Admin and Accounting only
+      if (pathname.startsWith("/accounting") && !['super_admin', 'accounting'].includes(user.role)) {
+        router.push("/dashboard");
+        return;
+      }
+
+      // Customer Care routes - Super Admin and Customer Care only
+      if (pathname.startsWith("/customer-care") && !['super_admin', 'customer_care'].includes(user.role)) {
+        router.push("/dashboard");
+        return;
+      }
+
+      // Teacher routes - Super Admin, Admin, and Teacher
+      if (pathname.startsWith("/teacher") && !['super_admin', 'admin', 'teacher'].includes(user.role)) {
+        router.push("/dashboard");
+        return;
+      }
+
+      // Corporate management - Students who are corporate managers
       if (pathname.startsWith("/corporate-management") && !(user.role === "student" && user.isCorporateManager === true)) {
         router.push("/dashboard");
         return;
