@@ -7,7 +7,12 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"prepare": "if [ \"$VERCEL\" != \"1\" ]; then husky install; fi"
+		"install:safe": "npm install --legacy-peer-deps --ignore-engines",
+		"install:pnpm": "pnpm install",
+		"install:pnpm:force": "pnpm install --force",
+		"dev:pnpm": "pnpm run dev",
+		"build:pnpm": "pnpm run build",
+		"prepare": "node -e \"if (process.env.VERCEL !== '1') { require('child_process').execSync('npx husky install', { stdio: 'inherit' }); }\""
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.0.1",
