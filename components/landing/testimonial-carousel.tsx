@@ -58,7 +58,7 @@ export function TestimonialCarousel() {
   }
 
   return (
-    <div className="relative max-w-4xl mx-auto">
+    <div className="relative max-w-4xl mx-auto px-8 md:px-12">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
@@ -73,11 +73,11 @@ export function TestimonialCarousel() {
           <DyraneCard className="overflow-hidden">
             <CardContent className="p-8 md:p-12">
               <Quote className="h-12 w-12 text-primary/20 mb-6" />
-              <blockquote className="text-xl md:text-2xl mb-6 italic">
+              <blockquote className="text-xl md:text-2xl mb-6 italic leading-relaxed">
                 &quot;{testimonials[current].quote}&quot;
               </blockquote>
-              <div className="flex items-center">
-                <div className="h-12 w-12 rounded-full overflow-hidden mr-4">
+              <div className="flex items-center flex-wrap">
+                <div className="h-12 w-12 rounded-full overflow-hidden mr-4 flex-shrink-0">
                   <Image
                     src={testimonials[current].image || "/placeholder.svg"}
                     alt={testimonials[current].author}
@@ -86,9 +86,9 @@ export function TestimonialCarousel() {
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div>
-                  <div className="font-bold">{testimonials[current].author}</div>
-                  <div className="text-muted-foreground text-sm">{testimonials[current].role}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-foreground break-words">{testimonials[current].author}</div>
+                  <div className="text-muted-foreground text-sm break-words">{testimonials[current].role}</div>
                 </div>
               </div>
             </CardContent>
@@ -109,13 +109,13 @@ export function TestimonialCarousel() {
         ))}
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 -ml-4 hidden md:block">
+      <div className="absolute top-1/2 -translate-y-1/2 left-2 hidden lg:block">
         <DyraneButton size="icon" variant="ghost" onClick={prev}>
           <ChevronLeft className="h-6 w-6" />
         </DyraneButton>
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 right-0 -mr-4 hidden md:block">
+      <div className="absolute top-1/2 -translate-y-1/2 right-2 hidden lg:block">
         <DyraneButton size="icon" variant="ghost" onClick={next}>
           <ChevronRight className="h-6 w-6" />
         </DyraneButton>

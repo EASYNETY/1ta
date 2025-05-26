@@ -313,7 +313,7 @@ export default function LandingPage() {
             <div className="text-center mt-16">
               <DyraneButton size="lg" asChild>
                 <Link href="/signup">
-                  Join 1Tech Today
+                  Join 1Tech Academy Today
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </DyraneButton>

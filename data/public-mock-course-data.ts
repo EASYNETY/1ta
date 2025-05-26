@@ -505,7 +505,7 @@ export const publicMockCourseData: PublicCourse[] = [
 				courseInfo.course_category,
 				courseInfo.course_sub_category
 			),
-			image: "/placeholder.svg", // Fallback image path
+			image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=800&h=600&q=80", // PMP Project Management course image
 			previewVideoUrl: previewVideoUrl, // Use the found video URL
 			instructor: {
 				name: "Expert Instructor", // Generic public name
@@ -531,13 +531,181 @@ export const publicMockCourseData: PublicCourse[] = [
 
 		return publicCourse; // Return the single transformed course object
 	})(),
-	// Add more IIFE blocks here if you have data for other courses
-	// to transform and add to the array. Example:
-	// (() => {
-	//    const anotherCoursePartnerData = [ { course_id: "2", ... }, ... ];
-	//    // ... transformation logic for course 2 ...
-	//    return transformedCourse2;
-	// })(),
+	// Additional courses with appropriate logos
+	{
+		id: "2",
+		slug: "iso-9001-quality-management",
+		title: "ISO 9001 Quality Management Systems",
+		subtitle: "Quality Management Professional Certification",
+		description: "Comprehensive training on ISO 9001:2015 Quality Management Systems. Learn to implement, audit, and maintain quality management systems that meet international standards.",
+		category: "Quality Management" as CourseCategory,
+		image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&h=600&q=80", // Quality/business process image
+		previewVideoUrl: undefined,
+		instructor: {
+			name: "Quality Expert",
+			title: "ISO 9001 Lead Auditor",
+		},
+		level: "Intermediate" as const,
+		tags: ["ISO 9001", "Quality Management", "Certification"],
+		priceUSD: 899,
+		priceNaira: 1348500,
+		discountPriceUSD: 699,
+		discountPriceNaira: 1048500,
+		learningOutcomes: [
+			"Understand ISO 9001:2015 requirements and principles",
+			"Implement quality management systems effectively",
+			"Conduct internal quality audits",
+			"Prepare for ISO 9001 certification"
+		],
+		prerequisites: [
+			"Basic understanding of business processes",
+			"No prior ISO experience required"
+		],
+		modules: [
+			{
+				title: "Introduction to ISO 9001",
+				duration: "8 lessons",
+				lessons: [
+					{ title: "Overview of ISO 9001:2015", duration: "45 min", isPreview: true },
+					{ title: "Quality Management Principles", duration: "60 min", isPreview: false },
+					{ title: "Process Approach", duration: "50 min", isPreview: false }
+				]
+			},
+			{
+				title: "Implementation & Auditing",
+				duration: "12 lessons",
+				lessons: [
+					{ title: "Documentation Requirements", duration: "55 min", isPreview: false },
+					{ title: "Internal Audit Process", duration: "70 min", isPreview: false },
+					{ title: "Management Review", duration: "40 min", isPreview: false }
+				]
+			}
+		],
+		lessonCount: 20,
+		moduleCount: 2,
+		totalVideoDuration: "Approx. 18 hours",
+		language: "English",
+		certificate: true,
+		accessType: "Lifetime",
+		supportType: "Community",
+		available_for_enrollment: true
+	},
+	{
+		id: "3",
+		slug: "iso-27001-information-security",
+		title: "ISO 27001 Information Security Management",
+		subtitle: "Information Security Management Systems",
+		description: "Master ISO 27001:2022 Information Security Management Systems. Learn to implement, manage, and audit information security controls to protect organizational data.",
+		category: "Information Security" as CourseCategory,
+		image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&h=600&q=80", // Cybersecurity/data protection image
+		previewVideoUrl: undefined,
+		instructor: {
+			name: "Security Expert",
+			title: "ISO 27001 Lead Implementer",
+		},
+		level: "Advanced" as const,
+		tags: ["ISO 27001", "Information Security", "ISMS"],
+		priceUSD: 1299,
+		priceNaira: 1948500,
+		discountPriceUSD: 999,
+		discountPriceNaira: 1498500,
+		learningOutcomes: [
+			"Implement ISO 27001:2022 ISMS framework",
+			"Conduct risk assessments and treatments",
+			"Manage information security controls",
+			"Lead ISO 27001 certification projects"
+		],
+		prerequisites: [
+			"Basic understanding of information security",
+			"Familiarity with risk management concepts"
+		],
+		modules: [
+			{
+				title: "ISMS Fundamentals",
+				duration: "10 lessons",
+				lessons: [
+					{ title: "Introduction to ISO 27001:2022", duration: "50 min", isPreview: true },
+					{ title: "Information Security Principles", duration: "65 min", isPreview: false },
+					{ title: "ISMS Framework", duration: "55 min", isPreview: false }
+				]
+			},
+			{
+				title: "Risk Management & Controls",
+				duration: "15 lessons",
+				lessons: [
+					{ title: "Risk Assessment Methodology", duration: "75 min", isPreview: false },
+					{ title: "Security Controls Implementation", duration: "80 min", isPreview: false },
+					{ title: "Incident Management", duration: "60 min", isPreview: false }
+				]
+			}
+		],
+		lessonCount: 25,
+		moduleCount: 2,
+		totalVideoDuration: "Approx. 22 hours",
+		language: "English",
+		certificate: true,
+		accessType: "Lifetime",
+		supportType: "Community",
+		available_for_enrollment: true
+	},
+	{
+		id: "4",
+		slug: "iso-20000-it-service-management",
+		title: "ISO 20000 IT Service Management",
+		subtitle: "IT Service Management Systems",
+		description: "Comprehensive training on ISO 20000-1:2018 IT Service Management. Learn to implement and manage IT service management systems that deliver value to customers.",
+		category: "IT Service Management" as CourseCategory,
+		image: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=800&h=600&q=80", // IT/technology services image
+		previewVideoUrl: undefined,
+		instructor: {
+			name: "ITSM Expert",
+			title: "ISO 20000 Lead Consultant",
+		},
+		level: "Intermediate" as const,
+		tags: ["ISO 20000", "ITSM", "Service Management"],
+		priceUSD: 1099,
+		priceNaira: 1648500,
+		discountPriceUSD: 849,
+		discountPriceNaira: 1273500,
+		learningOutcomes: [
+			"Understand ISO 20000-1:2018 requirements",
+			"Implement IT service management processes",
+			"Align IT services with business needs",
+			"Manage service delivery and improvement"
+		],
+		prerequisites: [
+			"Basic understanding of IT operations",
+			"Familiarity with ITIL framework (preferred)"
+		],
+		modules: [
+			{
+				title: "ITSM Foundation",
+				duration: "8 lessons",
+				lessons: [
+					{ title: "Introduction to ISO 20000", duration: "45 min", isPreview: true },
+					{ title: "Service Management Principles", duration: "60 min", isPreview: false },
+					{ title: "Service Lifecycle", duration: "55 min", isPreview: false }
+				]
+			},
+			{
+				title: "Process Implementation",
+				duration: "14 lessons",
+				lessons: [
+					{ title: "Service Design & Transition", duration: "70 min", isPreview: false },
+					{ title: "Service Operation", duration: "65 min", isPreview: false },
+					{ title: "Continual Improvement", duration: "50 min", isPreview: false }
+				]
+			}
+		],
+		lessonCount: 22,
+		moduleCount: 2,
+		totalVideoDuration: "Approx. 20 hours",
+		language: "English",
+		certificate: true,
+		accessType: "Lifetime",
+		supportType: "Community",
+		available_for_enrollment: true
+	}
 ].filter(Boolean) as PublicCourse[]; // Filter out any potential nulls from failed transformations
 
 export const getPublicMockCourses = async (): Promise<PublicCourse[]> => {

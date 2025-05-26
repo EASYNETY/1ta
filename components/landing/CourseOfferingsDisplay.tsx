@@ -226,7 +226,7 @@ export function CourseCards() {
         </div>
       ) : (
         <>
-          {renderCourseSection("Current Enrolment", currentCourses)}
+          {renderCourseSection("Current Courses", currentCourses)}
           {renderCourseSection("Future Courses", futureCourses)}
         </>
       )}
