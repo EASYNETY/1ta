@@ -45,7 +45,7 @@ export function Card({
             onTouchStart={() => setIsHovered(true)}
         >
             {/* Card Container */}
-            <div className="relative w-full min-h-[480px] max-w-[600px] rounded-[22px] group bg-card border shadow-lg">
+            <div className="relative w-full min-h-[520px] max-w-[600px] rounded-[22px] group bg-card border shadow-lg">
                 {/* Header Section with Title, Subtitle and Icon */}
                 <div className="absolute top-6 left-6 right-6 z-40 flex items-start gap-4">
                     {icon && (
@@ -54,20 +54,20 @@ export function Card({
                         </div>
                     )}
                     <div className="flex-1">
-                        <h2 className="text-2xl font-semibold mb-1 text-foreground">{title}</h2>
-                        <p className="text-md text-muted-foreground">{subtitle}</p>
+                        <h2 className="text-xl font-semibold mb-1 text-foreground">{title}</h2>
+                        <p className="text-sm text-muted-foreground">{subtitle}</p>
                     </div>
                 </div>
 
                 {/* Content Section - Mission/Vision Text */}
-                <div className="absolute top-[120px] left-6 right-6 z-40">
-                    <div className="text-foreground leading-relaxed tracking-wide text-base px-2">
+                <div className="absolute top-[100px] left-6 right-6 z-40">
+                    <div className="text-foreground leading-relaxed tracking-wide text-sm px-2 max-h-[140px] overflow-hidden">
                         {modalContent.bio}
                     </div>
                 </div>
 
                 {/* Image */}
-                <div className="absolute bottom-6 left-6 right-6 h-[200px] rounded-[18px] overflow-hidden shadow-md z-30">
+                <div className="absolute bottom-6 left-6 right-6 h-[260px] rounded-[18px] overflow-hidden shadow-md z-30">
                     <motion.div
                         className="w-full h-full"
                         variants={imageVariants}

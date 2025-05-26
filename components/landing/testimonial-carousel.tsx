@@ -26,9 +26,9 @@ const testimonials = [
   },
   {
     quote:
-      "As a facilitator, the learning management system has helped me deliver personalized education for each student. I've seen remarkable improvements in engagement and results.",
-    author: "Fatima Adebayo",
-    role: "Senior Facilitator, 1Tech Academy",
+      "The courses at 1TechAcademy gave me the digital skills I needed. Now I use their platform to manage my online store effectively. Great ecosystem!",
+    author: "Fatima Aliyu",
+    role: "Student & Online Retailer, Kano",
     image: "https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
   },
 ]
@@ -58,7 +58,7 @@ export function TestimonialCarousel() {
   }
 
   return (
-    <div className="relative max-w-4xl mx-auto px-8 md:px-12">
+    <div className="relative max-w-5xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12">
       <AnimatePresence mode="wait">
         <motion.div
           key={current}
@@ -69,15 +69,16 @@ export function TestimonialCarousel() {
             duration: MotionTokens.duration.medium,
             ease: MotionTokens.ease.subtle_easeInOut,
           }}
+          className="w-full"
         >
-          <DyraneCard className="overflow-hidden">
-            <CardContent className="p-8 md:p-12">
-              <Quote className="h-12 w-12 text-primary/20 mb-6" />
-              <blockquote className="text-xl md:text-2xl mb-6 italic leading-relaxed">
+          <DyraneCard className="overflow-hidden w-full">
+            <CardContent className="p-6 sm:p-8 md:p-10 lg:p-12">
+              <Quote className="h-10 w-10 md:h-12 md:w-12 text-primary/20 mb-4 md:mb-6" />
+              <blockquote className="text-lg sm:text-xl md:text-2xl mb-6 italic leading-relaxed text-foreground break-words hyphens-auto">
                 &quot;{testimonials[current].quote}&quot;
               </blockquote>
-              <div className="flex items-center flex-wrap">
-                <div className="h-12 w-12 rounded-full overflow-hidden mr-4 flex-shrink-0">
+              <div className="flex items-start sm:items-center gap-4 flex-col sm:flex-row">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full overflow-hidden flex-shrink-0">
                   <Image
                     src={testimonials[current].image || "/placeholder.svg"}
                     alt={testimonials[current].author}
@@ -86,9 +87,9 @@ export function TestimonialCarousel() {
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold text-foreground break-words">{testimonials[current].author}</div>
-                  <div className="text-muted-foreground text-sm break-words">{testimonials[current].role}</div>
+                <div className="min-w-0 flex-1 text-center sm:text-left">
+                  <div className="font-bold text-foreground break-words text-base md:text-lg">{testimonials[current].author}</div>
+                  <div className="text-muted-foreground text-sm md:text-base break-words leading-relaxed">{testimonials[current].role}</div>
                 </div>
               </div>
             </CardContent>
@@ -109,15 +110,15 @@ export function TestimonialCarousel() {
         ))}
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 left-2 hidden lg:block">
-        <DyraneButton size="icon" variant="ghost" onClick={prev}>
-          <ChevronLeft className="h-6 w-6" />
+      <div className="absolute top-1/2 -translate-y-1/2 -left-4 xl:-left-6 hidden lg:block z-10">
+        <DyraneButton size="icon" variant="ghost" onClick={prev} className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-md">
+          <ChevronLeft className="h-5 w-5" />
         </DyraneButton>
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 right-2 hidden lg:block">
-        <DyraneButton size="icon" variant="ghost" onClick={next}>
-          <ChevronRight className="h-6 w-6" />
+      <div className="absolute top-1/2 -translate-y-1/2 -right-4 xl:-right-6 hidden lg:block z-10">
+        <DyraneButton size="icon" variant="ghost" onClick={next} className="bg-background/80 backdrop-blur-sm hover:bg-background/90 shadow-md">
+          <ChevronRight className="h-5 w-5" />
         </DyraneButton>
       </div>
     </div>
