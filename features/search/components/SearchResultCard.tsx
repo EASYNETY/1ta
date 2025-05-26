@@ -299,7 +299,7 @@ function getResultActions(result: SearchResult) {
       // Primary action for class
       const isEnrollable = result.status === 'open';
       primaryAction = {
-        label: isEnrollable ? 'Enroll' : 'View Details',
+        label: isEnrollable ? 'Enrol' : 'View Details',
         icon: isEnrollable
           ? <CheckCircle className="h-3.5 w-3.5 mr-1" />
           : <Eye className="h-3.5 w-3.5 mr-1" />,

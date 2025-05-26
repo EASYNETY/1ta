@@ -37,16 +37,16 @@ const faqCategories = [
 const faqItemsByCategory = {
   enrollment: [
     {
-      question: 'How do I enroll in a course?',
-      answer: 'You can enroll in a course by navigating to the Courses section, selecting your desired course, and clicking the "Enroll" button. Follow the prompts to complete your enrollment.'
+      question: 'How do I enrol in a course?',
+      answer: 'You can enrol in a course by navigating to the Courses section, selecting your desired course, and clicking the "Enrol" button. Follow the prompts to complete your enrollment.'
     },
     {
       question: 'How long do I have access to a course after enrolling?',
       answer: 'Once enrolled, you have lifetime access to the course materials, allowing you to learn at your own pace and revisit content whenever needed.'
     },
     {
-      question: 'Can I enroll in multiple courses at once?',
-      answer: 'Yes, you can enroll in multiple courses simultaneously. Each course will be accessible from your dashboard after enrollment.'
+      question: 'Can I enrol in multiple courses at once?',
+      answer: 'Yes, you can enrol in multiple courses simultaneously. Each course will be accessible from your dashboard after enrollment.'
     },
   ],
   courses: [

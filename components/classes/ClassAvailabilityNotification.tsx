@@ -77,7 +77,7 @@ export function ClassAvailabilityNotification({
       variant: "success"
     });
 
-    // In a real implementation, this would call an API to enroll the user
+    // In a real implementation, this would call an API to enrol the user
     // For now, we'll just redirect to the class page
     router.push(`/classes/${classId}`);
     setOpen(false);
@@ -98,7 +98,7 @@ export function ClassAvailabilityNotification({
           </AlertDialogTitle>
           <AlertDialogDescription>
             Good news! A slot has become available in <strong>{courseTitle}</strong>.
-            You were on the waitlist for this class and now have the opportunity to enroll.
+            You were on the waitlist for this class and now have the opportunity to enrol.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -109,7 +109,7 @@ export function ClassAvailabilityNotification({
           </div>
 
           <div className="mt-4 text-sm">
-            <p>Would you like to enroll now? If you don't enroll within 24 hours, the slot may be offered to someone else on the waitlist.</p>
+            <p>Would you like to enrol now? If you don't enrol within 24 hours, the slot may be offered to someone else on the waitlist.</p>
           </div>
         </div>
 

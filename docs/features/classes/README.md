@@ -24,7 +24,7 @@ The classes feature allows administrators and teachers to manage classes, course
 - **Class Management**: Create, update, and delete classes.
 - **Course Management**: Create, update, and delete courses.
 - **Teacher Assignment**: Assign teachers to classes.
-- **Student Enrollment**: Enroll students in classes with slot-based capacity management.
+- **Student Enrollment**: Enrol students in classes with slot-based capacity management.
 - **Waitlist Management**: Allow students to join waitlists for full classes and notify them when slots become available.
 - **Class Scheduling**: Schedule classes with times and locations.
 - **Class Materials**: Manage materials for classes.

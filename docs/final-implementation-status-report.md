@@ -32,7 +32,7 @@
 
 ### Website Changes:
 1. **❌ Make All Text Bigger**: No font size increases implemented
-2. **❌ Change "Enroll Now" to "Enrol now"**: Still shows "Enroll Now" in landing page (`app/page.tsx` line 93)
+2. **❌ Change "Enrol Now" to "Enrol now"**: Still shows "Enrol Now" in landing page (`app/page.tsx` line 93)
 3. **❌ Change "Technologies We Teach" to "Available Courses"**: Still shows "Technologies We Teach" (`app/page.tsx` line 333)
 4. **❌ Add Current & Future Courses**: No split implementation found
 5. **❌ Update Testimonial Images**: No evidence of African/black representative images
@@ -50,11 +50,11 @@
 
 ### Critical Code Issues Found:
 
-**Landing Page - Enroll Button:**
+**Landing Page - Enrol Button:**
 ```typescript
 <DyraneButton size="lg" asChild>
   <Link href="/signup">
-    Enroll Now  // ❌ Should be "Enrol now"
+    Enrol Now  // ❌ Should be "Enrol now"
     <ArrowRight className="ml-2 h-4 w-4" />
   </Link>
 </DyraneButton>
@@ -81,7 +81,7 @@
 ### High Priority (Critical for User Experience):
 1. Fix contact form email functionality
 2. Implement proper 4-tier RBAC system
-3. Update "Enroll Now" to "Enrol now" globally
+3. Update "Enrol Now" to "Enrol now" globally
 4. Change "Technologies We Teach" to "Available Courses"
 
 ### Medium Priority (Content & UX):

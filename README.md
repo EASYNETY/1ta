@@ -279,7 +279,7 @@ I've implemented a full-featured cart system:
 
 The system handles different user types elegantly:
 
-- **Students**: Can enroll in courses, requiring payment
+- **Students**: Can enrol in courses, requiring payment
 - **Teachers**: Can create and manage courses
 - **Admins**: Have access to all features
 

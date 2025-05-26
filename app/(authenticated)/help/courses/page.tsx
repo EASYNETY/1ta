@@ -14,7 +14,7 @@ const topics = [
   { 
     id: 'enrollment', 
     title: 'Course Enrollment', 
-    description: 'Learn how to browse, select, and enroll in courses on the platform.',
+    description: 'Learn how to browse, select, and enrol in courses on the platform.',
     href: '/help/courses/enrollment',
     icon: '/images/help/enrollment-icon.jpg'
   },
@@ -138,9 +138,9 @@ export default function CoursesHelpPage() {
         
         <div className="space-y-4 mt-6">
           <div>
-            <h3 className="text-lg font-medium">Can I enroll in multiple courses at once?</h3>
+            <h3 className="text-lg font-medium">Can I enrol in multiple courses at once?</h3>
             <p className="text-muted-foreground mt-1">
-              Yes, you can enroll in multiple courses simultaneously. However, we recommend considering your available 
+              Yes, you can enrol in multiple courses simultaneously. However, we recommend considering your available 
               time and commitments before enrolling in too many courses at once.
             </p>
           </div>

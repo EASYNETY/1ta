@@ -104,7 +104,7 @@ export function CartDropdown({ isOpen, onClose, setIsDropdownOpen }: CartDropdow
                                         {isAuthenticated ? (
                                             <Link href="/cart">View Cart</Link>
                                         ) : (
-                                            <Link href="/signup">Sign Up to Enroll</Link>
+                                            <Link href="/signup">Sign Up to Enrol</Link>
                                         )}
                                     </DyraneButton>
                                 </div>

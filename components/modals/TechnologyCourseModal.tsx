@@ -217,7 +217,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
   // Check if course is already in cart
   const isAlreadyInCart = cartItems.some((item) => item.courseId === mergedCourse.id);
 
-  // Handle enroll now button click
+  // Handle enrol now button click
   const handleEnrollNow = () => {
     if (isAlreadyInCart) {
       toast({

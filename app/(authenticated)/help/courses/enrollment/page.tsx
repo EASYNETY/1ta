@@ -40,7 +40,7 @@ export default function CourseEnrollmentPage() {
       <ArticleHeader
         title="Course Enrollment"
         icon={GraduationCap}
-        description="Learn how to browse, select, and enroll in courses on the platform."
+        description="Learn how to browse, select, and enrol in courses on the platform."
         breadcrumbs={[
           { label: 'Help Center', href: '/help' },
           { label: 'Courses', href: '/help/courses' },
@@ -53,12 +53,12 @@ export default function CourseEnrollmentPage() {
           <p>
             Enrolling in courses is a straightforward process that allows you to gain access to educational content,
             participate in classes, and track your progress. This guide will walk you through the steps to find courses
-            and enroll in specific class sessions that match your interests, goals, and schedule.
+            and enrol in specific class sessions that match your interests, goals, and schedule.
           </p>
 
           <HelpCallout type="important" title="Course vs. Class Enrollment">
-            Our platform uses a class-based enrollment system. This means you don't just enroll in a course;
-            you enroll in a specific class session of that course. Each class has its own schedule, instructor,
+            Our platform uses a class-based enrollment system. This means you don't just enrol in a course;
+            you enrol in a specific class session of that course. Each class has its own schedule, instructor,
             and limited number of available slots.
           </HelpCallout>
 
@@ -92,13 +92,13 @@ export default function CourseEnrollmentPage() {
 
           <HelpCallout type="tip" title="Quick Tip">
             You can save courses to your wishlist by clicking the bookmark icon on a course card. This allows you to
-            revisit them later when you're ready to enroll.
+            revisit them later when you're ready to enrol.
           </HelpCallout>
 
           <h2 id="enrollment-process" className="text-2xl font-bold mt-8">Enrollment Process</h2>
           <Separator className="my-2" />
 
-          <StepByStepGuide title="How to Enroll in a Course" description="Follow these steps to successfully enroll in a course:">
+          <StepByStepGuide title="How to Enrol in a Course" description="Follow these steps to successfully enrol in a course:">
             <Step number={1} title="Select a Course">
               Browse the course catalog and click on a course card to view its details. Review the course description,
               curriculum, instructor information, and student reviews to ensure it meets your needs.
@@ -143,7 +143,7 @@ export default function CourseEnrollmentPage() {
               browsing and add more classes if desired.
 
               <HelpCallout type="note" title="Note" className="mt-4">
-                Some classes may have an "Enroll Now" button that bypasses the cart and takes you directly to checkout.
+                Some classes may have an "Enrol Now" button that bypasses the cart and takes you directly to checkout.
               </HelpCallout>
             </Step>
 
@@ -172,12 +172,12 @@ export default function CourseEnrollmentPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">For Students</h3>
                 <p>
-                  As a student, you can enroll in any available class that matches your interests and schedule. Keep these points in mind:
+                  As a student, you can enrol in any available class that matches your interests and schedule. Keep these points in mind:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Check course prerequisites to ensure you meet the requirements</li>
                   <li>Review the class schedule to confirm you can attend all sessions</li>
-                  <li>Check that the class has available slots before attempting to enroll</li>
+                  <li>Check that the class has available slots before attempting to enrol</li>
                   <li>Verify that enrollment is open for the class (some classes have specific enrollment start dates)</li>
                   <li>Consider your workload before enrolling in multiple classes simultaneously</li>
                   <li>Some courses offer a preview or free introduction to help you decide</li>
@@ -196,10 +196,10 @@ export default function CourseEnrollmentPage() {
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Monitor available slots and enrollment numbers from your Teacher Dashboard</li>
-                  <li>Review student profiles as they enroll in your classes</li>
+                  <li>Review student profiles as they enrol in your classes</li>
                   <li>Set maximum slots for your classes to control enrollment capacity</li>
                   <li>Set enrollment start dates to control when students can begin enrolling</li>
-                  <li>Configure class visibility (public, private, etc.) to control who can see and enroll in your classes</li>
+                  <li>Configure class visibility (public, private, etc.) to control who can see and enrol in your classes</li>
                   <li>Manually approve enrollments if you've enabled this option</li>
                 </ul>
                 <HelpCallout type="important">
@@ -219,7 +219,7 @@ export default function CourseEnrollmentPage() {
                   <li>Override slot limitations when necessary</li>
                   <li>Process refunds or transfers between classes</li>
                   <li>Generate enrollment reports and analytics</li>
-                  <li>Manually enroll or remove students from classes</li>
+                  <li>Manually enrol or remove students from classes</li>
                   <li>Adjust maximum slots for classes based on demand</li>
                 </ul>
                 <HelpCallout type="warning">

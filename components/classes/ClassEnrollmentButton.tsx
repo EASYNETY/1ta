@@ -166,7 +166,7 @@ export function ClassEnrollmentButton({
     return {
       type: "success",
       title: "Available for Enrollment",
-      message: `This class has ${availableSlots} available slots. Enroll now to secure your spot!`
+      message: `This class has ${availableSlots} available slots. Enrol now to secure your spot!`
     }
   }
 

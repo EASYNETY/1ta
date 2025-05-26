@@ -38,7 +38,7 @@ export default function PrivacyPolicyPage() {
               <TabsContent value="overview" className="mt-0">
                 <h2 className="text-xl font-semibold mb-4">Privacy Policy Overview</h2>
                 <p className="mb-4">
-                  At 1Tech Academy, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our platform, or enroll in our courses.
+                  At 1Tech Academy, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use our platform, or enrol in our courses.
                 </p>
                 <p className="mb-4">
                   Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the site or use our services.
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
                   <li>Register for an account</li>
-                  <li>Enroll in a course</li>
+                  <li>Enrol in a course</li>
                   <li>Complete a profile</li>
                   <li>Participate in discussions or forums</li>
                   <li>Submit a contact form</li>

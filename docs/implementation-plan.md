@@ -117,7 +117,7 @@ This document outlines the comprehensive plan to implement all CEO-requested cha
 - **Task:** Update text and terminology across platforms
 - **Estimated Time:** 1-2 days
 - **Changes:**
-  - "Enroll Now" → "Enrol now"
+  - "Enrol Now" → "Enrol now"
   - "Technologies We Teach" → "Available Courses"
   - "Teacher" → "Facilitator"
   - "Class Title" → "Course Title"

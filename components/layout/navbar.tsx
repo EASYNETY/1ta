@@ -156,7 +156,7 @@ export default function NavBar() {
                             Log in
                         </Link>
                         <DyraneButton asChild size="sm">
-                            <Link href="/signup">Enroll Now</Link>
+                            <Link href="/signup">Enrol Now</Link>
                         </DyraneButton>
                     </div>
 

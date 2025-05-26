@@ -36,7 +36,7 @@ This component handles the enrollment process for a class. It checks for availab
   maxSlots={30}
   availableSlots={5}
   enrollmentStartDate="2023-06-01T00:00:00Z"
-  buttonText="Enroll Now"
+  buttonText="Enrol Now"
 />
 ```
 
@@ -193,15 +193,15 @@ When slots become available, the system notifies students on the waitlist:
 2. System identifies students on the waitlist with "pending" status
 3. System updates waitlist entry status to "notified"
 4. System displays notification to student
-5. Student can enroll directly from the notification
+5. Student can enrol directly from the notification
 6. If student enrolls, system updates waitlist entry status to "enrolled"
-7. If student doesn't enroll within 24 hours, system may offer the slot to the next student
+7. If student doesn't enrol within 24 hours, system may offer the slot to the next student
 
 ## Integration with Cart
 
 The slot-based enrollment system integrates with the cart system to handle enrollment:
 
-1. When a student clicks "Enroll Now", the class is added to the cart
+1. When a student clicks "Enrol Now", the class is added to the cart
 2. The cart item includes both courseId and classId
 3. When the student completes checkout, they are enrolled in the specific class
 4. The system updates available slots and waitlist status accordingly

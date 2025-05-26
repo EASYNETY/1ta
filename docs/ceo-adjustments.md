@@ -22,8 +22,8 @@
   - Added improved line heights for better readability
   - Applied consistent typography across cards, tables, and lists
 
-### 2. Spelling Standardization - "Enroll Now"
-- **Request:** Replace all "Enroll Now" buttons/text with "Enrol now" (British spelling).
+### 2. Spelling Standardization - "Enrol Now"
+- **Request:** Replace all "Enrol Now" buttons/text with "Enrol now" (British spelling).
 - **Status:** ✅ Completed
 - **Priority:** Medium
 - **Date Requested:** January 25, 2025
@@ -231,7 +231,7 @@ STU-0001 | Jane Doe | INV-2024-01 | Tuition - Term 1 | 01-Sep-2024 | ₦100,000 
 | 2025-01-25 | Contact form email functionality fixed | ✅ Complete | Implemented Resend service with professional email templates |
 | 2025-01-25 | "Technologies We Teach" → "Available Courses" | ✅ Complete | Updated landing page section title |
 | 2025-01-25 | Course organization with Current/Future split | ✅ Complete | Apple-style segmented control with responsive design |
-| 2025-01-25 | "Enroll Now" → "Enrol now" terminology update | ✅ Complete | Updated all buttons and text across the codebase |
+| 2025-01-25 | "Enrol Now" → "Enrol now" terminology update | ✅ Complete | Updated all buttons and text across the codebase |
 | 2025-01-25 | Typography enhancement implemented | ✅ Complete | Increased font sizes across website for better readability |
 | 2025-01-25 | 4-Tier RBAC system implemented | ✅ Complete | Added Super Admin, Admin, Accounting, Customer Care roles |
 | 2025-01-25 | Payment system fields updated | ✅ Complete | Added Gateway Ref, Transaction ID, Reconciliation status |

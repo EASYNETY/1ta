@@ -213,7 +213,7 @@ export default function DashboardPage() {
                                     {/* Step 2 Removed (Pricing Plan) */}
                                     <li className="flex items-center gap-2">
                                         <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
-                                        <span>Explore available courses and enroll to start learning.</span>
+                                        <span>Explore available courses and enrol to start learning.</span>
                                     </li>
 
                                 </ul>

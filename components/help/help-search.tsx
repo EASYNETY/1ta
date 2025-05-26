@@ -51,7 +51,7 @@ export const helpArticles: HelpArticle[] = [
   // Courses
   {
     title: 'Course Enrollment',
-    description: 'Learn how to browse, select, and enroll in courses on the platform.',
+    description: 'Learn how to browse, select, and enrol in courses on the platform.',
     href: '/help/courses/enrollment',
     category: 'Courses',
     categoryIcon: GraduationCap,

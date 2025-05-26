@@ -74,7 +74,7 @@ export default function PlatformOverviewPage() {
             <FeatureCard
               icon={GraduationCap}
               title="Courses"
-              description="Browse, enroll, and access course materials all in one place."
+              description="Browse, enrol, and access course materials all in one place."
               href="/help/courses"
             />
             <FeatureCard
@@ -116,7 +116,7 @@ export default function PlatformOverviewPage() {
           </p>
           <ol className="list-decimal pl-6 space-y-2 mt-2">
             <li>Complete your profile with accurate information</li>
-            <li>Explore available courses and enroll in those that interest you</li>
+            <li>Explore available courses and enrol in those that interest you</li>
             <li>Check your timetable to see your scheduled classes</li>
             <li>Join the discussion forums to connect with peers and instructors</li>
             <li>Set up your notification preferences to stay informed</li>
@@ -132,7 +132,7 @@ export default function PlatformOverviewPage() {
 
           <h3 className="text-xl font-semibold mt-4">Key Features for Students</h3>
           <ul className="list-disc pl-6 space-y-2 mt-2">
-            <li>Browse and enroll in courses</li>
+            <li>Browse and enrol in courses</li>
             <li>Access course materials and resources</li>
             <li>Track your attendance and progress</li>
             <li>View your class schedule</li>

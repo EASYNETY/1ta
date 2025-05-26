@@ -41,7 +41,7 @@ const relatedTopics = [
   { 
     title: 'Course Enrollment', 
     href: '/help/courses/enrollment',
-    description: 'Learn how to enroll in courses'
+    description: 'Learn how to enrol in courses'
   },
 ];
 
@@ -71,7 +71,7 @@ export default function PaymentMethodsHelpPage() {
 
       <HelpCallout type="note" title="Per-Course Payments">
         The platform charges per course rather than using a subscription model. You only pay for
-        the specific courses you want to enroll in, with no recurring charges.
+        the specific courses you want to enrol in, with no recurring charges.
       </HelpCallout>
 
       {/* Available Payment Methods */}
@@ -132,13 +132,13 @@ export default function PaymentMethodsHelpPage() {
 
       <StepByStepGuide title="Making a Course Payment" description="Follow these steps to pay for a course:">
         <Step number={1} title="Select a Course">
-          Browse the available courses and click on the one you want to enroll in.
+          Browse the available courses and click on the one you want to enrol in.
         </Step>
         <Step number={2} title="Review Course Details">
           Check the course description, schedule, and price to ensure it meets your needs.
         </Step>
-        <Step number={3} title="Click Enroll">
-          Click the "Enroll Now" or "Add to Cart" button to proceed to checkout.
+        <Step number={3} title="Click Enrol">
+          Click the "Enrol Now" or "Add to Cart" button to proceed to checkout.
         </Step>
         <Step number={4} title="Review Cart">
           Review your cart to confirm the course selection and total amount.
@@ -342,7 +342,7 @@ export default function PaymentMethodsHelpPage() {
           </h4>
           <p className="text-sm text-muted-foreground mt-2">
             No, the platform charges per course rather than using a subscription model. You only pay
-            for the specific courses you want to enroll in.
+            for the specific courses you want to enrol in.
           </p>
         </div>
 
@@ -376,7 +376,7 @@ export default function PaymentMethodsHelpPage() {
           </h4>
           <p className="text-sm text-muted-foreground mt-2">
             Currently, the platform does not offer installment payment options. Full payment is
-            required to enroll in a course.
+            required to enrol in a course.
           </p>
         </div>
       </div>
@@ -387,12 +387,12 @@ export default function PaymentMethodsHelpPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">For Students</h3>
             <p>
-              As a student, understanding payment options helps you enroll in courses smoothly:
+              As a student, understanding payment options helps you enrol in courses smoothly:
             </p>
             <ul className="list-disc pl-6 space-y-2">
               <li>Keep your payment methods up to date to avoid enrollment delays</li>
               <li>Save your payment receipts for your records and potential tax purposes</li>
-              <li>Check course prices and payment requirements before attempting to enroll</li>
+              <li>Check course prices and payment requirements before attempting to enrol</li>
               <li>Contact support promptly if you encounter any payment issues</li>
             </ul>
           </div>

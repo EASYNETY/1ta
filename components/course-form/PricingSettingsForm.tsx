@@ -175,7 +175,7 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
                                     <div>
                                         <FormLabel>Availability</FormLabel>
                                         <FormDescription className="text-sm text-muted-foreground">
-                                            Control if students can enroll in this course
+                                            Control if students can enrol in this course
                                         </FormDescription>
                                     </div>
                                     <FormControl>

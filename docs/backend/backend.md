@@ -322,7 +322,7 @@ This section describes key user interactions and how the frontend and backend co
     *   Parses the event data.
     *   If `payment_intent.succeeded`, finds the corresponding `Payment` record (using `paymentIntentId`).
     *   Updates the `Payment` status to 'completed' and the `Invoice` status to 'paid'.
-    *   Potentially triggers other actions (enroll student, send confirmation email).
+    *   Potentially triggers other actions (enrol student, send confirmation email).
     *   Sends 200 OK response to Stripe to acknowledge receipt.
 12. **FE:** The `stripe.confirmCardPayment` call resolves successfully (or fails). FE shows confirmation/error message to the user and potentially redirects (e.g., to dashboard, order confirmation page).
 

@@ -97,7 +97,7 @@ const helpCategories = [
 
 // Popular topics for quick access
 const popularTopics = [
-  { title: 'How to enroll in a course', href: '/help/courses/enrollment' },
+  { title: 'How to enrol in a course', href: '/help/courses/enrollment' },
   { title: 'Marking attendance', href: '/help/attendance/marking' },
   { title: 'Viewing your schedule', href: '/help/timetable/viewing' },
   { title: 'Payment methods', href: '/help/payments/methods' },

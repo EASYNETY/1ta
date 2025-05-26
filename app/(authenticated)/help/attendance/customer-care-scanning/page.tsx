@@ -31,7 +31,7 @@ const relatedTopics = [
   {
     title: 'Course Enrollment',
     href: '/help/courses/enrollment',
-    description: 'How students enroll in courses'
+    description: 'How students enrol in courses'
   },
 ];
 

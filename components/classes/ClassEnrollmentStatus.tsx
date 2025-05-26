@@ -142,7 +142,7 @@ export function ClassEnrollmentStatus({
               ? `Enrollment opens on ${formattedEnrollmentStartDate}`
               : availableSlots !== undefined && availableSlots <= 0
                 ? 'This class is currently full'
-                : 'Enroll in this class to secure your spot'
+                : 'Enrol in this class to secure your spot'
             }
           </CardDescription>
         </CardHeader>

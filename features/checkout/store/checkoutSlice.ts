@@ -44,7 +44,7 @@ export const enrollCoursesAfterPayment = createAsyncThunk<
 		}
 		return response;
 	} catch (error: any) {
-		return rejectWithValue(error.message || "Failed to enroll in courses");
+		return rejectWithValue(error.message || "Failed to enrol in courses");
 	}
 });
 
