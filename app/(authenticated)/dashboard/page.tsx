@@ -7,7 +7,7 @@ import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Sparkles, AlertCircle } from "lucide-react"
+import { Sparkles, AlertCircle, QrCode } from "lucide-react"
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { motion } from "framer-motion"
@@ -147,7 +147,10 @@ export default function DashboardPage() {
                             <Link href="/assignments/create">Create Assignment</Link>
                         </DyraneButton>
                         <DyraneButton asChild variant="outline">
-                            <Link href="/courses">Browse Courses</Link>
+                            <Link href="/courses" className="flex items-center gap-2">
+                                <QrCode className="h-4 w-4" />
+                                Browse Courses
+                            </Link>
                         </DyraneButton>
                     </div>
                 )
@@ -155,7 +158,10 @@ export default function DashboardPage() {
             default:
                 return (
                     <DyraneButton asChild>
-                        <Link href="/courses">Browse Courses</Link>
+                        <Link href="/courses" className="flex items-center gap-2">
+                            <QrCode className="h-4 w-4" />
+                            Browse Courses
+                        </Link>
                     </DyraneButton>
                 )
         }
@@ -226,7 +232,10 @@ export default function DashboardPage() {
                                     </DyraneButton>
                                     {/* Removed "View Pricing Plans" button */}
                                     <DyraneButton asChild variant="outline">
-                                        <Link href="/courses">Browse Courses</Link>
+                                        <Link href="/courses" className="flex items-center gap-2">
+                                            <QrCode className="h-4 w-4" />
+                                            Browse Courses
+                                        </Link>
                                     </DyraneButton>
                                 </div>
                             </div>
@@ -285,7 +294,10 @@ export default function DashboardPage() {
                             <div className="col-span-full text-center py-8">
                                 <p className="text-muted-foreground mb-4">You haven't enrolled in any courses yet.</p>
                                 <DyraneButton asChild>
-                                    <Link href="/courses">Browse Courses</Link>
+                                    <Link href="/courses" className="flex items-center gap-2">
+                                        <QrCode className="h-4 w-4" />
+                                        Browse Courses
+                                    </Link>
                                 </DyraneButton>
                             </div>
                         )}
@@ -313,7 +325,10 @@ export default function DashboardPage() {
                             <div className="col-span-full text-center py-8">
                                 <p className="text-muted-foreground mb-4">You haven't enrolled in any courses yet.</p>
                                 <DyraneButton asChild>
-                                    <Link href="/courses">Browse Courses</Link>
+                                    <Link href="/courses" className="flex items-center gap-2">
+                                        <QrCode className="h-4 w-4" />
+                                        Browse Courses
+                                    </Link>
                                 </DyraneButton>
                             </div>
                         )}

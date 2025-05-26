@@ -90,9 +90,9 @@ const testimonials: Testimonial[] = [
     },
   ]
 const nodePositions: Record<ScreenSize, NodePosition[]> = { /* ... your positions ... */
-    desktop: [{ top: "5%", left: "60%" }, { top: "25%", left: "10%" }, { top: "50%", left: "85%" }, { top: "75%", left: "20%" }, { top: "15%", left: "90%" }, { top: "85%", left: "55%" }, { top: "50%", left: "50%", center: true },],
-    tablet: [{ top: "10%", left: "15%" }, { top: "15%", left: "85%" }, { top: "40%", left: "75%" }, { top: "70%", left: "10%" }, { top: "85%", left: "65%" }, { top: "50%", left: "5%" }, { top: "50%", left: "50%", center: true },],
-    mobile: [{ top: "5%", left: "20%" }, { top: "10%", left: "80%" }, { top: "35%", left: "70%" }, { top: "65%", left: "15%" }, { top: "80%", left: "75%" }, { top: "90%", left: "30%" }, { top: "50%", left: "50%", center: true },],
+    desktop: [{ top: "5%", left: "60%" }, { top: "25%", left: "10%" }, { top: "50%", left: "75%" }, { top: "75%", left: "20%" }, { top: "15%", left: "80%" }, { top: "85%", left: "55%" }, { top: "50%", left: "50%", center: true },],
+    tablet: [{ top: "10%", left: "15%" }, { top: "15%", left: "75%" }, { top: "40%", left: "65%" }, { top: "70%", left: "10%" }, { top: "85%", left: "55%" }, { top: "50%", left: "5%" }, { top: "50%", left: "50%", center: true },],
+    mobile: [{ top: "5%", left: "20%" }, { top: "10%", left: "70%" }, { top: "35%", left: "60%" }, { top: "65%", left: "15%" }, { top: "80%", left: "65%" }, { top: "90%", left: "30%" }, { top: "50%", left: "50%", center: true },],
 };
 
 // --- Helper Function for Debouncing  ---
@@ -229,7 +229,7 @@ export function NodeTestimonialSection() {
                 </div>
 
                 {/* Network Nodes Area */}
-                <div ref={nodesAreaRef} className="relative z-0 w-full lg:w-1/2 xl:w-[55%] h-[400px] sm:h-[450px] md:h-[500px]">
+                <div ref={nodesAreaRef} className="relative z-0 w-full lg:w-1/2 xl:w-[55%] h-[400px] sm:h-[450px] md:h-[500px] px-4 py-4">
                     {/* SVG Layer for Connections and Globes */}
                     <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" aria-hidden="true">
                         <defs>
@@ -331,7 +331,7 @@ export function NodeTestimonialSection() {
                                 <AnimatePresence>
                                     {activeNodeId === testimonial.id && (
                                         <motion.div className={cn( /* ... popup courses ... */
-                                            "absolute left-1/2 -translate-x-1/2 text-left",
+                                            "absolute text-left",
                                             "min-w-[280px] max-w-[300px] sm:max-w-[320px]",
                                             "bg-background/80 dark:bg-slate-900/80 backdrop-blur-lg",
                                             "border border-border/50 rounded-lg p-4 shadow-xl z-[100]",
@@ -339,8 +339,10 @@ export function NodeTestimonialSection() {
                                             parseInt(position.top) > 50 ? "bottom-[calc(100%+15px)]" : "top-[calc(100%+15px)]",
                                             // Add overflow handling to prevent text clipping
                                             "overflow-visible",
-                                            // Fix for rightmost cards
-                                            position.left.includes("75%") || position.left.includes("80%") || position.left.includes("90%") ? "-translate-x-[80%]" : ""
+                                            // Smart positioning based on left position to prevent cutoff
+                                            parseInt(position.left.replace('%', '')) > 70 ? "right-0" :
+                                            parseInt(position.left.replace('%', '')) < 30 ? "left-0" :
+                                            "left-1/2 -translate-x-1/2"
                                         )}
                                             initial={{ opacity: 0, y: parseInt(position.top) > 50 ? 10 : -10, scale: 0.9 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: parseInt(position.top) > 50 ? 10 : -10, scale: 0.9 }}

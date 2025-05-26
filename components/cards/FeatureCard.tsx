@@ -79,8 +79,8 @@ export function Card({
                             alt={imageAlt || title}
                             fill
                             sizes="(max-width: 768px) 90vw, 33vw"
-                            className="object-cover object-center"
-                            style={{ objectFit: 'cover' }}
+                            className="object-contain object-center"
+                            style={{ objectFit: 'contain' }}
                         />
                     </motion.div>
                 </div>
