@@ -161,12 +161,20 @@ export async function uploadMedia(
 
   // Create form data
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('files', file); // Changed from 'file' to 'files' to match backend
   formData.append('mediaType', mediaType);
 
   if (options.folder) {
     formData.append('folder', options.folder);
   }
+
+  console.log('📁 Uploading file:', {
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    mediaType,
+    folder: options.folder
+  });
 
   try {
     // In a real implementation, we would use a proper upload endpoint
@@ -203,7 +211,7 @@ export async function uploadMedia(
     }
 
     // Create a new error with the user-friendly message
-    const enhancedError = new Error(errorMessage);
+    const enhancedError = new Error(errorMessage) as any;
 
     // Preserve the original error properties
     if (error.response) enhancedError.response = error.response;
