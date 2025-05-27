@@ -79,6 +79,7 @@ export default function ScanPage() {
         if (loggedInUser && !initialStudentsFetchAttempted.current) {
             console.log("ScanPage: Fetching all students for barcode lookup.");
             dispatch(fetchUsersByRole({ role: "student" }));
+            console.log("list of students", users);
             initialStudentsFetchAttempted.current = true;
         }
     }, [dispatch, loggedInUser]);
