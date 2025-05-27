@@ -34,7 +34,7 @@ export interface MobileNavItem {
     title: string;
     href: string;
     icon: React.ElementType;
-    roles: Array<"admin" | "teacher" | "student">;
+    roles: Array<"super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student">;
     badgeKey?: keyof MobileNavBadges;
     hidden?: boolean;
     requiredFlags?: Array<"isCorporateManager">;
@@ -53,33 +53,33 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
             title: "Dashboard",
             href: isCorpManager ? "/corporate-management" : "/dashboard",
             icon: LayoutDashboard,
-            roles: ["admin", "teacher", "student"],
+            roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
         },
         {
             title: "Courses",
             href: "/courses",
             icon: GraduationCap,
-            roles: ["student", "teacher", "admin"],
+            roles: ["super_admin", "admin", "teacher", "student"],
         },
         {
             title: "Attendance",
             href: "/attendance",
             icon: CheckCircle,
-            roles: ["student", "teacher", "admin"],
+            roles: ["super_admin", "admin", "customer_care", "teacher", "student"],
             hidden: isCorpManager as boolean,
         },
         {
             title: "Timetable",
             href: "/timetable",
             icon: CalendarBlank,
-            roles: ["student", "teacher", "admin"],
+            roles: ["super_admin", "admin", "customer_care", "teacher", "student"],
             hidden: isCorpManager as boolean,
         },
         {
             title: "Discussions",
             href: "/chat",
             icon: UsersThree,
-            roles: ["student", "teacher", "admin"],
+            roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
             hidden: isCorpManager as boolean,
         }
     ];

@@ -96,13 +96,35 @@ export default function DashboardPage() {
         )
 
         switch (user.role) {
+            case "super_admin":
+                return (
+                    <>
+                        {commonTabs}
+                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                        {/* <TabsTrigger value="users">Users</TabsTrigger>
+                        <TabsTrigger value="settings">Settings</TabsTrigger> */}
+                    </>
+                )
             case "admin":
                 return (
                     <>
                         {commonTabs}
                         {/* <TabsTrigger value="users">Users</TabsTrigger>
-                        <TabsTrigger value="analytics">Analytics</TabsTrigger>
                         <TabsTrigger value="settings">Settings</TabsTrigger> */}
+                    </>
+                )
+            case "accounting":
+                return (
+                    <>
+                        {commonTabs}
+                        <TabsTrigger value="payments">Payments</TabsTrigger>
+                    </>
+                )
+            case "customer_care":
+                return (
+                    <>
+                        {commonTabs}
+                        <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
                     </>
                 )
             case "teacher":
@@ -135,6 +157,28 @@ export default function DashboardPage() {
                     <div className="flex gap-2">
                         <DyraneButton asChild>
                             <Link href="/users/create">Add User</Link>
+                        </DyraneButton>
+                        <DyraneButton asChild variant="outline">
+                            <Link href="/settings">Settings</Link>
+                        </DyraneButton>
+                    </div>
+                )
+            case "accounting":
+                return (
+                    <div className="flex gap-2">
+                        <DyraneButton asChild>
+                            <Link href="/payments">View Payments</Link>
+                        </DyraneButton>
+                        <DyraneButton asChild variant="outline">
+                            <Link href="/settings">Settings</Link>
+                        </DyraneButton>
+                    </div>
+                )
+            case "customer_care":
+                return (
+                    <div className="flex gap-2">
+                        <DyraneButton asChild>
+                            <Link href="/support/tickets">Support Tickets</Link>
                         </DyraneButton>
                         <DyraneButton asChild variant="outline">
                             <Link href="/settings">Settings</Link>

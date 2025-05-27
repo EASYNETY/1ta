@@ -62,7 +62,7 @@ export default function EditClassPage() {
 
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}>
+        <AuthorizationGuard allowedRoles={['super_admin', 'admin']}>
             <div className="mx-auto">
                 <PageHeader
                     heading={`Edit ${currentClass?.courseTitle}`}

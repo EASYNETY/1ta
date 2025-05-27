@@ -61,7 +61,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	// --- Hide FAB ---
 	{
 		pathPattern: /^\/attendance\/scan$/, // Exact match for scan page
-		roles: ["super_admin", "admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus, // Placeholder icon, won't be shown
@@ -69,7 +69,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/settings|\/profile|\/subscription/, // Matches settings, profile, subscription
-		roles: ["super_admin", "admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,
@@ -115,7 +115,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/chat$/, // Any chat page (list or specific room)
-		roles: ["super_admin", "admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
 		// actionType: "openCreateChatModal", // Example: Trigger a modal
 		actionType: "navigate", // Or navigate to a create page
 		ariaLabel: "Start New Chat",
@@ -224,7 +224,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/chat\/create$/,
-		roles: ["super_admin", "admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,
@@ -244,7 +244,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	// It ensures the hook always returns a defined state.
 	{
 		pathPattern: /.*/, // Matches anything
-		roles: ["admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus, // Default, won't be shown

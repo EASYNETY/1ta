@@ -59,7 +59,7 @@ export default function EditScheduleEventPage() {
 
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles */}
+        <AuthorizationGuard allowedRoles={['super_admin', 'admin']}> {/* Adjust roles */}
              <div className="mx-auto">
                 <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Manage Schedule

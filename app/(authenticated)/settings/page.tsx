@@ -26,23 +26,23 @@ interface SettingNavItem {
     icon: React.ElementType;
     component?: React.FC; // Make component optional
     href?: string; // Add href for navigation links
-    roles: Array<'admin' | 'teacher' | 'student'>;
+    roles: Array<'super_admin' | 'admin' | 'accounting' | 'customer_care' | 'teacher' | 'student'>;
 }
 
 // Define Setting Sections - Profile is now a link
 const settingSections: SettingNavItem[] = [
     // Profile Link
-    { id: 'profile', label: 'Profile', icon: User, href: '/profile', roles: ['admin', 'teacher', 'student'] },
+    { id: 'profile', label: 'Profile', icon: User, href: '/profile', roles: ['super_admin', 'admin', 'accounting', 'customer_care', 'teacher', 'student'] },
     // Settings Components rendered within this page
-    { id: 'security', label: 'Security', icon: Lock, component: SettingsSecurity, roles: ['admin', 'teacher', 'student'] },
-    { id: 'notifications', label: 'Notifications', icon: Bell, component: SettingsNotifications, roles: ['admin', 'teacher', 'student'] },
-    // { id: 'appearance', label: 'Appearance', icon: Palette, component: SettingsAppearance, roles: ['admin', 'teacher', 'student'] },
+    { id: 'security', label: 'Security', icon: Lock, component: SettingsSecurity, roles: ['super_admin', 'admin', 'accounting', 'customer_care', 'teacher', 'student'] },
+    { id: 'notifications', label: 'Notifications', icon: Bell, component: SettingsNotifications, roles: ['super_admin', 'admin', 'accounting', 'customer_care', 'teacher', 'student'] },
+    // { id: 'appearance', label: 'Appearance', icon: Palette, component: SettingsAppearance, roles: ['super_admin', 'admin', 'accounting', 'customer_care', 'teacher', 'student'] },
     // App Maintenance - available to all users
-    { id: 'maintenance', label: 'App Maintenance', icon: RefreshCw, component: SettingsAppMaintenance, roles: ['admin', 'teacher', 'student'] },
+    { id: 'maintenance', label: 'App Maintenance', icon: RefreshCw, component: SettingsAppMaintenance, roles: ['super_admin', 'admin', 'accounting', 'customer_care', 'teacher', 'student'] },
     // Role Specific (Subscription link & placeholders)
     // { id: 'subscription', label: 'Subscription', icon: LinkIcon, component: SettingsStudentExtras, roles: ['student'] },
     { id: 'teaching', label: 'Teaching', icon: BookOpen, component: SettingsTeacherExtras, roles: ['teacher'] },
-    { id: 'system', label: 'System', icon: AdminSettingsIcon, component: SettingsAdmin, roles: ['admin'] },
+    { id: 'system', label: 'System', icon: AdminSettingsIcon, component: SettingsAdmin, roles: ['super_admin', 'admin'] },
 ];
 
 export default function SettingsPage() {
