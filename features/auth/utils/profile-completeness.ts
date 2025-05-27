@@ -1,6 +1,6 @@
 // features/auth/utils/profile-completeness.ts
 import type { User } from "@/types/user.types";
-import { isStudent, isTeacher, isAdmin } from "@/types/user.types";
+import { isStudent, isTeacher, hasAdminAccess } from "@/types/user.types";
 
 /**
  * Checks if a user's profile is considered "complete" for basic platform access.
@@ -45,8 +45,8 @@ export function isProfileComplete(user: User | null | undefined): boolean {
 		);
 	}
 
-	// For Admins, just having a name is enough
-	if (isAdmin(user)) {
+	// For Admins and Super Admins, just having a name is enough
+	if (hasAdminAccess(user)) {
 		return !!user.name;
 	}
 

@@ -40,7 +40,7 @@ export const fetchAssignments = createAsyncThunk<
 			if (role === "student" && userId) {
 				// API: GET /assignments?role=student&userId=...
 				return await get<StudentAssignmentView[]>(`/assignments?${params.toString()}`);
-			} else if (role === "teacher" || role === "admin") {
+			} else if (role === "teacher" || role === "admin" || role === "super_admin") {
 				// API: GET /assignments?role=teacher&courseId=...&classId=...
 				return await get<TeacherAssignmentView[]>(`/assignments?${params.toString()}`);
 			}

@@ -127,7 +127,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
 
     // Filter admin items and remove duplicates
     const visibleAdminItems = removeDuplicateNavItems(
-        visiblePrimaryItems.filter(item => item.roles.includes('admin')), // Filter primary for admin first
+        visiblePrimaryItems.filter(item => item.roles.includes('admin') || item.roles.includes('super_admin')), // Filter primary for admin/super_admin first
         filterItems(adminNavItems)
     );
 

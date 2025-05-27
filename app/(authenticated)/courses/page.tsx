@@ -117,7 +117,7 @@ export default function CoursesPage() {
           </TabsContent>
 
           {/* Role-specific Tab Content */}
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.role === "super_admin") && (
             <TabsContent value="manage-courses">
               <ManageCoursesTabContent status={status} courses={filteredCourses} />
             </TabsContent>
@@ -137,7 +137,7 @@ export default function CoursesPage() {
               <CourseRequestsTabContent status={status} />
             </TabsContent>
           )}
-{/* 
+{/*
           {user?.role === "student" && (
             <TabsContent value="recommended">
               <div className="p-6 text-center bg-muted/20 rounded-lg border">

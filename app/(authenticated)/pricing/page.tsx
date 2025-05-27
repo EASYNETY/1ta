@@ -161,8 +161,8 @@ export default function PricingPage() {
         show: { opacity: 1, y: 0 },
     }
 
-    // If user is admin, redirect to admin pricing page
-    if (user?.role === "admin") {
+    // If user is admin or super_admin, redirect to admin pricing page
+    if (user?.role === "admin" || user?.role === "super_admin") {
         router.push("/admin/pricing")
         return null
     }

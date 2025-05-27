@@ -10,13 +10,13 @@ import { useAppSelector } from "@/store/hooks";
 
 export default function AttendancePage() {
     const { user } = useAppSelector((state) => state.auth);
-    const isAdmin = user?.role === "admin"
+    const isAdmin = user?.role === "admin" || user?.role === "super_admin"
     const isTeacher = user?.role === "teacher"
     const isStudent = user?.role === "student"
 
     if (!user) return null; // Handle loading state or redirect to login
     const renderTab = () => {
-        if (isAdmin) return <AdminClassesTab /> // Admins see all attendance
+        if (isAdmin) return <AdminClassesTab /> // Admins and Super Admins see all attendance
         if (isTeacher) return <TeacherClassesTab /> // Teachers see their classes
         if (isStudent) return <StudentClassesTab /> // Students see their classes
     }

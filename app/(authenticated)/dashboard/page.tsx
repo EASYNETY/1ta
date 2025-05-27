@@ -129,6 +129,7 @@ export default function DashboardPage() {
     // Role-specific actions
     const getRoleActions = () => {
         switch (user.role) {
+            case "super_admin":
             case "admin":
                 return (
                     <div className="flex gap-2">

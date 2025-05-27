@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertCircle, ArrowLeft, Download, CheckCircle, FileEdit } from "lucide-react"
 import { format, parseISO } from "date-fns"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { hasAdminAccess } from "@/types/user.types"
 
 export default function StudentGradesPage() {
     const params = useParams()
@@ -44,7 +45,7 @@ export default function StudentGradesPage() {
                 }),
             )
 
-            if (user.role === "teacher" || user.role === "admin") {
+            if (user.role === "teacher" || hasAdminAccess(user)) {
                 dispatch(fetchStudentGrades(gradeItemId))
             }
         }
@@ -55,7 +56,7 @@ export default function StudentGradesPage() {
     }, [dispatch, gradeItemId, user?.id, user?.role])
 
     // Check if user has permission to view
-    if (user?.role !== "teacher" && user?.role !== "admin") {
+    if (user?.role !== "teacher" && !hasAdminAccess(user)) {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />

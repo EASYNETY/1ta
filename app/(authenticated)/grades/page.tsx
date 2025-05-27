@@ -80,7 +80,7 @@ export default function GradesPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-3xl font-bold">Grades</h1>
-                {/* {(user.role === "teacher" || user.role === "admin") && (
+                {/* {(user.role === "teacher" || user.role === "admin" || user.role === "super_admin") && (
                     <Button asChild>
                         <Link href="/grades/create">
                             <Plus className="mr-2 h-4 w-4" />

@@ -169,8 +169,8 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 </nav>
             </ScrollArea>
 
-            {/* Create Chat DyraneButton (for teachers/admins only) */}
-            {(currentUser?.role === "teacher" || currentUser?.role === "admin") && (
+            {/* Create Chat DyraneButton (for teachers/admins/super_admins only) */}
+            {(currentUser?.role === "teacher" || currentUser?.role === "admin" || currentUser?.role === "super_admin") && (
                 <div className="p-4 py-5 border-t">
                     <DyraneButton className="w-full" size="sm" asChild>
                         {/* Use asChild with Link */}

@@ -187,7 +187,7 @@ export default function CourseDetailPage() {
 
     // Helper function to check if course is available for enrolment
     const isAvailableForEnrollment = () => {
-        return !(currentCourse.isAvailableForEnrollment === false || currentCourse.available_for_enrollment === false);
+        return !(currentCourse.isAvailableForEnrolment === false || currentCourse.available_for_enrolment === false);
     };
 
 
@@ -486,7 +486,7 @@ export default function CourseDetailPage() {
                                                         This course is currently not available for new enrollments.
                                                         {user.role === "student" && " You can request to be notified when enrolment opens."}
                                                         {user.role === "teacher" && " Please contact an administrator to enable enrolment."}
-                                                        {user.role === "admin" && " You can enable enrolment from the course settings."}
+                                                        {(user.role === "admin" || user.role === "super_admin") && " You can enable enrolment from the course settings."}
                                                     </p>
                                                 </div>
                                             )}

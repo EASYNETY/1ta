@@ -18,7 +18,7 @@ import {
 import type { FeedbackRecord, FeedbackType } from "@/features/support/types/support-types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { isAdmin } from "@/types/user.types"
+import { hasAdminAccess } from "@/types/user.types"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -42,14 +42,14 @@ export default function AdminFeedbackPage() {
 
     // Redirect non-admin users
     useEffect(() => {
-        if (user && !isAdmin(user)) {
+        if (user && !hasAdminAccess(user)) {
             router.push("/dashboard")
         }
     }, [user, router])
 
     useEffect(() => {
-        if (user && isAdmin(user)) {
-            // Fetch all feedback for admin
+        if (user && hasAdminAccess(user)) {
+            // Fetch all feedback for admin and super_admin
             dispatch(
                 fetchAllFeedback({
                     type: typeFilter === "all" ? undefined : typeFilter,
@@ -61,8 +61,11 @@ export default function AdminFeedbackPage() {
         dispatch(clearSupportError())
     }, [dispatch, user, typeFilter])
 
+    // Ensure feedback is always an array to prevent filter errors
+    const feedbackArray = feedback || []
+
     // Filter feedback by search query
-    const filteredFeedback = feedback.filter((item) => {
+    const filteredFeedback = feedbackArray.filter((item) => {
         if (!searchQuery) return true
 
         const query = searchQuery.toLowerCase()
@@ -75,11 +78,11 @@ export default function AdminFeedbackPage() {
 
     // Count feedback by type
     const feedbackCounts = {
-        all: feedback.length,
-        general: feedback.filter((f) => f.type === "general").length,
-        bug_report: feedback.filter((f) => f.type === "bug_report").length,
-        feature_request: feedback.filter((f) => f.type === "feature_request").length,
-        course_feedback: feedback.filter((f) => f.type === "course_feedback").length,
+        all: feedbackArray.length,
+        general: feedbackArray.filter((f) => f.type === "general").length,
+        bug_report: feedbackArray.filter((f) => f.type === "bug_report").length,
+        feature_request: feedbackArray.filter((f) => f.type === "feature_request").length,
+        course_feedback: feedbackArray.filter((f) => f.type === "course_feedback").length,
     }
 
     // Helper to render stars based on rating
@@ -105,7 +108,7 @@ export default function AdminFeedbackPage() {
         }
     }
 
-    if (!user || !isAdmin(user)) {
+    if (!user || !hasAdminAccess(user)) {
         return (
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

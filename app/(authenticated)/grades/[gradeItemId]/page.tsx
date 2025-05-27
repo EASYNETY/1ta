@@ -36,6 +36,7 @@ import { Progress } from "@/components/ui/progress"
 import Link from "next/link"
 import { format, parseISO, isValid } from "date-fns"
 import type { StudentGradeItemView, TeacherGradeItemView } from "@/features/grades/types/grade-types"
+import { hasAdminAccess } from "@/types/user.types"
 
 // Helper: Format Date
 const formatDateDisplay = (dateString?: string | null, formatString = "MMMM d, yyyy 'at' h:mm a") => {
@@ -123,8 +124,8 @@ export default function GradeItemDetailsPage() {
         }),
       )
 
-      // Fetch student grades if teacher/admin
-      if (user.role === "teacher" || user.role === "admin") {
+      // Fetch student grades if teacher/admin/super_admin
+      if (user.role === "teacher" || hasAdminAccess(user)) {
         dispatch(fetchStudentGrades(gradeItemId))
       }
     }
@@ -235,8 +236,8 @@ export default function GradeItemDetailsPage() {
           <h1 className="text-3xl font-bold">{currentGradeItem.title ?? "Grade Item"}</h1>
           <p className="text-muted-foreground">{currentGradeItem.courseTitle || "Course not specified"}</p>
         </div>
-        {/* Show Edit button only to teachers/admins */}
-        {(user?.role === "teacher" || user?.role === "admin") && (
+        {/* Show Edit button only to teachers/admins/super_admins */}
+        {(user?.role === "teacher" || hasAdminAccess(user)) && (
           <Button asChild size="sm">
             <Link href={`/grades/${gradeItemId}/edit`}>
               <Edit className="mr-2 h-4 w-4" /> Edit Grade Item
@@ -361,7 +362,7 @@ export default function GradeItemDetailsPage() {
               <Button variant="outline" asChild>
                 <Link href="/grades">Back to Grades</Link>
               </Button>
-              {(user?.role === "teacher" || user?.role === "admin") && (
+              {(user?.role === "teacher" || hasAdminAccess(user)) && (
                 <Button asChild>
                   <Link href={`/grades/${gradeItemId}/grade-students`}>Grade Students</Link>
                 </Button>

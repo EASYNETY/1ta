@@ -246,7 +246,7 @@ export const getMockChatRooms = async (
 
 	// Find the current user from mockAuthUsers to check their role
 	const currentUser = mockAuthUsers.find((user) => user.id === userId);
-	const isAdminUser = currentUser?.role === "admin";
+	const isAdminUser = currentUser?.role === "admin" || currentUser?.role === "super_admin";
 
 	let roomsToReturn: ChatRoom[];
 

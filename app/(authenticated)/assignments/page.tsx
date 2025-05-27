@@ -15,6 +15,7 @@ import { AlertCircle, Plus } from "lucide-react"
 import Link from "next/link"
 import AssignmentTable from "@/features/assignments/components/AssignmentTable"
 import StudentAssignmentCard from "@/features/assignments/components/StudentAssignmentCard"
+import { hasAdminAccess } from "@/types/user.types"
 
 export default function AssignmentsPage() {
     const dispatch = useAppDispatch()
@@ -71,7 +72,7 @@ export default function AssignmentsPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-3xl font-bold">Assignments</h1>
-                {(user.role === "teacher" || user.role === "admin") && (
+                {(user.role === "teacher" || hasAdminAccess(user)) && (
                     <Button asChild>
                         <Link href="/assignments/create">
                             <Plus className="mr-2 h-4 w-4" />

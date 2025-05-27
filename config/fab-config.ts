@@ -61,7 +61,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	// --- Hide FAB ---
 	{
 		pathPattern: /^\/attendance\/scan$/, // Exact match for scan page
-		roles: ["admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus, // Placeholder icon, won't be shown
@@ -69,7 +69,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/settings|\/profile|\/subscription/, // Matches settings, profile, subscription
-		roles: ["admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,
@@ -98,7 +98,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/attendance$/, // Attendance list page
-		roles: ["admin", "teacher"],
+		roles: ["super_admin", "admin", "teacher"],
 		actionType: "navigate", // Simple navigation to scan page
 		ariaLabel: "Scan Attendance",
 		icon: QrCode,
@@ -115,7 +115,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/chat$/, // Any chat page (list or specific room)
-		roles: ["admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "teacher", "student"],
 		// actionType: "openCreateChatModal", // Example: Trigger a modal
 		actionType: "navigate", // Or navigate to a create page
 		ariaLabel: "Start New Chat",
@@ -125,7 +125,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/courses$/, // Courses list/details pages
-		roles: ["admin"],
+		roles: ["super_admin", "admin"],
 		// actionType: "openCreateCourseModal",
 		actionType: "navigate",
 		ariaLabel: "Create Course Template",
@@ -145,7 +145,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/timetable$/, // Timetable page
-		roles: ["admin", "teacher"],
+		roles: ["super_admin", "admin", "teacher"],
 		// actionType: "openCreateEventModal",
 		actionType: "navigate",
 		ariaLabel: "Add Class/Event",
@@ -164,7 +164,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/users$/, // Admin User management pages
-		roles: ["admin"],
+		roles: ["super_admin", "admin"],
 		// actionType: "openCreateStudentModal",
 		actionType: "navigate",
 		ariaLabel: "Add New User",
@@ -176,7 +176,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	// --- Default/Dashboard Actions (Fallback) ---
 	{
 		pathPattern: /^\/dashboard|^\/$/, // Dashboard or root
-		roles: ["admin"],
+		roles: ["super_admin", "admin"],
 		// actionType: "openCreateStudentModal",
 		actionType: "navigate",
 		ariaLabel: "Add User",
@@ -208,7 +208,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	// --- Hide FAB on Create Pages ---
 	{
 		pathPattern: /^\/courses\/create$/,
-		roles: ["admin"],
+		roles: ["super_admin", "admin"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,
@@ -216,7 +216,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/classes\/create$/,
-		roles: ["teacher", "admin"],
+		roles: ["super_admin", "teacher", "admin"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,
@@ -224,7 +224,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/chat\/create$/,
-		roles: ["admin", "teacher", "student"],
+		roles: ["super_admin", "admin", "teacher", "student"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,
@@ -232,7 +232,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/users\/create$/,
-		roles: ["admin"],
+		roles: ["super_admin", "admin"],
 		actionType: "none",
 		ariaLabel: "",
 		icon: Plus,

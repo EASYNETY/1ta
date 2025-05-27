@@ -196,8 +196,8 @@ export default function AssignmentDetailsPage() {
                     <h1 className="text-3xl font-bold">{currentAssignment.title ?? 'Assignment'}</h1>
                     <p className="text-muted-foreground">{currentAssignment.courseTitle || "Course not specified"}</p>
                 </div>
-                {/* Show Edit button only to teachers/admins */}
-                {(user?.role === "teacher" || user?.role === "admin") && (
+                {/* Show Edit button only to teachers/admins/super_admins */}
+                {(user?.role === "teacher" || user?.role === "admin" || user?.role === "super_admin") && (
                     <Button asChild size="sm">
                         <Link href={`/assignments/${assignmentId}/edit`}>
                             <Edit className="mr-2 h-4 w-4" /> Edit Assignment
