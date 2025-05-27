@@ -213,7 +213,8 @@ async function apiClient<T>(
 
 	const headers = new Headers(fetchOptions.headers);
 
-	if (!headers.has("Content-Type") && options.body)
+	// **FIX**: Don't set Content-Type for FormData - browser will set it with boundary
+	if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData))
 		headers.set("Content-Type", "application/json");
 	if (!headers.has("Accept")) headers.set("Accept", "application/json");
 
@@ -2765,12 +2766,25 @@ export const post = <T>(
 	endpoint: string,
 	data: any,
 	options?: Omit<FetchOptions, "method" | "body">
-) =>
-	apiClient<T>(endpoint, {
+) => {
+	// **FIX**: Handle FormData properly - don't stringify it
+	const isFormData = data instanceof FormData;
+
+	return apiClient<T>(endpoint, {
 		...options,
 		method: "POST",
-		body: JSON.stringify(data),
+		body: isFormData ? data : JSON.stringify(data),
+		headers: isFormData
+			? {
+				// Don't set Content-Type for FormData - browser will set it with boundary
+				...options?.headers
+			}
+			: {
+				"Content-Type": "application/json",
+				...options?.headers
+			},
 	});
+};
 
 export const put = <T>(
 	endpoint: string,
