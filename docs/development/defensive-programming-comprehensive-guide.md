@@ -156,7 +156,7 @@ Create selectors that handle null/undefined values:
 ```typescript
 // features/auth/store/auth-selectors.ts
 import { createSelector } from '@reduxjs/toolkit';
-import { RootState } from '@/store/store';
+import { RootState } from '@/store';
 import { createSafeArraySelector, safeArray } from '@/lib/utils/safe-data';
 
 // Basic selector

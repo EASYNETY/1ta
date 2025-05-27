@@ -89,7 +89,7 @@ builder.addCase(
 ```typescript
 // features/auth/store/auth-selectors.ts
 import { createSelector } from '@reduxjs/toolkit';
-import { RootState } from '@/store/store';
+import { RootState } from '@/store';
 import { createSafeArraySelector, safeArray } from '@/lib/utils/safe-data';
 import { User } from '@/types/user.types';
 
@@ -118,7 +118,7 @@ export const selectSafeUsersByRole = createSelector(
 ```typescript
 // features/classes/store/classes-slice.ts
 import { createSelector } from '@reduxjs/toolkit';
-import { RootState } from '@/store/store';
+import { RootState } from '@/store';
 import { createSafeArraySelector, safeArray } from '@/lib/utils/safe-data';
 
 // Basic selectors
