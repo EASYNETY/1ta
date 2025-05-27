@@ -8,8 +8,8 @@ let mockPayments: PaymentRecord[] = [
 	// Ensure data matches the PaymentRecord interface
 	{
 		id: "pay_1",
-		userId: "student_123", // Corresponds to Alice Student in mock-auth-data
-		userName: "Alice Student", // Optional, good for admin view
+		userId: "student_1", // Corresponds to Student User in mock-auth-data
+		userName: "Student User", // Optional, good for admin view
 		amount: 4500000, // Example: In kobo (45,000 NGN)
 		currency: "NGN",
 		status: "succeeded",
@@ -32,16 +32,16 @@ let mockPayments: PaymentRecord[] = [
 			}
 		],
 		billingDetails: {
-			name: "Alice Student",
-			email: "alice@example.com",
+			name: "Student User",
+			email: "student@example.com",
 			address: "123 Learning Street, Lagos",
 			phone: "+234 800 123 4567"
 		}
 	},
 	{
 		id: "pay_2",
-		userId: "student_456", // Example: Bob Learner (needs to exist in mock-auth-data)
-		userName: "Bob Learner",
+		userId: "student_2", // Example: New Student in mock-auth-data
+		userName: "New Student",
 		amount: 3000000, // 30,000 NGN
 		currency: "NGN",
 		status: "failed", // Example: Failed payment
@@ -55,8 +55,8 @@ let mockPayments: PaymentRecord[] = [
 	},
 	{
 		id: "pay_3",
-		userId: "student_123", // Alice again
-		userName: "Alice Student",
+		userId: "student_1", // Student User again
+		userName: "Student User",
 		amount: 2500000, // 25,000 NGN
 		currency: "NGN",
 		status: "succeeded",
@@ -70,8 +70,8 @@ let mockPayments: PaymentRecord[] = [
 	},
 	{
 		id: "pay_4",
-		userId: "student_777", // Corp Employee
-		userName: "Corp Employee",
+		userId: "corp_student_1", // Corporate Student
+		userName: "Corporate Student",
 		amount: 0, // Corporate payment might be 0 if covered
 		currency: "NGN",
 		status: "succeeded",
@@ -84,8 +84,8 @@ let mockPayments: PaymentRecord[] = [
 	},
 	{
 		id: "pay_5",
-		userId: "student_123", // Alice
-		userName: "Alice Student",
+		userId: "student_3", // Student Three
+		userName: "Student Three",
 		amount: 500000, // 5,000 NGN
 		currency: "NGN",
 		status: "refunded", // Example refunded payment
@@ -160,6 +160,7 @@ export const mockFetchAllPaymentsAdmin = async (
 	console.log(
 		`MOCK: Fetching all payments (Admin). Status: ${status}, Page: ${page}, Limit: ${limit}, Search: ${search}`
 	);
+
 	await new Promise((res) => setTimeout(res, 500 + Math.random() * 300)); // Simulate longer delay for admin potentially
 
 	let filtered = [...mockPayments]; // Start with a copy
@@ -192,7 +193,8 @@ export const mockFetchAllPaymentsAdmin = async (
 	// Simulate joining user name if missing (backend would do this)
 	paginated.forEach((p) => {
 		if (!p.userName) {
-			p.userName = users[p.userId as any]?.name || p.userId;
+			const user = users.find(u => u.id === p.userId);
+			p.userName = user?.name || p.userId;
 		}
 	});
 

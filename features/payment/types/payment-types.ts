@@ -59,7 +59,7 @@ export interface PaymentResponse {
 
 // Response from payment verification
 export interface VerifyPaymentResponse {
-	payment: PaymentRecord;
+	payments: PaymentRecord;
 	verification: any; // The verification data from Paystack
 }
 

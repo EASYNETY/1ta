@@ -70,25 +70,20 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 			if (search) queryParams += `&search=${search}`;
 
 			const response = await get<{
-				success: boolean;
-				data: {
-					payments: PaymentRecord[];
-					pagination: {
-						total: number;
-						page: number;
-						limit: number;
-						totalPages: number;
-					}
+				payments: PaymentRecord[];
+				pagination: {
+					total: number;
+					page: number;
+					limit: number;
+					totalPages: number;
 				}
 			}>(`/payments?${queryParams}`);
 
-			if (!response.success) {
-				throw new Error(response.data ? 'Server error' : 'Failed to fetch payments');
-			}
-
+			// The API client already processes the response and extracts the data
+			// No need to check for response.success as it's already handled
 			return {
-				payments: response.data.payments,
-				total: response.data.pagination.total
+				payments: response.payments,
+				total: response.pagination.total
 			};
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to fetch all payments");
@@ -138,7 +133,7 @@ export const verifyPayment = createAsyncThunk<
 				success: boolean;
 				message: string;
 				data: {
-					payment: PaymentRecord;
+					payments: PaymentRecord;
 					verification: any;
 				}
 			}>(`/payments/verify/${reference}`);
@@ -242,7 +237,14 @@ const paymentHistorySlice = createSlice({
 			})
 			.addCase(fetchAllPaymentsAdmin.fulfilled, (state, action) => {
 				state.status = "succeeded";
-				state.allPayments = action.payload.payments;
+
+				// Filter out null values and ensure we have a valid array
+				const validPayments = Array.isArray(action.payload.payments)
+					? action.payload.payments.filter(payment => payment !== null && payment !== undefined)
+					: [];
+
+				state.allPayments = validPayments;
+
 				// Update admin pagination state
 				const limit = action.meta.arg.limit || 10;
 				state.adminPagination = {
@@ -283,10 +285,10 @@ const paymentHistorySlice = createSlice({
 			})
 			.addCase(verifyPayment.fulfilled, (state, action) => {
 				state.verificationStatus = "succeeded";
-				state.currentPayment = action.payload.payment;
+				state.currentPayment = action.payload.payments;
 				// If payment was successful, add it to the user's payment history
-				if (action.payload.payment.status === "succeeded") {
-					state.myPayments = [action.payload.payment, ...state.myPayments];
+				if (action.payload.payments.status === "succeeded") {
+					state.myPayments = [action.payload.payments, ...state.myPayments];
 				}
 			})
 			.addCase(verifyPayment.rejected, (state, action) => {

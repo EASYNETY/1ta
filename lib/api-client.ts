@@ -325,6 +325,13 @@ async function apiClient<T>(
 								data = responseData;
 							}
 
+							// Special handling for payment endpoints - filter out null values
+							if (endpoint.includes('/payments') && data && typeof data === 'object') {
+								if ('payments' in data && Array.isArray(data.payments)) {
+									data.payments = data.payments.filter((payment: any) => payment !== null && payment !== undefined);
+								}
+							}
+
 							// Cache successful GET responses
 							if (method === "GET") {
 								apiCache.set(method, endpoint, data, retryResponse.status);
@@ -477,9 +484,23 @@ async function apiClient<T>(
 					// For non-paginated endpoints, just return the data
 					data = responseData.data;
 				}
+
+				// Special handling for payment endpoints - filter out null values
+				if (endpoint.includes('/payments') && data && typeof data === 'object') {
+					if ('payments' in data && Array.isArray(data.payments)) {
+						data.payments = data.payments.filter((payment: any) => payment !== null && payment !== undefined);
+					}
+				}
 			} else {
 				// Direct response structure (no success/data nesting)
 				data = responseData;
+
+				// Special handling for payment endpoints - filter out null values
+				if (endpoint.includes('/payments') && data && typeof data === 'object') {
+					if ('payments' in data && Array.isArray(data.payments)) {
+						data.payments = data.payments.filter((payment: any) => payment !== null && payment !== undefined);
+					}
+				}
 			}
 
 			// Cache successful GET responses
@@ -999,10 +1020,16 @@ export async function handleMockRequest<T>(
 		try {
 			// Always use mock function regardless of IS_LIVE_API to ensure it works in development
 			const result = await mockFetchAllPaymentsAdmin(status, page, limit, search);
+
+			// Ensure payments is always an array and filter out null values
+			const validPayments = Array.isArray(result.payments)
+				? result.payments.filter(payment => payment !== null && payment !== undefined)
+				: [];
+
 			return {
 				success: true,
 				data: {
-					payments: result.payments,
+					payments: validPayments,
 					pagination: {
 						total: result.total,
 						page: page,
@@ -1080,7 +1107,7 @@ export async function handleMockRequest<T>(
 			success: true,
 			message: "Payment verified successfully",
 			data: {
-				payment: mockPayment,
+				payments: mockPayment,
 				verification: {
 					status: "success",
 					reference,
