@@ -262,7 +262,7 @@ export const createAuthCourse = createAsyncThunk<
 		const processedData = {
 			...courseData,
 			// Map available_for_enrollment to isAvailableForEnrollment for API compatibility
-			isAvailableForEnrollment: courseData.available_for_enrollment,
+			isAvailableForEnrollment: courseData.available_for_enrolment,
 			tags: Array.isArray(courseData.tags)
 				? courseData.tags
 				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
@@ -320,17 +320,17 @@ export const createAuthCourse = createAsyncThunk<
 
 export const updateAuthCourse = createAsyncThunk<
 	AuthCourse, // Return the updated course on success
-	{ courseId: string; courseData: CourseFormValues }, // Expect the course ID and form data
+	{ couseSlug: string; courseData: CourseFormValues }, // Expect the course ID and form data
 	{ rejectValue: string }
->("auth_courses/updateAuthCourse", async ({ courseId, courseData }, { rejectWithValue }) => {
+>("auth_courses/updateAuthCourse", async ({ couseSlug, courseData }, { rejectWithValue }) => {
 	try {
-		console.log(`Dispatching updateAuthCourse for course ${courseId}`);
+		console.log(`Dispatching updateAuthCourse for course ${couseSlug}`);
 
 		// Process the form data to match API expectations
 		const processedData = {
 			...courseData,
 			// Map available_for_enrollment to isAvailableForEnrollment for API compatibility
-			isAvailableForEnrollment: courseData.available_for_enrollment,
+			isAvailableForEnrollment: courseData.available_for_enrolment,
 			tags: Array.isArray(courseData.tags)
 				? courseData.tags
 				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
@@ -347,7 +347,7 @@ export const updateAuthCourse = createAsyncThunk<
 			success?: boolean;
 			data?: AuthCourse;
 			message?: string;
-		} | AuthCourse>(`/auth_courses/${courseId}`, processedData);
+		} | AuthCourse>(`/auth_courses/${couseSlug}`, processedData);
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;

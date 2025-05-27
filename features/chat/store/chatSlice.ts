@@ -32,7 +32,7 @@ const initialState: ChatState = {
 const chatSlice = createSlice({
 	name: "chat",
 	initialState,
-	reducers: {
+reducers: {
 		selectChatRoom: (state, action: PayloadAction<string | null>) => {
 			const previouslySelectedRoomId = state.selectedRoomId;
 			state.selectedRoomId = action.payload;
@@ -55,6 +55,11 @@ const chatSlice = createSlice({
 		},
 
 		clearChatError: (state) => {
+			state.error = null;
+		},
+
+		clearRoomStatus: (state) => {
+			state.roomStatus = "idle";
 			state.error = null;
 		},
 
@@ -249,7 +254,7 @@ export const {
 } = chatSlice.actions;
 
 // Basic selectors
-export const selectChatRooms = (state: RootState) => state.chat.rooms;
+export const selectChatRooms = (state: RootState) => state.chat.rooms ?? [];
 export const selectMessagesByRoom = (state: RootState) =>
 	state.chat.messagesByRoom;
 export const selectSelectedRoomId = (state: RootState) =>
@@ -281,6 +286,7 @@ export const selectMessageStatusForRoom = (
 export const selectSelectedRoom = createSelector(
 	[selectChatRooms, selectSelectedRoomId],
 	(rooms, selectedRoomId): ChatRoom | undefined => {
+		if (!rooms) return undefined;
 		return rooms.find((room) => room.id === selectedRoomId);
 	}
 );

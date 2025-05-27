@@ -29,6 +29,7 @@ import { CourseDetailsForm } from "@/components/course-form/CourseDetailsForm";
 import { CurriculumForm } from "@/components/course-form/CurriculumForm";
 import { PricingSettingsForm } from "@/components/course-form/PricingSettingsForm";
 import { AuthCourse } from "@/data/mock-auth-course-data";
+import { UserRole } from "@/types/user.types";
 
 // Import types
 // Define an extended AuthCourse interface that includes the Naira pricing fields
@@ -41,7 +42,7 @@ interface ExtendedAuthCourse extends AuthCourse {
 // Define a placeholder User type - replace with your actual User type
 interface User {
     id: string;
-    role: "admin" | "teacher" | "student" | string;
+    role: UserRole;
 }
 
 // Helper Component for Access Denied Message
@@ -130,7 +131,7 @@ const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseForm
         description: course.description ?? "",
         category: course.category ?? "", // Need a valid category string
         level: course.level ?? "All Levels",
-        available_for_enrollment: course.isAvailableForEnrollment ?? true, // Map isAvailableForEnrollment to available_for_enrollment
+        available_for_enrolment: course.isAvailableForEnrolment ?? true, // Map isAvailableForEnrollment to available_for_enrollment
         price: course.priceUSD ?? 0,
         priceNaira: course.priceNaira ?? 0,
         discountPrice: course.discountPriceUSD, // Can be undefined
@@ -257,7 +258,7 @@ export default function EditCoursePage() {
             // Dispatch the updateAuthCourse thunk
             // @ts-ignore - Ignore type mismatch for instructorId
             const result = await dispatch(updateAuthCourse({
-                courseId: courseData.id,
+                couseSlug: courseData.slug,
                 courseData: data
             })).unwrap();
 

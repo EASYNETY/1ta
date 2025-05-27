@@ -48,14 +48,14 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     }
 
     // Filter rooms based on search query and type filter
-    const filteredRooms = rooms.filter((room) => {
+    const filteredRooms = (rooms ?? []).filter((room) => {
         const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesFilter = filter === "all" || room.type === filter
         return matchesSearch && matchesFilter
     })
 
     // Group rooms by type for better organization
-    const groupedRooms = filteredRooms.reduce(
+    const groupedRooms = (filteredRooms ?? []).reduce(
         (acc, room) => {
             const type = room.type
             if (!acc[type]) {
