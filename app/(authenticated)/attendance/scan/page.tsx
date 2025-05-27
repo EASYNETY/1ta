@@ -48,7 +48,7 @@ export default function ScanPage() {
 
     // Redux state
     const loggedInUser = useAppSelector((state) => state.auth.user);
-    const allFetchedUsers = useAppSelector((state) => selectSafeUsers(state));
+    const users = useAppSelector((state) => state.auth.users);
     const selectedClass = useAppSelector(selectCourseClass);
 
     // Local state
@@ -196,7 +196,7 @@ export default function ScanPage() {
                         casualScanMode={casualScanMode}
                         scannerMode={scannerMode}
                         socketStatus={socketStatus}
-                        allFetchedUsers={allFetchedUsers}
+                        allFetchedUsers={users}
                     />
                 }
             />
@@ -255,7 +255,7 @@ export default function ScanPage() {
                 setFetchingStudentInfo={setFetchingStudentInfo}
                 setIsScannerActive={setIsScannerActive}
                 casualScanMode={casualScanMode}
-                allFetchedUsers={allFetchedUsers}
+                allFetchedUsers={users}
             />
 
             <style jsx global>{`
