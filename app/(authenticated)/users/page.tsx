@@ -96,7 +96,7 @@ export default function UsersPage() {
     }
 
     return (
-        <AuthorizationGuard allowedRoles={["admin"]}>
+        <AuthorizationGuard allowedRoles={["admin", 'super_admin']}>
             <div className="space-y-6">
                 <UsersPageHeader />
 
