@@ -7,6 +7,7 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Clock } from "lucide-react"
 import Link from "next/link"
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 interface CourseCardProps {
     course: AuthCourse
@@ -27,13 +28,11 @@ export function CourseCard({ course, index }: CourseCardProps) {
         <motion.div variants={item}>
             <DyraneCard className="overflow-hidden h-full flex flex-col">
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                    {course.image && (
-                        <img
-                            src={course.image || "/placeholder.svg"}
-                            alt={course.title}
-                            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                        />
-                    )}
+                    <img
+                        src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
+                        alt={course.title}
+                        className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                    />
                 </div>
                 <CardHeader>
                     <CardTitle className="line-clamp-1">{course.title}</CardTitle>

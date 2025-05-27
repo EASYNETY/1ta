@@ -20,6 +20,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { addItem } from "@/features/cart/store/cart-slice"
 import { useToast } from "@/hooks/use-toast"
 import { AbstractBackground } from "../layout/abstract-background"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 interface CourseCardProps {
     course: Course
@@ -114,7 +115,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     <div className="relative w-full aspect-video">
                         {/* ... Image and Badges for Modal ... */}
                         <Image
-                            src={course.image || "/placeholder.svg"}
+                            src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
                             alt={course.title}
                             fill
                             className="object-cover"
@@ -295,7 +296,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 {" "}
                 {/* Consistent aspect ratio */}
                 <Image
-                    src={course.image || "/placeholder.svg?height=300&width=500"}
+                    src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
                     alt={course.title}
                     fill
                     sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"

@@ -13,6 +13,7 @@ import { useAppDispatch } from "@/store/hooks"
 import { useToast } from "@/hooks/use-toast"
 import { AbstractBackground } from "../layout/abstract-background"
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 interface AuthCourseCardProps {
     course: AuthCourse
@@ -41,9 +42,11 @@ const CourseMediaPreview = ({ course }: { course: AuthCourse }) => {
     }
 
     // Fallback to placeholder image
+    const imageSource = course.image || getCourseIcon(course.title, course.id);
+
     return (
         <Image
-            src={course.image || "/placeholder.svg"}
+            src={imageSource}
             alt={course.title}
             fill
             sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"

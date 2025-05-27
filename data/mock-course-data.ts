@@ -21,6 +21,7 @@ export interface Course {
 		| "Language"
 		| "Health & Fitness";
 	image: string;
+	iconUrl?: string;
 	instructor: {
 		name: string;
 		title?: string;

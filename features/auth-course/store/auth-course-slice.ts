@@ -9,6 +9,7 @@ import { del, get, post, put } from "@/lib/api-client";
 import type { RootState } from "@/store";
 import type { AuthCourse } from "../types/auth-course-interface";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
+import { getCourseIcon } from "@/utils/course-icon-mapping";
 
 // --- Types ---
 export interface AuthCoursesState {
@@ -83,7 +84,13 @@ export const fetchAuthCourses = createAsyncThunk<
 			throw new Error("Invalid data format received for auth courses");
 		}
 
-		return courses;
+		// Apply PNG icon mapping to courses
+		const coursesWithIcons = courses.map(course => ({
+			...course,
+			iconUrl: getCourseIcon(course.title, course.id)
+		}));
+
+		return coursesWithIcons;
 	} catch (error) {
 		let message = "Failed to fetch courses";
 
@@ -144,7 +151,13 @@ export const fetchCourseBySlug = createAsyncThunk<
 			throw new Error("Invalid course data received");
 		}
 
-		return course;
+		// Apply PNG icon mapping to course
+		const courseWithIcon = {
+			...course,
+			iconUrl: getCourseIcon(course.title, course.id)
+		};
+
+		return courseWithIcon;
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to fetch course by slug";
@@ -196,7 +209,13 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 			throw new Error("Invalid course data received");
 		}
 
-		return course;
+		// Apply PNG icon mapping to course
+		const courseWithIcon = {
+			...course,
+			iconUrl: getCourseIcon(course.title, course.id)
+		};
+
+		return courseWithIcon;
 	} catch (error) {
 		const message =
 			error instanceof Error ? error.message : "Failed to fetch course";

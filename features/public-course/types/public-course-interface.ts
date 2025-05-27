@@ -8,6 +8,7 @@ export interface PublicCourse {
 	description: string; // Contains HTML, needs careful rendering
 	category: string; // Simplified category name
 	image: string; // Keep placeholder as a fallback if video fails/missing
+	iconUrl?: string; // PNG icon URL from course icon mapping
 	previewVideoUrl?: string; // *** ADDED: URL for the video preview ***
 	instructor: {
 		name: string; // Default name usually

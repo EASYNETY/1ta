@@ -9,6 +9,7 @@ export interface AuthCourse {
 	description: string;
 	category: string;
 	image: string;
+	iconUrl?: string;
 	previewVideoUrl?: string;
 	instructor: {
 		name: string;
@@ -115,6 +116,7 @@ export interface AuthCourse {
 	description: string;
 	category: string; // Consider using CourseCategory type if shared
 	image: string;
+	iconUrl?: string;
 	previewVideoUrl?: string;
 	instructor: {
 		name: string;

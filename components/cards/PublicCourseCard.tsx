@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast"
 import { AbstractBackground } from "../layout/abstract-background"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 interface PublicCourseCardProps {
     course: PublicCourse | AuthCourse
@@ -48,10 +49,11 @@ const CourseMediaPreview = ({ course }: { course: PublicCourse | AuthCourse }) =
         );
     }
 
-    // Fallback to placeholder image
+    // Fallback to course icon or placeholder image
+    const imageSource = course.iconUrl || course.image || getCourseIcon(course.title, course.id);
     return (
         <Image
-            src={course.image || "/placeholder.svg"} // Use course.image as defined in interface
+            src={imageSource}
             alt={course.title}
             fill
             sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
