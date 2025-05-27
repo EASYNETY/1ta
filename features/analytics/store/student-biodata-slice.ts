@@ -25,7 +25,7 @@ const initialState: StudentBiodataState = {
       individual: 0,
     },
     locationDistribution: {},
-    enrollmentTrends: [],
+    enrolmentTrends: [],
     completionRates: [],
   },
   status: "idle",

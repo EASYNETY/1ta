@@ -52,7 +52,7 @@ export default function CourseMaterialsHelpPage() {
       <ArticleHeader
         title="Accessing Course Materials"
         icon={BookOpen}
-        description="Learn how to find and use the learning materials for your enrolled courses."
+        description="Learn how to find and use the learning materials for your enroled courses."
         breadcrumbs={[
           { label: 'Help Center', href: '/help' },
           { label: 'Courses', href: '/help/courses' },
@@ -65,7 +65,7 @@ export default function CourseMaterialsHelpPage() {
 
       {/* Introduction */}
       <p className="text-lg">
-        Once you've enrolled in a class, you'll have access to a variety of learning materials including
+        Once you've enroled in a class, you'll have access to a variety of learning materials including
         lectures, readings, videos, and assignments. This guide will help you understand how to find and
         use these materials effectively.
       </p>
@@ -86,10 +86,10 @@ export default function CourseMaterialsHelpPage() {
 
       <StepByStepGuide title="Accessing Course Materials" description="Follow these steps to access your course materials:">
         <Step number={1} title="Navigate to My Courses">
-          From the main sidebar, click on "Courses" or "Timetable" to see a list of all your enrolled courses.
+          From the main sidebar, click on "Courses" or "Timetable" to see a list of all your enroled courses.
         </Step>
         <Step number={2} title="Select a Course">
-          Click on the course title to open the course dashboard. You can also access your courses through the course page by selecting the specific course session you're enrolled in.
+          Click on the course title to open the course dashboard. You can also access your courses through the course page by selecting the specific course session you're enroled in.
         </Step>
         <Step number={3} title="Browse Course Content">
           Use the course navigation menu to browse different sections of the course, such as Modules, Assignments, or Resources. Materials are organized by the facilitator for your specific course session.

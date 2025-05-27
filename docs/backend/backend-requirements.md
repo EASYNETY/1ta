@@ -103,7 +103,7 @@ For corporate users managing student accounts:
 ### Classes
 | Method | Endpoint | Description | Response |
 |--------|----------|-------------|----------|
-| GET | `/users/:userId/enrolled-classes` | Get student enrolled classes | `{ classes: Class[] }` |
+| GET | `/users/:userId/enroled-classes` | Get student enroled classes | `{ classes: Class[] }` |
 | GET | `/teachers/:teacherId/taught-classes` | Get teacher taught classes | `{ classes: Class[] }` |
 | GET | `/admin/classes` | Admin: Get all classes | `{ classes: Class[], total: number }` |
 

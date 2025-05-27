@@ -167,7 +167,7 @@ export function TechnologyMarquee({
                       <p className="text-sm font-semibold whitespace-nowrap text-foreground">{course.name}</p>
                       {course.category === "current" ? (
                         <Badge variant="outline" className="mt-1 bg-green-500/5 text-green-600 border-green-500/20 text-xs">
-                          Enrolling Now
+                          Enroling Now
                         </Badge>
                       ) : course.isIsoCertification ? (
                         <Badge variant="outline" className="mt-1 bg-blue-500/5 text-blue-600 border-blue-500/20 text-xs">

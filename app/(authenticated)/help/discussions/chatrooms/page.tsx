@@ -88,7 +88,7 @@ export default function ChatroomsHelpPage() {
             <h4 className="font-medium">Course Chatrooms</h4>
           </div>
           <p className="text-sm text-muted-foreground">
-            General discussion spaces for all students enrolled in a specific course.
+            General discussion spaces for all students enroled in a specific course.
           </p>
         </div>
 

@@ -45,7 +45,7 @@ export default function TermsConditionsPage() {
 
                 <h3 className="text-lg font-medium mt-6 mb-3">Acceptance of Terms</h3>
                 <p className="mb-4 text-muted-foreground">
-                  By creating an account, enrolling in a course, or otherwise using our services, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions, as well as our Privacy Policy.
+                  By creating an account, enroling in a course, or otherwise using our services, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions, as well as our Privacy Policy.
                 </p>
 
                 <h3 className="text-lg font-medium mb-3">Changes to Terms</h3>
@@ -98,7 +98,7 @@ export default function TermsConditionsPage() {
 
                 <h3 className="text-lg font-medium mb-3">Enrolment and Access</h3>
                 <p className="mb-4 text-muted-foreground">
-                  Upon enrolling in a course and making the required payment, you will be granted access to the course materials for the specified duration. Some courses may offer lifetime access, while others may have a limited access period.
+                  Upon enroling in a course and making the required payment, you will be granted access to the course materials for the specified duration. Some courses may offer lifetime access, while others may have a limited access period.
                 </p>
 
                 <h3 className="text-lg font-medium mb-3">Payment and Refunds</h3>

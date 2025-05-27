@@ -2,6 +2,7 @@
 import { RootState } from "@/store";
 import { SearchResult, SearchResultType } from "../types/search-types";
 import { enhanceSearchWithHelpContent } from "./help-search-indexer";
+import { getCourseIcon } from "@/utils/course-icon-mapping";
 
 /**
  * Search service that searches across the Redux store
@@ -41,7 +42,7 @@ export const searchService = {
           description: classItem.description?.substring(0, 100) + '...' || 'Class for ' + classItem.courseTitle,
           type: 'class',
           href: `/classes/${classItem.id}`,
-          status: enrollmentStatus,
+          status: enrolmentStatus,
           date: classItem.startDate,
           metadata: {
             courseId: classItem.courseId,
@@ -51,7 +52,7 @@ export const searchService = {
             location: classItem.location,
             maxSlots: classItem.maxSlots,
             availableSlots: classItem.maxSlots ? classItem.maxSlots - (classItem.studentCount || 0) : undefined,
-            enrollmentStartDate: classItem.enrollmentStartDate,
+            enrolmentStartDate: classItem.enrolmentStartDate,
             startDate: classItem.startDate,
             endDate: classItem.endDate,
             status: classItem.status
@@ -76,9 +77,9 @@ export const searchService = {
           type: 'course',
           href: `/courses/${course.slug}`,
           status: course.available_for_enrolment ? 'open' : 'closed', // Updated to use available_for_enrolment
-          image: course.image,
+          image: course.iconUrl || course.image || getCourseIcon(course.title, course.id),
           category: course.category,
-          date: course.lastAccessedDate || course.enrollmentDate,
+          date: course.lastAccessedDate || course.enrolmentDate,
           metadata: {
             instructor: course.instructor?.name,
             level: course.level,
@@ -251,9 +252,9 @@ export const searchService = {
         description: `Last accessed course`,
         type: 'course',
         href: `/courses/${course.slug}`,
-        date: course.lastAccessedDate || course.enrollmentDate || new Date().toISOString(),
-        image: course.image,
-        status: course.enrollmentStatus,
+        date: course.lastAccessedDate || course.enrolmentDate || new Date().toISOString(),
+        image: course.iconUrl || course.image || getCourseIcon(course.title, course.id),
+        status: course.enrolmentStatus,
         category: course.category
       });
     });

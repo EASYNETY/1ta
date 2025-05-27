@@ -210,7 +210,7 @@ export default function AnalyticsDashboard() {
             {/* Enrolment Distribution Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>Course Enrollments</CardTitle>
+                <CardTitle>Course Enrolments</CardTitle>
               </CardHeader>
               <CardContent className="min-h-80 h-auto">
                 {isLoading ? (
@@ -220,8 +220,8 @@ export default function AnalyticsDashboard() {
                 ) : (
                   <ChartContainer
                     config={{
-                      enrollments: {
-                        label: "Enrollments",
+                      enrolments: {
+                        label: "Enrolments",
                         theme: {
                           light: "#28A745",
                           dark: "#28A745",
@@ -233,14 +233,14 @@ export default function AnalyticsDashboard() {
                       data={stats.courseStats.categoryDistribution ?
                         Object.entries(stats.courseStats.categoryDistribution).map(([category, count]) => ({
                           category,
-                          enrollments: count
+                          enrolments: count
                         })) :
                         [
-                          { category: "Web Dev", enrollments: 45 },
-                          { category: "Data Science", enrollments: 30 },
-                          { category: "UX Design", enrollments: 25 },
-                          { category: "Mobile Dev", enrollments: 20 },
-                          { category: "DevOps", enrollments: 15 },
+                          { category: "Web Dev", enrolments: 45 },
+                          { category: "Data Science", enrolments: 30 },
+                          { category: "UX Design", enrolments: 25 },
+                          { category: "Mobile Dev", enrolments: 20 },
+                          { category: "DevOps", enrolments: 15 },
                         ]
                       }
                       margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
@@ -257,8 +257,8 @@ export default function AnalyticsDashboard() {
                         )}
                       />
                       <Bar
-                        dataKey="enrollments"
-                        fill="var(--color-enrollments)"
+                        dataKey="enrolments"
+                        fill="var(--color-enrolments)"
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
@@ -475,8 +475,8 @@ export default function AnalyticsDashboard() {
                 ) : (
                   <ChartContainer
                     config={{
-                      enrollments: {
-                        label: "Enrollments",
+                      enrolments: {
+                        label: "Enrolments",
                         theme: {
                           light: "#28A745",
                           dark: "#28A745",
@@ -486,11 +486,11 @@ export default function AnalyticsDashboard() {
                   >
                     <BarChart
                       data={[
-                        { course: "Web Development", enrollments: 85 },
-                        { course: "Data Science", enrollments: 65 },
-                        { course: "UX Design", enrollments: 55 },
-                        { course: "Mobile Development", enrollments: 45 },
-                        { course: "DevOps", enrollments: 35 },
+                        { course: "Web Development", enrolments: 85 },
+                        { course: "Data Science", enrolments: 65 },
+                        { course: "UX Design", enrolments: 55 },
+                        { course: "Mobile Development", enrolments: 45 },
+                        { course: "DevOps", enrolments: 35 },
                       ]}
                       margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                     >
@@ -512,9 +512,9 @@ export default function AnalyticsDashboard() {
                         )}
                       />
                       <Bar
-                        dataKey="enrollments"
-                        name="Enrollments"
-                        fill="var(--color-enrollments)"
+                        dataKey="enrolments"
+                        name="Enrolments"
+                        fill="var(--color-enrolments)"
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>

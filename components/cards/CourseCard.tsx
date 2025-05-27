@@ -70,7 +70,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
     const displayPriceUSD = course.discountPriceUSD ?? course.priceUSD
     const displayNairaAmount = discountedNairaAmount ?? nairaAmount
 
-    const handleEnrollNow = () => {
+    const handleEnrolNow = () => {
         if (isAlreadyInCart) {
             toast({
                 title: "Already Selected",
@@ -84,7 +84,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     title: course.title,
                     price: course.priceUSD,
                     discountPrice: course.discountPriceUSD,
-                    image: course.image,
+                    image: course.iconUrl || course.image || getCourseIcon(course.title, course.id),
                     instructor: course.instructor.name,
                 }),
             )
@@ -148,7 +148,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                                 </span>
                                 <span className="inline-flex items-center">
                                     <Users className="size-4 mr-2 text-muted-foreground" />
-                                    {course.studentsEnrolled.toLocaleString()} students
+                                    {course.studentsEnroled.toLocaleString()} students
                                 </span>
                                 {course.rating && (
                                     <span className="inline-flex items-center text-amber-500">
@@ -255,7 +255,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                                     </div>
                                 </div>
                             }
-                            <DyraneButton size="lg" onClick={handleEnrollNow}>
+                            <DyraneButton size="lg" onClick={handleEnrolNow}>
                                 {isAlreadyInCart ? (
                                     <span className="text-sm">Selected</span>
                                 ) : (
@@ -344,7 +344,7 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                     </span>
                     <span className="inline-flex items-center">
                         <UsersRound className="size-3.5 mr-1" />
-                        {course.studentsEnrolled.toLocaleString()}
+                        {course.studentsEnroled.toLocaleString()}
                     </span>
                     {course.rating && (
                         <span className="inline-flex items-center text-amber-500">

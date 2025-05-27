@@ -100,7 +100,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
         return course.discountPriceUSD;
     };
 
-    const handleEnrollNow = () => {
+    const handleEnrolNow = () => {
         if (isAlreadyInCart) {
             toast({
                 title: "Already Selected",
@@ -113,7 +113,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                 title: course.title,
                 price: getPrice(),
                 discountPrice: getDiscountPrice(),
-                image: course.image,
+                image: course.iconUrl || course.image || getCourseIcon(course.title, course.id),
                 instructor: course.instructor.name,
             }));
             toast({
@@ -162,7 +162,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                                 Close
                             </DyraneButton>
                             {('available_for_enrolment' in course ? course.available_for_enrolment !== false : true) ? (
-                                <DyraneButton size="lg" onClick={handleEnrollNow}>
+                                <DyraneButton size="lg" onClick={handleEnrolNow}>
                                     {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enrol now</span>)}
                                 </DyraneButton>
                             ) : (

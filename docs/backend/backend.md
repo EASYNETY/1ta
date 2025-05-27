@@ -283,7 +283,7 @@ This section describes key user interactions and how the frontend and backend co
 5.  **FE:** Thunk calls `apiClient.get('/api/student/dashboard')` (or similar endpoint, e.g., `/api/users/me/dashboard`, `/timetable/upcoming`, `/students/:id/courses`). *Note: A dedicated student dashboard endpoint isn't explicitly shown, data might be aggregated from multiple calls.* `apiClient` includes JWT.
 6.  **BE:** Relevant endpoint(s) receive the request(s).
 7.  **BE:** `auth` middleware verifies JWT.
-8.  **BE:** Controller/Service fetches required data (e.g., enrolled courses, upcoming schedule from `Class` and `Attendance`, recent payments from `Payment`).
+8.  **BE:** Controller/Service fetches required data (e.g., enroled courses, upcoming schedule from `Class` and `Attendance`, recent payments from `Payment`).
 9.  **BE:** Sends 200 OK response with aggregated dashboard data.
 10. **FE:** Thunk updates Redux state (`dashboardSlice` or relevant slices).
 11. **FE:** `<StudentDashboard />` renders the fetched data using `DyraneCard` components (e.g., "My Courses", "Upcoming Courses").

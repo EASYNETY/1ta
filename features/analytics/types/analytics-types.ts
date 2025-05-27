@@ -27,9 +27,9 @@ export interface CourseStats {
   averageCompletion: number;
   mostPopular: string;
   categoryDistribution?: Record<string, number>;
-  enrollmentTrends?: {
+  enrolmentTrends?: {
     month: string;
-    enrollments: number;
+    enrolments: number;
   }[];
 }
 

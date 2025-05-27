@@ -99,7 +99,7 @@ export function StatsCards() {
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     <StatsCard
                         title="Total Courses"
-                        value={`${courses.length} Enrolled`}
+                        value={`${courses.length} Enroled`}
                         subtitle={`+${Math.min(2, courses.length)} courses this month`}
                         icon={<BookOpen className="h-4 w-4" />}
                     />

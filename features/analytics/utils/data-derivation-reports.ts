@@ -34,8 +34,8 @@ export function deriveStudentBiodataReports(
     grade?: number;
   }
 
-  // Create a mock enrollments array if it doesn't exist in the state
-  const enrollments: Enrolment[] = [];
+  // Create a mock enrolments array if it doesn't exist in the state
+  const enrolments: Enrolment[] = [];
 
   // Apply filters
   let filteredStudents = students as StudentUser[];
@@ -108,36 +108,36 @@ export function deriveStudentBiodataReports(
 
   if (filter.completionRateMin !== undefined) {
     filteredStudents = filteredStudents.filter(student => {
-      const studentEnrollments = enrollments.filter(
+      const studentEnrolments = enrolments.filter(
         enrolment => enrolment.studentId === student.id
       );
 
-      if (studentEnrollments.length === 0) return false;
+      if (studentEnrolments.length === 0) return false;
 
       let totalProgress = 0;
-      studentEnrollments.forEach(enrolment => {
+      studentEnrolments.forEach(enrolment => {
         totalProgress += enrolment.progress || 0;
       });
 
-      const avgProgress = totalProgress / studentEnrollments.length;
+      const avgProgress = totalProgress / studentEnrolments.length;
       return avgProgress >= filter.completionRateMin!;
     });
   }
 
   if (filter.completionRateMax !== undefined) {
     filteredStudents = filteredStudents.filter(student => {
-      const studentEnrollments = enrollments.filter(
+      const studentEnrolments = enrolments.filter(
         enrolment => enrolment.studentId === student.id
       );
 
-      if (studentEnrollments.length === 0) return false;
+      if (studentEnrolments.length === 0) return false;
 
       let totalProgress = 0;
-      studentEnrollments.forEach(enrolment => {
+      studentEnrolments.forEach(enrolment => {
         totalProgress += enrolment.progress || 0;
       });
 
-      const avgProgress = totalProgress / studentEnrollments.length;
+      const avgProgress = totalProgress / studentEnrolments.length;
       return avgProgress <= filter.completionRateMax!;
     });
   }
@@ -145,17 +145,17 @@ export function deriveStudentBiodataReports(
   // Map students to reports
   const reports: StudentBiodataReport[] = filteredStudents.map(student => {
     // Calculate completion rate
-    const studentEnrollments = enrollments.filter(
+    const studentEnrolments = enrolments.filter(
       (enrolment: Enrolment) => enrolment.studentId === student.id
     );
 
     let totalProgress = 0;
-    studentEnrollments.forEach((enrolment: Enrolment) => {
+    studentEnrolments.forEach((enrolment: Enrolment) => {
       totalProgress += enrolment.progress || 0;
     });
 
-    const completionRate = studentEnrollments.length > 0
-      ? Math.round(totalProgress / studentEnrollments.length)
+    const completionRate = studentEnrolments.length > 0
+      ? Math.round(totalProgress / studentEnrolments.length)
       : 0;
 
     // Get corporate name
@@ -184,9 +184,9 @@ export function deriveStudentBiodataReports(
       accountType: student.corporateId ? "corporate" : "individual",
       corporateId: student.corporateId || undefined,
       corporateName,
-      enrollmentDate: student.createdAt || new Date().toISOString(),
-      coursesEnrolled: studentEnrollments.length,
-      coursesCompleted: studentEnrollments.filter((e: Enrolment) => (e.progress || 0) >= 100).length,
+      enrolmentDate: student.createdAt || new Date().toISOString(),
+      coursesEnroled: studentEnrolments.length,
+      coursesCompleted: studentEnrolments.filter((e: Enrolment) => (e.progress || 0) >= 100).length,
       completionRate,
       lastActive: student.lastLogin || new Date().toISOString(),
       barcodeId: (student as any).barcodeId
@@ -230,8 +230,8 @@ export function deriveCourseReports(
     grade?: number;
   }
 
-  // Create mock enrollments array
-  const enrollments: Enrolment[] = [];
+  // Create mock enrolments array
+  const enrolments: Enrolment[] = [];
 
   // Create mock payments array
   interface Payment {
@@ -280,29 +280,29 @@ export function deriveCourseReports(
 
   // Map courses to reports
   const reports: CourseReport[] = filteredCourses.map(course => {
-    // Get course enrollments
-    const courseEnrollments = enrollments.filter(
+    // Get course enrolments
+    const courseEnrolments = enrolments.filter(
       (enrolment: Enrolment) => enrolment.courseId === course.id
     );
 
     // Calculate enrolment count
-    const enrollmentCount = courseEnrollments.length;
+    const enrolmentCount = courseEnrolments.length;
 
     // Calculate completion rate
     let totalProgress = 0;
-    courseEnrollments.forEach((enrolment: Enrolment) => {
+    courseEnrolments.forEach((enrolment: Enrolment) => {
       totalProgress += enrolment.progress || 0;
     });
 
-    const completionRate = enrollmentCount > 0
-      ? Math.round(totalProgress / enrollmentCount)
+    const completionRate = enrolmentCount > 0
+      ? Math.round(totalProgress / enrolmentCount)
       : 0;
 
     // Calculate average grade
     let totalGrade = 0;
     let gradeCount = 0;
 
-    courseEnrollments.forEach((enrolment: Enrolment) => {
+    courseEnrolments.forEach((enrolment: Enrolment) => {
       if (enrolment.grade && enrolment.grade > 0) {
         totalGrade += enrolment.grade;
         gradeCount++;
@@ -324,7 +324,7 @@ export function deriveCourseReports(
       id: course.id || "",
       title: course.title || "",
       category: course.category || "Uncategorized",
-      enrollmentCount,
+      enrolmentCount,
       completionRate,
       averageGrade,
       revenue

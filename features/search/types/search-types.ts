@@ -41,7 +41,7 @@ export interface SearchFilters {
   instructor: string | null;
   // Class-specific filters
   hasAvailableSlots?: boolean;
-  enrollmentStarted?: boolean;
+  enrolmentStarted?: boolean;
   location?: string;
   schedule?: string;
 }

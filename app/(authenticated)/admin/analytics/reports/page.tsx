@@ -209,7 +209,7 @@ export default function ReportsPage() {
                       <TableHead>Student</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Enrolment Date</TableHead>
-                      <TableHead>Courses Enrolled</TableHead>
+                      <TableHead>Courses Enroled</TableHead>
                       <TableHead>Courses Completed</TableHead>
                       <TableHead>Average Grade</TableHead>
                       <TableHead>Attendance Rate</TableHead>
@@ -221,8 +221,8 @@ export default function ReportsPage() {
                       <TableRow key={student.id}>
                         <TableCell>{student.name}</TableCell>
                         <TableCell>{student.email}</TableCell>
-                        <TableCell>{new Date(student.enrollmentDate).toLocaleDateString()}</TableCell>
-                        <TableCell>{student.coursesEnrolled}</TableCell>
+                        <TableCell>{new Date(student.enrolmentDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{student.coursesEnroled}</TableCell>
                         <TableCell>{student.coursesCompleted}</TableCell>
                         <TableCell>{student.averageGrade}%</TableCell>
                         <TableCell>{student.attendanceRate}%</TableCell>
@@ -261,7 +261,7 @@ export default function ReportsPage() {
                     <TableRow>
                       <TableHead>Course</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Enrollments</TableHead>
+                      <TableHead>Enrolments</TableHead>
                       <TableHead>Completion Rate</TableHead>
                       <TableHead>Average Grade</TableHead>
                       <TableHead>Revenue</TableHead>
@@ -272,7 +272,7 @@ export default function ReportsPage() {
                       <TableRow key={course.id}>
                         <TableCell>{course.title}</TableCell>
                         <TableCell>{course.category}</TableCell>
-                        <TableCell>{course.enrollmentCount}</TableCell>
+                        <TableCell>{course.enrolmentCount}</TableCell>
                         <TableCell>{course.completionRate}%</TableCell>
                         <TableCell>{course.averageGrade}%</TableCell>
                         <TableCell>₦{(course.revenue / 100).toLocaleString()}</TableCell>

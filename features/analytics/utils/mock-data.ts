@@ -47,13 +47,13 @@ export function getMockDashboardStats(): DashboardStats {
         "Data Science": 4,
         "Other": 2
       },
-      enrollmentTrends: [
-        { month: "Jan", enrollments: 45 },
-        { month: "Feb", enrollments: 52 },
-        { month: "Mar", enrollments: 48 },
-        { month: "Apr", enrollments: 60 },
-        { month: "May", enrollments: 75 },
-        { month: "Jun", enrollments: 82 }
+      enrolmentTrends: [
+        { month: "Jan", enrolments: 45 },
+        { month: "Feb", enrolments: 52 },
+        { month: "Mar", enrolments: 48 },
+        { month: "Apr", enrolments: 60 },
+        { month: "May", enrolments: 75 },
+        { month: "Jun", enrolments: 82 }
       ]
     },
     paymentStats: {
@@ -127,13 +127,13 @@ export function getMockStudentBiodataStats(): StudentBiodataStats {
       "Kano": 15,
       "Other": 21
     },
-    enrollmentTrends: [
-      { month: "Jan", enrollments: 45 },
-      { month: "Feb", enrollments: 52 },
-      { month: "Mar", enrollments: 48 },
-      { month: "Apr", enrollments: 60 },
-      { month: "May", enrollments: 75 },
-      { month: "Jun", enrollments: 82 }
+    enrolmentTrends: [
+      { month: "Jan", enrolments: 45 },
+      { month: "Feb", enrolments: 52 },
+      { month: "Mar", enrolments: 48 },
+      { month: "Apr", enrolments: 60 },
+      { month: "May", enrolments: 75 },
+      { month: "Jun", enrolments: 82 }
     ],
     completionRates: [
       { courseId: "course1", courseTitle: "Web Development", completionRate: 78 },
@@ -155,8 +155,8 @@ export function getMockStudentReports(count: number = 10): ReportResponse<Studen
     id: `student_${i + 1}`,
     name: `Student ${i + 1}`,
     email: `student${i + 1}@example.com`,
-    enrollmentDate: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-    coursesEnrolled: Math.floor(Math.random() * 5) + 1,
+    enrolmentDate: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+    coursesEnroled: Math.floor(Math.random() * 5) + 1,
     coursesCompleted: Math.floor(Math.random() * 3),
     averageGrade: Math.floor(Math.random() * 30) + 70,
     attendanceRate: Math.floor(Math.random() * 20) + 80,
@@ -200,8 +200,8 @@ export function getMockStudentBiodataReports(count: number = 10): ReportResponse
       accountType,
       corporateId: accountType === "corporate" ? `corp_${Math.floor(Math.random() * 5) + 1}` : undefined,
       corporateName: accountType === "corporate" ? corporateNames[Math.floor(Math.random() * corporateNames.length)] : undefined,
-      enrollmentDate: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-      coursesEnrolled: Math.floor(Math.random() * 5) + 1,
+      enrolmentDate: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
+      coursesEnroled: Math.floor(Math.random() * 5) + 1,
       coursesCompleted: Math.floor(Math.random() * 3),
       completionRate: Math.floor(Math.random() * 100),
       lastActive: new Date(Date.now() - Math.random() * 1000000000).toISOString(),

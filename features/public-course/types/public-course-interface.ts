@@ -33,7 +33,7 @@ export interface PublicCourse {
 	discountPriceIndividualUSD?: number; // Optional discount for individual pricing
 
 	// --- End Pricing ---
-	studentsEnrolled?: number; // Number of students enrolled
+	studentsEnroled?: number; // Number of students enroled
 	rating?: number; // Course rating
 	reviewsCount?: number; // Number of reviews
 	learningOutcomes?: string[]; // Parsed from partner data

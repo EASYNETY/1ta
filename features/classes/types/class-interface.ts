@@ -11,7 +11,7 @@ export interface Class {
   max_students: number;
   max_slots: number;           // New field
   available_slots: number;     // New field
-  enrolled_students_count: number; // New field
+  enroled_students_count: number; // New field
   isActive: number | boolean; // Can be 1/0 or true/false
   status: string;              // Can be 'active', 'full', 'cancelled', etc.
   teacher_id: string;
@@ -63,17 +63,17 @@ export interface EnrolmentResponse {
   error?: string;
 }
 
-export interface BulkEnrollmentRequest {
+export interface BulkEnrolmentRequest {
   class_id: string;
   student_ids: string[];
   corporate_id?: string;
 }
 
-export interface BulkEnrollmentResponse {
+export interface BulkEnrolmentResponse {
   success: boolean;
   message: string;
   data?: {
-    enrollments: ClassEnrollment[];
+    enrolments: ClassEnrolment[];
     class: Class;
   };
   error?: string;

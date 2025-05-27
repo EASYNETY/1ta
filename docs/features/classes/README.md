@@ -6,11 +6,11 @@ This folder contains documentation related to the classes and courses features o
 
 - [Classes & Courses Integration](./classes-courses-integration.md) - Documentation for classes and courses integration
 - [Enrolment Management System](./Enrolment.md) - Documentation for the slot-based enrolment system
-- [Slot-Based Enrolment with Waitlist](./SlotBasedEnrollment.md) - Documentation for the enhanced slot-based enrolment system with waitlist functionality
+- [Slot-Based Enrolment with Waitlist](./SlotBasedEnrolment.md) - Documentation for the enhanced slot-based enrolment system with waitlist functionality
 
 ## Overview
 
-The classes feature allows administrators and teachers to manage classes, courses, and student enrolment. It includes functionality for creating and managing classes, assigning teachers, enrolling students, and tracking class progress.
+The classes feature allows administrators and teachers to manage classes, courses, and student enrolment. It includes functionality for creating and managing classes, assigning teachers, enroling students, and tracking class progress.
 
 ## Key Concepts
 

@@ -77,7 +77,7 @@ const COURSE_LEVELS = [
 // Status options by type
 const STATUS_OPTIONS = {
   all: [
-    { value: "enrolled", label: "Enrolled" },
+    { value: "enroled", label: "Enroled" },
     { value: "pending", label: "Pending" },
     { value: "completed", label: "Completed" },
     { value: "in-progress", label: "In Progress" },
@@ -94,8 +94,8 @@ const STATUS_OPTIONS = {
     { value: "completed", label: "Completed" }
   ],
   course: [
-    { value: "enrolled", label: "Enrolled" },
-    { value: "not_enrolled", label: "Not Enrolled" },
+    { value: "enroled", label: "Enroled" },
+    { value: "not_enroled", label: "Not Enroled" },
     { value: "pending", label: "Pending" }
   ],
   assignment: [
@@ -428,9 +428,9 @@ export function SearchFilters() {
                     <div className="flex items-center gap-2">
                       <Checkbox
                         id="enrolment-started"
-                        checked={filters.enrollmentStarted}
+                        checked={filters.enrolmentStarted}
                         onCheckedChange={(checked) =>
-                          dispatch(setFilters({ enrollmentStarted: checked === true ? true : undefined }))
+                          dispatch(setFilters({ enrolmentStarted: checked === true ? true : undefined }))
                         }
                       />
                       <label

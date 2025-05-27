@@ -32,7 +32,7 @@ import { Users } from 'phosphor-react';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { PageHeader } from '@/components/layout/auth/page-header';
 import { ClassProgress } from '@/components/classes/ClassProgress';
-import { ClassEnrollmentStatus } from '@/components/classes/ClassEnrollmentStatus';
+import { ClassEnrolmentStatus } from '@/components/classes/ClassEnrolmentStatus';
 import { ClassAssignmentLink } from '@/components/courses/ClassAssignmentLink';
 import { ClassQuizLink } from '@/components/courses/ClassQuizLink';
 import { ClassGradeLink } from '@/components/courses/ClassGradeLink';
@@ -166,7 +166,7 @@ export default function ViewClassPage() {
                                     <div className="flex items-center gap-3 border-b pb-3">
                                         <Users className="h-5 w-5 text-muted-foreground" />
                                         <div>
-                                            <p className="text-sm font-medium">Enrolled Students</p>
+                                            <p className="text-sm font-medium">Enroled Students</p>
                                             <p className="text-sm text-muted-foreground">{currentClass.studentCount}</p>
                                         </div>
                                     </div>
@@ -216,11 +216,11 @@ export default function ViewClassPage() {
 
                             {/* Enrolment Status */}
                             {course && (
-                                <ClassEnrollmentStatus
+                                <ClassEnrolmentStatus
                                     classId={classId}
                                     courseId={course.id}
                                     courseTitle={course.title}
-                                    courseImage={course.image}
+                                    courseImage={course.iconUrl || course.image}
                                     instructorName={currentClass.teacherName}
                                     maxSlots={currentClass.maxSlots}
                                     studentCount={currentClass.studentCount}

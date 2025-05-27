@@ -31,7 +31,7 @@ const courses = [
 		description:
 			"Learn the fundamentals of mathematics including algebra, geometry, and calculus.",
 		instructor: "Dr. Jane Smith",
-		enrolledStudents: ["3"],
+		enroledStudents: ["3"],
 	},
 	{
 		id: "2",
@@ -39,7 +39,7 @@ const courses = [
 		description:
 			"Explore the laws of physics and their applications in the real world.",
 		instructor: "Prof. John Doe",
-		enrolledStudents: [],
+		enroledStudents: [],
 	},
 	{
 		id: "3",
@@ -47,7 +47,7 @@ const courses = [
 		description:
 			"A comprehensive overview of major historical events and their impact on society.",
 		instructor: "Dr. Robert Johnson",
-		enrolledStudents: ["3"],
+		enroledStudents: ["3"],
 	},
 ];
 
@@ -121,7 +121,7 @@ export function updateUser(
 export function getCourses() {
 	return courses.map((course) => ({
 		...course,
-		enrolled: course.enrolledStudents.length > 0,
+		enroled: course.enroledStudents.length > 0,
 	}));
 }
 
@@ -134,7 +134,7 @@ export function createCourse(courseData: {
 		title: courseData.title,
 		description: courseData.description,
 		instructor: "Current User",
-		enrolledStudents: [],
+		enroledStudents: [],
 	};
 
 	courses.push(newCourse);
@@ -142,7 +142,7 @@ export function createCourse(courseData: {
 	return newCourse;
 }
 
-export function enrollInCourse(courseId: string) {
+export function enrolInCourse(courseId: string) {
 	const courseIndex = courses.findIndex((c) => c.id === courseId);
 
 	if (courseIndex === -1) {
@@ -152,12 +152,12 @@ export function enrollInCourse(courseId: string) {
 	// Assuming student ID 3 for mock purposes
 	const studentId = "3";
 
-	if (!courses[courseIndex].enrolledStudents.includes(studentId)) {
-		courses[courseIndex].enrolledStudents.push(studentId);
+	if (!courses[courseIndex].enroledStudents.includes(studentId)) {
+		courses[courseIndex].enroledStudents.push(studentId);
 	}
 
 	return {
 		success: true,
-		message: "Successfully enrolled in course",
+		message: "Successfully enroled in course",
 	};
 }

@@ -391,7 +391,7 @@ export default function PaymentHistoryHelpPage() {
             <ul className="list-disc pl-6 space-y-2">
               <li>Familiarize yourself with how payment records appear to help guide students</li>
               <li>Direct students to the appropriate support channels for payment history issues</li>
-              <li>Understand how course enrollments relate to payment records</li>
+              <li>Understand how course enrolments relate to payment records</li>
               <li>Be aware of the institution's policies regarding payment verification</li>
             </ul>
           </div>

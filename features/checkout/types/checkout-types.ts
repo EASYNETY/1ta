@@ -21,7 +21,7 @@ export interface CheckoutState {
 		| "preparing"
 		| "ready"
 		| "processing_payment"
-		| "processing_enrollment"
+		| "processing_enrolment"
 		| "succeeded"
 		| "failed";
 	error: string | null;
@@ -30,7 +30,7 @@ export interface CheckoutState {
 }
 
 // Payload for the enrolment thunk after payment success
-export interface EnrollCoursesPayload {
+export interface EnrolCoursesPayload {
 	userId: string;
 	courseIds: string[];
 	paymentReference: any; // The reference object from payment provider
@@ -40,8 +40,8 @@ export interface EnrollCoursesPayload {
 }
 
 // Response type from backend enrolment endpoint
-export interface EnrollCoursesResponse {
+export interface EnrolCoursesResponse {
 	success: boolean;
 	message?: string;
-	enrolledCourseIds: string[]; // IDs of successfully enrolled courses
+	enroledCourseIds: string[]; // IDs of successfully enroled courses
 }

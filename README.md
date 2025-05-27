@@ -160,7 +160,7 @@ The initial MVP focuses on core functionality. Refer to the detailed MVP Scope D
 1.  **Marketing Landing Page (`/`)**: Static page showcasing the platform. Uses DyraneUI hover effects. Built with Server Components where possible.
 2.  **Authentication (`/login`, `/signup`, etc.)**: Email/Password & Google OAuth flows. Uses React Hook Form/Zod for forms. Manages state via Redux.
 3.  **Core Application Shell (Authenticated Routes)**: Main layout (`AppLayout`) with header/sidebar navigation (using DyraneUI animated components). Includes basic Profile page and placeholder Dashboard.
-4.  **Course Management (Basic)**: Views for available/enrolled courses (using `DyraneCard`/`DyraneTable`). Simple course creation form for Admin/Teacher roles. Basic API interactions.
+4.  **Course Management (Basic)**: Views for available/enroled courses (using `DyraneCard`/`DyraneTable`). Simple course creation form for Admin/Teacher roles. Basic API interactions.
 
 **Explicitly Deferred from MVP:** Content authoring, real-time chat/courses, attendance tracking, reporting/analytics, payments, advanced admin dashboards, i18n.
 
@@ -245,12 +245,12 @@ I've created a comprehensive multi-step registration process:
 
 1. **Account Information**: Basic user details and role selection
 2. **Profile Information**: Additional details based on user role
-3. **Payment** (optional): Only shown for students enrolling in courses
+3. **Payment** (optional): Only shown for students enroling in courses
 
 
 The flow adapts based on the user's role:
 
-- **Students**: Complete all steps including payment if enrolling in courses
+- **Students**: Complete all steps including payment if enroling in courses
 - **Teachers/Admins**: Skip the payment step
 
 
@@ -303,7 +303,7 @@ All authentication pages use the same navbar and footer as the landing page, ens
    2. Step 2: Profile details
    3. Step 3: Payment (if applicable)
 5. **Confirmation**: User receives confirmation and is redirected to dashboard
-6. **Learning**: User can access enrolled courses from dashboard
+6. **Learning**: User can access enroled courses from dashboard
 
 ### 8. Smart App Update System
 
@@ -785,7 +785,7 @@ We don't chase trends — we build **timelessly smooth experiences**.
     *   Upcoming schedule/timetable events for their courses.
     *   Quick attendance summary (Post-MVP).
 *   **Student (Implied):** Would need backend endpoints (e.g., `GET /api/student/dashboard` or `GET /api/users/me/dashboard`) providing:
-    *   List of enrolled courses/courses.
+    *   List of enroled courses/courses.
     *   Upcoming schedule/timetable events.
     *   Recent grades or feedback (Post-MVP).
     *   Unread messages/notifications count (Post-MVP).
@@ -841,7 +841,7 @@ The main Dashboard serves as the primary landing page for authenticated users af
 *   **`src/app/dashboard/page.tsx`**: Main entry point, performs role check and renders the appropriate role-specific component. Marked `'use client'`.
 *   **`src/features/dashboard/components/AdminDashboard.tsx`**: Fetches and displays admin-specific stats, recent payments, recent tickets.
 *   **`src/features/dashboard/components/TeacherDashboard.tsx`**: (MVP definition might be simpler) Fetches and displays assigned courses, maybe upcoming schedule.
-*   **`src/features/dashboard/components/StudentDashboard.tsx`**: Fetches and displays enrolled courses, upcoming schedule.
+*   **`src/features/dashboard/components/StudentDashboard.tsx`**: Fetches and displays enroled courses, upcoming schedule.
 *   **`src/features/dashboard/store/dashboard-slice.ts`**: (Optional but recommended) Redux slice for dashboard state.
 *   **`src/features/dashboard/store/dashboard-thunks.ts`**: (Optional but recommended) Async thunks for fetching dashboard data.
 *   **`src/data/mock-dashboard-data.ts`**: (New file needed) Contains mock functions (`getMockAdminDashboard`, `getMockStudentDashboard`, etc.) called by `apiClient`.
@@ -855,7 +855,7 @@ The main Dashboard serves as the primary landing page for authenticated users af
     *   My Courses List (`DyraneCard`): List of courses assigned.
     *   Upcoming Schedule/Timetable Preview (`DyraneCard`).
 *   **Student Dashboard:**
-    *   My Enrolled Courses List (`DyraneCard`): Using `CourseCard` (compact view) or a list.
+    *   My Enroled Courses List (`DyraneCard`): Using `CourseCard` (compact view) or a list.
     *   Upcoming Schedule/Timetable Preview (`DyraneCard`).
     *   *(Post-MVP)* Quick links to grades, attendance, chat.
 
@@ -864,7 +864,7 @@ The main Dashboard serves as the primary landing page for authenticated users af
 *   **`mock-dashboard-data.ts`:**
     *   `getMockAdminDashboard()`: Returns data matching the structure from `GET /admin/dashboard` (stats, recent payments, recent tickets).
     *   `getMockTeacherDashboard()`: Returns mock data for teacher view (e.g., array of assigned courses).
-    *   `getMockStudentDashboard()`: Returns mock data for student view (e.g., array of enrolled courses).
+    *   `getMockStudentDashboard()`: Returns mock data for student view (e.g., array of enroled courses).
 *   **`apiClient.ts`:** Update `handleMockRequest` to route GET requests for `/admin/dashboard`, `/teacher/dashboard`, `/student/dashboard` (or `/users/me/dashboard`) to these new mock functions.
 
 ---

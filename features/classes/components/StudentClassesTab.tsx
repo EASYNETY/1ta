@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { BookOpen, AlertTriangle } from 'lucide-react';
 import { CourseCard } from '@/components/dashboard/course-card'; // Reuse dashboard card
 import { selectClassesError, selectClassesStatus, selectMyClasses } from '../store/classes-slice';
-import { fetchMyEnrolledClasses } from '../store/classes-thunks';
+import { fetchMyEnroledClasses } from '../store/classes-thunks';
 
 const StudentClassesTab: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -22,7 +22,7 @@ const StudentClassesTab: React.FC = () => {
 
     useEffect(() => {
         if (user?.id) { // Fetch only if idle and user exists
-            dispatch(fetchMyEnrolledClasses(user.id));
+            dispatch(fetchMyEnroledClasses(user.id));
         }
     }, [dispatch, user?.id]);
 
@@ -41,7 +41,7 @@ const StudentClassesTab: React.FC = () => {
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Error Loading Classes</AlertTitle>
-                <AlertDescription>{error || 'Could not load your enrolled classes.'}</AlertDescription>
+                <AlertDescription>{error || 'Could not load your enroled classes.'}</AlertDescription>
             </Alert>
         );
     }
@@ -59,9 +59,9 @@ const StudentClassesTab: React.FC = () => {
         ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-medium mb-2">No Enrolled Courses</h3>
+                <h3 className="text-xl font-medium mb-2">No Enroled Courses</h3>
                 <p className="text-muted-foreground max-w-md mb-6">
-                    You haven't enrolled in any courses yet. Explore the available courses to start learning.
+                    You haven't enroled in any courses yet. Explore the available courses to start learning.
                 </p>
                 <DyraneButton asChild>
                     <Link href="/courses">Browse Courses</Link>

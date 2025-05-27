@@ -62,14 +62,14 @@ export type UpdateClassPayload = Partial<
 
 // --- Fetching Thunks ---
 
-export const fetchMyEnrolledClasses = createAsyncThunk<
+export const fetchMyEnroledClasses = createAsyncThunk<
 	AuthCourse[], // Return type
 	string, // Argument type: userId
 	{ rejectValue: string }
->("classes/fetchMyEnrolled", async (userId, { rejectWithValue }) => {
+>("classes/fetchMyEnroled", async (userId, { rejectWithValue }) => {
 	try {
 		const response = await get<any>(
-			`/users/${userId}/enrolled-classes`
+			`/users/${userId}/enroled-classes`
 		);
 
 		// Handle different response formats
@@ -97,7 +97,7 @@ export const fetchMyEnrolledClasses = createAsyncThunk<
 		const errorMessage =
 			e.response?.data?.message ||
 			e.message ||
-			"Failed to fetch enrolled classes";
+			"Failed to fetch enroled classes";
 		return rejectWithValue(errorMessage);
 	}
 });
@@ -259,15 +259,15 @@ export const fetchAllClassesAdmin = createAsyncThunk<
 					teacher: cls.teacher,
 
 					// Enrolment and capacity
-					studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+					studentCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 					max_students: cls.maxStudents || cls.max_students || 30,
 					maxStudents: cls.maxStudents || cls.max_students || 30,
 					max_slots: cls.maxSlots || cls.max_slots,
 					maxSlots: cls.maxSlots || cls.max_slots,
 					available_slots: cls.availableSlots || cls.available_slots,
 					availableSlots: cls.availableSlots || cls.available_slots,
-					enrolled_students_count: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
-					enrolledStudentsCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+					enroled_students_count: cls.enroledStudentsCount || cls.enroled_students_count || 0,
+					enroledStudentsCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 
 					// Status
 					status: cls.status || (isClassActive(cls.isActive) ? "active" : "inactive"),
@@ -441,15 +441,15 @@ export const fetchClassById = createAsyncThunk<
 			teacher: cls.teacher,
 
 			// Enrolment and capacity
-			studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+			studentCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 			max_students: cls.maxStudents || cls.max_students || 30,
 			maxStudents: cls.maxStudents || cls.max_students || 30,
 			max_slots: cls.maxSlots || cls.max_slots,
 			maxSlots: cls.maxSlots || cls.max_slots,
 			available_slots: cls.availableSlots || cls.available_slots,
 			availableSlots: cls.availableSlots || cls.available_slots,
-			enrolled_students_count: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
-			enrolledStudentsCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+			enroled_students_count: cls.enroledStudentsCount || cls.enroled_students_count || 0,
+			enroledStudentsCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 
 			// Status
 			status: cls.status || (isClassActive(cls.isActive) ? "active" : "inactive"),
@@ -539,15 +539,15 @@ export const createClass = createAsyncThunk<
 			teacher: cls.teacher,
 
 			// Enrolment and capacity
-			studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+			studentCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 			max_students: cls.maxStudents || cls.max_students || 30,
 			maxStudents: cls.maxStudents || cls.max_students || 30,
 			max_slots: cls.maxSlots || cls.max_slots,
 			maxSlots: cls.maxSlots || cls.max_slots,
 			available_slots: cls.availableSlots || cls.available_slots,
 			availableSlots: cls.availableSlots || cls.available_slots,
-			enrolled_students_count: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
-			enrolledStudentsCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+			enroled_students_count: cls.enroledStudentsCount || cls.enroled_students_count || 0,
+			enroledStudentsCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 
 			// Status
 			status: cls.status || (isClassActive(cls.isActive) ? "active" : "inactive"),
@@ -639,15 +639,15 @@ export const updateClass = createAsyncThunk<
 			teacher: cls.teacher,
 
 			// Enrolment and capacity
-			studentCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+			studentCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 			max_students: cls.maxStudents || cls.max_students || 30,
 			maxStudents: cls.maxStudents || cls.max_students || 30,
 			max_slots: cls.maxSlots || cls.max_slots,
 			maxSlots: cls.maxSlots || cls.max_slots,
 			available_slots: cls.availableSlots || cls.available_slots,
 			availableSlots: cls.availableSlots || cls.available_slots,
-			enrolled_students_count: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
-			enrolledStudentsCount: cls.enrolledStudentsCount || cls.enrolled_students_count || 0,
+			enroled_students_count: cls.enroledStudentsCount || cls.enroled_students_count || 0,
+			enroledStudentsCount: cls.enroledStudentsCount || cls.enroled_students_count || 0,
 
 			// Status
 			status: cls.status || (isClassActive(cls.isActive) ? "active" : "inactive"),

@@ -157,7 +157,7 @@ export interface Assignment {
 
 export interface AuthCourse extends PublicCourse {
 	modules: AuthModule[]; // Override modules with the authenticated structure
-	enrolmentStatus: "enrolled" | "not_enrolled" | "pending";
+	enrolmentStatus: "enroled" | "not_enroled" | "pending";
 	progress: number; // Percentage completion (0-100)
 	completedLessons: string[]; // Array of completed lesson IDs
 	quizScores: Record<string, number>; // quizId: score
@@ -918,7 +918,7 @@ export let mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
 		const authCourse: AuthCourse = {
 			...publicCourse, // Spread all properties from PublicCourse
 			modules: authModules, // Override with detailed AuthModule structure
-			enrolmentStatus: "enrolled",
+			enrolmentStatus: "enroled",
 			progress: progress,
 			completedLessons: [], // Initially empty
 			quizScores: {}, // Initially empty
@@ -937,9 +937,9 @@ export let mockAuthCourseData: AuthCourse[] = publicMockCourseData.map(
 					).toISOString(), // 21 days from now
 				},
 			],
-			enrollmentDate: new Date(
+			enrolmentDate: new Date(
 				Date.now() - 7 * 24 * 60 * 60 * 1000
-			).toISOString(), // Enrolled 7 days ago
+			).toISOString(), // Enroled 7 days ago
 			lastAccessed: new Date(
 				Date.now() - 1 * 24 * 60 * 60 * 1000
 			).toISOString(), // Accessed yesterday
@@ -1239,14 +1239,14 @@ export const createAuthMockCourse = async (courseData: any): Promise<AuthCourse>
 		accessType: courseData.accessType || "Lifetime",
 		supportType: courseData.supportType || "Both",
 		isAvailableForEnrolment: courseData.available_for_enrolment !== undefined ? courseData.available_for_enrolment : true,
-		enrollmentStatus: "enrolled",
+		enrolmentStatus: "enroled",
 		progress: 0,
 		completedLessons: [],
 		quizScores: {},
 		notes: [],
 		discussions: [],
 		assignments: [],
-		enrollmentDate: new Date().toISOString(),
+		enrolmentDate: new Date().toISOString(),
 		lastAccessed: new Date().toISOString(),
 	};
 

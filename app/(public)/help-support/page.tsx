@@ -41,8 +41,8 @@ const faqItemsByCategory = {
       answer: 'You can enrol in a course by navigating to the Courses section, selecting your desired course, and clicking the "Enrol" button. Follow the prompts to complete your enrolment.'
     },
     {
-      question: 'How long do I have access to a course after enrolling?',
-      answer: 'Once enrolled, you have lifetime access to the course materials, allowing you to learn at your own pace and revisit content whenever needed.'
+      question: 'How long do I have access to a course after enroling?',
+      answer: 'Once enroled, you have lifetime access to the course materials, allowing you to learn at your own pace and revisit content whenever needed.'
     },
     {
       question: 'Can I enrol in multiple courses at once?',
@@ -52,7 +52,7 @@ const faqItemsByCategory = {
   courses: [
     {
       question: 'How do I access my course materials?',
-      answer: 'After enrolling, you can access your course materials by logging into your account and navigating to the "My Courses" section. From there, you can view all your enrolled courses and access their content.'
+      answer: 'After enroling, you can access your course materials by logging into your account and navigating to the "My Courses" section. From there, you can view all your enroled courses and access their content.'
     },
     {
       question: 'Do you offer certificates upon course completion?',

@@ -64,7 +64,7 @@ import {
 	getMockAllClassesAdmin,
 	getMockClassById,
 	getMockCourseClassOptions,
-	getMockEnrolledClasses,
+	getMockEnroledClasses,
 	getMockTaughtClasses,
 	updateMockClass,
 } from "@/data/mock-classes-data";
@@ -1285,22 +1285,22 @@ export async function handleMockRequest<T>(
 		"color: magenta;"
 	);
 
-	// VVVV UPDATED STUDENT ENROLLED CLASSES HANDLER VVVV
-	const enrolledClassesMatch = endpoint.match(
-		/^\/users\/([\w-]+)\/enrolled-classes$/
+	// VVVV UPDATED STUDENT ENROLED CLASSES HANDLER VVVV
+	const enroledClassesMatch = endpoint.match(
+		/^\/users\/([\w-]+)\/enroled-classes$/
 	);
-	if (enrolledClassesMatch && method === "get") {
-		const userId = enrolledClassesMatch[1];
+	if (enroledClassesMatch && method === "get") {
+		const userId = enroledClassesMatch[1];
 		console.log(
-			`%cAPI Client MOCK: GET /users/${userId}/enrolled-classes`,
+			`%cAPI Client MOCK: GET /users/${userId}/enroled-classes`,
 			"color: orange;"
 		);
 		try {
-			const response = await getMockEnrolledClasses(userId);
+			const response = await getMockEnroledClasses(userId);
 			return response as unknown as T;
 		} catch (error: any) {
 			console.error(
-				`Mock API Error for GET /users/${userId}/enrolled-classes:`,
+				`Mock API Error for GET /users/${userId}/enroled-classes:`,
 				error.message
 			);
 			throw { response: { data: { message: error.message }, status: 500 } };

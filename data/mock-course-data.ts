@@ -37,7 +37,7 @@ export interface Course {
 	isFeatured?: boolean;
 	isPopular?: boolean;
 	isNew?: boolean;
-	studentsEnrolled: number;
+	studentsEnroled: number;
 	rating?: number;
 	reviewsCount?: number;
 	learningOutcomes?: string[];
@@ -94,7 +94,7 @@ export const mockCourseData: Course[] = [
 		discountPriceUSD: 89.99,
 		isFeatured: true,
 		isPopular: true,
-		studentsEnrolled: 785000,
+		studentsEnroled: 785000,
 		rating: 4.8,
 		reviewsCount: 152000,
 		learningOutcomes: [
@@ -177,7 +177,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 149.99,
 		discountPriceUSD: 79.99,
 		isPopular: true,
-		studentsEnrolled: 520000,
+		studentsEnroled: 520000,
 		rating: 4.7,
 		reviewsCount: 98000,
 		learningOutcomes: [
@@ -254,7 +254,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 129.99,
 		discountPriceUSD: 69.99,
 		isPopular: true,
-		studentsEnrolled: 430000,
+		studentsEnroled: 430000,
 		rating: 4.8,
 		reviewsCount: 85000,
 		learningOutcomes: [
@@ -309,7 +309,7 @@ export const mockCourseData: Course[] = [
 		discountPriceUSD: 89.99,
 		isFeatured: true,
 		isPopular: true,
-		studentsEnrolled: 350000,
+		studentsEnroled: 350000,
 		rating: 4.9,
 		reviewsCount: 75000,
 		learningOutcomes: [
@@ -391,7 +391,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 169.99,
 		discountPriceUSD: 84.99,
 		isPopular: true,
-		studentsEnrolled: 820000,
+		studentsEnroled: 820000,
 		rating: 4.6,
 		reviewsCount: 160000,
 		learningOutcomes: [
@@ -442,7 +442,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 249.99,
 		discountPriceUSD: 129.99,
 		isFeatured: true,
-		studentsEnrolled: 700000,
+		studentsEnroled: 700000,
 		rating: 4.9,
 		reviewsCount: 140000,
 		learningOutcomes: [
@@ -486,7 +486,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 199.99,
 		discountPriceUSD: 94.99,
 		isPopular: true,
-		studentsEnrolled: 320000,
+		studentsEnroled: 320000,
 		rating: 4.8,
 		reviewsCount: 65000,
 		learningOutcomes: [
@@ -537,7 +537,7 @@ export const mockCourseData: Course[] = [
 		discountPriceUSD: 89.99,
 		isFeatured: true,
 		isPopular: true,
-		studentsEnrolled: 280000,
+		studentsEnroled: 280000,
 		rating: 4.8,
 		reviewsCount: 55000,
 		learningOutcomes: [
@@ -611,7 +611,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 169.99,
 		discountPriceUSD: 84.99,
 		isPopular: true,
-		studentsEnrolled: 250000,
+		studentsEnroled: 250000,
 		rating: 4.7,
 		reviewsCount: 48000,
 		learningOutcomes: [
@@ -660,7 +660,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 189.99,
 		discountPriceUSD: 94.99,
 		isFeatured: true,
-		studentsEnrolled: 280000,
+		studentsEnroled: 280000,
 		rating: 4.7,
 		reviewsCount: 55000,
 		learningOutcomes: [
@@ -708,7 +708,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 149.99,
 		discountPriceUSD: 74.99,
 		isPopular: true,
-		studentsEnrolled: 220000,
+		studentsEnroled: 220000,
 		rating: 4.8,
 		reviewsCount: 45000,
 		learningOutcomes: [
@@ -762,7 +762,7 @@ export const mockCourseData: Course[] = [
 		discountPriceUSD: 74.99,
 		isFeatured: true,
 		isPopular: true,
-		studentsEnrolled: 450000,
+		studentsEnroled: 450000,
 		rating: 4.9,
 		reviewsCount: 90000,
 		learningOutcomes: [
@@ -839,7 +839,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 149.99,
 		discountPriceUSD: 74.99,
 		isPopular: true,
-		studentsEnrolled: 180000,
+		studentsEnroled: 180000,
 		rating: 4.7,
 		reviewsCount: 35000,
 		learningOutcomes: [
@@ -885,7 +885,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 49.99,
 		discountPriceUSD: 29.99,
 		isFeatured: true,
-		studentsEnrolled: 900000,
+		studentsEnroled: 900000,
 		rating: 4.9,
 		reviewsCount: 180000,
 		learningOutcomes: [
@@ -932,7 +932,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 169.99,
 		discountPriceUSD: 84.99,
 		isPopular: true,
-		studentsEnrolled: 150000,
+		studentsEnroled: 150000,
 		rating: 4.8,
 		reviewsCount: 30000,
 		learningOutcomes: [
@@ -1013,7 +1013,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 199.99,
 		discountPriceUSD: 99.99,
 		isPopular: true,
-		studentsEnrolled: 600000,
+		studentsEnroled: 600000,
 		rating: 4.7,
 		reviewsCount: 120000,
 		learningOutcomes: [
@@ -1061,7 +1061,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 179.99,
 		discountPriceUSD: 89.99,
 		isFeatured: true,
-		studentsEnrolled: 250000,
+		studentsEnroled: 250000,
 		rating: 4.8,
 		reviewsCount: 50000,
 		learningOutcomes: [
@@ -1110,7 +1110,7 @@ export const mockCourseData: Course[] = [
 		priceUSD: 189.99,
 		discountPriceUSD: 94.99,
 		isPopular: true,
-		studentsEnrolled: 350000,
+		studentsEnroled: 350000,
 		rating: 4.7,
 		reviewsCount: 70000,
 		learningOutcomes: [
@@ -1160,7 +1160,7 @@ export const mockCourseData: Course[] = [
 		],
 		priceUSD: 149.99,
 		discountPriceUSD: 74.99,
-		studentsEnrolled: 180000,
+		studentsEnroled: 180000,
 		rating: 4.8,
 		reviewsCount: 35000,
 		learningOutcomes: [
@@ -1210,7 +1210,7 @@ export const mockCourseData: Course[] = [
 		],
 		priceUSD: 159.99,
 		discountPriceUSD: 79.99,
-		studentsEnrolled: 120000,
+		studentsEnroled: 120000,
 		rating: 4.8,
 		reviewsCount: 25000,
 		learningOutcomes: [
@@ -1260,7 +1260,7 @@ export const mockCourseData: Course[] = [
 		],
 		priceUSD: 129.99,
 		discountPriceUSD: 64.99,
-		studentsEnrolled: 280000,
+		studentsEnroled: 280000,
 		rating: 4.8,
 		reviewsCount: 55000,
 		learningOutcomes: [
@@ -1309,7 +1309,7 @@ export const mockCourseData: Course[] = [
 		],
 		priceUSD: 199.99,
 		discountPriceUSD: 99.99,
-		studentsEnrolled: 200000,
+		studentsEnroled: 200000,
 		rating: 4.9,
 		reviewsCount: 40000,
 		learningOutcomes: [

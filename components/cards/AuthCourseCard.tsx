@@ -41,8 +41,8 @@ const CourseMediaPreview = ({ course }: { course: AuthCourse }) => {
         )
     }
 
-    // Fallback to placeholder image
-    const imageSource = course.image || getCourseIcon(course.title, course.id);
+    // Fallback to course icon or placeholder image
+    const imageSource = course.iconUrl || course.image || getCourseIcon(course.title, course.id);
 
     return (
         <Image

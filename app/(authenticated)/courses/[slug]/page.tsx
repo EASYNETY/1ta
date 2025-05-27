@@ -186,7 +186,7 @@ export default function CourseDetailPage() {
     };
 
     // Helper function to check if course is available for enrolment
-    const isAvailableForEnrollment = () => {
+    const isAvailableForEnrolment = () => {
         return !(currentCourse.isAvailableForEnrolment === false || currentCourse.available_for_enrolment === false);
     };
 
@@ -194,7 +194,7 @@ export default function CourseDetailPage() {
     // Role-specific actions
     const getRoleActions = () => {
         // Check if course is available for enrolment
-        const isAvailable = isAvailableForEnrollment();
+        const isAvailable = isAvailableForEnrolment();
 
         switch (user.role) {
             case "admin":
@@ -364,7 +364,7 @@ export default function CourseDetailPage() {
                                     {currentCourse.category}
                                 </Badge>
                                 {/* Enrolment Status Badge */}
-                                {!isAvailableForEnrollment() ? (
+                                {!isAvailableForEnrolment() ? (
                                     <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
                                         Not Available for Enrolment
                                     </Badge>
@@ -476,14 +476,14 @@ export default function CourseDetailPage() {
                                             <p>{currentLessonObj?.description || "No description available for this lesson."}</p>
 
                                             {/* Enrolment Status Alert */}
-                                            {!isAvailableForEnrollment() && (
+                                            {!isAvailableForEnrolment() && (
                                                 <div className="mt-6 p-4 border border-red-200 bg-red-50 text-red-800 rounded-md">
                                                     <h4 className="font-semibold flex items-center">
                                                         <Bell className="mr-2 h-5 w-5" />
                                                         Enrolment Notice
                                                     </h4>
                                                     <p className="mt-1">
-                                                        This course is currently not available for new enrollments.
+                                                        This course is currently not available for new enrolments.
                                                         {user.role === "student" && " You can request to be notified when enrolment opens."}
                                                         {user.role === "teacher" && " Please contact an administrator to enable enrolment."}
                                                         {(user.role === "admin" || user.role === "super_admin") && " You can enable enrolment from the course settings."}

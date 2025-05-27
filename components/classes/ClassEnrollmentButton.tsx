@@ -22,7 +22,7 @@ import { format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
-interface ClassEnrollmentButtonProps {
+interface ClassEnrolmentButtonProps {
   classId: string
   courseId: string
   courseTitle: string
@@ -32,7 +32,7 @@ interface ClassEnrollmentButtonProps {
   instructorName?: string
   maxSlots?: number
   availableSlots?: number
-  enrollmentStartDate?: string
+  enrolmentStartDate?: string
   startDate?: string
   endDate?: string
   schedule?: string
@@ -45,7 +45,7 @@ interface ClassEnrollmentButtonProps {
   showDetails?: boolean
 }
 
-export function ClassEnrollmentButton({
+export function ClassEnrolmentButton({
   classId,
   courseId,
   courseTitle,
@@ -55,7 +55,7 @@ export function ClassEnrollmentButton({
   instructorName,
   maxSlots,
   availableSlots,
-  enrollmentStartDate,
+  enrolmentStartDate,
   startDate,
   endDate,
   schedule,
@@ -66,7 +66,7 @@ export function ClassEnrollmentButton({
   buttonVariant = "default",
   buttonSize = "default",
   showDetails = true
-}: ClassEnrollmentButtonProps) {
+}: ClassEnrolmentButtonProps) {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const router = useRouter()
@@ -81,17 +81,17 @@ export function ClassEnrollmentButton({
 
   // Calculate enrolment status
   const hasAvailableSlots = availableSlots !== undefined && availableSlots > 0
-  const enrollmentHasStarted = enrollmentStartDate
-    ? new Date(enrollmentStartDate) <= new Date()
+  const enrolmentHasStarted = enrolmentStartDate
+    ? new Date(enrolmentStartDate) <= new Date()
     : true
 
-  const canEnroll = hasAvailableSlots && enrollmentHasStarted && !isDisabled
+  const canEnrol = hasAvailableSlots && enrolmentHasStarted && !isDisabled
 
   // Format dates
   const formattedStartDate = startDate ? format(new Date(startDate), 'PPP') : undefined
   const formattedEndDate = endDate ? format(new Date(endDate), 'PPP') : undefined
-  const formattedEnrollmentStartDate = enrollmentStartDate
-    ? format(new Date(enrollmentStartDate), 'PPP')
+  const formattedEnrolmentStartDate = enrolmentStartDate
+    ? format(new Date(enrolmentStartDate), 'PPP')
     : undefined
 
   // Calculate slots percentage
@@ -100,7 +100,7 @@ export function ClassEnrollmentButton({
     : 0
 
   // Handle enrolment
-  const handleEnroll = () => {
+  const handleEnrol = () => {
     if (isAlreadyInCart) {
       toast({
         title: "Already in Cart",
@@ -147,11 +147,11 @@ export function ClassEnrollmentButton({
       }
     }
 
-    if (!enrollmentHasStarted) {
+    if (!enrolmentHasStarted) {
       return {
         type: "warning",
         title: "Enrolment Not Yet Open",
-        message: `Enrolment for this class will open on ${formattedEnrollmentStartDate}.`
+        message: `Enrolment for this class will open on ${formattedEnrolmentStartDate}.`
       }
     }
 
@@ -188,7 +188,7 @@ export function ClassEnrollmentButton({
           <DialogHeader>
             <DialogTitle>Class Enrolment</DialogTitle>
             <DialogDescription>
-              Review class details before enrolling
+              Review class details before enroling
             </DialogDescription>
           </DialogHeader>
 
@@ -279,8 +279,8 @@ export function ClassEnrollmentButton({
               </Button>
             )}
 
-            {canEnroll && (
-              <Button onClick={handleEnroll}>
+            {canEnrol && (
+              <Button onClick={handleEnrol}>
                 {isAlreadyInCart ? "View Cart" : "Enrol now"}
               </Button>
             )}

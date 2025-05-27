@@ -168,7 +168,7 @@ export default function ReceiptsInvoicesHelpPage() {
         </Step>
         <Step number={3} title="From Course Dashboard">
           <ul className="list-disc pl-6 mt-2 space-y-1">
-            <li>Go to your enrolled courses</li>
+            <li>Go to your enroled courses</li>
             <li>Select the relevant course</li>
             <li>Look for a "Payment Information" or "Receipt" option</li>
           </ul>

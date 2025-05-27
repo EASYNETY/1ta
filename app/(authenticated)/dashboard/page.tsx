@@ -337,7 +337,7 @@ export default function DashboardPage() {
                         ) : (
                             // No courses message
                             <div className="col-span-full text-center py-8">
-                                <p className="text-muted-foreground mb-4">You haven't enrolled in any courses yet.</p>
+                                <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
                                 <DyraneButton asChild>
                                     <Link href="/courses" className="flex items-center gap-2">
                                         <QrCode className="h-4 w-4" />
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                         ) : (
                             // No courses message
                             <div className="col-span-full text-center py-8">
-                                <p className="text-muted-foreground mb-4">You haven't enrolled in any courses yet.</p>
+                                <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
                                 <DyraneButton asChild>
                                     <Link href="/courses" className="flex items-center gap-2">
                                         <QrCode className="h-4 w-4" />

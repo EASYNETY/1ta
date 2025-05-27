@@ -169,7 +169,7 @@ export default function NavigationHelpPage() {
               The Dashboard provides a quick overview of your upcoming deadlines and recent activities.
             </p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Check the <strong>My Courses</strong> section regularly to access your enrolled courses</li>
+              <li>Check the <strong>My Courses</strong> section regularly to access your enroled courses</li>
               <li>Use the <strong>Calendar</strong> view to see all your scheduled classes and assignment deadlines</li>
               <li>The <strong>Notifications</strong> bell will alert you to important announcements and updates</li>
             </ul>

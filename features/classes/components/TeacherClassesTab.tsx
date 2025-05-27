@@ -13,6 +13,7 @@ import { DyraneCard } from '@/components/dyrane-ui/dyrane-card'; // Use Card for
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Use Card for list view
 import { fetchMyTaughtClasses } from '../store/classes-thunks';
 import { selectClassesError, selectClassesStatus, selectMyClasses } from '../store/classes-slice';
+import { getCourseIcon } from '@/utils/course-icon-mapping';
 
 const TeacherClassesTab: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -56,7 +57,7 @@ const TeacherClassesTab: React.FC = () => {
                             <CardContent className="p-4 flex justify-between items-center">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-muted rounded flex-shrink-0 overflow-hidden hidden sm:block">
-                                        <img src={course.image || '/placeholder.svg'} alt={course.title} className="w-full h-full object-cover" />
+                                        <img src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)} alt={course.title} className="w-full h-full object-cover" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-md">{course.title}</h3>

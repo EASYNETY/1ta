@@ -34,7 +34,7 @@ const relatedTopics = [
   },
 ];
 
-export default function CourseEnrollmentPage() {
+export default function CourseEnrolmentPage() {
   return (
     <div className="mx-auto py-6 space-y-6">
       <ArticleHeader
@@ -51,7 +51,7 @@ export default function CourseEnrollmentPage() {
       <div className="flex flex-col md:flex-row gap-6">
         <article className="flex-1 space-y-6">
           <p>
-            Enrolling in courses is a straightforward process that allows you to gain access to educational content,
+            Enroling in courses is a straightforward process that allows you to gain access to educational content,
             participate in classes, and track your progress. This guide will walk you through the steps to find courses
             and enrol in specific class sessions that match your interests, goals, and schedule.
           </p>
@@ -71,7 +71,7 @@ export default function CourseEnrollmentPage() {
           <h2 id="finding-courses" className="text-2xl font-bold mt-8">Finding Courses</h2>
           <Separator className="my-2" />
           <p>
-            Before enrolling, you'll need to browse and find courses that interest you. The platform offers
+            Before enroling, you'll need to browse and find courses that interest you. The platform offers
             multiple ways to discover courses:
           </p>
 
@@ -134,7 +134,7 @@ export default function CourseEnrollmentPage() {
               </ul>
 
               <HelpCallout type="tip" title="Tip" className="mt-4">
-                If a class is full, check back regularly as slots may open up if other students unenroll.
+                If a class is full, check back regularly as slots may open up if other students unenrol.
               </HelpCallout>
             </Step>
 
@@ -159,7 +159,7 @@ export default function CourseEnrollmentPage() {
 
             <Step number={7} title="Access Your Class">
               After successful payment, you'll receive a confirmation and the class will be added to your
-              enrolled classes. You can access it immediately from your Dashboard, Courses section, or Timetable.
+              enroled classes. You can access it immediately from your Dashboard, Courses section, or Timetable.
             </Step>
           </StepByStepGuide>
 
@@ -179,12 +179,12 @@ export default function CourseEnrollmentPage() {
                   <li>Review the class schedule to confirm you can attend all sessions</li>
                   <li>Check that the class has available slots before attempting to enrol</li>
                   <li>Verify that enrolment is open for the class (some classes have specific enrolment start dates)</li>
-                  <li>Consider your workload before enrolling in multiple classes simultaneously</li>
+                  <li>Consider your workload before enroling in multiple classes simultaneously</li>
                   <li>Some courses offer a preview or free introduction to help you decide</li>
                 </ul>
                 <HelpCallout type="tip">
                   If you're unsure about a course or class, check the reviews from other students or reach out to the instructor
-                  with specific questions before enrolling.
+                  with specific questions before enroling.
                 </HelpCallout>
               </div>
             }
@@ -198,12 +198,12 @@ export default function CourseEnrollmentPage() {
                   <li>Monitor available slots and enrolment numbers from your Teacher Dashboard</li>
                   <li>Review student profiles as they enrol in your classes</li>
                   <li>Set maximum slots for your classes to control enrolment capacity</li>
-                  <li>Set enrolment start dates to control when students can begin enrolling</li>
+                  <li>Set enrolment start dates to control when students can begin enroling</li>
                   <li>Configure class visibility (public, private, etc.) to control who can see and enrol in your classes</li>
                   <li>Manually approve enrolments if you've enabled this option</li>
                 </ul>
                 <HelpCallout type="important">
-                  If you need to make changes to your class after students have enrolled, be sure to notify them
+                  If you need to make changes to your class after students have enroled, be sure to notify them
                   through the platform's messaging system, especially if the schedule or location changes.
                 </HelpCallout>
               </div>
@@ -223,7 +223,7 @@ export default function CourseEnrollmentPage() {
                   <li>Adjust maximum slots for classes based on demand</li>
                 </ul>
                 <HelpCallout type="warning">
-                  When manually enrolling students, ensure that:
+                  When manually enroling students, ensure that:
                   <ul className="list-disc pl-6 space-y-1 mt-2">
                     <li>The class has available slots or you override the slot limitation</li>
                     <li>Payment records are properly updated to maintain accurate financial reporting</li>
@@ -257,7 +257,7 @@ export default function CourseEnrollmentPage() {
                 <ul className="list-disc pl-6 space-y-1 mt-2">
                   <li>Check other class sessions for the same course</li>
                   <li>Join the waitlist if available</li>
-                  <li>Check back regularly as slots may open if other students unenroll</li>
+                  <li>Check back regularly as slots may open if other students unenrol</li>
                   <li>Contact the administrator to request an exception</li>
                 </ul>
               </p>

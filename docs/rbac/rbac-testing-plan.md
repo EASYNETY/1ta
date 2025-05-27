@@ -207,7 +207,7 @@ describe('Teacher Access', () => {
 
 #### ✅ **Should Have Access To:**
 - [ ] Dashboard with analytics
-- [ ] Course enrollment and viewing
+- [ ] Course enrolment and viewing
 - [ ] Own attendance records
 - [ ] Own timetable
 - [ ] Own payment history

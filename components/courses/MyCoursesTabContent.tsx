@@ -54,7 +54,7 @@ export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCours
     }
 
     // Adjust message based on context (e.g., if filters are active)
-    const message = "You haven't enrolled in any courses yet, or no courses match your current filters. Browse our catalog to find courses that interest you.";
+    const message = "You haven't enroled in any courses yet, or no courses match your current filters. Browse our catalog to find courses that interest you.";
 
     return (
         <EmptyStateCard

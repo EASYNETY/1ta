@@ -9,7 +9,7 @@ This document provides a comprehensive guide for frontend engineers on how to in
 1. **Slot-Based Enrolment**: Classes now have a maximum number of slots and track available slots in real-time
 2. **Course Availability**: Courses automatically update their enrolment availability based on class slot capacity
 3. **Enrolment Status Tracking**: The system tracks enrolment status for each student
-4. **Bulk Enrolment**: Support for enrolling multiple students at once (for corporate accounts)
+4. **Bulk Enrolment**: Support for enroling multiple students at once (for corporate accounts)
 5. **Waitlist Management**: Support for waitlisting students when classes are full
 6. **Class Visibility Control**: Control who can see and enrol in classes (public, private, etc.)
 7. **Enrolment Start Date**: Set when enrolment becomes available for a class
@@ -47,7 +47,7 @@ export interface Class {
   max_students: number;
   max_slots: number;           // Maximum number of slots available for the class
   available_slots: number;     // Current number of available slots
-  enrolled_students_count: number; // Number of students currently enrolled
+  enroled_students_count: number; // Number of students currently enroled
   is_active: boolean;
   status: string;              // Can be 'active', 'full', 'cancelled', etc.
   visibility: 'public' | 'private' | 'draft'; // Who can see and enrol in the class
@@ -123,7 +123,7 @@ POST /api/enrolment/enrol
 ```json
 {
   "success": true,
-  "message": "Successfully enrolled in class",
+  "message": "Successfully enroled in class",
   "data": {
     "enrolment": {
       "id": "enrolment_789",
@@ -144,7 +144,7 @@ POST /api/enrolment/enrol
       "max_students": 30,
       "max_slots": 30,
       "available_slots": 29,
-      "enrolled_students_count": 1,
+      "enroled_students_count": 1,
       "is_active": true,
       "status": "active",
       "visibility": "public",
@@ -174,14 +174,14 @@ POST /api/enrolment/bulk-enrol
 ```json
 {
   "success": true,
-  "message": "Successfully enrolled 3 students in class",
+  "message": "Successfully enroled 3 students in class",
   "data": {
-    "enrollments": [
+    "enrolments": [
       {
-        "id": "enrollment_789",
+        "id": "enrolment_789",
         "class_id": "class_123",
         "student_id": "student_456",
-        "enrollment_date": "2023-06-15T10:30:00Z",
+        "enrolment_date": "2023-06-15T10:30:00Z",
         "status": "active",
         "created_at": "2023-06-15T10:30:00Z",
         "updated_at": "2023-06-15T10:30:00Z"
@@ -192,7 +192,7 @@ POST /api/enrolment/bulk-enrol
       "id": "class_123",
       "name": "Introduction to Project Management",
       "available_slots": 27,
-      "enrolled_students_count": 3,
+      "enroled_students_count": 3,
       // Other class properties...
     }
   }
@@ -223,7 +223,7 @@ GET /api/enrolment/class/:classId/students
       "id": "class_123",
       "name": "Introduction to Project Management",
       "available_slots": 27,
-      "enrolled_students_count": 3
+      "enroled_students_count": 3
     }
   }
 }
@@ -281,7 +281,7 @@ PUT /api/classes/:classId
     "max_slots": 40,
     "available_slots": 37,
     "visibility": "public",
-    "enrollment_start_date": "2023-06-01T00:00:00Z",
+    "enrolment_start_date": "2023-06-01T00:00:00Z",
     // Other class properties...
   }
 }
@@ -308,7 +308,7 @@ const classFormSchema = z.object({
   // ... existing fields
   max_slots: z.number().min(1, "Class must have at least 1 slot"),
   visibility: z.enum(["public", "private", "draft"]),
-  enrollment_start_date: z.date().optional(),
+  enrolment_start_date: z.date().optional(),
 });
 
 export function ClassForm({ initialData, onSubmit }) {
@@ -374,7 +374,7 @@ export function ClassForm({ initialData, onSubmit }) {
 
         <FormField
           control={form.control}
-          name="enrollment_start_date"
+          name="enrolment_start_date"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Enrolment Start Date</FormLabel>
@@ -404,24 +404,24 @@ export function ClassForm({ initialData, onSubmit }) {
 Here's an example of an enrolment component that can be used to enrol students in a class:
 
 ```tsx
-// features/classes/components/EnrollmentButton.tsx
+// features/classes/components/EnrolmentButton.tsx
 import { useState } from "react";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { enrollInClass } from "@/features/classes/store/classes-slice";
+import { enrolInClass } from "@/features/classes/store/classes-slice";
 import { toast } from "sonner";
 
-interface EnrollmentButtonProps {
+interface EnrolmentButtonProps {
   classId: string;
   disabled?: boolean;
 }
 
-export function EnrollmentButton({ classId, disabled }: EnrollmentButtonProps) {
-  const [isEnrolling, setIsEnrolling] = useState(false);
+export function EnrolmentButton({ classId, disabled }: EnrolmentButtonProps) {
+  const [isEnroling, setIsEnroling] = useState(false);
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
 
-  const handleEnroll = async () => {
+  const handleEnrol = async () => {
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -431,16 +431,16 @@ export function EnrollmentButton({ classId, disabled }: EnrollmentButtonProps) {
       return;
     }
 
-    setIsEnrolling(true);
+    setIsEnroling(true);
     try {
-      await dispatch(enrollInClass({
+      await dispatch(enrolInClass({
         classId,
         studentId: user.id,
       })).unwrap();
 
       toast({
         title: "Enrolment Successful",
-        description: "You have been enrolled in this class",
+        description: "You have been enroled in this class",
         variant: "success",
       });
     } catch (error) {
@@ -450,17 +450,17 @@ export function EnrollmentButton({ classId, disabled }: EnrollmentButtonProps) {
         variant: "destructive",
       });
     } finally {
-      setIsEnrolling(false);
+      setIsEnroling(false);
     }
   };
 
   return (
     <DyraneButton
-      onClick={handleEnroll}
-      disabled={disabled || isEnrolling}
-      loading={isEnrolling}
+      onClick={handleEnrol}
+      disabled={disabled || isEnroling}
+      loading={isEnroling}
     >
-      {isEnrolling ? "Enrolling..." : "Enrol Now"}
+      {isEnroling ? "Enroling..." : "Enrol Now"}
     </DyraneButton>
   );
 }
@@ -473,7 +473,7 @@ To integrate the enrolment management system into your application, follow these
 1. **Update Class Interface**: Update your class interface to include the new fields for enrolment management:
    - `max_slots`: Maximum number of slots available for the class
    - `available_slots`: Current number of available slots
-   - `enrolled_students_count`: Number of students currently enrolled
+   - `enroled_students_count`: Number of students currently enroled
    - `visibility`: Who can see and enrol in the class
    - `enrolment_start_date`: When enrolment becomes available
 
@@ -490,11 +490,11 @@ To integrate the enrolment management system into your application, follow these
    - Check if the class has available slots
    - Check if the enrolment start date has passed
 
-5. **Implement Enrolment API Calls**: Implement the API calls for enrolling students in classes:
+5. **Implement Enrolment API Calls**: Implement the API calls for enroling students in classes:
    - Single enrolment
    - Bulk enrolment
-   - Fetching enrolled students
-   - Fetching enrolled classes
+   - Fetching enroled students
+   - Fetching enroled classes
 
 6. **Update UI Components**: Update your UI components to display enrolment information:
    - Show available slots
@@ -513,10 +513,10 @@ To integrate the enrolment management system into your application, follow these
 |--------|----------|-------------|-------------------------|
 | POST | `/api/enrolment/enrol` | Enrol a student in a class | Yes |
 | POST | `/api/enrolment/bulk-enrol` | Enrol multiple students in a class | Yes |
-| GET | `/api/enrolment/class/:classId/students` | Get all students enrolled in a class | Yes |
-| GET | `/api/enrolment/student/:studentId/classes` | Get all classes a student is enrolled in | Yes |
+| GET | `/api/enrolment/class/:classId/students` | Get all students enroled in a class | Yes |
+| GET | `/api/enrolment/student/:studentId/classes` | Get all classes a student is enroled in | Yes |
 | PUT | `/api/classes/:classId` | Update class enrolment settings | Yes |
-| POST | `/api/enrolment/unenroll` | Unenroll a student from a class | Yes |
+| POST | `/api/enrolment/unenrol` | Unenrol a student from a class | Yes |
 
 ## Conclusion
 

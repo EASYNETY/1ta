@@ -274,7 +274,7 @@ export default function UpdateProfileHelpPage() {
               <td className="border px-4 py-2">Course Members</td>
             </tr>
             <tr>
-              <td className="border px-4 py-2">Enrolled Courses</td>
+              <td className="border px-4 py-2">Enroled Courses</td>
               <td className="border px-4 py-2">Public, Course Members, Private</td>
               <td className="border px-4 py-2">Course Members</td>
             </tr>

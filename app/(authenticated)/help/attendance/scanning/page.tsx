@@ -137,7 +137,7 @@ export default function BarcodeScanningScanningPage() {
           <StepByStepGuide title="How to Scan Attendance" description="Follow these steps to scan student barcodes for attendance:">
             <Step number={1} title="Select a Class (Optional)">
               Before scanning, you can select a specific class from the dropdown menu. This will filter the scan results
-              to show only students enrolled in that class. If you don't select a class, the system will identify the student
+              to show only students enroled in that class. If you don't select a class, the system will identify the student
               but may not automatically mark attendance.
 
               <HelpImage

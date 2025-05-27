@@ -37,7 +37,7 @@ function getContentForPath(path: string) {
     if (path.startsWith("/courses")) {
         return [
             "You have 3 active courses.",
-            "2 new enrollments today."
+            "2 new enrolments today."
         ];
     }
     if (path.startsWith("/students")) {

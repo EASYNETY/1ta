@@ -7,8 +7,8 @@ export interface StudentReport {
   id: string;
   name: string;
   email: string;
-  enrollmentDate: string;
-  coursesEnrolled: number;
+  enrolmentDate: string;
+  coursesEnroled: number;
   coursesCompleted: number;
   averageGrade: number;
   attendanceRate: number;
@@ -27,8 +27,8 @@ export interface StudentBiodataReport {
   accountType: "individual" | "corporate";
   corporateId?: string;
   corporateName?: string;
-  enrollmentDate: string;
-  coursesEnrolled: number;
+  enrolmentDate: string;
+  coursesEnroled: number;
   coursesCompleted: number;
   completionRate: number;
   lastActive?: string;
@@ -40,7 +40,7 @@ export interface CourseReport {
   id: string;
   title: string;
   category: string;
-  enrollmentCount: number;
+  enrolmentCount: number;
   completionRate: number;
   averageGrade: number;
   revenue: number;

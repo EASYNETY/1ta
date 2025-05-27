@@ -14,12 +14,12 @@ import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
 import { AlertCircle, Calendar, Clock, Users } from 'lucide-react'
-import { ClassEnrollmentButton } from './ClassEnrollmentButton'
+import { ClassEnrolmentButton } from './ClassEnrolmentButton'
 import { ClassWaitlistButton } from './ClassWaitlistButton'
 import { ClassAvailabilityNotification } from './ClassAvailabilityNotification'
 import { selectWaitlistByClassId } from '@/features/classes/store/classes-slice'
 
-interface ClassEnrollmentStatusProps {
+interface ClassEnrolmentStatusProps {
   classId: string
   courseId: string
   courseTitle: string
@@ -29,7 +29,7 @@ interface ClassEnrollmentStatusProps {
   instructorName?: string
   maxSlots?: number
   studentCount?: number
-  enrollmentStartDate?: string
+  enrolmentStartDate?: string
   startDate?: string
   endDate?: string
   schedule?: string
@@ -37,7 +37,7 @@ interface ClassEnrollmentStatusProps {
   status?: string
 }
 
-export function ClassEnrollmentStatus({
+export function ClassEnrolmentStatus({
   classId,
   courseId,
   courseTitle,
@@ -47,26 +47,26 @@ export function ClassEnrollmentStatus({
   instructorName,
   maxSlots,
   studentCount = 0,
-  enrollmentStartDate,
+  enrolmentStartDate,
   startDate,
   endDate,
   schedule,
   location,
   status = 'active'
-}: ClassEnrollmentStatusProps) {
+}: ClassEnrolmentStatusProps) {
   // Calculate available slots
   const availableSlots = maxSlots ? maxSlots - studentCount : undefined
 
   // Check if enrolment has started
-  const enrollmentHasStarted = enrollmentStartDate
-    ? new Date(enrollmentStartDate) <= new Date()
+  const enrolmentHasStarted = enrolmentStartDate
+    ? new Date(enrolmentStartDate) <= new Date()
     : true
 
   // Format dates
   const formattedStartDate = startDate ? format(new Date(startDate), 'PPP') : undefined
   const formattedEndDate = endDate ? format(new Date(endDate), 'PPP') : undefined
-  const formattedEnrollmentStartDate = enrollmentStartDate
-    ? format(new Date(enrollmentStartDate), 'PPP')
+  const formattedEnrolmentStartDate = enrolmentStartDate
+    ? format(new Date(enrolmentStartDate), 'PPP')
     : undefined
 
   // Calculate slots percentage
@@ -81,7 +81,7 @@ export function ClassEnrollmentStatus({
   ).length
 
   // Determine enrolment status
-  const getEnrollmentStatus = () => {
+  const getEnrolmentStatus = () => {
     if (status === 'inactive' || status === 'cancelled') {
       return {
         label: 'Unavailable',
@@ -96,7 +96,7 @@ export function ClassEnrollmentStatus({
       }
     }
 
-    if (!enrollmentHasStarted) {
+    if (!enrolmentHasStarted) {
       return {
         label: 'Coming Soon',
         color: 'secondary'
@@ -123,7 +123,7 @@ export function ClassEnrollmentStatus({
     }
   }
 
-  const enrollmentStatus = getEnrollmentStatus()
+  const enrolmentStatus = getEnrolmentStatus()
 
   return (
     <>
@@ -132,14 +132,14 @@ export function ClassEnrollmentStatus({
           <div className="flex justify-between items-start">
             <CardTitle>Enrolment Status</CardTitle>
             <Badge variant={
-              enrollmentStatus.color as 'default' | 'secondary' | 'destructive' | 'outline'
+              enrolmentStatus.color as 'default' | 'secondary' | 'destructive' | 'outline'
             }>
-              {enrollmentStatus.label}
+              {enrolmentStatus.label}
             </Badge>
           </div>
           <CardDescription>
-            {!enrollmentHasStarted && formattedEnrollmentStartDate
-              ? `Enrolment opens on ${formattedEnrollmentStartDate}`
+            {!enrolmentHasStarted && formattedEnrolmentStartDate
+              ? `Enrolment opens on ${formattedEnrolmentStartDate}`
               : availableSlots !== undefined && availableSlots <= 0
                 ? 'This class is currently full'
                 : 'Enrol in this class to secure your spot'
@@ -219,7 +219,7 @@ export function ClassEnrollmentStatus({
               buttonText="Join Waitlist"
             />
           ) : (
-            <ClassEnrollmentButton
+            <ClassEnrolmentButton
               classId={classId}
               courseId={courseId}
               courseTitle={courseTitle}
@@ -229,15 +229,15 @@ export function ClassEnrollmentStatus({
               instructorName={instructorName}
               maxSlots={maxSlots}
               availableSlots={availableSlots}
-              enrollmentStartDate={enrollmentStartDate}
+              enrolmentStartDate={enrolmentStartDate}
               startDate={startDate}
               endDate={endDate}
               schedule={schedule}
               location={location}
-              isDisabled={!enrollmentHasStarted || status === 'inactive' || status === 'cancelled' || status === 'archived'}
+              isDisabled={!enrolmentHasStarted || status === 'inactive' || status === 'cancelled' || status === 'archived'}
               disabledReason={
-                !enrollmentHasStarted
-                  ? `Enrolment opens on ${formattedEnrollmentStartDate}`
+                !enrolmentHasStarted
+                  ? `Enrolment opens on ${formattedEnrolmentStartDate}`
                   : 'This class is not available for enrolment'
               }
               buttonText="Enrol now"

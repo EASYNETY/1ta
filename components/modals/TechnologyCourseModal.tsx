@@ -22,6 +22,7 @@ import { PublicCourse } from "@/features/public-course/types/public-course-inter
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { addItem } from "@/features/cart/store/cart-slice"
 import { useToast } from "@/hooks/use-toast"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 // Component to render either Video or Fallback Image
 const CourseMediaPreview = ({ course }: { course: PublicCourse }) => {
@@ -46,9 +47,9 @@ const CourseMediaPreview = ({ course }: { course: PublicCourse }) => {
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
       <div className="w-20 h-20 flex items-center justify-center">
-        {course.image && course.image !== "/placeholder.svg" && !imageError ? (
+        {course.iconUrl || course.image && course.image !== "/placeholder.svg" && !imageError ? (
           <img
-            src={course.image}
+            src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
             alt={course.title}
             className="max-w-full max-h-full object-contain"
             onError={() => setImageError(true)}
@@ -218,7 +219,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
   const isAlreadyInCart = cartItems.some((item) => item.courseId === mergedCourse.id);
 
   // Handle enrol now button click
-  const handleEnrollNow = () => {
+  const handleEnrolNow = () => {
     if (isAlreadyInCart) {
       toast({
         title: "Already Selected",
@@ -231,7 +232,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
         title: mergedCourse.title,
         price: mergedCourse.priceUSD,
         discountPrice: mergedCourse.discountPriceUSD,
-        image: mergedCourse.image,
+        image: mergedCourse.iconUrl || mergedCourse.image || getCourseIcon(mergedCourse.title, mergedCourse.id),
         instructor: mergedCourse.instructor.name,
       }));
 
@@ -538,7 +539,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                     {safeTechCourse.category === "current" ? (
                       mergedCourse.available_for_enrolment !== false ? (
                         <DyraneButton
-                          onClick={handleEnrollNow}
+                          onClick={handleEnrolNow}
                           className="gap-1.5"
                         >
                           {isAlreadyInCart ? (

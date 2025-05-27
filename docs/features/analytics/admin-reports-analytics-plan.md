@@ -98,7 +98,7 @@ The system will leverage data from existing Redux slices:
        ageDistribution: { under18: number, age18to24: number, age25to34: number, age35to44: number, age45Plus: number };
        corporateVsIndividual: { corporate: number, individual: number };
        locationDistribution: Record<string, number>;
-       enrollmentTrends: { month: string, enrollments: number }[];
+       enrolmentTrends: { month: string, enrolments: number }[];
        completionRates: { courseId: string, courseTitle: string, completionRate: number }[];
      };
      status: "idle" | "loading" | "succeeded" | "failed";

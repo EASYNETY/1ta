@@ -41,7 +41,7 @@ export function OnboardingTour() {
         ...commonSteps,
         {
           target: '.my-courses-section',
-          content: 'Here you can find all your enrolled courses.',
+          content: 'Here you can find all your enroled courses.',
           placement: 'top',
         },
         {

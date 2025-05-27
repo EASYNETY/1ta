@@ -312,7 +312,7 @@ export default function PaymentMethodsHelpPage() {
               <td className="border px-4 py-2">
                 <ul className="list-disc pl-4 space-y-1">
                   <li>Check your email for a payment receipt</li>
-                  <li>Verify if the course appears in your enrolled courses</li>
+                  <li>Verify if the course appears in your enroled courses</li>
                   <li>Contact support with your transaction reference</li>
                 </ul>
               </td>
@@ -353,7 +353,7 @@ export default function PaymentMethodsHelpPage() {
           </h4>
           <p className="text-sm text-muted-foreground mt-2">
             Refund policies vary by course. Please check the specific course's refund policy before
-            enrolling. Generally, refunds are available within a limited time period after enrolment
+            enroling. Generally, refunds are available within a limited time period after enrolment
             and before completing a certain percentage of the course.
           </p>
         </div>

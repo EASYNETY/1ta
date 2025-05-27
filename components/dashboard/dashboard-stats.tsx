@@ -7,7 +7,7 @@ import { fetchAssignments } from '@/features/assignments/store/assignment-slice'
 import { fetchGrades } from '@/features/grades/store/grade-slice'
 import { fetchSchedule } from '@/features/schedule/store/schedule-slice'
 import { fetchMyPaymentHistory } from '@/features/payment/store/payment-slice'
-import { fetchMyEnrolledClasses } from '@/features/classes/store/classes-thunks'
+import { fetchMyEnroledClasses } from '@/features/classes/store/classes-thunks'
 import { fetchAuthCourses } from '@/features/auth-course/store/auth-course-slice'
 import { fetchNotifications } from '@/features/notifications/store/notifications-slice'
 import {
@@ -60,7 +60,7 @@ export function DashboardStats() {
   const { studentGradeItems = [], status: gradesStatus } = useAppSelector(state => state.grades) || { studentGradeItems: [], status: 'idle' }
   const { events = [], status: scheduleStatus } = useAppSelector(state => state.schedule) || { events: [], status: 'idle' }
   const { myPayments = [], status: paymentsStatus } = useAppSelector(state => state.paymentHistory) || { myPayments: [], status: 'idle' }
-  const { myClasses: enrolledClasses = [], status: classesStatus } = useAppSelector(state => state.classes) || { myClasses: [], status: 'idle' }
+  const { myClasses: enroledClasses = [], status: classesStatus } = useAppSelector(state => state.classes) || { myClasses: [], status: 'idle' }
   const { courses = [], status: coursesStatus } = useAppSelector(state => state.auth_courses) || { courses: [], status: 'idle' }
   const { unreadCount = 0, status: notificationsStatus } = useAppSelector(state => state.notifications) || { unreadCount: 0, status: 'idle' }
 
@@ -79,7 +79,7 @@ export function DashboardStats() {
     if (gradesStatus === 'idle') dispatch(fetchGrades())
     if (scheduleStatus === 'idle') dispatch(fetchSchedule({ role: 'student', userId, startDate, endDate }))
     if (paymentsStatus === 'idle') dispatch(fetchMyPaymentHistory({ userId }))
-    if (classesStatus === 'idle') dispatch(fetchMyEnrolledClasses(userId))
+    if (classesStatus === 'idle') dispatch(fetchMyEnroledClasses(userId))
     if (coursesStatus === 'idle') dispatch(fetchAuthCourses())
     if (notificationsStatus === 'idle') dispatch(fetchNotifications({ page: 1, limit: 10 }))
   }, [
@@ -114,16 +114,16 @@ export function DashboardStats() {
 
   // For courses, check the correct enrolment status values
   const completedCourses = safeFilter(courses, c => {
-    if (c?.enrollmentStatus !== 'enrolled') return false;
+    if (c?.enrolmentStatus !== 'enroled') return false;
     return c.progress === 100;
   }).length;
 
   const inProgressCourses = safeFilter(courses, c => {
-    if (c?.enrollmentStatus !== 'enrolled') return false;
+    if (c?.enrolmentStatus !== 'enroled') return false;
     return (c.progress ?? 0) < 100;
   }).length;
 
-  const totalClasses = safeLength(enrolledClasses);
+  const totalClasses = safeLength(enroledClasses);
   const totalPayments = safeLength(myPayments);
 
   // Calculate average grade percentage

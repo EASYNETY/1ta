@@ -110,7 +110,7 @@ export default function CorporateManagementDashboardPage() {
                             <Building className="h-7 w-7 text-primary" />
                             {corporateManager.corporateAccountName || `${corporateManager.name}'s Organization`}
                         </h1>
-                        <p className="text-muted-foreground">Manage your corporate students and enrollments.</p>
+                        <p className="text-muted-foreground">Manage your corporate students and enrolments.</p>
                     </div>
                     <DyraneButton
                         size="sm"

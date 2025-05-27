@@ -228,7 +228,7 @@ export function ProfileFormFields({
                                         ))
                                     ) : (
                                         <SelectItem value="no-courses" disabled>
-                                            No courses available/enrolled
+                                            No courses available/enroled
                                         </SelectItem>
                                     )}
                                 </SelectContent>
@@ -237,7 +237,7 @@ export function ProfileFormFields({
                                 <FormDescription>Your course is pre-assigned by your organization.</FormDescription>
                             )}
                             {isOnboarding && !isCorporateStudent && !isCorporateManager && (
-                                <FormDescription>Select the main course you are enrolling in.</FormDescription>
+                                <FormDescription>Select the main course you are enroling in.</FormDescription>
                             )}
                             <FormMessage />
                         </FormItem>

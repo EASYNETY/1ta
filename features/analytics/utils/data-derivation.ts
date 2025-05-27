@@ -55,14 +55,14 @@ export function deriveDashboardStats(state: RootState): DashboardStats {
     grade?: number;
   }
 
-  // Create mock enrollments array
-  const courseEnrollments: Enrolment[] = [];
+  // Create mock enrolments array
+  const courseEnrolments: Enrolment[] = [];
 
   // Calculate average completion rate
   let totalCompletionRate = 0;
   let completionCount = 0;
 
-  courseEnrollments.forEach((enrolment: Enrolment) => {
+  courseEnrolments.forEach((enrolment: Enrolment) => {
     if (enrolment.progress && enrolment.progress > 0) {
       totalCompletionRate += enrolment.progress;
       completionCount++;
@@ -140,7 +140,7 @@ export function deriveDashboardStats(state: RootState): DashboardStats {
       averageCompletion,
       mostPopular: courses.length > 0 ? courses[0].title || "Unknown" : "Unknown",
       categoryDistribution,
-      enrollmentTrends: []
+      enrolmentTrends: []
     },
     paymentStats: {
       totalRevenue,
@@ -277,13 +277,13 @@ export function deriveStudentBiodataStats(state: RootState): StudentBiodataStats
     ageDistribution,
     corporateVsIndividual,
     locationDistribution,
-    enrollmentTrends: [
-      { month: "Jan", enrollments: 0 },
-      { month: "Feb", enrollments: 0 },
-      { month: "Mar", enrollments: 0 },
-      { month: "Apr", enrollments: 0 },
-      { month: "May", enrollments: 0 },
-      { month: "Jun", enrollments: 0 }
+    enrolmentTrends: [
+      { month: "Jan", enrolments: 0 },
+      { month: "Feb", enrolments: 0 },
+      { month: "Mar", enrolments: 0 },
+      { month: "Apr", enrolments: 0 },
+      { month: "May", enrolments: 0 },
+      { month: "Jun", enrolments: 0 }
     ],
     completionRates: []
   };
@@ -310,8 +310,8 @@ export function deriveStudentReports(
     grade?: number;
   }
 
-  // Create mock enrollments array
-  const enrollments: Enrolment[] = [];
+  // Create mock enrolments array
+  const enrolments: Enrolment[] = [];
 
   // Define payment type
   interface Payment {
@@ -361,7 +361,7 @@ export function deriveStudentReports(
 
   if (filter.courseId) {
     filteredStudents = filteredStudents.filter(student =>
-      enrollments.some((enrolment: Enrolment) =>
+      enrolments.some((enrolment: Enrolment) =>
         enrolment.studentId === student.id &&
         enrolment.courseId === filter.courseId
       )
@@ -376,14 +376,14 @@ export function deriveStudentReports(
 
   // Map students to reports
   const reports: StudentReport[] = filteredStudents.map(student => {
-    // Get student enrollments
-    const studentEnrollments = enrollments.filter(
+    // Get student enrolments
+    const studentEnrolments = enrolments.filter(
       (enrolment: Enrolment) => enrolment.studentId === student.id
     );
 
-    // Calculate courses enrolled and completed
-    const coursesEnrolled = studentEnrollments.length;
-    const coursesCompleted = studentEnrollments.filter(
+    // Calculate courses enroled and completed
+    const coursesEnroled = studentEnrolments.length;
+    const coursesCompleted = studentEnrolments.filter(
       (enrolment: Enrolment) => enrolment.progress === 100
     ).length;
 
@@ -391,7 +391,7 @@ export function deriveStudentReports(
     let totalGrade = 0;
     let gradeCount = 0;
 
-    studentEnrollments.forEach((enrolment: Enrolment) => {
+    studentEnrolments.forEach((enrolment: Enrolment) => {
       if (enrolment.grade && enrolment.grade > 0) {
         totalGrade += enrolment.grade;
         gradeCount++;
@@ -432,8 +432,8 @@ export function deriveStudentReports(
       id: student.id || "",
       name: student.name || "",
       email: student.email || "",
-      enrollmentDate: student.createdAt || new Date().toISOString(),
-      coursesEnrolled,
+      enrolmentDate: student.createdAt || new Date().toISOString(),
+      coursesEnroled,
       coursesCompleted,
       averageGrade,
       attendanceRate,

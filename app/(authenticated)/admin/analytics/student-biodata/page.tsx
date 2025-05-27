@@ -464,8 +464,8 @@ export default function StudentBiodataDashboard() {
                 ) : (
                   <ChartContainer
                     config={{
-                      enrollments: {
-                        label: "New Enrollments",
+                      enrolments: {
+                        label: "New Enrolments",
                         theme: {
                           light: "#28A745",
                           dark: "#28A745",
@@ -474,13 +474,13 @@ export default function StudentBiodataDashboard() {
                     }}
                   >
                     <LineChart
-                      data={stats.enrollmentTrends || [
-                        { month: "Jan", enrollments: 45 },
-                        { month: "Feb", enrollments: 52 },
-                        { month: "Mar", enrollments: 48 },
-                        { month: "Apr", enrollments: 60 },
-                        { month: "May", enrollments: 75 },
-                        { month: "Jun", enrollments: 82 }
+                      data={stats.enrolmentTrends || [
+                        { month: "Jan", enrolments: 45 },
+                        { month: "Feb", enrolments: 52 },
+                        { month: "Mar", enrolments: 48 },
+                        { month: "Apr", enrolments: 60 },
+                        { month: "May", enrolments: 75 },
+                        { month: "Jun", enrolments: 82 }
                       ]}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
@@ -497,8 +497,8 @@ export default function StudentBiodataDashboard() {
                       />
                       <Line
                         type="monotone"
-                        dataKey="enrollments"
-                        stroke="var(--color-enrollments)"
+                        dataKey="enrolments"
+                        stroke="var(--color-enrolments)"
                         strokeWidth={2}
                         dot={{ r: 4 }}
                         activeDot={{ r: 6 }}
@@ -561,11 +561,11 @@ export default function StudentBiodataDashboard() {
                   >
                     <BarChart
                       data={[
-                        { category: "Programming", enrollments: 120 },
-                        { category: "Design", enrollments: 80 },
-                        { category: "Business", enrollments: 60 },
-                        { category: "Data Science", enrollments: 40 },
-                        { category: "Other", enrollments: 20 }
+                        { category: "Programming", enrolments: 120 },
+                        { category: "Design", enrolments: 80 },
+                        { category: "Business", enrolments: 60 },
+                        { category: "Data Science", enrolments: 40 },
+                        { category: "Other", enrolments: 20 }
                       ]}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
@@ -581,8 +581,8 @@ export default function StudentBiodataDashboard() {
                         )}
                       />
                       <Bar
-                        dataKey="enrollments"
-                        name="Enrollments"
+                        dataKey="enrolments"
+                        name="Enrolments"
                         fill="var(--color-programming)"
                         radius={[4, 4, 0, 0]}
                       />

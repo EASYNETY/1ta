@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides detailed specifications for integrating the frontend classes and courses features with the backend API. Courses represent the educational content, while classes are specific instances of courses with assigned teachers, enrolled students, and schedules.
+This document provides detailed specifications for integrating the frontend classes and courses features with the backend API. Courses represent the educational content, while classes are specific instances of courses with assigned teachers, enroled students, and schedules.
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ export interface PublicCourse {
     avatar?: string;
   };
   modules: PublicModule[];
-  enrollmentCount?: number;
+  enrolmentCount?: number;
   rating?: number;
   tags?: string[];
 }
@@ -55,10 +55,10 @@ export interface PublicLesson {
   type: "video" | "quiz" | "assignment" | "reading";
 }
 
-// Authenticated course with additional details for enrolled users
+// Authenticated course with additional details for enroled users
 export interface AuthCourse extends PublicCourse {
   modules: AuthModule[];
-  enrollmentStatus: "enrolled" | "completed" | "in-progress";
+  enrolmentStatus: "enroled" | "completed" | "in-progress";
   progress: number;
   completedLessons: string[];
   quizScores: Record<string, number>;
@@ -172,7 +172,7 @@ GET /courses
           "avatar": "..."
         },
         "modules": [...],
-        "enrollmentCount": 245,
+        "enrolmentCount": 245,
         "rating": 4.8,
         "tags": ["project management", "certification"]
       }
@@ -208,7 +208,7 @@ GET /courses/:id
       "avatar": "..."
     },
     "modules": [...],
-    "enrollmentCount": 245,
+    "enrolmentCount": 245,
     "rating": 4.8,
     "tags": ["project management", "certification"]
   }
@@ -399,7 +399,7 @@ GET /teachers/:teacherId/taught-classes
         "avatar": "..."
       },
       "modules": [...],
-      "enrollmentStatus": "in-progress",
+      "enrolmentStatus": "in-progress",
       "progress": 0.75,
       "completedLessons": [...],
       "quizScores": {...},
@@ -491,10 +491,10 @@ When a class is created:
 
 ### Classes to Attendance Relationship
 
-1. Each class has enrolled students
+1. Each class has enroled students
 2. Attendance records are created for each scheduled event of the class
 3. Teachers can view and manage attendance for their classes
-4. Students can view their own attendance across all enrolled classes
+4. Students can view their own attendance across all enroled classes
 
 ## Migration Checklist
 

@@ -111,7 +111,7 @@ export default function PrivacyPolicyPage() {
                 <h3 className="text-lg font-medium mb-3">Providing and Improving Our Services</h3>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mb-6">
                   <li>To provide and maintain our platform</li>
-                  <li>To process enrollments and payments</li>
+                  <li>To process enrolments and payments</li>
                   <li>To deliver course content and track progress</li>
                   <li>To issue certificates upon course completion</li>
                   <li>To improve our platform and user experience</li>

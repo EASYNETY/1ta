@@ -7,8 +7,8 @@ import {
 import type { RootState } from "@/store";
 import type {
 	CheckoutState,
-	EnrollCoursesPayload,
-	EnrollCoursesResponse,
+	EnrolCoursesPayload,
+	EnrolCoursesResponse,
 } from "../types/checkout-types";
 import type { User } from "@/types/user.types"; // Import user type
 import { isStudent } from "@/types/user.types"; // Import type guard
@@ -21,19 +21,19 @@ import type { CartItem } from "@/features/cart/store/cart-slice";
 // import { selectPublicCourseById } from '@/features/public-course/store/public-course-slice';
 
 // --- Async Thunk for Enrolment ---
-export const enrollCoursesAfterPayment = createAsyncThunk<
-	EnrollCoursesResponse, // Return type
-	EnrollCoursesPayload, // Argument type
+export const enrolCoursesAfterPayment = createAsyncThunk<
+	EnrolCoursesResponse, // Return type
+	EnrolCoursesPayload, // Argument type
 	{ state: RootState; rejectValue: string }
->("checkout/enrollCourses", async (payload, { getState, rejectWithValue }) => {
+>("checkout/enrolCourses", async (payload, { getState, rejectWithValue }) => {
 	const { auth } = getState();
 	if (!auth.token) return rejectWithValue("Not authenticated");
 
 	try {
-		console.log("Thunk: Enrolling courses after payment...");
-		// Replace '/enrollments/purchase' with your actual backend endpoint
-		const response = await post<EnrollCoursesResponse>(
-			"/enrollments/purchase",
+		console.log("Thunk: Enroling courses after payment...");
+		// Replace '/enrolments/purchase' with your actual backend endpoint
+		const response = await post<EnrolCoursesResponse>(
+			"/enrolments/purchase",
 			payload,
 			{
 				headers: { Authorization: `Bearer ${auth.token}` },
@@ -195,11 +195,11 @@ const checkoutSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(enrollCoursesAfterPayment.pending, (state) => {
-				state.status = "processing_enrollment";
+			.addCase(enrolCoursesAfterPayment.pending, (state) => {
+				state.status = "processing_enrolment";
 				state.error = null;
 			})
-			.addCase(enrollCoursesAfterPayment.fulfilled, (state, action) => {
+			.addCase(enrolCoursesAfterPayment.fulfilled, (state, action) => {
 				state.status = "succeeded";
 				state.error = null;
 				// Optionally clear items here or rely on clearCart dispatch from component
@@ -207,7 +207,7 @@ const checkoutSlice = createSlice({
 				// state.totalAmount = 0;
 				console.log("Enrolment successful:", action.payload);
 			})
-			.addCase(enrollCoursesAfterPayment.rejected, (state, action) => {
+			.addCase(enrolCoursesAfterPayment.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Enrolment processing failed.";
 			});

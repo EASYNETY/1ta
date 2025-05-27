@@ -221,7 +221,7 @@ export default function StudentBiodataReportsPage() {
                         "Individual"
                       )}
                     </TableCell>
-                    <TableCell>{new Date(student.enrollmentDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(student.enrolmentDate).toLocaleDateString()}</TableCell>
                     <TableCell>{student.completionRate}%</TableCell>
                   </TableRow>
                 ))}

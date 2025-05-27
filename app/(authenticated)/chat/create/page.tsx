@@ -149,7 +149,7 @@ export default function CreateChatRoomPage() {
                 if (coursesFetchStatus === 'succeeded') {
                     items = allCoursesFromStore.map(course => ({
                         id: course.id, name: course.title,
-                        // participantIds: course.enrolledUserIds // If your Course type has this
+                        // participantIds: course.enroledUserIds // If your Course type has this
                     }));
                 }
                 break;

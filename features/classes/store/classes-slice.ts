@@ -12,7 +12,7 @@ import type {
 
 // VVVV Import thunks from the new file VVVV
 import {
-	fetchMyEnrolledClasses,
+	fetchMyEnroledClasses,
 	fetchMyTaughtClasses,
 	fetchAllClassesAdmin,
 	fetchCourseClassOptionsForScanner,
@@ -115,7 +115,7 @@ const classesSlice = createSlice({
 			state,
 			action: PayloadAction<{
 				waitlistId: string;
-				status: 'pending' | 'notified' | 'enrolled' | 'expired';
+				status: 'pending' | 'notified' | 'enroled' | 'expired';
 			}>
 		) => {
 			const entry = state.waitlist.find(entry => entry.id === action.payload.waitlistId);
@@ -130,22 +130,22 @@ const classesSlice = createSlice({
 		},
 	},
 	extraReducers: (builder) => {
-		// Fetch My Enrolled Classes
+		// Fetch My Enroled Classes
 		builder
-			.addCase(fetchMyEnrolledClasses.pending, (state) => {
+			.addCase(fetchMyEnroledClasses.pending, (state) => {
 				state.status = "loading"; // Use general 'status' for list loading
 				state.error = null;
 			})
 			.addCase(
-				fetchMyEnrolledClasses.fulfilled,
+				fetchMyEnroledClasses.fulfilled,
 				(state, action: PayloadAction<AuthCourse[]>) => {
 					state.status = "succeeded";
 					state.myClasses = action.payload || []; // Ensure it's never null/undefined
 				}
 			)
-			.addCase(fetchMyEnrolledClasses.rejected, (state, action) => {
+			.addCase(fetchMyEnroledClasses.rejected, (state, action) => {
 				state.status = "failed";
-				state.error = action.payload ?? "Failed to fetch enrolled classes";
+				state.error = action.payload ?? "Failed to fetch enroled classes";
 			});
 
 		// Fetch My Taught Classes

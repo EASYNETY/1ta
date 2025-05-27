@@ -126,7 +126,7 @@ export default function ProfilePage() {
                 return user.classId
             }
 
-            // Check if user is already enrolled in a course
+            // Check if user is already enroled in a course
             if (user.classId && courseOptions.some((c) => c.id === user.classId)) {
                 return user.classId
             }

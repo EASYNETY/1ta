@@ -21,9 +21,9 @@ export interface CorporateVsIndividual {
   individual: number;
 }
 
-export interface EnrollmentTrend {
+export interface EnrolmentTrend {
   month: string;
-  enrollments: number;
+  enrolments: number;
 }
 
 export interface CourseCompletionRate {
@@ -37,7 +37,7 @@ export interface StudentBiodataStats {
   ageDistribution: AgeDistribution;
   corporateVsIndividual: CorporateVsIndividual;
   locationDistribution: Record<string, number>; // City/State -> count
-  enrollmentTrends: EnrollmentTrend[];
+  enrolmentTrends: EnrolmentTrend[];
   completionRates: CourseCompletionRate[];
 }
 

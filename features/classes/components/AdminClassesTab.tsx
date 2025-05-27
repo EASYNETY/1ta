@@ -91,7 +91,7 @@ const AdminClassesTab: React.FC = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-50">All Classes</CardTitle>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your class sessions and enrollments</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your class sessions and enrolments</p>
                     </div>
                     <Link href="/classes/create">
                         <DyraneButton size="sm">
@@ -180,10 +180,10 @@ const AdminClassesTab: React.FC = () => {
                                         <TableCell className="text-center">
                                             <div className="flex flex-col">
                                                 <span className="text-gray-700 dark:text-gray-300 font-medium">
-                                                    {cls.enrolledStudentsCount || cls.studentCount || 0} / {cls.maxStudents || cls.max_students || 30}
+                                                    {cls.enroledStudentsCount || cls.studentCount || 0} / {cls.maxStudents || cls.max_students || 30}
                                                 </span>
                                                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {cls.availableSlots || cls.available_slots || (cls.maxStudents && cls.studentCount ? (cls.maxStudents - cls.studentCount) : 0) + (cls.maxSlots || cls.max_slots || 0) - (cls.enrolledStudentsCount || cls.studentCount || 0)} slots available
+                                                    {cls.availableSlots || cls.available_slots || (cls.maxStudents && cls.studentCount ? (cls.maxStudents - cls.studentCount) : 0) + (cls.maxSlots || cls.max_slots || 0) - (cls.enroledStudentsCount || cls.studentCount || 0)} slots available
                                                 </span>
                                             </div>
                                         </TableCell>

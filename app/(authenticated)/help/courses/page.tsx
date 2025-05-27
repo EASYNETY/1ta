@@ -61,7 +61,7 @@ export default function CoursesHelpPage() {
       <ArticleHeader
         title="Courses"
         icon={GraduationCap}
-        description="Everything you need to know about finding, enrolling in, and completing courses on our platform."
+        description="Everything you need to know about finding, enroling in, and completing courses on our platform."
         breadcrumbs={[
           { label: 'Help Center', href: '/help' },
           { label: 'Courses' },
@@ -69,7 +69,7 @@ export default function CoursesHelpPage() {
       />
 
       <HelpCallout type="tip" title="Quick Tip">
-        You can access your enrolled courses at any time by clicking on the "Courses" icon in the main navigation sidebar.
+        You can access your enroled courses at any time by clicking on the "Courses" icon in the main navigation sidebar.
       </HelpCallout>
 
       <Separator />
@@ -141,7 +141,7 @@ export default function CoursesHelpPage() {
             <h3 className="text-lg font-medium">Can I enrol in multiple courses at once?</h3>
             <p className="text-muted-foreground mt-1">
               Yes, you can enrol in multiple courses simultaneously. However, we recommend considering your available 
-              time and commitments before enrolling in too many courses at once.
+              time and commitments before enroling in too many courses at once.
             </p>
           </div>
           
@@ -149,7 +149,7 @@ export default function CoursesHelpPage() {
             <h3 className="text-lg font-medium">Are there prerequisites for courses?</h3>
             <p className="text-muted-foreground mt-1">
               Some courses may have prerequisites, which will be clearly listed on the course details page. 
-              Make sure to check these requirements before enrolling.
+              Make sure to check these requirements before enroling.
             </p>
           </div>
           

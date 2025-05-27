@@ -28,8 +28,8 @@ let mockAdminClasses: AdminClassView[] = mockAuthCourseData.map(
 			index % 3 === 0 ? "inactive" : index % 3 === 1 ? "upcoming" : "active", // Add upcoming status
 		description: `Description for ${course.title}`, // Add mock description
 		// Use consistent ISO date strings (date part only)
-		startDate: course.enrollmentDate
-			? formatISO(new Date(course.enrollmentDate), { representation: "date" })
+		startDate: course.enrolmentDate
+			? formatISO(new Date(course.enrolmentDate), { representation: "date" })
 			: undefined,
 		endDate: course.lastAccessed
 			? formatISO(new Date(course.lastAccessed), { representation: "date" })
@@ -75,10 +75,10 @@ const mockClassOptionsResponse: ClassOptionsResponse = {
 };
 // --- Existing Mock API Functions ---
 
-export const getMockEnrolledClasses = async (
+export const getMockEnroledClasses = async (
 	studentId: string
 ): Promise<AuthCourse[]> => {
-	console.log(`MOCK: Fetching enrolled classes for student ${studentId}`);
+	console.log(`MOCK: Fetching enroled classes for student ${studentId}`);
 	await new Promise((res) => setTimeout(res, 450));
 	// Simulate enrolment based on mockAdminClasses student list if available,
 	// or just return some courses for now.

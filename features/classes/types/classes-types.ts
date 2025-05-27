@@ -17,8 +17,8 @@ export interface AdminClassView {
 	maxSlots?: number; // camelCase version
 	available_slots?: number; // Available slots remaining
 	availableSlots?: number; // camelCase version
-	enrolled_students_count?: number; // Current number of enrolled students
-	enrolledStudentsCount?: number; // camelCase version
+	enroled_students_count?: number; // Current number of enroled students
+	enroledStudentsCount?: number; // camelCase version
 
 	// Status fields
 	status: "active" | "upcoming" | "inactive" | "archived" | "full" | "cancelled" | string; // Make status flexible
@@ -82,7 +82,7 @@ export interface WaitlistEntry {
 	notifyEmail: boolean;
 	notifySMS: boolean;
 	createdAt: string;
-	status: 'pending' | 'notified' | 'enrolled' | 'expired';
+	status: 'pending' | 'notified' | 'enroled' | 'expired';
 }
 
 export interface ClassesState {

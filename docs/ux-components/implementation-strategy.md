@@ -123,7 +123,7 @@ This document outlines the phased approach for implementing the UX enhancements 
    - Add progress tracking
 
 2. **Implement Specific Wizards**
-   - Create CourseEnrollmentWizard
+   - Create CourseEnrolmentWizard
    - Create ProfileSetupWizard
    - Create AssignmentSubmissionWizard
 

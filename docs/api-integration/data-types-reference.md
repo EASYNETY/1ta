@@ -169,7 +169,7 @@ export interface AuthCourse {
     id: string;
     name: string;
   };
-  enrollmentStatus: "enrolled" | "completed" | "in-progress";
+  enrolmentStatus: "enroled" | "completed" | "in-progress";
   progress: number; // 0-100
   lastAccessedAt?: string;
   modules: {
@@ -252,7 +252,7 @@ export interface Class {
     startTime: string;
     endTime: string;
   };
-  enrolledStudents: number;
+  enroledStudents: number;
   maxStudents: number;
   status: "active" | "upcoming" | "completed" | "cancelled";
 }

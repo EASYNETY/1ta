@@ -268,9 +268,9 @@ function getStatusColor(status: string) {
       return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
     case 'refunded':
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300'
-    case 'enrolled':
+    case 'enroled':
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-    case 'not_enrolled':
+    case 'not_enroled':
       return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
     // Class-specific statuses
     case 'open':
@@ -297,10 +297,10 @@ function getResultActions(result: SearchResult) {
   switch (result.type) {
     case 'class':
       // Primary action for class
-      const isEnrollable = result.status === 'open';
+      const isEnrolable = result.status === 'open';
       primaryAction = {
-        label: isEnrollable ? 'Enrol' : 'View Details',
-        icon: isEnrollable
+        label: isEnrolable ? 'Enrol' : 'View Details',
+        icon: isEnrolable
           ? <CheckCircle className="h-3.5 w-3.5 mr-1" />
           : <Eye className="h-3.5 w-3.5 mr-1" />,
         action: () => {

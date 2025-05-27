@@ -79,7 +79,7 @@ export default function CourseProgressHelpPage() {
       <h2 id="progress-dashboard" className="text-2xl font-bold mt-8">Progress Dashboard</h2>
       <Separator className="my-2" />
       <p>
-        The Progress Dashboard provides a comprehensive overview of your learning journey across all your enrolled classes and courses.
+        The Progress Dashboard provides a comprehensive overview of your learning journey across all your enroled classes and courses.
       </p>
 
       <StepByStepGuide title="Accessing Your Progress Dashboard" description="Follow these steps to view your progress:">
@@ -87,7 +87,7 @@ export default function CourseProgressHelpPage() {
           From the main sidebar, click on "Dashboard" to access your personal dashboard.
         </Step>
         <Step number={2} title="Find the Progress Section">
-          Scroll down to the "My Progress" section, which displays summary statistics for all your enrolled classes and courses.
+          Scroll down to the "My Progress" section, which displays summary statistics for all your enroled classes and courses.
         </Step>
         <Step number={3} title="View Class-Specific Progress">
           Click on a specific class card to see detailed progress for that particular class session, including attendance, assignments, and module completion.
@@ -107,7 +107,7 @@ export default function CourseProgressHelpPage() {
             <h4 className="font-medium">Completion Rates</h4>
           </div>
           <p className="text-sm text-muted-foreground">
-            See the percentage of course materials you've completed for each enrolled course.
+            See the percentage of course materials you've completed for each enroled course.
           </p>
         </div>
 

@@ -66,8 +66,8 @@ docs/
 │   ├── classes/
 │   │   ├── educational-features-integration.md
 │   │   ├── schedule-timetable-integration.md
-│   │   ├── Enrollment.md
-│   │   ├── SlotBasedEnrollment.md
+│   │   ├── Enrolment.md
+│   │   ├── SlotBasedEnrolment.md
 │   │   └── classes-courses-integration.md
 │   ├── help/
 │   ├── media-upload/

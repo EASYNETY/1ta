@@ -41,7 +41,7 @@ The educational features in SmartEdu are interconnected in the following ways:
 ### Key Relationships:
 
 1. **Courses** are the foundation of the educational content
-2. **Classes** are specific instances of courses with assigned teachers and enrolled students
+2. **Classes** are specific instances of courses with assigned teachers and enroled students
 3. **Schedule/Timetable** contains events related to classes (lectures, exams, etc.)
 4. **Attendance** records are created for scheduled events and track student participation
 
@@ -145,7 +145,7 @@ interface StudentAttendance {
 - `PUT /classes/:id` - Update a class
 - `DELETE /classes/:id` - Delete a class
 - `GET /teachers/:teacherId/taught-classes` - Get classes taught by a teacher
-- `GET /students/:studentId/enrolled-classes` - Get classes a student is enrolled in
+- `GET /students/:studentId/enroled-classes` - Get classes a student is enroled in
 
 ### Schedule
 

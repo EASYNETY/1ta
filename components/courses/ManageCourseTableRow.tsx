@@ -14,6 +14,7 @@ import { MoreVertical, Eye, Pencil, Trash, MoreHorizontal } from "lucide-react";
 import { AdminGuard, DeleteGuard } from "@/components/auth/PermissionGuard";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 import { UserRole } from "@/types/user.types";
+import { getCourseIcon } from "@/utils/course-icon-mapping";
 
 interface ManageCourseTableRowProps {
     course: AuthCourse;
@@ -44,8 +45,8 @@ const getCourseStatus = (course: AuthCourse): CourseStatusType => {
                     label: "Pending",
                     className: "bg-blue-100 text-blue-800 border-blue-300"
                 };
-            case "not_enrolled":
-                // For not_enrolled courses, check if they're available
+            case "not_enroled":
+                // For not_enroled courses, check if they're available
                 if (!isAvailable) {
                     return {
                         label: "Inactive",
@@ -56,8 +57,8 @@ const getCourseStatus = (course: AuthCourse): CourseStatusType => {
                     label: "Active",
                     className: "bg-green-100 text-green-800 border-green-300"
                 };
-            case "enrolled":
-                // Enrolled is an active state
+            case "enroled":
+                // Enroled is an active state
                 return {
                     label: "Active",
                     className: "bg-green-100 text-green-800 border-green-300"
@@ -101,7 +102,7 @@ export function ManageCourseTableRow({ course, onDelete, showDollarPricing, user
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-muted rounded  flex-shrink-0">
                         <img
-                            src={course.image || "/placeholder.svg"}
+                            src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
                             alt={course.title}
                             className="w-full h-full object-cover"
                         />

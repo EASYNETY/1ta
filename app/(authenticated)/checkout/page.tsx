@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { clearCart, selectCartItems } from "@/features/cart/store/cart-slice"
 import {
     prepareCheckout,
-    enrollCoursesAfterPayment,
+    enrolCoursesAfterPayment,
     resetCheckout,
     selectCheckoutItems,
     selectCheckoutTotalAmount,
@@ -32,7 +32,7 @@ import {
 } from "@/features/checkout/store/checkoutSlice"
 import type { User } from "@/types/user.types"
 import { isStudent } from "@/types/user.types" // Import type guard
-import type { EnrollCoursesPayload } from "@/features/checkout/types/checkout-types"
+import type { EnrolCoursesPayload } from "@/features/checkout/types/checkout-types"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { fetchCourses } from "@/features/public-course/store/public-course-slice"
@@ -54,7 +54,7 @@ export default function CheckoutPage() {
     const showPaymentModal = useAppSelector(selectCheckoutShowPaymentModal)
 
     const isLoading = checkoutStatus === "idle" || checkoutStatus === "preparing" || courseStatus === "loading"
-    const isEnrolling = checkoutStatus === "processing_enrollment"
+    const isEnroling = checkoutStatus === "processing_enrolment"
     const isPaymentProcessing = checkoutStatus === "processing_payment" // Maybe add this status later
 
     // Check if user is a corporate student (has corporateId but is not a manager)
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
         dispatch(setPaymentReference(paystackReference?.reference || null)) // Store reference
         dispatch(setShowPaymentModal(false)) // Close Paystack modal
 
-        const payload: EnrollCoursesPayload = {
+        const payload: EnrolCoursesPayload = {
             userId: user.id,
             courseIds: checkoutItems.map((item) => item.courseId),
             paymentReference: paystackReference, // Pass full reference object
@@ -158,12 +158,12 @@ export default function CheckoutPage() {
         }
 
         // Dispatch enrolment thunk
-        dispatch(enrollCoursesAfterPayment(payload))
+        dispatch(enrolCoursesAfterPayment(payload))
             .unwrap()
             .then((response) => {
                 const successMessage = isCorporateManager
-                    ? `Successfully enrolled ${corporateStudentCount} students in ${response.enrolledCourseIds.length} course(s).`
-                    : `You are now enrolled in ${response.enrolledCourseIds.length} course(s).`
+                    ? `Successfully enroled ${corporateStudentCount} students in ${response.enroledCourseIds.length} course(s).`
+                    : `You are now enroled in ${response.enroledCourseIds.length} course(s).`
 
                 toast({
                     variant: "success",
@@ -395,11 +395,11 @@ export default function CheckoutPage() {
                             <DyraneButton
                                 onClick={initiatePayment}
                                 className="w-full"
-                                disabled={isLoading || isEnrolling || checkoutStatus !== "ready"}
+                                disabled={isLoading || isEnroling || checkoutStatus !== "ready"}
                                 size="lg"
                             >
-                                {(isLoading || isEnrolling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isEnrolling ? "Processing Enrolment..." :
+                                {(isLoading || isEnroling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isEnroling ? "Processing Enrolment..." :
                                  totalAmount === 0 ? "Complete Free Enrolment" : "Proceed to Payment"}
                             </DyraneButton>
                             <p className="text-xs text-muted-foreground text-center">
@@ -417,7 +417,7 @@ export default function CheckoutPage() {
             {/* Payment Modal (Uses PaystackCheckout internally) */}
             <Dialog
                 open={showPaymentModal}
-                onOpenChange={(open) => !isLoading && !isEnrolling && dispatch(setShowPaymentModal(open))}
+                onOpenChange={(open) => !isLoading && !isEnroling && dispatch(setShowPaymentModal(open))}
             >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>

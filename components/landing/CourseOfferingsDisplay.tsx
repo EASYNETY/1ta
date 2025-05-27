@@ -586,7 +586,7 @@ function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
         )}
 
         {course.category === "current" && (
-          <span className="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full font-medium">Enrolling Now</span>
+          <span className="text-xs bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full font-medium">Enroling Now</span>
         )}
 
         {isIso && course.category !== "current" && ( // Show ISO only if not also current

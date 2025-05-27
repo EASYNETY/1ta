@@ -24,18 +24,18 @@ This document provides a comprehensive guide to the enhanced slot-based enrolmen
 
 The slot-based enrolment system includes several React components that work together to provide a seamless enrolment experience:
 
-### ClassEnrollmentButton
+### ClassEnrolmentButton
 
 This component handles the enrolment process for a class. It checks for available slots and enrolment start dates before allowing enrolment.
 
 ```tsx
-<ClassEnrollmentButton
+<ClassEnrolmentButton
   classId="class-123"
   courseId="course-456"
   courseTitle="Introduction to React"
   maxSlots={30}
   availableSlots={5}
-  enrollmentStartDate="2023-06-01T00:00:00Z"
+  enrolmentStartDate="2023-06-01T00:00:00Z"
   buttonText="Enrol Now"
 />
 ```
@@ -86,18 +86,18 @@ Key features:
 - Notifies waitlisted students in order
 - Provides a direct enrolment option from the notification
 
-### ClassEnrollmentStatus
+### ClassEnrolmentStatus
 
 This component displays the enrolment status of a class, including available slots, waitlist status, and enrolment options.
 
 ```tsx
-<ClassEnrollmentStatus
+<ClassEnrolmentStatus
   classId="class-123"
   courseId="course-456"
   courseTitle="Introduction to React"
   maxSlots={30}
   studentCount={28}
-  enrollmentStartDate="2023-06-01T00:00:00Z"
+  enrolmentStartDate="2023-06-01T00:00:00Z"
   startDate="2023-07-01T00:00:00Z"
   endDate="2023-08-30T00:00:00Z"
   schedule="Mon, Wed, Fri 10:00 AM - 12:00 PM"
@@ -132,7 +132,7 @@ export interface WaitlistEntry {
   notifyEmail: boolean;
   notifySMS: boolean;
   createdAt: string;
-  status: 'pending' | 'notified' | 'enrolled' | 'expired';
+  status: 'pending' | 'notified' | 'enroled' | 'expired';
 }
 
 // Classes state with waitlist
@@ -194,7 +194,7 @@ When slots become available, the system notifies students on the waitlist:
 3. System updates waitlist entry status to "notified"
 4. System displays notification to student
 5. Student can enrol directly from the notification
-6. If student enrolls, system updates waitlist entry status to "enrolled"
+6. If student enrols, system updates waitlist entry status to "enroled"
 7. If student doesn't enrol within 24 hours, system may offer the slot to the next student
 
 ## Integration with Cart
@@ -203,7 +203,7 @@ The slot-based enrolment system integrates with the cart system to handle enrolm
 
 1. When a student clicks "Enrol Now", the class is added to the cart
 2. The cart item includes both courseId and classId
-3. When the student completes checkout, they are enrolled in the specific class
+3. When the student completes checkout, they are enroled in the specific class
 4. The system updates available slots and waitlist status accordingly
 
 ## Usage Examples
@@ -211,19 +211,19 @@ The slot-based enrolment system integrates with the cart system to handle enrolm
 ### Basic Enrolment Button
 
 ```tsx
-import { ClassEnrollmentButton } from '@/components/classes/ClassEnrollmentButton';
+import { ClassEnrolmentButton } from '@/components/classes/ClassEnrolmentButton';
 
 export default function ClassDetailsPage({ classData }) {
   return (
     <div>
       <h1>{classData.courseTitle}</h1>
-      <ClassEnrollmentButton
+      <ClassEnrolmentButton
         classId={classData.id}
         courseId={classData.courseId}
         courseTitle={classData.courseTitle}
         maxSlots={classData.maxSlots}
         availableSlots={classData.availableSlots}
-        enrollmentStartDate={classData.enrollmentStartDate}
+        enrolmentStartDate={classData.enrolmentStartDate}
       />
     </div>
   );
@@ -233,7 +233,7 @@ export default function ClassDetailsPage({ classData }) {
 ### Complete Enrolment Status Display
 
 ```tsx
-import { ClassEnrollmentStatus } from '@/components/classes/ClassEnrollmentStatus';
+import { ClassEnrolmentStatus } from '@/components/classes/ClassEnrolmentStatus';
 
 export default function ClassDetailsPage({ classData }) {
   return (
@@ -244,7 +244,7 @@ export default function ClassDetailsPage({ classData }) {
         {/* Other class details */}
       </div>
       <div className="md:col-span-1">
-        <ClassEnrollmentStatus
+        <ClassEnrolmentStatus
           classId={classData.id}
           courseId={classData.courseId}
           courseTitle={classData.courseTitle}
@@ -254,7 +254,7 @@ export default function ClassDetailsPage({ classData }) {
           instructorName={classData.teacherName}
           maxSlots={classData.maxSlots}
           studentCount={classData.studentCount}
-          enrollmentStartDate={classData.enrollmentStartDate}
+          enrolmentStartDate={classData.enrolmentStartDate}
           startDate={classData.startDate}
           endDate={classData.endDate}
           schedule={classData.schedule}
@@ -269,6 +269,6 @@ export default function ClassDetailsPage({ classData }) {
 
 ## Conclusion
 
-The slot-based enrolment system with waitlist functionality provides a comprehensive solution for managing class enrollments. By implementing this system, educational institutions can efficiently manage class capacity, provide a fair enrolment process, and improve the student experience.
+The slot-based enrolment system with waitlist functionality provides a comprehensive solution for managing class enrolments. By implementing this system, educational institutions can efficiently manage class capacity, provide a fair enrolment process, and improve the student experience.
 
 The system is designed to be flexible and can be integrated into various parts of the application, from class details pages to search results and course listings.

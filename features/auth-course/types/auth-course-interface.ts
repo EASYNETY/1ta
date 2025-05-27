@@ -37,7 +37,7 @@ export interface AuthCourse {
 	supportType?: "Instructor" | "Community" | "Both" | "None";
 
 	// Auth-specific fields
-	enrollmentDate?: string;
+	enrolmentDate?: string;
 	expiryDate?: string;
 	progress?: number; // 0-100
 	lastAccessedDate?: string;
@@ -144,7 +144,7 @@ export interface AuthCourse {
 	supportType?: "Instructor" | "Community" | "Both" | "None";
 
 	// Auth-specific fields (Add missing ones here)
-	enrolmentStatus: "enrolled" | "not_enrolled" | "pending"; // <-- ADDED
+	enrolmentStatus: "enroled" | "not_enroled" | "pending"; // <-- ADDED
 	enrolmentDate?: string;
 	expiryDate?: string;
 	progress?: number; // 0-100

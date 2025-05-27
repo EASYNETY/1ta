@@ -221,10 +221,10 @@ export default function AuthenticatedLayout({ children }) {
 2. Use SmartTooltips for key interactive elements:
 
 ```jsx
-// components/courses/EnrollButton.tsx
+// components/courses/EnrolButton.tsx
 import { SmartTooltip } from '@/components/help/SmartTooltip';
 
-export function EnrollButton({ courseId }) {
+export function EnrolButton({ courseId }) {
   return (
     <SmartTooltip featureId="course-enrolment">
       <DyraneButton>Enrol Now</DyraneButton>
