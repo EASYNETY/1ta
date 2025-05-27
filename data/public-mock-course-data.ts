@@ -588,7 +588,7 @@ export const publicMockCourseData: PublicCourse[] = [
 		certificate: true,
 		accessType: "Lifetime",
 		supportType: "Community",
-		available_for_enrollment: true
+		available_for_enrolment: true
 	},
 	{
 		id: "3",
@@ -646,7 +646,7 @@ export const publicMockCourseData: PublicCourse[] = [
 		certificate: true,
 		accessType: "Lifetime",
 		supportType: "Community",
-		available_for_enrollment: true
+		available_for_enrolment: true
 	},
 	{
 		id: "4",
@@ -704,7 +704,7 @@ export const publicMockCourseData: PublicCourse[] = [
 		certificate: true,
 		accessType: "Lifetime",
 		supportType: "Community",
-		available_for_enrollment: true
+		available_for_enrolment: true
 	}
 ].filter(Boolean) as PublicCourse[]; // Filter out any potential nulls from failed transformations
 

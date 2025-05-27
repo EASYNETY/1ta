@@ -9,6 +9,9 @@ import { Users, ArrowRight, CheckCircle, X, Loader2, BookOpen } from "lucide-rea
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion" // Import framer-motion
 import { getCourseIcon } from "@/utils/course-icon-mapping"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
+import { selectAllCourses, fetchCourses } from "@/features/public-course/store/public-course-slice"
+import { PublicCourse } from "@/features/public-course/types/public-course-interface"
 
 // Types
 export interface CourseListing {
@@ -21,6 +24,7 @@ export interface CourseListing {
   imageUrl?: string
   iconUrl?: string
   tags?: string[]
+  available_for_enrolment?: boolean
   gradientColors?: {
     from: string
     to: string
@@ -93,9 +97,62 @@ export function CourseCards() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Redux hooks
+  const dispatch = useAppDispatch()
+  const publicCourses = useAppSelector(selectAllCourses)
+
+  // Helper function to normalize strings for comparison
+  const normalizeString = (str: string): string => {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '')
+  }
+
+  // Helper function to check if a course exists in public courses
+  const isInPublicCourses = (course: CourseListing): boolean => {
+    return publicCourses.some((publicCourse: PublicCourse) => {
+      // Match by ID (exact)
+      if (course.id === publicCourse.id) return true
+
+      // Match by normalized name/title
+      const normalizedCourseName = normalizeString(course.name)
+      const normalizedPublicTitle = normalizeString(publicCourse.title)
+      if (normalizedCourseName === normalizedPublicTitle) return true
+
+      // Match by normalized slug vs name
+      const normalizedPublicSlug = normalizeString(publicCourse.slug)
+      if (normalizedCourseName === normalizedPublicSlug) return true
+
+      return false
+    })
+  }
+
+  // Helper function to convert PublicCourse to CourseListing format
+  const convertPublicCourseToListing = (publicCourse: PublicCourse): CourseListing => {
+    return {
+      id: publicCourse.id,
+      name: publicCourse.title,
+      description: publicCourse.description,
+      category: "current" as const,
+      isIsoCertification: false,
+      waitlistCount: 0,
+      imageUrl: publicCourse.image,
+      iconUrl: publicCourse.iconUrl || getCourseIcon(publicCourse.title, publicCourse.id),
+      tags: publicCourse.tags,
+      available_for_enrolment: publicCourse.available_for_enrolment !== false, // Default to true unless explicitly false
+      gradientColors: {
+        from: 'from-primary/20',
+        to: 'to-primary/10'
+      }
+    }
+  }
+
+  // Fetch public courses from Redux store
+  useEffect(() => {
+    dispatch(fetchCourses())
+  }, [dispatch])
+
   // Fetch course data from API
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchCoursesFromAPI = async () => {
       try {
         setIsLoading(true)
         const response = await fetch(API_ENDPOINT)
@@ -124,7 +181,7 @@ export function CourseCards() {
       }
     }
 
-    fetchCourses()
+    fetchCoursesFromAPI()
   }, [])
 
   // Lock body scroll when modal is open
@@ -178,9 +235,43 @@ export function CourseCards() {
     }
   }
 
-  const currentCourses = courses.filter((course) => course.category === "current")
-  // Combine all future courses including ISO certifications
-  const futureCourses = courses.filter((course) => course.category === "future" || course.isIsoCertification)
+  // Convert ALL public courses from Redux store to CourseListing format (these are current courses)
+  const publicCoursesAsListings = publicCourses.map(convertPublicCourseToListing)
+
+  // Get current courses from API data
+  const apiCurrentCourses = courses.filter((course) => course.category === "current")
+
+  // Combine public courses (from Redux) with API current courses (avoid duplicates)
+  // Public courses take priority as they are the "real" current courses
+  const allCurrentCourses = [
+    ...publicCoursesAsListings, // All courses from Redux store (current courses)
+    ...apiCurrentCourses.filter((apiCourse: CourseListing) =>
+      !publicCoursesAsListings.some((publicCourse: CourseListing) =>
+        apiCourse.id === publicCourse.id ||
+        normalizeString(apiCourse.name) === normalizeString(publicCourse.name)
+      )
+    )
+  ]
+
+  // Filter future courses to exclude any that exist in public courses (Redux store)
+  const apiFutureCourses = courses.filter((course) => course.category === "future" || course.isIsoCertification)
+  const filteredFutureCourses = apiFutureCourses.filter(course => !isInPublicCourses(course))
+
+  // Final course lists
+  const currentCourses = allCurrentCourses
+  const futureCourses = filteredFutureCourses
+
+  // Debug logging to help troubleshoot
+  console.log('CourseOfferingsDisplay Debug:', {
+    publicCoursesCount: publicCourses.length,
+    publicCoursesAsListingsCount: publicCoursesAsListings.length,
+    apiCurrentCoursesCount: apiCurrentCourses.length,
+    allCurrentCoursesCount: allCurrentCourses.length,
+    apiFutureCoursesCount: apiFutureCourses.length,
+    filteredFutureCoursesCount: filteredFutureCourses.length,
+    publicCoursesTitles: publicCourses.map(c => c.title),
+    currentCoursesTitles: currentCourses.map(c => c.name)
+  })
 
   const renderCourseSection = (title: string, courseList: CourseListing[]) => {
     if (courseList.length === 0) return null
@@ -339,7 +430,7 @@ export function CourseCards() {
                     <div className="mt-auto border-t border-border pt-5">
                       <AnimatePresence mode="wait">
                         {selectedCourse.category === "current" ? (
-                          selectedCourse.available_for_enrollment !== false ? (
+                          selectedCourse.available_for_enrolment !== false ? (
                             <motion.div key="enrol-button" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                               <Button className="w-full text-base py-3" size="lg" asChild onClick={handleCloseDetails}>
                                 <Link href='/#courses' className="flex items-center justify-center">

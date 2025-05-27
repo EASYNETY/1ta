@@ -536,7 +536,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
 
                     {/* Action button */}
                     {safeTechCourse.category === "current" ? (
-                      mergedCourse.available_for_enrollment !== false ? (
+                      mergedCourse.available_for_enrolment !== false ? (
                         <DyraneButton
                           onClick={handleEnrollNow}
                           className="gap-1.5"

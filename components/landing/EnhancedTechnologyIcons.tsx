@@ -21,6 +21,7 @@ export interface CourseListing {
   imageUrl?: string
   iconUrl?: string
   tags?: string[]
+  available_for_enrolment?: boolean
   gradientColors?: {
     from: string
     to: string

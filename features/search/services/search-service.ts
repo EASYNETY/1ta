@@ -75,7 +75,7 @@ export const searchService = {
           description: course.description.substring(0, 100) + '...',
           type: 'course',
           href: `/courses/${course.slug}`,
-          status: course.available_for_enrollment ? 'open' : 'closed', // Updated to use available_for_enrollment
+          status: course.available_for_enrolment ? 'open' : 'closed', // Updated to use available_for_enrolment
           image: course.image,
           category: course.category,
           date: course.lastAccessedDate || course.enrollmentDate,
@@ -90,7 +90,7 @@ export const searchService = {
             ...(course.moduleCount && { moduleCount: course.moduleCount }),
             courseId: course.id,
             slug: course.slug,
-            available_for_enrollment: course.available_for_enrollment // Add enrolment availability
+            available_for_enrolment: course.available_for_enrolment // Add enrolment availability
           }
         });
       }

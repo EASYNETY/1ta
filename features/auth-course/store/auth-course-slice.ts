@@ -280,8 +280,8 @@ export const createAuthCourse = createAsyncThunk<
 		// Process the form data to match API expectations
 		const processedData = {
 			...courseData,
-			// Map available_for_enrollment to isAvailableForEnrollment for API compatibility
-			isAvailableForEnrollment: courseData.available_for_enrolment,
+			// Map available_for_enrolment to isAvailableForEnrolment for API compatibility
+			isAvailableForEnrolment: courseData.available_for_enrolment,
 			tags: Array.isArray(courseData.tags)
 				? courseData.tags
 				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
@@ -348,8 +348,8 @@ export const updateAuthCourse = createAsyncThunk<
 		// Process the form data to match API expectations
 		const processedData = {
 			...courseData,
-			// Map available_for_enrollment to isAvailableForEnrollment for API compatibility
-			isAvailableForEnrollment: courseData.available_for_enrolment,
+			// Map available_for_enrolment to isAvailableForEnrolment for API compatibility
+			isAvailableForEnrolment: courseData.available_for_enrolment,
 			tags: Array.isArray(courseData.tags)
 				? courseData.tags
 				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],

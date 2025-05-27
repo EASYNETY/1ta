@@ -8,6 +8,8 @@ import { TechnologyCourseModal } from "@/components/modals/TechnologyCourseModal
 import { TechnologyMarquee } from "./TechnologyMarquee"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { getCourseIcon } from "@/utils/course-icon-mapping"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
+import { selectAllCourses, fetchCourses } from "@/features/public-course/store/public-course-slice"
 
 // Types
 export interface CourseListing {
@@ -20,6 +22,7 @@ export interface CourseListing {
   imageUrl?: string
   iconUrl?: string
   tags?: string[]
+  available_for_enrolment?: boolean
   gradientColors?: {
     from: string
     to: string
@@ -897,8 +900,37 @@ export function AppleTechnologyDisplay() {
   const [selectedPublicCourse, setSelectedPublicCourse] = useState<PublicCourse | null>(null)
   const [activeTab, setActiveTab] = useState<'current' | 'future'>('current')
 
+  // Redux hooks
+  const dispatch = useAppDispatch()
+  const reduxPublicCourses = useAppSelector(selectAllCourses)
+
   // Check if screen is small (mobile)
   const isSmallScreen = useMediaQuery("(max-width: 640px)")
+
+  // Helper function to convert PublicCourse to CourseListing format
+  const convertPublicCourseToListing = (publicCourse: PublicCourse): CourseListing => {
+    return {
+      id: publicCourse.id,
+      name: publicCourse.title,
+      description: publicCourse.description,
+      category: "current" as const, // All courses from Redux store are current courses
+      isIsoCertification: false,
+      waitlistCount: 0,
+      imageUrl: publicCourse.image,
+      iconUrl: getCourseIcon(publicCourse.title, publicCourse.id),
+      tags: publicCourse.tags,
+      available_for_enrolment: true, // Default to true for Redux courses
+      gradientColors: {
+        from: 'from-primary/20',
+        to: 'to-primary/10'
+      }
+    }
+  }
+
+  // Fetch public courses from Redux store
+  useEffect(() => {
+    dispatch(fetchCourses())
+  }, [dispatch])
 
   // Fetch course data from API
   useEffect(() => {
@@ -956,7 +988,7 @@ export function AppleTechnologyDisplay() {
         // Use data if available, otherwise keep fallback
         if (listingsData) {
           // Apply PNG icon mapping to listings
-          const listingsWithIcons = listingsData.map(course => ({
+          const listingsWithIcons = listingsData.map((course: CourseListing) => ({
             ...course,
             iconUrl: getCourseIcon(course.name, course.id)
           }))
@@ -965,9 +997,9 @@ export function AppleTechnologyDisplay() {
 
         if (coursesData) {
           // Apply PNG icon mapping to public courses
-          const coursesWithIcons = coursesData.map(course => ({
+          const coursesWithIcons = coursesData.map((course: PublicCourse) => ({
             ...course,
-            iconUrl: getCourseIcon(course.title || course.name, course.id)
+            iconUrl: getCourseIcon(course.title, course.id)
           }))
           setPublicCourses(coursesWithIcons)
         }
@@ -1004,8 +1036,41 @@ export function AppleTechnologyDisplay() {
     document.body.style.overflow = "auto"
   }
 
+  // Convert Redux public courses to CourseListing format
+  const reduxCoursesAsListings = reduxPublicCourses.map(convertPublicCourseToListing)
+
+  // Helper function to normalize strings for comparison
+  const normalizeString = (str: string): string => {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '')
+  }
+
+  // Get current courses from API listings
+  const apiCurrentCourses = listings.filter(course => course.category === "current" && !course.isIsoCertification)
+
+  // Combine Redux courses with API current courses (avoid duplicates)
+  // Redux courses take priority as they are the "real" current courses
+  const allCurrentCourses = [
+    ...reduxCoursesAsListings, // All courses from Redux store (current courses)
+    ...apiCurrentCourses.filter((apiCourse: CourseListing) =>
+      !reduxCoursesAsListings.some((reduxCourse: CourseListing) =>
+        apiCourse.id === reduxCourse.id ||
+        normalizeString(apiCourse.name) === normalizeString(reduxCourse.name)
+      )
+    )
+  ]
+
   // Group courses by category
-  const currentCourses = listings.filter(course => course.category === "current" && !course.isIsoCertification)
+  const currentCourses = allCurrentCourses
+
+  // Debug logging to help troubleshoot
+  console.log('AppleTechnologyDisplay Debug:', {
+    reduxPublicCoursesCount: reduxPublicCourses.length,
+    reduxCoursesAsListingsCount: reduxCoursesAsListings.length,
+    apiCurrentCoursesCount: apiCurrentCourses.length,
+    allCurrentCoursesCount: allCurrentCourses.length,
+    reduxCoursesTitles: reduxPublicCourses.map(c => c.title),
+    currentCoursesTitles: currentCourses.map(c => c.name)
+  })
 
   // Combine future courses and ISO certifications, with ISO certifications sorted in the specified order
   const futureCourses = [

@@ -131,7 +131,7 @@ const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseForm
         description: course.description ?? "",
         category: course.category ?? "", // Need a valid category string
         level: course.level ?? "All Levels",
-        available_for_enrolment: course.isAvailableForEnrolment ?? true, // Map isAvailableForEnrollment to available_for_enrollment
+        available_for_enrolment: course.isAvailableForEnrolment ?? true, // Map isAvailableForEnrolment to available_for_enrolment
         price: course.priceUSD ?? 0,
         priceNaira: course.priceNaira ?? 0,
         discountPrice: course.discountPriceUSD, // Can be undefined

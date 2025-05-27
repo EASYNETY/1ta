@@ -47,8 +47,8 @@ export interface AdminClassView {
 		category?: string;
 		is_iso_certification?: boolean;
 		isIsoCertification?: boolean;
-		available_for_enrollment?: boolean;
-		availableForEnrollment?: boolean;
+		available_for_enrolment?: boolean;
+		availableForEnrolment?: boolean;
 		image_url?: string;
 		imageUrl?: string;
 		icon_url?: string;

@@ -1238,7 +1238,7 @@ export const createAuthMockCourse = async (courseData: any): Promise<AuthCourse>
 		certificate: courseData.certificate !== undefined ? courseData.certificate : true,
 		accessType: courseData.accessType || "Lifetime",
 		supportType: courseData.supportType || "Both",
-		isAvailableForEnrollment: courseData.available_for_enrollment !== undefined ? courseData.available_for_enrollment : true,
+		isAvailableForEnrolment: courseData.available_for_enrolment !== undefined ? courseData.available_for_enrolment : true,
 		enrollmentStatus: "enrolled",
 		progress: 0,
 		completedLessons: [],
@@ -1331,7 +1331,7 @@ export const updateAuthMockCourse = async (courseId: string, courseData: any): P
 		certificate: courseData.certificate !== undefined ? courseData.certificate : existingCourse.certificate,
 		accessType: courseData.accessType || existingCourse.accessType,
 		supportType: courseData.supportType || existingCourse.supportType,
-		isAvailableForEnrollment: courseData.available_for_enrollment !== undefined ? courseData.available_for_enrollment : existingCourse.isAvailableForEnrollment,
+		isAvailableForEnrolment: courseData.available_for_enrolment !== undefined ? courseData.available_for_enrolment : existingCourse.isAvailableForEnrolment,
 		lastAccessed: new Date().toISOString(),
 	};
 
