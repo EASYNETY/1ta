@@ -53,7 +53,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                             {courses.length > 0 ? (
                                 courses.map((course, index) => (
                                     <ManageCourseTableRow
-                                        key={`${course.id}-${index}`}
+                                        key={`manage-course-${course.id}-${index}`}
                                         course={course}
                                         onDelete={onDeleteCourse}
                                         showDollarPricing={user?.role === 'admin' || user?.role === 'teacher' ? showDollarPricing : false}

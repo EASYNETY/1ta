@@ -19,17 +19,17 @@ export function RecentActivity({ recentItems }: RecentActivityProps) {
   if (!recentItems || recentItems.length === 0) {
     return null
   }
-  
+
   return (
     <div className="mb-6">
       <h3 className="text-sm font-medium flex items-center mb-4">
         <Bell className="h-4 w-4 mr-2" />
         Recent Activity
       </h3>
-      
+
       <div className="grid gap-4">
-        {recentItems.map(item => (
-          <ActivityCard key={`${item.type}-${item.id}`} item={item} />
+        {recentItems.map((item, index) => (
+          <ActivityCard key={`recent-activity-${item.type}-${item.id}-${index}`} item={item} />
         ))}
       </div>
     </div>
@@ -48,7 +48,7 @@ function ActivityCard({ item }: { item: SearchResult }) {
               </div>
               <CardTitle className="text-sm">{item.title}</CardTitle>
             </div>
-            <Badge 
+            <Badge
               variant="secondary"
               className={cn(
                 "capitalize text-xs",

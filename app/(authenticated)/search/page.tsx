@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { PageHeader } from '@/components/layout/auth/page-header'
+import { PaginationControls, PaginationInfo } from '@/components/ui/pagination-controls'
+import { PAGINATION_CONFIG, isServerPaginationEnabled } from '@/config/pagination'
+import { useEnhancedHybridPagination } from '@/hooks/use-hybrid-pagination'
 import {
   setSearchQuery,
   setSearchResults,
@@ -29,6 +32,59 @@ import { SearchResultCard } from '@/features/search/components/SearchResultCard'
 import { SearchSummary } from '@/features/search/components/SearchSummary'
 import { SearchCategories } from '@/features/search/components/SearchCategories'
 import { SearchResult } from '@/features/search/types/search-types'
+
+// Component for paginated search results
+function PaginatedSearchResults({ results }: { results: SearchResult[] }) {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE)
+  const serverPaginated = isServerPaginationEnabled('SEARCH_RESULTS_SERVER_PAGINATION')
+
+  // Apply hybrid pagination
+  const paginationResult = useEnhancedHybridPagination({
+    data: results,
+    currentPage,
+    itemsPerPage,
+    serverPaginated,
+  })
+
+  const {
+    paginatedData: paginatedResults,
+    totalItems,
+    totalPages,
+  } = paginationResult
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4">
+        {paginatedResults.map((result, index) => (
+          <SearchResultCard key={`search-${result.type}-${result.id}-page-${currentPage}-${index}`} result={result} />
+        ))}
+      </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 w-full border border-border/25 bg-card/5 backdrop-blur-sm p-2 rounded-md">
+          <PaginationInfo
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+          />
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            className="w-full flex-1 justify-end"
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function SearchPage() {
   const dispatch = useAppDispatch()
@@ -173,59 +229,31 @@ export default function SearchPage() {
           </ScrollArea>
 
           <TabsContent value="all" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
 
           <TabsContent value="course" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
 
           <TabsContent value="assignment" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
 
           <TabsContent value="grade" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
 
           <TabsContent value="event" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
 
           <TabsContent value="payment" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
 
           <TabsContent value="help" className="mt-6">
-            <div className="grid gap-4">
-              {filteredResults.map(result => (
-                <SearchResultCard key={`${result.type}-${result.id}`} result={result} />
-              ))}
-            </div>
+            <PaginatedSearchResults results={filteredResults} />
           </TabsContent>
         </Tabs>
       )}

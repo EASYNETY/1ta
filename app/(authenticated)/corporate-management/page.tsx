@@ -5,13 +5,16 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Plus, Users, Building, AlertTriangle } from 'lucide-react';
 import { isStudent } from '@/types/user.types';
 import { toast } from 'sonner';
+import { PaginationControls, PaginationInfo } from '@/components/ui/pagination-controls';
+import { PAGINATION_CONFIG, isServerPaginationEnabled } from '@/config/pagination';
+import { useEnhancedHybridPagination } from '@/hooks/use-hybrid-pagination';
 
 // Import Corporate specific components and actions
 import { CorporateStudentTable } from '@/features/corporate/components/CorporateStudentTable'; // Adjust path
@@ -25,7 +28,6 @@ import {
     resetOperationStatus as resetCorpStatus, // Import reset action
     clearCorporateError, // Import clear error action
 } from '@/features/corporate/store/corporate-slice'; // Adjust path
-import type { StudentUser } from '@/types/user.types';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 
 export default function CorporateManagementDashboardPage() {
@@ -40,7 +42,10 @@ export default function CorporateManagementDashboardPage() {
     const error = useAppSelector(selectCorporateError);
     const pagination = useAppSelector((state) => state.corporate.pagination); // Use pagination state
 
-    const [currentPage, setCurrentPage] = useState(1); // Local state for pagination
+    // Pagination state and configuration
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE);
+    const serverPaginated = isServerPaginationEnabled('CORPORATE_STUDENTS_SERVER_PAGINATION');
 
     // Derived manager info
     const corporateManager = useMemo(() => (user && isStudent(user) && user.isCorporateManager ? user : null), [user]);
@@ -49,6 +54,25 @@ export default function CorporateManagementDashboardPage() {
     const usedSlots = pagination?.totalStudents ?? managedStudents.length;
     const canAddMoreStudents = usedSlots < purchasedSlots;
 
+    // Apply hybrid pagination to students
+    const paginationResult = useEnhancedHybridPagination({
+        data: managedStudents,
+        currentPage,
+        itemsPerPage,
+        serverPaginated,
+        serverMetadata: pagination ? {
+            totalUsers: pagination.totalStudents,
+            currentPage: pagination.currentPage,
+            totalPages: pagination.totalPages,
+        } : undefined,
+    });
+
+    const {
+        paginatedData: paginatedStudents,
+        totalItems,
+        totalPages,
+    } = paginationResult;
+
     // Fetch managed students
     const fetchStudents = useCallback((page = 1) => {
         if (corporateManager?.corporateId) {
@@ -56,6 +80,17 @@ export default function CorporateManagementDashboardPage() {
             setCurrentPage(page);
         }
     }, [dispatch, corporateManager?.corporateId]);
+
+    // Handle page change for pagination
+    const handlePageChange = (page: number) => {
+        if (serverPaginated) {
+            // Server-side pagination: fetch new page
+            fetchStudents(page);
+        } else {
+            // Client-side pagination: just update current page
+            setCurrentPage(page);
+        }
+    };
 
     useEffect(() => {
         if (corporateManager?.corporateId) {
@@ -72,11 +107,22 @@ export default function CorporateManagementDashboardPage() {
         try {
             await dispatch(deleteManagedStudent({ corporateId: corporateManager.corporateId, studentId })).unwrap();
             toast.success(`Student "${studentName}" removed successfully.`);
-            // Refetch the *current* page after delete only if it might affect pagination display
-            if (managedStudents.length === 1 && currentPage > 1) {
-                fetchStudents(currentPage - 1); // Go to previous page if last item deleted
+
+            // Handle pagination after deletion
+            if (serverPaginated) {
+                // Server-side: refetch current page or go to previous if current becomes empty
+                if (managedStudents.length === 1 && currentPage > 1) {
+                    fetchStudents(currentPage - 1);
+                } else {
+                    fetchStudents(currentPage);
+                }
             } else {
-                fetchStudents(currentPage); // Refetch current page
+                // Client-side: reset to page 1 if current page becomes empty after deletion
+                const remainingItems = totalItems - 1;
+                const maxPage = Math.ceil(remainingItems / itemsPerPage);
+                if (currentPage > maxPage && maxPage > 0) {
+                    setCurrentPage(maxPage);
+                }
             }
             dispatch(resetCorpStatus());
         } catch (err: any) {
@@ -159,19 +205,33 @@ export default function CorporateManagementDashboardPage() {
                         {!isLoading && status === 'failed' && <p className='text-red-600 text-center'>{error || 'Failed to load students.'}</p>}
                         {!isLoading && status === 'succeeded' && (
                             <CorporateStudentTable
-                                students={managedStudents}
+                                students={serverPaginated ? managedStudents : paginatedStudents}
                                 onDeleteStudent={handleDeleteStudent}
                                 // Pass isDeleting status to disable row actions
                                 isDeleting={isDeleting} // Pass this if table row needs it
                             />
                         )}
                     </CardContent>
-                    {/* TODO: Add Pagination Controls */}
-                    {/* {pagination && pagination.totalPages > 1 && (
-                           <CardFooter>
-                                <PaginationControls currentPage={currentPage} totalPages={pagination.totalPages} onPageChange={fetchStudents} />
-                           </CardFooter>
-                       )} */}
+
+                    {/* Pagination Controls */}
+                    {!isLoading && status === 'succeeded' && totalPages > 1 && (
+                        <CardFooter>
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+                                <PaginationInfo
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    totalItems={totalItems}
+                                    itemsPerPage={itemsPerPage}
+                                />
+                                <PaginationControls
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    className="w-full flex-1 justify-end"
+                                    onPageChange={handlePageChange}
+                                />
+                            </div>
+                        </CardFooter>
+                    )}
                 </Card>
 
                 {/* TODO: Add Class Enrolment Management Section */}

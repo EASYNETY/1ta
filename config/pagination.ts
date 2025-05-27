@@ -17,10 +17,24 @@ export const PAGINATION_CONFIG = {
     // Users pagination - Backend supports it!
     USERS_SERVER_PAGINATION: true, // ✅ Backend supports pagination
 
-    // Other entities (for future use)
-    COURSES_SERVER_PAGINATION: false,
-    PAYMENTS_SERVER_PAGINATION: false,
-    ANALYTICS_SERVER_PAGINATION: false,
+    // Course management entities
+    COURSES_SERVER_PAGINATION: false, // 🔄 Client-side for now
+    MANAGE_COURSES_SERVER_PAGINATION: false, // 🔄 Client-side for now
+    ALL_COURSES_SERVER_PAGINATION: false, // 🔄 Client-side for now
+
+    // Payment entities
+    PAYMENTS_SERVER_PAGINATION: false, // 🔄 Client-side for now
+    ADMIN_PAYMENTS_SERVER_PAGINATION: false, // 🔄 Client-side for now
+
+    // Corporate entities
+    CORPORATE_STUDENTS_SERVER_PAGINATION: false, // 🔄 Client-side for now
+
+    // Analytics entities
+    ANALYTICS_SERVER_PAGINATION: false, // 🔄 Client-side for now
+    ANALYTICS_REPORTS_SERVER_PAGINATION: false, // 🔄 Client-side for now
+
+    // Search entities
+    SEARCH_RESULTS_SERVER_PAGINATION: false, // 🔄 Client-side for now
   },
 
   // Page size options for UI dropdowns

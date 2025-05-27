@@ -9,14 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
-} from "@/components/ui/pagination"
+import { PaginationControls, PaginationInfo } from "@/components/ui/pagination-controls"
+import { PAGINATION_CONFIG, isServerPaginationEnabled } from "@/config/pagination"
 import { Search, AlertTriangle, CheckCircle, XCircle, RefreshCw, Filter, Receipt } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -84,8 +78,6 @@ const getStatusBadge = (status: PaymentRecord["status"]) => {
     }
 }
 
-const ITEMS_PER_PAGE = 15 // Or make configurable
-
 const AdminPaymentsTable: React.FC = () => {
     const dispatch = useAppDispatch()
     const payments = useAppSelector(selectAllAdminPayments)
@@ -94,8 +86,12 @@ const AdminPaymentsTable: React.FC = () => {
     const error = useAppSelector(selectPaymentHistoryError)
     const isLoading = status === "loading"
 
-    // Local state for filters/search/page
+    // Pagination configuration
     const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage] = useState(PAGINATION_CONFIG.DEFAULT_PAGE_SIZE)
+    const serverPaginated = isServerPaginationEnabled('ADMIN_PAYMENTS_SERVER_PAGINATION')
+
+    // Local state for filters/search
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState<PaymentRecord["status"] | "all">("all")
 
@@ -105,12 +101,12 @@ const AdminPaymentsTable: React.FC = () => {
     const fetchData = useCallback(() => {
         const params = {
             page: currentPage,
-            limit: ITEMS_PER_PAGE,
+            limit: itemsPerPage,
             status: statusFilter === "all" ? undefined : statusFilter,
             search: debouncedSearchTerm || undefined,
         }
         dispatch(fetchAllPaymentsAdmin(params))
-    }, [dispatch, currentPage, statusFilter, debouncedSearchTerm])
+    }, [dispatch, currentPage, itemsPerPage, statusFilter, debouncedSearchTerm])
 
     // Initial fetch and refetch on filter/page changes
     useEffect(() => {
@@ -124,7 +120,12 @@ const AdminPaymentsTable: React.FC = () => {
     }, [statusFilter, debouncedSearchTerm])
 
     const handlePageChange = (newPage: number) => {
-        if (pagination && newPage >= 1 && newPage <= pagination.totalPages) {
+        // Use hybrid pagination logic - check if server pagination is available
+        const totalPages = serverPaginated && pagination
+            ? pagination.totalPages
+            : Math.ceil(payments.length / itemsPerPage)
+
+        if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage)
         }
     }
@@ -252,46 +253,36 @@ const AdminPaymentsTable: React.FC = () => {
                 </div>
             )}
 
-            {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && status === "succeeded" && (
-                <div className="mt-6 flex justify-center">
-                    <Pagination>
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        handlePageChange(pagination.currentPage - 1)
-                                    }}
-                                    aria-disabled={pagination.currentPage <= 1}
-                                    tabIndex={pagination.currentPage <= 1 ? -1 : undefined}
-                                    className={pagination.currentPage <= 1 ? "pointer-events-none opacity-50" : undefined}
-                                />
-                            </PaginationItem>
-                            <PaginationItem>
-                                <PaginationLink href="#" isActive>
-                                    Page {pagination.currentPage} of {pagination.totalPages}
-                                </PaginationLink>
-                            </PaginationItem>
-                            <PaginationItem>
-                                <PaginationNext
-                                    href="#"
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        handlePageChange(pagination.currentPage + 1)
-                                    }}
-                                    aria-disabled={pagination.currentPage >= pagination.totalPages}
-                                    tabIndex={pagination.currentPage >= pagination.totalPages ? -1 : undefined}
-                                    className={
-                                        pagination.currentPage >= pagination.totalPages ? "pointer-events-none opacity-50" : undefined
-                                    }
-                                />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </div>
-            )}
+            {/* Pagination Controls - Using Hybrid Pagination Pattern */}
+            {status === "succeeded" && !isLoading && (() => {
+                // Calculate pagination info based on server or client pagination
+                const totalItems = serverPaginated && pagination
+                    ? pagination.totalItems || payments.length
+                    : payments.length
+                const totalPages = serverPaginated && pagination
+                    ? pagination.totalPages
+                    : Math.ceil(payments.length / itemsPerPage)
+                const actualCurrentPage = serverPaginated && pagination
+                    ? pagination.currentPage
+                    : currentPage
+
+                return totalPages > 1 ? (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 w-full border border-border/25 bg-card/5 backdrop-blur-sm p-2 rounded-md">
+                        <PaginationInfo
+                            currentPage={actualCurrentPage}
+                            totalPages={totalPages}
+                            totalItems={totalItems}
+                            itemsPerPage={itemsPerPage}
+                        />
+                        <PaginationControls
+                            currentPage={actualCurrentPage}
+                            totalPages={totalPages}
+                            className="w-full flex-1 justify-end"
+                            onPageChange={handlePageChange}
+                        />
+                    </div>
+                ) : null
+            })()}
         </div>
     )
 }
