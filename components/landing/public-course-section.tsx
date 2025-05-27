@@ -171,7 +171,7 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6"
                     >
                         {currentCourses.map((course, index) => (
                             <motion.div key={`current-${course.id}-${index}`} variants={itemVariants}>
@@ -197,7 +197,7 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6"
                     >
                         {futureCourses.map((course, index) => (
                             <motion.div key={`future-${course.id}-${index}`} variants={itemVariants}>
@@ -220,7 +220,7 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6"
                     >
                         {allCourses.map((course, index) => (
                             <motion.div key={`all-${course.id}-${index}`} variants={itemVariants}>
