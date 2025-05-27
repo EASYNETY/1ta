@@ -33,7 +33,9 @@ export function AuthorizationGuard({
     // Determine if user has access
     let hasAccess = false;
 
-    if (allowedRoles && user) {
+    if (user && user.role === 'super_admin') {
+        hasAccess = true;
+    } else if (allowedRoles && user) {
         // Legacy role-based check
         hasAccess = allowedRoles.includes(user.role);
     } else if (permission) {
