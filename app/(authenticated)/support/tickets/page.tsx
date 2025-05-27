@@ -73,12 +73,13 @@ export default function AdminTicketsPage() {
     })
 
     // Count tickets by status
+    const safeTickets = tickets ?? [];
     const ticketCounts = {
-        all: tickets.length,
-        open: tickets.filter((t) => t.status === "open").length,
-        in_progress: tickets.filter((t) => t.status === "in_progress").length,
-        resolved: tickets.filter((t) => t.status === "resolved").length,
-        closed: tickets.filter((t) => t.status === "closed").length,
+        all: safeTickets.length,
+        open: safeTickets.filter((t) => t.status === "open").length,
+        in_progress: safeTickets.filter((t) => t.status === "in_progress").length,
+        resolved: safeTickets.filter((t) => t.status === "resolved").length,
+        closed: safeTickets.filter((t) => t.status === "closed").length,
     }
 
     if (!user || !isAdmin(user)) {
