@@ -60,7 +60,7 @@ export default function AdminTicketsPage() {
     }, [dispatch, user, statusFilter])
 
     // Filter tickets by search query
-    const filteredTickets = tickets.filter((ticket) => {
+    const filteredTickets = (tickets ?? []).filter((ticket) => {
         if (!searchQuery) return true
 
         const query = searchQuery.toLowerCase()
