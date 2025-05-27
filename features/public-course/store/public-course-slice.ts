@@ -8,6 +8,7 @@ import {
 import { get } from "@/lib/api-client"; // Import ONLY the 'get' function from API client
 import type { RootState } from "@/store";
 import { PublicCourse } from "../types/public-course-interface";
+import { getCourseIcon } from "@/utils/course-icon-mapping";
 
 // Fallback data for when API calls fail
 const fallbackCourses: PublicCourse[] = [
@@ -19,6 +20,7 @@ const fallbackCourses: PublicCourse[] = [
     description: "<p>35 Hours of Instructor-Led Training: Comprehensive live sessions delivered by PMI-certified instructors with industry expertise.</p><p>Aligned with the Latest PMI Standards: Training based on the updated PMBOK® Guide and the latest PMP® exam content outline.</p>",
     category: "Project Management",
     image: "/placeholder.svg",
+    iconUrl: "/images/icons/Prince2 practitioner-01-01.png",
     previewVideoUrl: "https://vinsystech.s3.us-east-1.amazonaws.com/PMP-Videos/PMP+Training+Day+1-20241221_063337-Meeting+Recording+1.mp4",
     instructor: {
       name: "Expert Instructor",
@@ -162,7 +164,13 @@ export const fetchCourses = createAsyncThunk<
 		}
 
 
-		return courses;
+		// Apply PNG icon mapping to courses
+		const coursesWithIcons = courses.map(course => ({
+			...course,
+			iconUrl: getCourseIcon(course.title, course.id)
+		}));
+
+		return coursesWithIcons;
 	} catch (error) {
 		let message = "Failed to fetch courses";
 

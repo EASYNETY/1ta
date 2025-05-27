@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { TechnologyCourseModal } from "@/components/modals/TechnologyCourseModal"
 import { TechnologyMarquee } from "./TechnologyMarquee"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 // Types
 export interface CourseListing {
@@ -954,11 +955,21 @@ export function AppleTechnologyDisplay() {
 
         // Use data if available, otherwise keep fallback
         if (listingsData) {
-          setListings(listingsData)
+          // Apply PNG icon mapping to listings
+          const listingsWithIcons = listingsData.map(course => ({
+            ...course,
+            iconUrl: getCourseIcon(course.name, course.id)
+          }))
+          setListings(listingsWithIcons)
         }
 
         if (coursesData) {
-          setPublicCourses(coursesData)
+          // Apply PNG icon mapping to public courses
+          const coursesWithIcons = coursesData.map(course => ({
+            ...course,
+            iconUrl: getCourseIcon(course.title || course.name, course.id)
+          }))
+          setPublicCourses(coursesWithIcons)
         }
       } catch (err) {
         console.error('Error fetching data:', err)
@@ -1319,22 +1330,34 @@ const TechnologyCard = React.memo(function TechnologyCard({ course, onClick }: T
           <div className="relative overflow-hidden rounded-xl w-full">
             <div className={`w-full h-24 px-4 backdrop-blur-sm bg-card/5 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all duration-300`}>
               <div className="w-12 h-12 flex items-center justify-center">
-                <img
-                  src={getTechnologyIcon(course.name)}
-                  alt={`${course.name} technology icon`}
-                  className="w-12 h-12 object-contain rounded-md"
-                  onError={(e) => {
-                    // Fallback to a diverse icon if image fails to load
-                    const fallbackIcons = [
-                      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png',
-                      'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
-                      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
-                      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png'
-                    ];
-                    const randomIndex = Math.floor(Math.random() * fallbackIcons.length);
-                    e.currentTarget.src = fallbackIcons[randomIndex];
-                  }}
-                />
+                {course.iconUrl ? (
+                  <img
+                    src={course.iconUrl}
+                    alt={`${course.name} technology icon`}
+                    className="w-12 h-12 object-contain rounded-md"
+                    onError={(e) => {
+                      // Fallback to the old system if PNG fails
+                      e.currentTarget.src = getTechnologyIcon(course.name);
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={getTechnologyIcon(course.name)}
+                    alt={`${course.name} technology icon`}
+                    className="w-12 h-12 object-contain rounded-md"
+                    onError={(e) => {
+                      // Fallback to a diverse icon if image fails to load
+                      const fallbackIcons = [
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png',
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
+                        'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png'
+                      ];
+                      const randomIndex = Math.floor(Math.random() * fallbackIcons.length);
+                      e.currentTarget.src = fallbackIcons[randomIndex];
+                    }}
+                  />
+                )}
               </div>
             </div>
 

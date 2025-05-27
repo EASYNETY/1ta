@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Users, ArrowRight, CheckCircle, X, Loader2, BookOpen } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion" // Import framer-motion
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 // Types
 export interface CourseListing {
@@ -106,7 +107,12 @@ export function CourseCards() {
         const data: ApiResponse = await response.json()
 
         if (data.success && Array.isArray(data.data)) {
-          setCourses(data.data)
+          // Apply PNG icon mapping to courses
+          const coursesWithIcons = data.data.map(course => ({
+            ...course,
+            iconUrl: getCourseIcon(course.name, course.id)
+          }))
+          setCourses(coursesWithIcons)
         } else {
           throw new Error('Invalid API response format')
         }

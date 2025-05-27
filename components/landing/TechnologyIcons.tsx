@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 // Types
 export interface CourseListing {
@@ -111,8 +112,12 @@ export function TechnologyIcons() {
         const data = await response.json()
 
         if (data.success && Array.isArray(data.data)) {
-          // Set courses directly - we'll handle sorting in the grouping logic
-          setCourses(data.data)
+          // Apply PNG icon mapping to courses
+          const coursesWithIcons = data.data.map(course => ({
+            ...course,
+            iconUrl: getCourseIcon(course.name, course.id)
+          }))
+          setCourses(coursesWithIcons)
         } else {
           throw new Error('Invalid API response format')
         }

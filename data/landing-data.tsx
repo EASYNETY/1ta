@@ -19,14 +19,14 @@ import {
 // ==========================
 
 export const whoWeAreFeatureData = {
-  icon: <Target className="h-8 w-8" />,
+  icon: "/images/icons/Who we are-01-01.png",
   title: "Who We Are",
   description:
     "In today’s digital world, technology is the backbone of innovation. At 1Tech Academy, we cultivate future-ready professionals who thrive in the evolving digital landscape.",
 };
 
 export const whatWeDoFeatureData = {
-  icon: <Eye className="h-8 w-8" />,
+  icon: "/images/icons/What we do-01-01.png",
   title: "What We Do",
   description:
     "Join a network of professionals, leaders, and tech enthusiasts. Our career-focused approach ensures you’re job-ready from day one, unlocking limitless opportunities.",

@@ -8,6 +8,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { TechnologyCourseModal } from "@/components/modals/TechnologyCourseModal"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 // Types
 export interface CourseListing {
@@ -338,11 +339,21 @@ export function EnhancedTechnologyIcons() {
 
         // Use data if available, otherwise keep fallback
         if (listingsData) {
-          setListings(listingsData)
+          // Apply PNG icon mapping to listings
+          const listingsWithIcons = listingsData.map(course => ({
+            ...course,
+            iconUrl: getCourseIcon(course.name, course.id)
+          }))
+          setListings(listingsWithIcons)
         }
 
         if (coursesData) {
-          setPublicCourses(coursesData)
+          // Apply PNG icon mapping to public courses
+          const coursesWithIcons = coursesData.map(course => ({
+            ...course,
+            iconUrl: getCourseIcon(course.title || course.name, course.id)
+          }))
+          setPublicCourses(coursesWithIcons)
         }
       } catch (err) {
         console.error('Error fetching data:', err)
@@ -540,7 +551,17 @@ function TechnologyIcon({ course, onClick }: TechnologyIconProps) {
             onHoverEnd={() => setIsHovered(false)}
           >
             <div className="w-full h-full flex items-center justify-center">
-              {React.createElement(getTechnologyIcon(course.name), { className: "w-12 h-12 text-primary" })}
+              {course.iconUrl ? (
+                <div className="w-12 h-12 relative">
+                  <img
+                    src={course.iconUrl}
+                    alt={`${course.name} icon`}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              ) : (
+                React.createElement(getTechnologyIcon(course.name), { className: "w-12 h-12 text-primary" })
+              )}
             </div>
           </motion.div>
 
