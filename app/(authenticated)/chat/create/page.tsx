@@ -309,7 +309,7 @@ export default function CreateChatRoomPage() {
     }
 
     return (
-        <div className="mx-auto max-w-3xl py-8 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto">
             <PageHeader heading="Create New Chat Room" subheading="Fill in the details to start a new conversation space." />
             <Card className="mt-6">
                 <CardHeader><CardTitle>Room Details</CardTitle></CardHeader>
