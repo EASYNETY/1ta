@@ -30,7 +30,7 @@ const heroImages = [
     caption: "Learn in a Conducive Digital Environment",
   },
   {
-    src: "/collaborate.jpg",
+    src: "/collaborate.png",
     alt: "Diverse students collaborating on code around a modern workstation",
     caption: "Collaborative Project-Based Learning",
   },
