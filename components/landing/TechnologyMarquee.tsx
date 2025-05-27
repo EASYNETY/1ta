@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { motion, useAnimationControls, AnimatePresence } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
 import { CourseListing } from "./AppleTechnologyDisplay" // Adjust path as needed
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 interface TechnologyMarqueeProps {
   courses: CourseListing[]
@@ -11,7 +12,6 @@ interface TechnologyMarqueeProps {
   speed?: number
   gap?: number
   onClick: (course: CourseListing) => void
-  getTechnologyIcon: (name: string) => string
 }
 
 // Calculate a suitable height for one row of items + padding
@@ -24,8 +24,7 @@ export function TechnologyMarquee({
   direction = "left",
   speed = 25,
   gap = 16,
-  onClick,
-  getTechnologyIcon
+  onClick
 }: TechnologyMarqueeProps) {
   const [hoveredCourseId, setHoveredCourseId] = useState<string | null>(null)
   const controls = useAnimationControls()
@@ -122,7 +121,7 @@ export function TechnologyMarquee({
         animate={controls}
       >
         {duplicatedCourses.map((course, index) => {
-          const iconUrl = getTechnologyIcon(course.name);
+          const iconUrl = getCourseIcon(course.name, course.id);
           return (
             <div
               key={`${course.id}-${index}`}
@@ -148,15 +147,8 @@ export function TechnologyMarquee({
                     alt={`${course.name} technology icon`}
                     className="w-10 h-10 object-contain rounded-md"
                     onError={(e) => {
-                      // Fallback to a diverse icon if image fails to load
-                      const fallbackIcons = [
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png',
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/512px-React-icon.svg.png',
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/512px-Python-logo-notext.svg.png',
-                        'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Node.js_logo.svg/512px-Node.js_logo.svg.png'
-                      ];
-                      const randomIndex = Math.floor(Math.random() * fallbackIcons.length);
-                      e.currentTarget.src = fallbackIcons[randomIndex];
+                      // Fallback to default PNG icon if image fails to load
+                      e.currentTarget.src = "/images/icons/Python for Beginners Certification-01-01.png";
                     }}
                   />
                 </div>

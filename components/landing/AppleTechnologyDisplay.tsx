@@ -1164,7 +1164,6 @@ export function AppleTechnologyDisplay() {
                 <TechnologyMarquee
                   courses={currentCourses}
                   onClick={handleIconClick}
-                  getTechnologyIcon={getTechnologyIcon}
                   direction="left"
                   speed={20}
                 />
@@ -1176,7 +1175,7 @@ export function AppleTechnologyDisplay() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-items-stretch"
+                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
               >
                 {currentCourses.map((course, index) => (
                   <TechnologyCard
@@ -1203,7 +1202,6 @@ export function AppleTechnologyDisplay() {
                 <TechnologyMarquee
                   courses={futureCourses}
                   onClick={handleIconClick}
-                  getTechnologyIcon={getTechnologyIcon}
                   direction="left"
                   speed={20}
                 />
@@ -1215,7 +1213,7 @@ export function AppleTechnologyDisplay() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-items-stretch"
+                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
               >
                 {futureCourses.map((course, index) => (
                   <TechnologyCard
