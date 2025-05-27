@@ -1,11 +1,13 @@
 // features/chat/types/chat-types.ts
 
+import { UserRole } from "@/types/user.types";
+
 // Chat participant types - users who can participate in chats
 export interface ChatParticipant {
 	id: string;
 	name: string;
 	avatarUrl?: string;
-	role: "student" | "teacher" | "admin";
+	role: UserRole;
 }
 
 // Chat room types - different contexts for discussions
@@ -14,6 +16,9 @@ export enum ChatRoomType {
 	CLASS = "class",
 	EVENT = "event",
 	ANNOUNCEMENT = "announcement",
+	// Consider adding these for more flexibility if needed later:
+	// DIRECT = "direct",    // For one-on-one chats
+	// GROUP = "group",      // For generic group chats not tied to a specific context
 }
 
 // Message types that can be sent
