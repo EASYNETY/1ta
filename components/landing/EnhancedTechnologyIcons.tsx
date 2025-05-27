@@ -450,9 +450,9 @@ export function EnhancedTechnologyIcons() {
             initial="hidden"
             animate="visible"
           >
-            {futureCourses.map((course) => (
+            {futureCourses.map((course, index) => (
               <TechnologyIcon
-                key={course.id}
+                key={`${course.id}-${index}`}
                 course={course}
                 onClick={() => handleIconClick(course)}
               />

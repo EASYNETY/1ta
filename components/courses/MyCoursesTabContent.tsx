@@ -47,7 +47,7 @@ export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCours
                 animate="show"
             >
                 {courses.map((course, index) => (
-                    <CourseCard key={course.id} course={course} index={index} />
+                    <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
                 ))}
             </motion.div>
         );

@@ -462,9 +462,9 @@ export default function CreateChatRoomPage() {
                                                         <ScrollArea className="h-[200px]">
                                                             <CommandEmpty>No users found.</CommandEmpty>
                                                             <CommandGroup>
-                                                                {filteredSelectableUsers.map((user) => (
+                                                                {filteredSelectableUsers.map((user, index) => (
                                                                     <CommandItem
-                                                                        key={user.id}
+                                                                        key={`${user.id}-${index}`}
                                                                         value={user.name} // For Command's internal matching if shouldFilter was true
                                                                         onSelect={() => {
                                                                             const currentValues = field.value || [];
@@ -494,10 +494,10 @@ export default function CreateChatRoomPage() {
                             {/* Display selected users as badges */}
                             {selectedParticipantIdsFromForm.length > 0 && (
                                 <div className="mt-2 flex flex-wrap gap-1">
-                                    {selectedParticipantIdsFromForm.map(id => {
+                                    {selectedParticipantIdsFromForm.map((id, index) => {
                                         const user = availableUsers.find(u => u.id === id);
                                         return user ? (
-                                            <Badge key={id} variant="secondary" className="font-normal text-sm py-0.5 px-1.5">
+                                            <Badge key={`${id}-${index}`} variant="secondary" className="font-normal text-sm py-0.5 px-1.5">
                                                 {user.name}
                                                 <button type="button" onClick={() => {
                                                     const currentValues = getValues("participantIds") || [];

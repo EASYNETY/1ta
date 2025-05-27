@@ -14,7 +14,7 @@ interface ManageCourseTableProps {
 export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTableProps) {
     const [showDollarPricing, setShowDollarPricing] = useState(true);
     const user = useAppSelector(state => state.auth.user);
-    
+
     const handleCurrencyToggle = (checked: boolean) => {
         setShowDollarPricing(!checked);
     };
@@ -51,9 +51,9 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                         </thead>
                         <tbody>
                             {courses.length > 0 ? (
-                                courses.map((course) => (
+                                courses.map((course, index) => (
                                     <ManageCourseTableRow
-                                        key={course.id}
+                                        key={`${course.id}-${index}`}
                                         course={course}
                                         onDelete={onDeleteCourse}
                                         showDollarPricing={user?.role === 'admin' || user?.role === 'teacher' ? showDollarPricing : false}

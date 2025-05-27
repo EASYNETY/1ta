@@ -187,9 +187,9 @@ export function CourseCards() {
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           variants={gridVariants} // Apply gridVariants here for staggering cards
         >
-          {courseList.map((course) => (
+          {courseList.map((course, index) => (
             <CourseCard
-              key={course.id}
+              key={`${course.id}-${index}`}
               course={course}
               onClick={() => handleCardClick(course)}
               isIso={course.isIsoCertification}

@@ -50,8 +50,8 @@ const TeacherClassesTab: React.FC = () => {
                 initial="hidden" animate="show"
                 variants={{ show: { transition: { staggerChildren: 0.1 } } }} // Container for stagger
             >
-                {myClasses.map((course) => (
-                    <motion.div key={course.id} variants={itemVariants}>
+                {myClasses.map((course, index) => (
+                    <motion.div key={`${course.id}-${index}`} variants={itemVariants}>
                         <DyraneCard className="hover:shadow-md transition-shadow">
                             <CardContent className="p-4 flex justify-between items-center">
                                 <div className="flex items-center gap-4">

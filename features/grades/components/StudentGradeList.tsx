@@ -176,8 +176,8 @@ export default function StudentGradeList() {
                         </CardContent>
                     </Card>
                 ) : (
-                    filteredGradeItems.map((item) => (
-                        <Card key={item.id} className="overflow-hidden">
+                    filteredGradeItems.map((item, index) => (
+                        <Card key={`${item.id}-${index}`} className="overflow-hidden">
                             <CardHeader className="pb-3">
                                 <div className="flex justify-between items-start">
                                     <div>

@@ -197,8 +197,8 @@ export function CoursesSection() {
                                     animate="visible"
                                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6"
                                 >
-                                    {coursesByCategory[category]?.map((course) => (
-                                        <motion.div key={course.id} variants={itemVariants}>
+                                    {coursesByCategory[category]?.map((course, index) => (
+                                        <motion.div key={`${category}-${course.id}-${index}`} variants={itemVariants}>
                                             <CourseCard course={course} onClick={() => handleViewCourse(course)} />
                                         </motion.div>
                                     ))}

@@ -103,8 +103,8 @@ export const ScheduleListView: React.FC<ScheduleListViewProps> = ({
                                             hidden: {}
                                         }}
                                     >
-                                        {dailyEvents.map((event) => (
-                                            <ScheduleEventCard key={event.id} event={event} />
+                                        {dailyEvents.map((event, index) => (
+                                            <ScheduleEventCard key={`${event.id}-${index}`} event={event} />
                                         ))}
                                     </motion.div>
                                 ) : (

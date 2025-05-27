@@ -233,9 +233,9 @@ export function GradesTab() {
         <CardContent>
           <div className="space-y-4">
             {filteredGradeItems.length > 0 ? (
-              filteredGradeItems.map((item) => (
+              filteredGradeItems.map((item, index) => (
                 <motion.div
-                  key={item.id}
+                  key={`${item.id}-${index}`}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow bg-card/5 backdrop-blur-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}

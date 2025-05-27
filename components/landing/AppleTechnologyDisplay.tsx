@@ -1175,9 +1175,9 @@ export function AppleTechnologyDisplay() {
                 transition={{ duration: 0.3 }}
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
               >
-                {currentCourses.map((course) => (
+                {currentCourses.map((course, index) => (
                   <TechnologyCard
-                    key={course.id}
+                    key={`${course.id}-${index}`}
                     course={course}
                     onClick={() => handleIconClick(course)}
                   />
@@ -1222,9 +1222,9 @@ export function AppleTechnologyDisplay() {
                 transition={{ duration: 0.3 }}
                 className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
               >
-                {futureCourses.map((course) => (
+                {futureCourses.map((course, index) => (
                   <TechnologyCard
-                    key={course.id}
+                    key={`${course.id}-${index}`}
                     course={course}
                     onClick={() => handleIconClick(course)}
                   />

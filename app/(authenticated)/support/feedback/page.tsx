@@ -226,8 +226,8 @@ export default function AdminFeedbackPage() {
 
             {status === "succeeded" && filteredFeedback.length > 0 && (
                 <div className="space-y-4">
-                    {filteredFeedback.map((item: FeedbackRecord) => (
-                        <Card key={item.id} className="overflow-hidden">
+                    {filteredFeedback.map((item: FeedbackRecord, index: number) => (
+                        <Card key={`${item.id}-${index}`} className="overflow-hidden">
                             <CardContent className="p-4">
                                 <div className="flex flex-col sm:flex-row justify-between gap-4">
                                     <div className="flex-1">

@@ -7,7 +7,8 @@ import { FetchStatus } from "@/types";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 import { PublicCourseCard } from "@/components/cards/PublicCourseCard";
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface AllCoursesTabContentProps {
     status: FetchStatus;
@@ -60,9 +61,9 @@ export function AllCoursesTabContent({ status, courses, onClearFilters }: AllCou
         return (
             <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {courses.map((course) => (
-                        <PublicCourseCard 
-                            key={course.id}
+                    {courses.map((course, index) => (
+                        <PublicCourseCard
+                            key={`${course.id}-${index}`}
                             course={course}
                             onClick={() => handleOpenModal(course)}
                         />
@@ -71,8 +72,13 @@ export function AllCoursesTabContent({ status, courses, onClearFilters }: AllCou
 
                 <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogContent className="max-w-4xl p-0">
+                        <VisuallyHidden>
+                            <DialogTitle>
+                                {selectedCourse ? `Course Details: ${selectedCourse.title}` : 'Course Details'}
+                            </DialogTitle>
+                        </VisuallyHidden>
                         {selectedCourse && (
-                            <PublicCourseCard 
+                            <PublicCourseCard
                                 course={selectedCourse}
                                 isModal={true}
                                 onClose={handleCloseModal}

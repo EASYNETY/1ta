@@ -53,7 +53,7 @@ const StudentClassesTab: React.FC = () => {
                 variants={container} initial="hidden" animate="show"
             >
                 {myClasses.map((course, index) => (
-                    <CourseCard key={course.id} course={course} index={index} />
+                    <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
                 ))}
             </motion.div>
         ) : (

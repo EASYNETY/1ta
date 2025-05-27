@@ -66,7 +66,7 @@ export function UserTable({ users, onDeleteUser, isLoading = false, error = null
                             </tr>
                         ) : (
                             // Data state
-                            users?.map((user) => <UserTableRow key={user.id} user={user} onDelete={onDeleteUser} />)
+                            users?.map((user, index) => <UserTableRow key={`${user.id}-${index}`} user={user} onDelete={onDeleteUser} />)
                         )}
                     </tbody>
                 </table>
