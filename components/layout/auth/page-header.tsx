@@ -7,7 +7,7 @@ import { ChevronRight, Home } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface PageHeaderProps {
-  heading: React.ReactNode
+  heading?: React.ReactNode
   subheading?: React.ReactNode
   actions?: React.ReactNode
   breadcrumbs?: boolean
