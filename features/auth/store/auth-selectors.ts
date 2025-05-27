@@ -1,8 +1,8 @@
 // features/auth/store/auth-selectors.ts
 import { createSelector } from '@reduxjs/toolkit';
-import { RootState } from '@/store/store';
 import { createSafeArraySelector, safeArray } from '@/lib/utils/safe-data';
 import { User } from '@/types/user.types';
+import { RootState } from '@/store';
 
 // Basic selectors
 export const selectAuthState = (state: RootState) => state.auth;
