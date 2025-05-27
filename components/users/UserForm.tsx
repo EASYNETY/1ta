@@ -24,57 +24,56 @@ import type {
     // Import specific user types if you need to reference their exact structure for initialData, though UserType usually suffices
 } from '@/types/user.types';
 
+// DEFINE AND EXPORT UserFormSubmitData HERE
+export interface UserFormSubmitData { // Or UserFormDataType if you prefer that name
+    id?: string;
+    name?: string;
+    email?: string;
+    role: UserRole;
+    isActive?: boolean;
+    phone?: string | null;
+    bio?: string | null;
+    accountType?: AccountType;
+    onboardingStatus?: OnboardingStatus;
+    avatarUrl?: string | null;
+    lastLogin?: string | null;
+    corporateId?: string | null;
+    corporateAccountName?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+    password?: string; // Crucial if your form collects it for admin creation
+
+    // Student specific
+    dateOfBirth?: string | null;
+    address?: string | null;
+    barcodeId?: string;
+    classId?: string | null;
+    guardianId?: string | null;
+    isCorporateManager?: boolean;
+    purchasedStudentSlots?: number | null;
+    class?: any | null;
+
+    // Teacher specific
+    subjects?: string[] | null;
+    officeHours?: string | null;
+
+    // Admin/SuperAdmin/Accounting/CustomerCare specific permissions
+    permissions?: string[] | null;
+
+    // Staff specific department/shift
+    department?: string | null;
+    shift?: string | null;
+}
+
 interface UserFormProps {
-    initialData?: UserType | null; // For editing - UserType is a union, which is fine here
-    onSubmit: (data: Partial<UserType>) => Promise<void>; // onSubmit can still take Partial<UserType>
+    initialData?: UserType | null;
+    onSubmit: (data: UserFormSubmitData) => Promise<void>; // <<<< Use the exported type
     isSubmitting?: boolean;
     mode: 'create' | 'edit';
 }
 
-// Define a comprehensive interface for the form's data state.
-// This includes ALL possible fields from ALL user roles, mostly as optional.
-interface UserFormDataType {
-    id?: string;
-    name?: string; // from BaseUser
-    email?: string; // from BaseUser
-    role: UserRole; // from BaseUser - non-optional as it drives logic
-    isActive?: boolean; // from BaseUser
-    phone?: string | null; // from BaseUser
-    bio?: string | null; // from BaseUser
-    accountType?: AccountType; // from BaseUser
-    onboardingStatus?: OnboardingStatus; // from BaseUser
-    avatarUrl?: string | null; // from BaseUser
-    lastLogin?: string | null; // from BaseUser
-    corporateId?: string | null; // from BaseUser & StudentUser
-    corporateAccountName?: string | null; // from BaseUser
-    createdAt?: string; // from BaseUser
-    updatedAt?: string; // from BaseUser
-
-    // Student specific
-    dateOfBirth?: string | null; // from StudentUser
-    address?: string | null; // from StudentUser
-    barcodeId?: string; // from StudentUser
-    classId?: string | null; // from StudentUser
-    guardianId?: string | null; // from StudentUser
-    isCorporateManager?: boolean; // from StudentUser
-    purchasedStudentSlots?: number | null; // from StudentUser
-    class?: any | null; // from StudentUser
-
-    // Teacher specific
-    subjects?: string[] | null; // from TeacherUser
-    officeHours?: string | null; // from TeacherUser
-
-    // Admin/SuperAdmin/Accounting/CustomerCare specific permissions
-    permissions?: string[] | null; // from SuperAdminUser, AdminUser, AccountingUser, CustomerCareUser
-
-    // Staff specific department/shift (also on TeacherUser now)
-    department?: string | null; // from TeacherUser, SuperAdminUser, AdminUser, AccountingUser, CustomerCareUser
-    shift?: string | null; // from TeacherUser, SuperAdminUser, AdminUser, AccountingUser, CustomerCareUser
-}
-
-
 // Define default values for the form using the comprehensive type
-const defaultValues: UserFormDataType = {
+const defaultValues: UserFormSubmitData = {
     name: '',
     email: '',
     role: 'student', // Default role
@@ -87,8 +86,9 @@ const defaultValues: UserFormDataType = {
     lastLogin: null,
     corporateId: null,
     corporateAccountName: null,
-    createdAt: undefined, // Or set to a new Date().toISOString() if needed for create
+    createdAt: undefined,
     updatedAt: undefined,
+    password: '', // Add default if it's in UserFormSubmitData
 
     // Student
     dateOfBirth: '',
@@ -104,7 +104,7 @@ const defaultValues: UserFormDataType = {
     subjects: [],
     officeHours: '',
 
-    // Admin/Staff (permissions shared by multiple, department/shift also shared)
+    // Admin/Staff
     permissions: [],
     department: '',
     shift: '',
@@ -114,21 +114,21 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
     const router = useRouter();
 
     // Initialize state from initialData or defaults, using the comprehensive type
-    const [formData, setFormData] = useState<UserFormDataType>(() => {
+    const [formData, setFormData] = useState<UserFormSubmitData>(() => {
         if (initialData) {
             // When initialData is provided, merge it with defaults.
             // Assert initialData to UserFormDataType as it's compatible (UserType is a subset of fields in UserFormDataType)
-            return { ...defaultValues, ...(initialData as unknown as UserFormDataType) };
+            return { ...defaultValues, ...(initialData as unknown as UserFormSubmitData) };
         }
         return defaultValues;
     });
 
-    const [errors, setErrors] = useState<Partial<Record<keyof UserFormDataType, string>>>({});
+    const [errors, setErrors] = useState<Partial<Record<keyof UserFormSubmitData, string>>>({});
 
     // Effect to reset form if initialData changes (for edit mode)
     useEffect(() => {
         if (mode === 'edit' && initialData) {
-            setFormData({ ...defaultValues, ...(initialData as unknown as UserFormDataType) });
+            setFormData({ ...defaultValues, ...(initialData as unknown as UserFormSubmitData) });
         } else if (mode === 'create') {
             setFormData(defaultValues);
         }
@@ -137,12 +137,12 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name as keyof UserFormDataType]) {
-            setErrors(prev => ({ ...prev, [name as keyof UserFormDataType]: undefined }));
+        if (errors[name as keyof UserFormSubmitData]) {
+            setErrors(prev => ({ ...prev, [name as keyof UserFormSubmitData]: undefined }));
         }
     };
 
-    const handleSelectChange = (name: keyof UserFormDataType) => (value: string | boolean) => { // Allow boolean for switch
+    const handleSelectChange = (name: keyof UserFormSubmitData) => (value: string | boolean) => { // Allow boolean for switch
         setFormData(prev => ({ ...prev, [name]: value }));
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: undefined }));
@@ -150,7 +150,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
     };
 
     const validateForm = (): boolean => {
-        const newErrors: Partial<Record<keyof UserFormDataType, string>> = {};
+        const newErrors: Partial<Record<keyof UserFormSubmitData, string>> = {};
         if (!formData.name?.trim()) newErrors.name = 'Name is required';
         if (!formData.email?.trim()) {
             newErrors.email = 'Email is required';
@@ -178,7 +178,7 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
         console.log("Submitting form data:", formData);
         // Before submitting, you might want to clean formData to only include relevant fields for the selected role
         // For now, we pass the whole formData which is compatible with Partial<UserType>
-        await onSubmit(formData as Partial<UserType>); // Asserting here as UserFormDataType has all fields, compatible with Partial<UserType>
+        await onSubmit(formData); // Asserting here as UserFormDataType has all fields, compatible with Partial<UserType>
     };
 
     // Determine which role-specific fields to show
