@@ -41,7 +41,7 @@ export default function CreateUserPage() {
             // Ensure password is provided.
             // Your UserForm.tsx should ideally collect this if an admin is creating a user.
             // If not, this temporary password will be used.
-            const passwordForSignup = data.password || `TempP@sswOrd${Date.now()}`;
+            const passwordForSignup = data.password || `TempP@sswOrd`;
             if (!data.password) {
                 console.warn("No password provided in form, using temporary password.");
             }

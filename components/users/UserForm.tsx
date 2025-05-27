@@ -105,7 +105,7 @@ const defaultValues: UserFormSubmitData = {
     officeHours: '',
 
     // Admin/Staff
-    permissions: [],
+    // Removed permissions field from default values
     department: '',
     shift: '',
 };
@@ -460,36 +460,8 @@ export function UserForm({ initialData, onSubmit, isSubmitting = false, mode }: 
 
                     {/* Permissions field for Admin (not Super Admin, who has all) and potentially other roles if they have configurable permissions */}
                     {(isAdmin || isAccounting || isCustomerCare) && !isSuperAdmin && (
-                        <Card>
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Briefcase className="h-5 w-5 text-primary" />
-                                    Role Permissions
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="permissions">Permissions (comma-separated)</Label>
-                                    <Input
-                                        id="permissions"
-                                        name="permissions"
-                                        value={Array.isArray(formData.permissions) ? formData.permissions.join(', ') : ''}
-                                        onChange={(e) => {
-                                            const permissionsArray = e.target.value.split(',').map(p => p.trim()).filter(Boolean);
-                                            setFormData(prev => ({ ...prev, permissions: permissionsArray }));
-                                        }}
-                                        placeholder="e.g., manage_users, view_reports"
-                                        disabled={isSubmitting}
-                                    />
-                                    <p className="text-xs text-muted-foreground">
-                                        {isAdmin && "Define specific permissions for this Admin."}
-                                        {isAccounting && "Define specific permissions for Accounting."}
-                                        {isCustomerCare && "Define specific permissions for Customer Care."}
-                                        {" Super Admin has all permissions by default."}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        // Removed permissions card UI as permissions are handled by roles
+                        null
                     )}
 
                     {isStaffRoleWithDeptShift && (
