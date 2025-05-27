@@ -9,8 +9,9 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { useAppSelector, useAppDispatch } from "@/store/hooks"; // Import Redux hooks
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, FileText, CheckCircle, Clock, AlertCircle, AlertTriangle, Settings } from 'lucide-react'; // Added AlertTriangle
+import { Search, FileText, CheckCircle, Clock, AlertCircle, AlertTriangle, Settings } from 'lucide-react';
 import Link from "next/link";
+import { AdminGuard } from "@/components/auth/PermissionGuard";
 import { format, parseISO, differenceInDays } from "date-fns"; // Use date-fns format
 import { cn } from "@/lib/utils"; // Import cn
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
@@ -203,14 +204,14 @@ export function AssignmentsTab() {
                     </div>
                 )}
 
-                {/* Create Button (Teacher/Admin Only) */}
-                {(user.role === "teacher" || user.role === "admin") && (
+                {/* Create Button (Admin Only) */}
+                <AdminGuard>
                     <DyraneButton asChild size="sm" className="flex-shrink-0">
                         <Link href="/assignments/create">
                             Create Assignment
                         </Link>
                     </DyraneButton>
-                )}
+                </AdminGuard>
             </div>
 
             {/* Assignment List Card */}
@@ -223,16 +224,16 @@ export function AssignmentsTab() {
                             </CardTitle>
                             <CardDescription>View upcoming and past assignments.</CardDescription> {/* Added description */}
                         </div>
-                        {/* --- Add Manage/Create Button for Facilitator/Admin --- */}
-                        {(user.role === "teacher" || user.role === "admin") && (
+                        {/* --- Add Manage/Create Button for Admin --- */}
+                        <AdminGuard>
                             <DyraneButton asChild size="sm">
                                 {/* Link to the main assignments management page */}
                                 <Link href="/assignments">
-                                    <Settings className="mr-2 h-4 w-4" /> {/* Or use Edit icon */}
+                                    <Settings className="mr-2 h-4 w-4" />
                                     Manage Assignments
                                 </Link>
                             </DyraneButton>
-                        )}
+                        </AdminGuard>
                         {/* --- Add Manage/Create Button for Teacher/Admin --- */}
                         {user.role === "student" && (
                             <DyraneButton asChild size="sm">

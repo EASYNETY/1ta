@@ -30,7 +30,8 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Import TooltipProvider if not implicitly wrapping elsewhere
 import { Avatar, AvatarFallback, AvatarImage, AvatarWithVerification } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Chat, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree, FileText, MessageSquare, QrCode } from "phosphor-react";
+import { Calendar, Chat, CheckCircle, EnvelopeSimple, GraduationCap, Money, User, UsersThree, FileText, QrCode } from "phosphor-react";
+import { MessageSquare as LucideMessageSquare } from "lucide-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
@@ -89,7 +90,7 @@ export const customerCareNavItems: NavItem[] = [
     { title: "Scan Student", href: "/customer-care/scan", icon: QrCode, roles: ["customer_care"] },
     { title: "Student Info", href: "/customer-care/students", icon: AdminUsersIcon, roles: ["customer_care"] },
     { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["customer_care"] },
-    { title: "Feedback", href: "/support/feedback", icon: MessageSquare, roles: ["customer_care"] },
+    { title: "Feedback", href: "/support/feedback", icon: LucideMessageSquare, roles: ["customer_care"] },
 ];
 
 

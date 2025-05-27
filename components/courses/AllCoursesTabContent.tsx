@@ -1,14 +1,13 @@
-// components/courses/AllCoursesTabContent.tsx
-import { CoursesSection } from "@/components/landing/public-course-section";
 import { EmptyStateCard } from "./EmptyStateCard";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { BookOpen } from "lucide-react";
-import { FetchStatus } from "@/types"; // Assuming type exists
+import { FetchStatus } from "@/types";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
+import { PublicCourseCard } from "@/components/cards/PublicCourseCard";
 
 interface AllCoursesTabContentProps {
     status: FetchStatus;
-    courses: AuthCourse[]; // Even if using CoursesSection, pass courses to check length
+    courses: AuthCourse[];
     onClearFilters: () => void;
 }
 
@@ -25,11 +24,32 @@ export function AllCoursesTabContent({ status, courses, onClearFilters }: AllCou
         );
     }
 
-    if (courses.length > 0) {
-        // Assuming CoursesSection can handle displaying all available courses
+    if (status === "failed") {
         return (
-            <div className="px-4 md:px-6 relative">
-                <CoursesSection />
+            <EmptyStateCard
+                Icon={BookOpen}
+                title="Error Loading Courses"
+                message="There was an error loading the courses. Please try again later."
+                action={
+                    <DyraneButton onClick={() => window.location.reload()}>
+                        Retry
+                    </DyraneButton>
+                }
+            />
+        );
+    }
+
+    if (courses.length > 0) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {courses.map((course) => (
+                    <PublicCourseCard 
+                        key={course.id}
+                        course={course}
+                        onClick={() => {}} // Handle course click if needed
+                        onClose={() => {}} // Handle close if needed
+                    />
+                ))}
             </div>
         );
     }

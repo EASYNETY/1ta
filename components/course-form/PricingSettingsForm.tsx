@@ -11,6 +11,7 @@ import { FormNavigation } from "./FormNavigation";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
 import { Switch } from "@/components/ui/switch";
 import { useAppSelector } from "@/store/hooks";
+import { AdminGuard } from "@/components/auth/PermissionGuard";
 
 interface PricingSettingsFormProps {
     control: Control<CourseFormValues>;
@@ -22,15 +23,12 @@ interface PricingSettingsFormProps {
 
 export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ control, isSubmitting, onBack, submitLabel }) => {
     const [showDollarPricing, setShowDollarPricing] = useState(false);
-    const user = useAppSelector(state => state.auth.user);
-    const isAdmin = user?.role === 'admin';
-
     return (
         <DyraneCard>
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                     <span>Pricing & Settings</span>
-                    {isAdmin && (
+                    <AdminGuard>
                         <div className="flex items-center space-x-2">
                             <span className="text-sm font-normal">
                                 {showDollarPricing ? 'USD' : 'NGN'}
@@ -41,7 +39,7 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
                                 aria-label="Toggle currency"
                             />
                         </div>
-                    )}
+                    </AdminGuard>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -105,63 +103,65 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
                 )}
 
                 {/* Dollar Pricing - Only visible to admins */}
-                {isAdmin && showDollarPricing && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormField
-                            control={control}
-                            name="price" // Original field for USD price
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Price (USD) *</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            placeholder="e.g., 49.99 or 0 for free"
-                                            {...field}
-                                            value={field.value ?? ""}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value === "" ? undefined : parseFloat(value));
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>Set the base price in US Dollars.</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={control}
-                            name="discountPrice" // Original field for USD discount price
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Discount Price (USD)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            placeholder="e.g., 29.99"
-                                            {...field}
-                                            value={field.value ?? ""}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                field.onChange(value === "" ? undefined : parseFloat(value));
-                                            }}
-                                            onBlur={field.onBlur}
-                                            name={field.name}
-                                            ref={field.ref}
-                                        />
-                                    </FormControl>
-                                    <FormDescription>Set a promotional price in US Dollars (optional).</FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-                )}
+                <AdminGuard>
+                    {showDollarPricing && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={control}
+                                name="price" // Original field for USD price
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Price (USD) *</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="e.g., 49.99 or 0 for free"
+                                                {...field}
+                                                value={field.value ?? ""}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    field.onChange(value === "" ? undefined : parseFloat(value));
+                                                }}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>Set the base price in US Dollars.</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={control}
+                                name="discountPrice" // Original field for USD discount price
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Discount Price (USD)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                placeholder="e.g., 29.99"
+                                                {...field}
+                                                value={field.value ?? ""}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    field.onChange(value === "" ? undefined : parseFloat(value));
+                                                }}
+                                                onBlur={field.onBlur}
+                                                name={field.name}
+                                                ref={field.ref}
+                                            />
+                                        </FormControl>
+                                        <FormDescription>Set a promotional price in US Dollars (optional).</FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    )}
+                </AdminGuard>
 
                 {/* Course Settings */}
                 <div className="border rounded-lg p-4 mt-6">
@@ -169,7 +169,7 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
                     <div className="space-y-4">
                         <FormField
                             control={control}
-                            name="available_for_enrollment"
+                            name="available_for_enrolment"
                             render={({ field }) => (
                                 <FormItem className="flex items-center justify-between p-3 border rounded-md">
                                     <div>

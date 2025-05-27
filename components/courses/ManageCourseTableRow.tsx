@@ -11,13 +11,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog"; // Use the reusable dialog
 import { MoreVertical, Eye, Pencil, Trash, MoreHorizontal } from "lucide-react";
+import { AdminGuard, DeleteGuard } from "@/components/auth/PermissionGuard";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
+import { UserRole } from "@/types/user.types";
 
 interface ManageCourseTableRowProps {
     course: AuthCourse;
     onDelete: (courseId: string, courseTitle: string) => Promise<void> | void; // Expects the delete callback
     showDollarPricing: boolean; // Whether to show prices in USD or Naira
-    userRole: string; // User role (admin, teacher, student)
+    userRole: UserRole; // User role (admin, teacher, student)
 }
 
 // Helper function to determine course status and styling
@@ -28,15 +30,15 @@ type CourseStatusType = {
 
 const getCourseStatus = (course: AuthCourse): CourseStatusType => {
     // Check if the course is available for enrolment
-    const isAvailable = course.available_for_enrollment !== undefined
-        ? course.available_for_enrollment
-        : course.isAvailableForEnrollment !== undefined
-            ? course.isAvailableForEnrollment
+    const isAvailable = course.available_for_enrolment !== undefined
+        ? course.available_for_enrolment
+        : course.isAvailableForEnrolment !== undefined
+            ? course.isAvailableForEnrolment
             : true; // Default to true if both fields are undefined
 
     // If the course has an enrolment status, use that for more detailed status
-    if (course.enrollmentStatus) {
-        switch (course.enrollmentStatus) {
+    if (course.enrolmentStatus) {
+        switch (course.enrolmentStatus) {
             case "pending":
                 return {
                     label: "Pending",
@@ -55,9 +57,7 @@ const getCourseStatus = (course: AuthCourse): CourseStatusType => {
                     className: "bg-green-100 text-green-800 border-green-300"
                 };
             case "enrolled":
-            case "in-progress":
-            case "completed":
-                // These are all active states
+                // Enrolled is an active state
                 return {
                     label: "Active",
                     className: "bg-green-100 text-green-800 border-green-300"
@@ -164,31 +164,34 @@ export function ManageCourseTableRow({ course, onDelete, showDollarPricing, user
                             </Link>
                         </DropdownMenuItem>
                         {/* Edit Action */}
-                        <DropdownMenuItem asChild className="cursor-pointer">
-                            {/* Make sure edit link is correct */}
-                            <Link href={`/courses/${course.slug}/edit`} className="flex items-center">
-                                <Pencil className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                            </Link>
-                        </DropdownMenuItem>
+                        <AdminGuard>
+                            <DropdownMenuItem asChild className="cursor-pointer">
+                                <Link href={`/courses/${course.slug}/edit`} className="flex items-center">
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    <span>Edit</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        </AdminGuard>
                         <DropdownMenuSeparator />
                         {/* Delete Action using ConfirmationDialog */}
-                        <ConfirmationDialog
-                            title="Delete Course?"
-                            description={deleteDescription}
-                            confirmText="Delete"
-                            variant="destructive"
-                            onConfirm={() => onDelete(course.id, course.title)} // Call the passed onDelete prop
-                            trigger={
-                                <DropdownMenuItem
-                                    onSelect={(e) => e.preventDefault()} // Prevent menu close on trigger click
-                                    className="flex items-center text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
-                                >
-                                    <Trash className="mr-2 h-4 w-4" />
-                                    <span>Delete</span>
-                                </DropdownMenuItem>
-                            }
-                        />
+                        <DeleteGuard>
+                            <ConfirmationDialog
+                                title="Delete Course?"
+                                description={deleteDescription}
+                                confirmText="Delete"
+                                variant="destructive"
+                                onConfirm={() => onDelete(course.id, course.title)}
+                                trigger={
+                                    <DropdownMenuItem
+                                        onSelect={(e) => e.preventDefault()}
+                                        className="flex items-center text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                                    >
+                                        <Trash className="mr-2 h-4 w-4" />
+                                        <span>Delete</span>
+                                    </DropdownMenuItem>
+                                }
+                            />
+                        </DeleteGuard>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </td>

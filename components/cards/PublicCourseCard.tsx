@@ -18,9 +18,10 @@ import { addItem } from "@/features/cart/store/cart-slice"
 import { useToast } from "@/hooks/use-toast"
 import { AbstractBackground } from "../layout/abstract-background"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
+import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
 
 interface PublicCourseCardProps {
-    course: PublicCourse
+    course: PublicCourse | AuthCourse
     className?: string
     onClick?: () => void
     isModal?: boolean
@@ -28,7 +29,7 @@ interface PublicCourseCardProps {
 }
 
 // Component to render either Video or Fallback Image
-const CourseMediaPreview = ({ course }: { course: PublicCourse }) => {
+const CourseMediaPreview = ({ course }: { course: PublicCourse | AuthCourse }) => {
     // Use video if URL exists, otherwise use placeholder image
     if (course.previewVideoUrl) {
         return (
@@ -158,7 +159,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                             <DyraneButton variant="ghost" onClick={() => onClose?.()} >
                                 Close
                             </DyraneButton>
-                            {course.available_for_enrollment !== false ? (
+                            {('available_for_enrollment' in course ? course.available_for_enrollment !== false : true) ? (
                                 <DyraneButton size="lg" onClick={handleEnrollNow}>
                                     {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enrol now</span>)}
                                 </DyraneButton>

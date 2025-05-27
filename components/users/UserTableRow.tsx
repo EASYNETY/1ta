@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button"; // Use Shadcn Button
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 import { User, Mail, Calendar, MoreHorizontal, Eye, Pencil, Trash } from "lucide-react";
+import { AdminGuard, DeleteGuard } from "@/components/auth/PermissionGuard";
+import { UserRole } from "@/types/user.types";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,7 +22,7 @@ export interface UserData {
     id: string;
     name: string;
     email: string;
-    role: "student" | "teacher" | "admin" | string; // Allow string for flexibility if roles expand
+    role: UserRole;
     isActive: boolean;
     barcodeId?: string; // Optional, only if applicable
     createdAt: string;
@@ -145,28 +147,32 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
                                 <Eye className="mr-2 h-4 w-4" />
                                 <span>View Profile</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => router.push(`/users/${user.id}/edit`)} className="cursor-pointer">
-                                <Pencil className="mr-2 h-4 w-4" />
-                                <span>Edit User</span>
-                            </DropdownMenuItem>
+                            <AdminGuard>
+                                <DropdownMenuItem onClick={() => router.push(`/users/${user.id}/edit`)} className="cursor-pointer">
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    <span>Edit User</span>
+                                </DropdownMenuItem>
+                            </AdminGuard>
                             <DropdownMenuSeparator />
                             {/* --- Integrate ConfirmationDialog for Delete --- */}
-                            <ConfirmationDialog
-                                title="Delete User?"
-                                description={deleteDescription}
-                                confirmText="Delete"
-                                variant="destructive" // Use destructive style for the confirm button
-                                onConfirm={() => onDelete(user.id, user.name)} // Pass the actual delete handler
-                                trigger={
-                                    <DropdownMenuItem
-                                        onSelect={(e) => e.preventDefault()} // Prevent default closing on select
-                                        className="flex items-center text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
-                                    >
-                                        <Trash className="mr-2 h-4 w-4" />
-                                        <span>Delete User</span>
-                                    </DropdownMenuItem>
-                                }
-                            />
+                            <DeleteGuard>
+                                <ConfirmationDialog
+                                    title="Delete User?"
+                                    description={deleteDescription}
+                                    confirmText="Delete"
+                                    variant="destructive"
+                                    onConfirm={() => onDelete(user.id, user.name)}
+                                    trigger={
+                                        <DropdownMenuItem
+                                            onSelect={(e) => e.preventDefault()}
+                                            className="flex items-center text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                                        >
+                                            <Trash className="mr-2 h-4 w-4" />
+                                            <span>Delete User</span>
+                                        </DropdownMenuItem>
+                                    }
+                                />
+                            </DeleteGuard>
                             {/* --- End Integration --- */}
                         </DropdownMenuContent>
                     </DropdownMenu>

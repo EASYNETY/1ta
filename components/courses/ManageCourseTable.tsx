@@ -4,6 +4,7 @@ import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 import { ManageCourseTableRow } from "./ManageCourseTableRow";
 import { Switch } from "@/components/ui/switch";
 import { useAppSelector } from "@/store/hooks";
+import { AdminGuard } from "@/components/auth/PermissionGuard";
 
 interface ManageCourseTableProps {
     courses: AuthCourse[];
@@ -13,10 +14,7 @@ interface ManageCourseTableProps {
 export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTableProps) {
     const [showDollarPricing, setShowDollarPricing] = useState(true);
     const user = useAppSelector(state => state.auth.user);
-    const isAdmin = user?.role === 'admin';
-    const isTeacher = user?.role === 'teacher';
-    const isAdminOrTeacher = isAdmin || isTeacher;
-
+    
     const handleCurrencyToggle = (checked: boolean) => {
         setShowDollarPricing(!checked);
     };
@@ -24,7 +22,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
     return (
         <>
             <div className="space-y-4">
-                {isAdminOrTeacher && (
+                <AdminGuard>
                     <div className="flex justify-end items-center space-x-2">
                         <span className="text-sm text-muted-foreground">
                             {showDollarPricing ? 'USD' : 'NGN'}
@@ -35,7 +33,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                             aria-label="Toggle currency"
                         />
                     </div>
-                )}
+                </AdminGuard>
 
                 <div className="overflow-x-auto relative w-full border rounded-md bg-background/5 backdrop-blur-sm">
                     <table className="w-full border-collapse">
@@ -46,7 +44,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Instructor</th>
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
                                 <th className="text-left py-3 px-4 font-medium text-muted-foreground">
-                                    Price {isAdminOrTeacher && `(${showDollarPricing ? 'USD' : 'NGN'})`}
+                                    Price <AdminGuard>{`(${showDollarPricing ? 'USD' : 'NGN'})`}</AdminGuard>
                                 </th>
                                 <th className="text-right py-3 px-4 font-medium text-muted-foreground">Actions</th>
                             </tr>
@@ -58,7 +56,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                                         key={course.id}
                                         course={course}
                                         onDelete={onDeleteCourse}
-                                        showDollarPricing={isAdminOrTeacher ? showDollarPricing : false}
+                                        showDollarPricing={user?.role === 'admin' || user?.role === 'teacher' ? showDollarPricing : false}
                                         userRole={user?.role || 'student'}
                                     />
                                 ))

@@ -1,6 +1,7 @@
 // components/courses/ManageCoursesTabContent.tsx
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
 import { CardContent } from "@/components/ui/card";
+import { AdminGuard } from "@/components/auth/PermissionGuard";
 import { FetchStatus } from "@/types";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -38,9 +39,11 @@ export function ManageCoursesTabContent({ status, courses }: ManageCoursesTabCon
     // Render the ManageCourseTable component.
     // The table component itself handles the "no results found" message within its tbody.
     return (
-        <ManageCourseTable
-            courses={courses}
-            onDeleteCourse={handleDeleteCourse}
-        />
+        <AdminGuard>
+            <ManageCourseTable
+                courses={courses}
+                onDeleteCourse={handleDeleteCourse}
+            />
+        </AdminGuard>
     );
 }
