@@ -3,6 +3,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { addAuthExtraReducers } from "./auth-extra-reducers";
 import { clearAuthData } from "@/lib/auth-service";
 import type { User, AuthState } from "@/types/user.types";
+import { RootState } from "@/store";
 
 const initialState: AuthState = {
 	user: null,
@@ -109,5 +110,21 @@ export const {
 	skipOnboardingProcess,
 	resetSkipOnboarding,
 } = authSlice.actions;
+
+// --- Selectors ---
+// Selector for the currently authenticated user
+export const selectCurrentUser = (state: RootState) => state.auth.user;
+export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
+export const selectAuthLoading = (state: RootState) => state.auth.isLoading; // For login/signup process
+export const selectAuthError = (state: RootState) => state.auth.error;     // For login/signup process
+export const selectIsInitialized = (state: RootState) => state.auth.isInitialized;
+export const selectAuthToken = (state: RootState) => state.auth.token;
+
+// VVVV ADD THESE SELECTORS FOR THE USER LIST VVVV
+export const selectAllUsers = (state: RootState): User[] => state.auth.users;
+export const selectTotalUsers = (state: RootState): number => state.auth.totalUsers;
+export const selectUsersLoading = (state: RootState): boolean => state.auth.usersLoading;
+export const selectUsersError = (state: RootState): string | null => state.auth.usersError;
+// ^^^^ END OF ADDED SELECTORS ^^^^
 
 export default authSlice.reducer;

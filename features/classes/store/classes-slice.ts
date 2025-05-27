@@ -6,6 +6,7 @@ import type {
 	ClassesState,
 	AdminClassView,
 	CourseClassOption,
+	WaitlistEntry,
 } from "../types/classes-types";
 // No direct apiClient import needed here anymore for thunks
 

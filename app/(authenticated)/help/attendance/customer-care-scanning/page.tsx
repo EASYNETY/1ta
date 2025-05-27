@@ -48,7 +48,7 @@ const tableOfContents = [
 
 export default function CustomerCareScanningPage() {
   return (
-    <article className="prose prose-slate dark:prose-invert max-w-4xl mx-auto">
+    <article className="prose prose-slate dark:prose-invert mx-auto">
       <ArticleHeader
         title="Customer Care Scanning"
         description="Learn how to use the barcode scanning system to instantly access student information, payment status, and course details."
