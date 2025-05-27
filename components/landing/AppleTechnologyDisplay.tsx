@@ -1168,14 +1168,6 @@ export function AppleTechnologyDisplay() {
                   direction="left"
                   speed={20}
                 />
-                <div className="h-4"></div> {/* Spacer between marquees */}
-                <TechnologyMarquee
-                  courses={currentCourses.slice().reverse()}
-                  onClick={handleIconClick}
-                  getTechnologyIcon={getTechnologyIcon}
-                  direction="right"
-                  speed={15}
-                />
               </motion.div>
             ) : (
               <motion.div
@@ -1184,7 +1176,7 @@ export function AppleTechnologyDisplay() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 justify-items-stretch"
+                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-items-stretch"
               >
                 {currentCourses.map((course, index) => (
                   <TechnologyCard
