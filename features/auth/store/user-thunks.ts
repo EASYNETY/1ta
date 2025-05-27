@@ -87,6 +87,65 @@ export const fetchAllUsers = createAsyncThunk<
 	}
 });
 
+// Fetch ALL users (all pages) for barcode scanning and other use cases
+export const fetchAllUsersComplete = createAsyncThunk<
+	UsersResponse,
+	{ search?: string } | undefined,
+	{ state: RootState; rejectValue: string }
+>("users/fetchAllComplete", async (params = {}, { rejectWithValue }) => {
+	try {
+		const { search = "" } = params;
+		let allUsers: any[] = [];
+		let currentPage = 1;
+		let totalPages = 1;
+		let totalUsers = 0;
+
+		// Fetch all pages
+		do {
+			// Build query parameters for backend API
+			const queryParams = new URLSearchParams();
+			if (search) queryParams.append("search", search);
+			queryParams.append("page", currentPage.toString());
+			queryParams.append("limit", "100"); // Use a reasonable page size
+
+			const queryString = queryParams.toString();
+			const endpoint = `/admin/users?${queryString}`;
+
+			console.log(`Fetching users page ${currentPage}...`);
+
+			// Call the real backend API
+			const backendResponse = await get<BackendUsersResponse>(endpoint);
+
+			// Add users from this page to our collection
+			allUsers = allUsers.concat(backendResponse.users);
+
+			// Update pagination info
+			totalPages = backendResponse.pagination.totalPages;
+			totalUsers = backendResponse.pagination.total;
+
+			console.log(`Fetched page ${currentPage}/${totalPages}, got ${backendResponse.users.length} users`);
+
+			currentPage++;
+		} while (currentPage <= totalPages);
+
+		console.log(`Completed fetching all users: ${allUsers.length} total users`);
+
+		// Convert all backend users to our format
+		const convertedUsers = allUsers.map(convertBackendUserToUser);
+
+		const response: UsersResponse = {
+			users: convertedUsers,
+			totalUsers: totalUsers,
+			currentPage: 1, // Since we're returning all users, treat as page 1
+			totalPages: 1, // Since we're returning all users, treat as 1 page
+		};
+		return response;
+	} catch (error: any) {
+		const message = error?.message || "Failed to fetch all users";
+		return rejectWithValue(message);
+	}
+});
+
 // Fetch users by role with server-side pagination
 export const fetchUsersByRole = createAsyncThunk<
 	UsersResponse,

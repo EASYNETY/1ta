@@ -15,7 +15,7 @@ import { resetMarkingStatus } from "@/features/attendance/store/attendance-slice
 import { selectCourseClass } from "@/features/classes/store/classSessionSlice";
 import { selectSafeUsers } from "@/features/auth/store/auth-selectors";
 import { fetchCourseClassOptionsForScanner } from "@/features/classes/store/classes-thunks";
-import { fetchUsersByRole } from "@/features/auth/store/user-thunks";
+import { fetchAllUsersComplete } from "@/features/auth/store/user-thunks";
 
 // UI Components
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,7 +61,7 @@ export default function ScanPage() {
     const [casualScanMode, setCasualScanMode] = useState(false);
 
     // Refs to track initialization
-    const initialStudentsFetchAttempted = useRef(false);
+    const initialUsersFetchAttempted = useRef(false);
 
     // Effect: User validation
     useEffect(() => {
@@ -74,15 +74,16 @@ export default function ScanPage() {
         dispatch(resetMarkingStatus());
     }, [loggedInUser, dispatch, router, toast]);
 
-    // Effect: Fetch all students when component mounts
+    // Effect: Fetch all users when component mounts (for barcode lookup)
     useEffect(() => {
-        if (loggedInUser && !initialStudentsFetchAttempted.current) {
-            console.log("ScanPage: Fetching all students for barcode lookup.");
-            dispatch(fetchUsersByRole({ role: "student" }));
-            console.log("list of students", users);
-            initialStudentsFetchAttempted.current = true;
+        if (loggedInUser && !initialUsersFetchAttempted.current) {
+            console.log("ScanPage: Fetching ALL users (all pages) for barcode lookup.");
+            // Fetch all users across all pages - this will get all 27 users
+            dispatch(fetchAllUsersComplete());
+            console.log("list of users", users);
+            initialUsersFetchAttempted.current = true;
         }
-    }, [dispatch, loggedInUser]);
+    }, [dispatch, loggedInUser, users]);
 
     // Handle barcode detection
     const handleBarcodeDetected = useCallback(async (scannedData: any) => {

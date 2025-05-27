@@ -13,6 +13,7 @@ import type { AuthResponse } from "../types/auth-types";
 import {
 	deleteUser,
 	fetchAllUsers,
+	fetchAllUsersComplete,
 	fetchUserById,
 	fetchUsersByRole,
 	createUserAdmin,
@@ -216,6 +217,33 @@ export const addAuthExtraReducers = (builder: any) => {
 		(state: AuthState, action: ReturnType<typeof fetchAllUsers.rejected>) => {
 			state.usersLoading = false;
 			state.usersError = action.payload ?? "Failed to fetch users";
+		}
+	);
+
+	// --- FETCH ALL USERS COMPLETE (ALL PAGES) ---
+	builder.addCase(fetchAllUsersComplete.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
+	builder.addCase(
+		fetchAllUsersComplete.fulfilled,
+		(
+			state: AuthState,
+			action: PayloadAction<{ users: User[]; totalUsers: number }>
+		) => {
+			state.usersLoading = false;
+			// Ensure users is always an array, even if API returns null/undefined
+			state.users = action.payload.users || [];
+			state.totalUsers = action.payload.totalUsers || 0;
+		}
+	);
+
+	builder.addCase(
+		fetchAllUsersComplete.rejected,
+		(state: AuthState, action: ReturnType<typeof fetchAllUsersComplete.rejected>) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to fetch all users";
 		}
 	);
 

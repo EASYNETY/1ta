@@ -31,6 +31,7 @@ export {
 // Export the user thunks
 export {
   fetchAllUsers,
+  fetchAllUsersComplete,
   fetchUsersByRole,
   fetchUserById,
   deleteUser,

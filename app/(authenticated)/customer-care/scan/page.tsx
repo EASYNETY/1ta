@@ -17,7 +17,7 @@ import BarcodeScanner from "@/lib/barcode-scanner";
 import { ScanBarcode, User, CreditCard, Clock, BookOpen, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 // Redux
-import { fetchUsersByRole } from "@/features/auth/store/user-thunks";
+import { fetchAllUsersComplete } from "@/features/auth/store/user-thunks";
 import { selectSafeUsers } from "@/features/auth/store/auth-selectors";
 
 // Types
@@ -79,11 +79,12 @@ export default function CustomerCareScanPage() {
         }
     }, [loggedInUser, router, toast]);
 
-    // Fetch students for barcode lookup
+    // Fetch all users for barcode lookup
     useEffect(() => {
         if (loggedInUser && !initialStudentsFetchAttempted.current) {
-            console.log("CustomerCareScan: Fetching all students for barcode lookup.");
-            dispatch(fetchUsersByRole({ role: "student" }));
+            console.log("CustomerCareScan: Fetching ALL users (all pages) for barcode lookup.");
+            // Fetch all users across all pages - this will get all 27 users
+            dispatch(fetchAllUsersComplete());
             initialStudentsFetchAttempted.current = true;
         }
     }, [dispatch, loggedInUser]);
