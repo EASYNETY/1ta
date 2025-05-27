@@ -377,8 +377,8 @@ function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
             </AvatarWithVerification>
             {isSidebarOpen && (
                 <div className="min-w-0 flex-1">
-                    <p className="font-medium text-xs truncate text-foreground">{user.name}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+                    <p className="font-medium text-sm truncate text-foreground">{user.name}</p>
+                    <p className="text-[14px] text-muted-foreground truncate">{user.email}</p>
                 </div>
             )}
         </Link>

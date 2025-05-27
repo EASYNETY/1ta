@@ -228,6 +228,14 @@
 		@apply text-lg md:text-xl;
 		line-height: 1.6;
 	}
+	span {
+		@apply text-sm md:text-base;
+		line-height: 1.6;
+	}
+	div {
+		@apply text-base md:text-lg;
+		line-height: 1.6;
+	}
 	/* Increase button text size */
 	button {
 		@apply text-lg md:text-xl;
