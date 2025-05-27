@@ -25,6 +25,7 @@ import Link from "next/link"
 import { ClassAssignmentLink } from "@/components/courses/ClassAssignmentLink"
 import { ClassQuizLink } from "@/components/courses/ClassQuizLink"
 import { ClassGradeLink } from "@/components/courses/ClassGradeLink"
+import { PageHeader } from "@/components/layout/auth/page-header"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -255,6 +256,7 @@ export default function CourseDetailPage() {
 
     return (
         <div className="space-y-6">
+            <PageHeader />
             <div className="flex flex-col md:flex-row gap-6">
                 {/* Course Content Sidebar */}
                 <div className="w-full md:w-1/3 lg:w-1/4 space-y-4">
