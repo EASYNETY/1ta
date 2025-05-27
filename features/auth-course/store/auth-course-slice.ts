@@ -56,7 +56,15 @@ export const fetchAuthCourses = createAsyncThunk<
 			message?: string;
 		} | AuthCourse[]>("/auth_courses");
 
-		// Handle both response formats (direct array or nested with success/data)
+		console.log("Raw API response structure:", {
+			type: typeof response,
+			isArray: Array.isArray(response),
+			hasSuccess: 'success' in response,
+			hasData: 'data' in response,
+			keys: Object.keys(response || {}).slice(0, 10)
+		});
+
+		// Handle different response formats with robust object-to-array conversion
 		let courses: AuthCourse[];
 
 		// Check if response has the nested structure with success/data properties
@@ -72,17 +80,115 @@ export const fetchAuthCourses = createAsyncThunk<
 				throw new Error("Courses data not found in response");
 			}
 
-			courses = response.data;
+			// Check if response.data is an array or object with numeric keys
+			if (Array.isArray(response.data)) {
+				console.log("✅ Standard format detected - using response.data");
+				courses = response.data;
+			} else if (response.data && typeof response.data === 'object') {
+				console.log("🔍 Analyzing response.data object:", {
+					dataType: typeof response.data,
+					keys: Object.keys(response.data).slice(0, 10)
+				});
+
+				// Check if it's an object with numeric keys
+				const keys = Object.keys(response.data);
+				const numericKeys = keys.filter(key => !isNaN(parseInt(key))).sort((a, b) => parseInt(a) - parseInt(b));
+				const hasNumericKeys = numericKeys.length > 0;
+
+				console.log("🔍 Object analysis:", {
+					totalKeys: keys.length,
+					numericKeys: numericKeys.slice(0, 10),
+					hasNumericKeys,
+					nonNumericKeys: keys.filter(key => isNaN(parseInt(key)))
+				});
+
+				if (hasNumericKeys) {
+					console.log("🔧 Converting object with numeric keys to array...");
+
+					// Convert object with numeric keys to array
+					courses = [];
+					for (const key of numericKeys) {
+						if (response.data[key] !== undefined) {
+							courses.push(response.data[key]);
+						}
+					}
+
+					console.log(`✅ Successfully converted object to array with ${courses.length} items`);
+				} else {
+					console.log("🔧 Using Object.values as fallback...");
+					courses = Object.values(response.data);
+				}
+			} else {
+				console.error("API Error: response.data is not an array or object");
+				throw new Error("Invalid response.data format");
+			}
+		} else if (Array.isArray(response)) {
+			// This is a direct array response format
+			console.log("✅ Direct array format detected");
+			courses = response;
+		} else if (response && typeof response === 'object') {
+			// Try to extract data from any object structure
+			const responseObj = response as Record<string, any>;
+			const possibleData = responseObj.data || responseObj.courses || responseObj.items || response;
+
+			console.log("🔍 Analyzing object response:", {
+				dataType: typeof possibleData,
+				isArray: Array.isArray(possibleData),
+				keys: Object.keys(possibleData || {}).slice(0, 10)
+			});
+
+			if (Array.isArray(possibleData)) {
+				console.log("✅ Found array in object structure");
+				courses = possibleData;
+			} else if (possibleData && typeof possibleData === 'object') {
+				// Check if it's an object with numeric keys (the main issue)
+				const keys = Object.keys(possibleData);
+				const numericKeys = keys.filter(key => !isNaN(parseInt(key))).sort((a, b) => parseInt(a) - parseInt(b));
+				const hasNumericKeys = numericKeys.length > 0;
+
+				console.log("🔍 Object analysis:", {
+					totalKeys: keys.length,
+					numericKeys: numericKeys.slice(0, 10),
+					hasNumericKeys,
+					nonNumericKeys: keys.filter(key => isNaN(parseInt(key)))
+				});
+
+				if (hasNumericKeys) {
+					console.log("🔧 Converting object with numeric keys to array...");
+
+					// Convert object with numeric keys to array
+					courses = [];
+					for (const key of numericKeys) {
+						if (possibleData[key] !== undefined) {
+							courses.push(possibleData[key]);
+						}
+					}
+
+					console.log(`✅ Successfully converted object to array with ${courses.length} items`);
+				} else {
+					console.log("🔧 Using Object.values as fallback...");
+					courses = Object.values(possibleData);
+				}
+			} else {
+				console.error("API Error: Could not find array data in response", response);
+				throw new Error("Failed to extract course data from response");
+			}
 		} else {
-			// This is a direct response format (array)
-			courses = response as AuthCourse[];
+			console.error("API Error: Unexpected response format", response);
+			throw new Error("Unexpected API response format");
 		}
 
-		// Validate that courses is an array
+		// Final validation - ensure we have an array
 		if (!Array.isArray(courses)) {
-			console.error("Fetched auth courses data is not an array:", courses);
-			throw new Error("Invalid data format received for auth courses");
+			console.error("❌ CRITICAL: courses is still not an array after conversion!", {
+				type: typeof courses,
+				constructor: (courses as any)?.constructor?.name,
+				value: courses
+			});
+			throw new Error("Failed to convert response to array format");
 		}
+
+		console.log(`✅ Successfully processed ${courses.length} auth courses as array`);
 
 		// Apply PNG icon mapping to courses
 		const coursesWithIcons = courses.map(course => ({
@@ -122,6 +228,14 @@ export const fetchCourseBySlug = createAsyncThunk<
 			data?: AuthCourse;
 			message?: string;
 		} | AuthCourse>(`/auth_courses/${slug}`);
+
+		console.log("Raw API response structure:", {
+			type: typeof response,
+			isArray: Array.isArray(response),
+			hasSuccess: 'success' in response,
+			hasData: 'data' in response,
+			keys: Object.keys(response || {}).slice(0, 10)
+		});
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
@@ -180,6 +294,14 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 			data?: AuthCourse;
 			message?: string;
 		} | AuthCourse>(`/auth_courses/slug/${slug}`);
+
+		console.log("Raw API response structure:", {
+			type: typeof response,
+			isArray: Array.isArray(response),
+			hasSuccess: 'success' in response,
+			hasData: 'data' in response,
+			keys: Object.keys(response || {}).slice(0, 10)
+		});
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
@@ -300,6 +422,14 @@ export const createAuthCourse = createAsyncThunk<
 			message?: string;
 		} | AuthCourse>("/auth_courses", processedData);
 
+		console.log("Raw API response structure:", {
+			type: typeof response,
+			isArray: Array.isArray(response),
+			hasSuccess: 'success' in response,
+			hasData: 'data' in response,
+			keys: Object.keys(response || {}).slice(0, 10)
+		});
+
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
 
@@ -367,6 +497,14 @@ export const updateAuthCourse = createAsyncThunk<
 			data?: AuthCourse;
 			message?: string;
 		} | AuthCourse>(`/auth_courses/${couseSlug}`, processedData);
+
+		console.log("Raw API response structure:", {
+			type: typeof response,
+			isArray: Array.isArray(response),
+			hasSuccess: 'success' in response,
+			hasData: 'data' in response,
+			keys: Object.keys(response || {}).slice(0, 10)
+		});
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
