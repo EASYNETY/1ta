@@ -1,16 +1,12 @@
 // src/components/course-form/PricingSettingsForm.tsx
 import React, { useState } from "react";
 import { type Control } from "react-hook-form";
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { FormNavigation } from "./FormNavigation";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
 import { Switch } from "@/components/ui/switch";
-import { useAppSelector } from "@/store/hooks";
 import { AdminGuard } from "@/components/auth/PermissionGuard";
 
 interface PricingSettingsFormProps {
@@ -24,7 +20,7 @@ interface PricingSettingsFormProps {
 export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ control, isSubmitting, onBack, submitLabel }) => {
     const [showDollarPricing, setShowDollarPricing] = useState(false);
     return (
-        <DyraneCard>
+        <Card>
             <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                     <span>Pricing & Settings</span>
@@ -194,6 +190,6 @@ export const PricingSettingsForm: React.FC<PricingSettingsFormProps> = ({ contro
             </CardContent>
             {/* FormNavigation remains the same */}
             <FormNavigation onBack={onBack} isSubmitting={isSubmitting} submitLabel={submitLabel} isLastStep={true} />
-        </DyraneCard>
+        </Card>
     );
 };

@@ -1,13 +1,11 @@
 // src/components/course-form/CourseDetailsForm.tsx
 import React from "react";
 import { type Control } from "react-hook-form";
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
-import { Upload } from "lucide-react";
+
 import { FormNavigation } from "./FormNavigation";
 import { LANGUAGES, ACCESS_TYPES, SUPPORT_TYPES } from "@/config/course-form-config";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
@@ -24,7 +22,7 @@ import { MediaType } from "@/lib/services/media-upload-service";
 
 export const CourseDetailsForm: React.FC<CourseDetailsFormProps> = ({ control, onBack, onNext }) => {
     return (
-        <DyraneCard>
+        <Card>
             <CardHeader>
                 <CardTitle>Course Details</CardTitle>
             </CardHeader>
@@ -147,6 +145,6 @@ export const CourseDetailsForm: React.FC<CourseDetailsFormProps> = ({ control, o
 
             </CardContent>
             <FormNavigation onBack={onBack} onNext={onNext} />
-        </DyraneCard>
+        </Card>
     );
 };
