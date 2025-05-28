@@ -17,7 +17,7 @@ export const moduleSchema = z.object({
 	description: z.string().optional(),
 	lessons: z
 		.array(lessonSchema)
-		.min(1, "Each module must have at least one lesson."),
+		// .min(1, "Each module must have at least one lesson."),
 });
 
 export type ModuleFormValues = z.infer<typeof moduleSchema>;
