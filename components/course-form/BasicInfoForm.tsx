@@ -141,7 +141,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, setValue,
                             <div className="space-y-3">
                                 <div className="relative aspect-video w-full overflow-hidden rounded-md border">
                                     <Image
-                                        src={imageUrl}
+                                        src={`/api/images?imageUrl=${encodeURIComponent(imageUrl)}`}
                                         alt="Course Thumbnail Preview"
                                         layout="fill"
                                         objectFit="cover"
