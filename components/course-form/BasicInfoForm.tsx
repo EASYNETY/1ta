@@ -176,8 +176,8 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, setValue,
                                         onUploadSuccess: (response) => {
                                             console.log("Thumbnail uploaded successfully (external callback):", response);
                                             // Prepend base URL to relative URL before setting value
-                                            const baseUrl = "http://34.249.241.206:5000";
-                                            const fullUrl = response.data.files[0].url ? baseUrl + response.data.files[0].url : "";
+                                            // const baseUrl = "http://34.249.241.206:5000";
+                                            const fullUrl = response.data.files[0].url ? response.data.files[0].url : "";
                                             setValue("image", fullUrl, { shouldValidate: true, shouldDirty: true });
                                         },
                                     }}
