@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormNavigation } from "./FormNavigation";
-import { CATEGORIES, levels, LEVELS } from "@/config/course-form-config";
+import { CATEGORIES, levels } from "@/config/course-form-config";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
 
 interface BasicInfoFormProps {

@@ -21,12 +21,12 @@ export const CATEGORIES = [
 	"Marketing",
 ];
 
-export const LEVELS: CourseFormValues["level"][] = [
-	"Beginner",
-	"Intermediate",
-	"Advanced",
-	"All Levels",
-];
+// export const LEVELS: CourseFormValues["level"][] = [
+// 	"Beginner",
+// 	"Intermediate",
+// 	"Advanced",
+// 	"All Levels",
+// ];
 export const levels = ["beginner", "intermediate", "advanced", "all levels"];
 export const LANGUAGES = [
 	"English",
@@ -82,7 +82,7 @@ export const defaultCourseValues: Partial<CourseFormValues> = {
 	subtitle: "",
 	description: "",
 	category: CATEGORIES[0],
-	level: "Beginner",
+	level: "beginner",
 	image: null,
 	previewVideoUrl: null,
 	price: 0,

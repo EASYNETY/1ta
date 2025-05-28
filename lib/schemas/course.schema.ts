@@ -27,7 +27,7 @@ export const courseSchema = z.object({
 	subtitle: z.string().optional(),
 	description: z.string().min(20, "Description must be at least 20 characters"),
 	category: z.string({ required_error: "Please select a category." }),
-	level: z.enum(["Beginner", "Intermediate", "Advanced", "All Levels"], {
+	level: z.enum(["beginner", "intermediate", "advanced", "all levels"], {
 		required_error: "Please select a level.",
 	}),
 	// Media fields
@@ -111,7 +111,7 @@ export const defaultCourseValues: Partial<CourseFormValues> = {
 	subtitle: "",
 	description: "",
 	category: "",
-	level: "All Levels",
+	level: "all levels",
 	price: 0,
 	priceNaira: 0,
 	discountPrice: undefined,
