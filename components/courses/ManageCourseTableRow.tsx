@@ -143,7 +143,7 @@ export function ManageCourseTableRow({ course, onDelete, showDollarPricing, user
                     <span>$ {course.priceUSD?.toFixed(2) ?? 'N/A'}</span>
                 ) : (
                     // Show Naira price for students or when toggle is set to Naira
-                    <span>₦ {course.priceNaira?.toFixed(2) ?? course.priceUSD ? (course.priceUSD * 1500).toFixed(2) : 'N/A'}</span>
+                    <span>₦ {course.priceNaira}</span>
                 )}
             </td>
 
