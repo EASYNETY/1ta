@@ -125,24 +125,38 @@ const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseForm
         }) ?? []
     })) ?? [];
 
+    function parseStringOrArray(value: unknown): string[] {
+        if (Array.isArray(value)) return value;
+        if (typeof value === "string") {
+            try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+        return [];
+    }
+
+
     return {
         title: course.title ?? "",
         subtitle: course.subtitle ?? "",
         description: course.description ?? "",
-        category: course.category ?? "", // Need a valid category string
+        category: course.category ?? "",
         level: course.level ?? "All Levels",
-        available_for_enrolment: course.isAvailableForEnrolment ?? true, // Map isAvailableForEnrolment to available_for_enrolment
+        available_for_enrolment: course.isAvailableForEnrolment ?? true,
         price: course.priceUSD ?? 0,
         priceNaira: course.priceNaira ?? 0,
-        discountPrice: course.discountPriceUSD, // Can be undefined
-        discountPriceNaira: course.discountPriceNaira, // Can be undefined
+        discountPrice: course.discountPriceUSD,
+        discountPriceNaira: course.discountPriceNaira,
         language: course.language ?? "English",
         certificate: course.certificate ?? true,
         accessType: course.accessType ?? "Lifetime",
         supportType: course.supportType ?? "Both",
-        tags: course.tags?.join(", ") ?? "", // Join array back to string
-        learningOutcomes: course.learningOutcomes?.join("\n") ?? "", // Join array back to string
-        prerequisites: course.prerequisites?.join("\n") ?? "", // Join array back to string
+        tags: parseStringOrArray(course.tags).join(", "),
+        learningOutcomes: parseStringOrArray(course.learningOutcomes).join("\n"),
+        prerequisites: parseStringOrArray(course.prerequisites).join("\n"),
         modules: formattedModules,
     };
 };
