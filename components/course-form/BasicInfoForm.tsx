@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormNavigation } from "./FormNavigation";
-import { CATEGORIES, LEVELS } from "@/config/course-form-config";
+import { CATEGORIES, levels, LEVELS } from "@/config/course-form-config";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
 
 interface BasicInfoFormProps {
@@ -96,7 +96,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, onNext })
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {LEVELS.map((lvl) => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
+                                        {levels.map((lvl) => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

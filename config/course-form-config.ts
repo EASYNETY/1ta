@@ -3,7 +3,7 @@
 import type {
 	CourseFormValues,
 	LessonFormValues,
-    ModuleFormValues,
+	ModuleFormValues,
 } from "@/lib/schemas/course.schema";
 
 export const CATEGORIES = [
@@ -27,6 +27,7 @@ export const LEVELS: CourseFormValues["level"][] = [
 	"Advanced",
 	"All Levels",
 ];
+export const levels = ["beginner", "intermediate", "advanced", "all levels"];
 export const LANGUAGES = [
 	"English",
 	"Spanish",
@@ -65,12 +66,14 @@ export const defaultLessonValues = {
 export const defaultModuleValues = {
 	title: "New Module",
 	description: "",
-	lessons: [{
-		title: "Lesson 1",
-		type: "video" as LessonFormValues["type"],
-		duration: "",
-		description: ""
-	}], // Start with one lesson
+	lessons: [
+		{
+			title: "Lesson 1",
+			type: "video" as LessonFormValues["type"],
+			duration: "",
+			description: "",
+		},
+	], // Start with one lesson
 };
 
 // Default values for a new course
