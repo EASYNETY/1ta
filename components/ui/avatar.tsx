@@ -72,7 +72,7 @@ function AvatarWithVerification({
   children,
   onClick,
 }: AvatarWithVerificationProps) {
-  const isActive = user?.isActive === true;
+  const isActive = user?.isActive;
 
   // Position the badge relative to the avatar border
   const getBadgePosition = () => {

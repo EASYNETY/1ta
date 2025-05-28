@@ -11,6 +11,8 @@ import Link from "next/link"
 import { BarcodeIcon, ScanBarcode } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import Barcode from "react-barcode"
+import { BarcodeDialog } from "../tools/BarcodeDialog"
+import { isStudent } from "@/types/user.types";
 
 export function Attendance() {
     const { user } = useAppSelector((state) => state.auth)
@@ -42,8 +44,6 @@ export function Attendance() {
             </div>
         )
     }
-
-    const isStudent = user.role === "student"
 
     // Render different views based on user role
     return (
@@ -90,16 +90,9 @@ export function Attendance() {
                     <DialogHeader>
                         <DialogTitle>Your Attendance Barcode</DialogTitle>
                     </DialogHeader>
-                    {user && (
+                    {user && isStudent(user) && (
                         <div className="p-4 bg-white rounded-md border shadow-inner mt-4">
-                            <Barcode
-                                value={user.id}
-                                height={80}
-                                width={2}
-                                displayValue={false}
-                                background="#ffffff"
-                                lineColor="#000000"
-                            />
+                            <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />
                         </div>
                     )}
                 </DialogContent>

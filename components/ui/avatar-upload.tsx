@@ -7,6 +7,8 @@ import { Loader2, Pencil, X } from 'lucide-react';
 import { useMediaUpload, UseMediaUploadOptions } from '@/hooks/use-media-upload';
 import { MediaType } from '@/lib/services/media-upload-service';
 import { User } from '@/types/user.types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 export interface AvatarUploadProps {
   /**
@@ -212,16 +214,26 @@ export function AvatarUpload({
 
       {/* Remove button - only show if there's an image */}
       {(previewUrl || initialUrl) && !disabled && !isUploading && (
-        <Button
-          type="button"
-          variant="destructive"
-          size="icon"
-          className={`absolute -top-2 -right-2 rounded-full ${buttonSize[size === 'sm' ? 'sm' : 'md']}`}
-          onClick={handleRemove}
-        >
-          <X className={size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} />
-          <span className="sr-only">Remove avatar</span>
-        </Button>
+        <TooltipProvider>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className={`absolute -bottom-1 -right-2 rounded-full cursor-pointer ${buttonSize[size === 'sm' ? 'sm' : 'md']}`}
+                onClick={handleRemove}
+              >
+                <X className={size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} />
+                <span className="sr-only">Remove avatar</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">Remove avatar</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
       )}
 
       {/* Error message */}

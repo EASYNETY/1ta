@@ -24,6 +24,7 @@ import { ProfileFormFields } from "@/components/profile/ProfileFormFields"
 import { CorporateManagerFields } from "@/components/profile/CorporateManagerFields"
 import { isStudent } from "@/types/user.types"
 import type { User, StudentUser, TeacherUser } from "@/types/user.types"
+import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 
 // Define schema here or import from shared location
 const profileSchema = z.object({
@@ -419,10 +420,13 @@ export default function ProfilePage() {
 
     return (
         <div className="mx-auto space-y-6">
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold flex items-center gap-4">
                 {isOnboarding ? "Complete Your Profile" : "My Profile"}
                 {isCorporateStudent && " (Corporate Student)"}
                 {isCorporateManager && " (Corporate Manager)"}
+                {isStudent(user) && user.barcodeId && (
+                    <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />
+                )}
             </h1>
 
             <ProfileAlerts
@@ -453,21 +457,21 @@ export default function ProfilePage() {
                                 dispatch(updateUserProfileThunk({
                                     avatarUrl: url
                                 }))
-                                .unwrap()
-                                .then(() => {
-                                    toast({
-                                        title: "Profile Updated",
-                                        description: "Your profile picture has been updated successfully.",
-                                        variant: "success",
+                                    .unwrap()
+                                    .then(() => {
+                                        toast({
+                                            title: "Profile Updated",
+                                            description: "Your profile picture has been updated successfully.",
+                                            variant: "success",
+                                        });
+                                    })
+                                    .catch((error) => {
+                                        toast({
+                                            title: "Update Failed",
+                                            description: error.message || "There was a problem updating your profile picture. Please try again.",
+                                            variant: "destructive",
+                                        });
                                     });
-                                })
-                                .catch((error) => {
-                                    toast({
-                                        title: "Update Failed",
-                                        description: error.message || "There was a problem updating your profile picture. Please try again.",
-                                        variant: "destructive",
-                                    });
-                                });
                             }
                         }}
                     />

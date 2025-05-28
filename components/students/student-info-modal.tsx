@@ -158,14 +158,14 @@ export function StudentInfoModal({
                                 <InfoItem
                                     icon={CreditCard}
                                     label="Payment Status"
-                                    value={studentInfo.isActive === true ? "Paid" : studentInfo.isActive === false ? "Unpaid" : "Unknown"}
+                                    value={(studentInfo.isActive === true || Number(studentInfo.isActive) === 1) ? "Paid" : studentInfo.isActive === false ? "Unpaid" : "Unknown"}
                                     valueAsBadge={true}
                                     badgeVariant={
-                                        studentInfo.isActive === true ? "default"
+                                        (studentInfo.isActive === true || Number(studentInfo.isActive) === 1) ? "default"
                                             : studentInfo.isActive === false ? "destructive"
                                                 : "secondary"
                                     }
-                                    badgeClassName={studentInfo.isActive === true ? "bg-green-100 text-green-800 border-green-200" : ""}
+                                    badgeClassName={(studentInfo.isActive === true || Number(studentInfo.isActive) === 1) ? "bg-green-100 text-green-800 border-green-200" : ""}
                                 />
                             </div>
 

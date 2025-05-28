@@ -5,6 +5,7 @@ import { AvatarUpload } from "@/components/ui/avatar-upload";
 import { useToast } from "@/hooks/use-toast";
 import { AvatarWithVerification } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { getProxiedImageUrl } from "@/utils/imageProxy";
 
 interface ProfileAvatarInfoProps {
     user: User | null;
@@ -60,7 +61,7 @@ export function ProfileAvatarInfo({ user, onAvatarChange }: ProfileAvatarInfoPro
         <div className="flex flex-col items-center mb-6">
             <div className="mb-4">
                 <AvatarUpload
-                    initialUrl={user.avatarUrl || null}
+                    initialUrl={getProxiedImageUrl(user.avatarUrl as string) || null}
                     name={user.name || "User"}
                     size="xl"
                     onUrlChange={handleAvatarChange}
