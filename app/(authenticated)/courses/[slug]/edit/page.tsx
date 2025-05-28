@@ -272,7 +272,7 @@ export default function EditCoursePage() {
                 variant: "success",
             });
             // Redirect to course view page or list page after update
-            router.push(`/courses/${slug}`); // Redirect to the course view page
+            router.push(`/courses`); // Redirect to the course view page
 
         } catch (error) {
             // Error handling remains similar to create page
@@ -345,7 +345,7 @@ export default function EditCoursePage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-2xl md:text-3xl font-bold">{pageTitle}</h1>
                 <DyraneButton variant="outline" asChild>
-                    <Link href={`/courses/${slug}`}>Cancel & View Course</Link>
+                    <Link href={`/courses`}>Cancel & View Courses</Link>
                 </DyraneButton>
             </div>
 
