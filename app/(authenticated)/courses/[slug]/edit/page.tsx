@@ -145,7 +145,7 @@ const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseForm
         description: course.description ?? "",
         category: course.category ?? "",
         // @ts-ignore
-        level: course.level ?? "all Levels" as "beginner" | "intermediate" | "advanced" | "all Levels",
+        level: course.level ?? "all levels" as "beginner" | "intermediate" | "advanced" | "all levels",
         available_for_enrolment: course.isAvailableForEnrolment ?? true,
         price: course.priceUSD ?? 0,
         priceNaira: course.priceNaira ?? 0,
