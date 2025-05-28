@@ -115,7 +115,7 @@ export const fabConfigurations: FabConfigRule[] = [
 	},
 	{
 		pathPattern: /^\/chat$/, // Any chat page (list or specific room)
-		roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
+		roles: ["super_admin", "admin", "teacher",],
 		// actionType: "openCreateChatModal", // Example: Trigger a modal
 		actionType: "navigate", // Or navigate to a create page
 		ariaLabel: "Start New Chat",
