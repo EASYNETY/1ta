@@ -51,6 +51,8 @@ interface StudentInfoModalProps {
     apiStatus: "success" | "error" | "idle" | "loading" // Status of the markAttendance API call
     apiError: string | null    // Error message from the markAttendance API call
     casualScanMode?: boolean   // Whether we're in casual scan mode (view only)
+    checkInDateTime?: string   // New: Date and time of check-in
+    lectureName?: string       // New: Name of the lecture/class checked in for
 }
 
 export function StudentInfoModal({
@@ -63,6 +65,8 @@ export function StudentInfoModal({
     apiStatus,
     apiError,
     casualScanMode = false,
+    checkInDateTime,
+    lectureName,
 }: StudentInfoModalProps) {
 
     // This function handles closing the modal AND triggering the scan resumption
@@ -153,7 +157,9 @@ export function StudentInfoModal({
                                 <InfoItem icon={Barcode} label="Barcode ID" value={studentInfo.barcodeId} isCode />
                                 <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.id} isCode />
                                 {studentInfo.className && <InfoItem icon={School} label="Registered Class" value={studentInfo.className} />}
+                                {lectureName && <InfoItem icon={BookOpen} label="Lecture/Class" value={lectureName} />}
                                 <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth || "Not Provided"} />
+                                {checkInDateTime && <InfoItem icon={Calendar} label="Check-in Time" value={checkInDateTime} />}
                                 {/* Treat isActive as Paid Status */}
                                 <InfoItem
                                     icon={CreditCard}
