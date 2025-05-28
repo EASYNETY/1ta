@@ -278,8 +278,8 @@ export function ProfileFormFields({
                         )}
                     />
 
-                    {/* Corporate Registration Toggle - Only for new users during onboarding */}
-                    {isOnboarding && !isCorporateStudent && !isCorporateManager && (
+                    {/* Corporate Registration Toggle - Only for new users during onboarding and accountType not individual */}
+                    {isOnboarding && !isCorporateStudent && !isCorporateManager && form.watch("accountType") !== "individual" && (
                         <FormField
                             control={form.control}
                             name="isCorporateRegistration"
