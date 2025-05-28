@@ -12,7 +12,7 @@ export enum MediaType {
 }
 
 /**
- * Response from the media upload API
+ * Response from the media upload API (frontend format)
  */
 export interface MediaUploadResponse {
   success: boolean;
@@ -23,6 +23,27 @@ export interface MediaUploadResponse {
     filename: string;
     size: number;
     mimeType: string;
+  };
+  message?: string;
+}
+
+/**
+ * Response from the backend media upload API (backend format)
+ */
+export interface BackendMediaUploadResponse {
+  success: boolean;
+  data: {
+    files: Array<{
+      url: string;
+      filename: string;
+      originalName: string;
+      size: number;
+      mimetype: string;
+      mediaType?: string;
+      mediaId?: string;
+      mimeType?: string;
+    }>;
+    count: number;
   };
   message?: string;
 }
@@ -177,31 +198,69 @@ export async function uploadMedia(
   });
 
   try {
-    // In a real implementation, we would use a proper upload endpoint
-    // For now, we'll use a mock endpoint
-    const response = await post<MediaUploadResponse>('/media/upload', formData, {
+    // Call the backend upload endpoint
+    const response = await post<BackendMediaUploadResponse>('/media/upload', formData, {
       headers: {
         // Don't set Content-Type header when using FormData
         // The browser will set it with the correct boundary
       },
     });
 
-    // Validate the response
-    if (!response.success || !response.data || !response.data.url) {
+    console.log('📥 Backend response:', response);
+
+    // Validate the response - handle backend format
+    if (!response.success || !response.data) {
       throw new Error(response.message || 'Invalid response from server');
     }
 
-    return response;
+    // Backend returns { data: { files: [...], count: N } }
+    // Frontend expects { data: { url: "...", mediaId: "...", ... } }
+    if (response.data.files && response.data.files.length > 0) {
+      const uploadedFile = response.data.files[0];
+
+      // Transform backend response to frontend format
+      const transformedResponse: MediaUploadResponse = {
+        success: true,
+        data: {
+          url: uploadedFile.url,
+          mediaId: uploadedFile.mediaId || `media_${Date.now()}`,
+          mediaType: (uploadedFile.mediaType as MediaType) || getMediaTypeFromFile(file),
+          filename: uploadedFile.filename || uploadedFile.originalName,
+          size: uploadedFile.size,
+          mimeType: uploadedFile.mimeType || uploadedFile.mimetype,
+        },
+        message: response.message || 'File uploaded successfully'
+      };
+
+      console.log('✅ Media upload successful:', transformedResponse.data);
+      return transformedResponse;
+    }
+
+    // If no files in response, throw error
+    throw new Error('No files were uploaded');
   } catch (error: any) {
     console.error('Media upload failed:', error);
+
+    // Log detailed error information for debugging
+    if (error.response) {
+      console.error('📥 Server response:', error.response.data);
+      console.error('📊 Response status:', error.response.status);
+      console.error('📋 Response headers:', error.response.headers);
+    }
 
     // Create a more user-friendly error message
     let errorMessage = 'Failed to upload file';
 
     if (error.response) {
       // Server responded with an error
-      errorMessage = error.response.data?.message ||
-                    `Server error: ${error.response.status}`;
+      const serverMessage = error.response.data?.message || error.response.data?.error;
+      errorMessage = serverMessage || `Server error: ${error.response.status}`;
+
+      // Add debug info for development
+      if (error.response.data?.debug) {
+        console.error('🐛 Debug info:', error.response.data.debug);
+        errorMessage += ` (Debug: ${JSON.stringify(error.response.data.debug)})`;
+      }
     } else if (error.request) {
       // Request was made but no response received
       errorMessage = 'No response from server. Please check your connection.';
