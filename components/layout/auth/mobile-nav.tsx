@@ -168,10 +168,10 @@ export function MobileNav() {
                     <DialogHeader>
                         <DialogTitle>Your Attendance Barcode</DialogTitle>
                     </DialogHeader>
-                    {user && (
+                    {isStudent(user) && (
                         <div className="p-4 bg-white rounded-md border shadow-inner mt-4">
                             <Barcode
-                                value={user.id}
+                                value={user.barcodeId as string}
                                 height={80}
                                 width={2}
                                 displayValue={false}

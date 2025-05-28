@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import Barcode from "react-barcode"
 import { BarcodeDialog } from "../tools/BarcodeDialog"
 import { isStudent } from "@/types/user.types";
+import { PageHeader } from "../layout/auth/page-header"
 
 export function Attendance() {
     const { user } = useAppSelector((state) => state.auth)
@@ -48,13 +49,10 @@ export function Attendance() {
     // Render different views based on user role
     return (
         <div className="mx-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-3xl font-bold mb-6">Attendance Records</h1>
-
-                {/* navigate to attendance barcode scan */}
-                {
-                    !isStudent ? (
+            <PageHeader
+                heading={'Attendance Records'}
+                actions={
+                    !isStudent(user) ? (
                         <DyraneButton
                             variant="default"
                             className="hidden sm:flex"
@@ -69,35 +67,12 @@ export function Attendance() {
                             </Link>
                         </DyraneButton>
                     ) : (
-                        <DyraneButton
-                            variant="default"
-                            className="hidden sm:flex"
-                            onClick={
-                                () => {
-                                    setShowStudentBarcodeModal(true)
-                                }
-                            }
-                        >
-                            <BarcodeIcon className="h-4 w-4" />
-                            Show Barcode
-                        </DyraneButton>
-                    )
-                }
-            </div>
-            {/* Student Barcode Modal */}
-            <Dialog open={showStudentBarcodeModal} onOpenChange={setShowStudentBarcodeModal}>
-                <DialogContent className="bg-background/50 backdrop-blur-sm rounded-2xl shadow-xl px-6 py-4 w-auto flex flex-col items-center justify-center gap-4 transition-all duration-300">
-                    <DialogHeader>
-                        <DialogTitle>Your Attendance Barcode</DialogTitle>
-                    </DialogHeader>
-                    {user && isStudent(user) && (
-                        <div className="p-4 bg-white rounded-md border shadow-inner mt-4">
+                        <div className="hidden sm:block">
                             <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />
                         </div>
-                    )}
-                </DialogContent>
-            </Dialog>
-
+                    )
+                }
+            />
             {user.role === "student" ? <StudentAttendanceView /> : <TeacherAttendanceView />}
         </div>
     )
