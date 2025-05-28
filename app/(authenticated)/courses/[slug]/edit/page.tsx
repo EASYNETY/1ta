@@ -142,6 +142,7 @@ const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseForm
     return {
         title: course.title ?? "",
         subtitle: course.subtitle ?? "",
+        image: course.image ?? "",
         description: course.description ?? "",
         category: course.category ?? "",
         // @ts-ignore
@@ -287,7 +288,7 @@ export default function EditCoursePage() {
                 variant: "success",
             });
             // Redirect to course view page or list page after update
-            router.push(`/courses`); // Redirect to the course view page
+            // router.push(`/courses`); // Redirect to the course view page
 
         } catch (error) {
             // Error handling remains similar to create page
@@ -392,6 +393,7 @@ export default function EditCoursePage() {
                             <BasicInfoForm
                                 // @ts-ignore <-- ACCEPTED from previous state
                                 control={form.control}
+                                setValue={form.setValue}
                                 onNext={() => handleTabChange("details")}
                             />
                         </TabsContent>
