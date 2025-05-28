@@ -32,6 +32,7 @@ import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavIte
 import { getMobileNavItems } from "./mobile-nav"
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
 import { isStudent } from "@/types/user.types"
+import { getProxiedImageUrl } from "@/utils/imageProxy"
 
 
 export function Header() {
@@ -148,7 +149,7 @@ export function Header() {
                                             onClick={() => setMobileUserSheetOpen(true)}
                                         >
                                             <AvatarImage
-                                                src={user?.avatarUrl || undefined}
+                                                src={getProxiedImageUrl(user?.avatarUrl as string)  || undefined}
                                                 alt="User Avatar"
                                                 className="h-7 w-7 rounded-full"
                                             />
@@ -241,7 +242,7 @@ export function Header() {
                                                                 className="size-10"
                                                                 verificationSize="sm"
                                                             >
-                                                                <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                                                                <AvatarImage src={getProxiedImageUrl(user.avatarUrl as string)  || undefined} alt={user.name} />
                                                                 <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                                                             </AvatarWithVerification>
                                                             <div className="overflow-hidden">
