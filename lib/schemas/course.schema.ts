@@ -25,24 +25,18 @@ export type ModuleFormValues = z.infer<typeof moduleSchema>;
 export const courseSchema = z.object({
 	title: z.string().min(5, "Title must be at least 5 characters"),
 	subtitle: z.string().optional(),
-	description: z
-		.string()
-		.min(20, "Description must be at least 20 characters"),
-	category: z
-		.string({ required_error: "Please select a category." }),
-	level: z
-		.enum(["Beginner", "Intermediate", "Advanced", "All Levels"], {
-			required_error: "Please select a level.",
-		}),
+	description: z.string().min(20, "Description must be at least 20 characters"),
+	category: z.string({ required_error: "Please select a category." }),
+	level: z.enum(["Beginner", "Intermediate", "Advanced", "All Levels"], {
+		required_error: "Please select a level.",
+	}),
 	// Media fields
 	image: z.string().optional().nullable(),
 	previewVideoUrl: z.string().optional().nullable(),
 	// Enrolment availability
 	available_for_enrolment: z.boolean().optional().default(true),
 	// USD Pricing
-	price: z.coerce
-		.number()
-		.min(0, "Price must be a positive number or zero."),
+	price: z.coerce.number().min(0, "Price must be a positive number or zero."),
 	discountPrice: z
 		.union([
 			z.coerce.number().min(0, "Discount price must be positive or zero"),
@@ -52,15 +46,22 @@ export const courseSchema = z.object({
 		.optional()
 		.transform((val) => {
 			// Handle empty string, NaN, or undefined cases
-			if (val === "" || val === undefined || (typeof val === 'number' && isNaN(val))) {
+			if (
+				val === "" ||
+				val === undefined ||
+				(typeof val === "number" && isNaN(val))
+			) {
 				return undefined;
 			}
 			// Ensure we return a number
-			return typeof val === 'number' ? val : Number(val);
+			return typeof val === "number" ? val : Number(val);
 		})
-		.refine((val) => val === undefined || (typeof val === 'number' && val >= 0), {
-			message: "Discount price must be positive or zero",
-		}),
+		.refine(
+			(val) => val === undefined || (typeof val === "number" && val >= 0),
+			{
+				message: "Discount price must be positive or zero",
+			}
+		),
 	// Naira Pricing
 	priceNaira: z.coerce
 		.number()
@@ -75,26 +76,31 @@ export const courseSchema = z.object({
 		.optional()
 		.transform((val) => {
 			// Handle empty string, NaN, or undefined cases
-			if (val === "" || val === undefined || (typeof val === 'number' && isNaN(val))) {
+			if (
+				val === "" ||
+				val === undefined ||
+				(typeof val === "number" && isNaN(val))
+			) {
 				return undefined;
 			}
 			// Ensure we return a number
-			return typeof val === 'number' ? val : Number(val);
+			return typeof val === "number" ? val : Number(val);
 		})
-		.refine((val) => val === undefined || (typeof val === 'number' && val >= 0), {
-			message: "Discount price must be positive or zero",
-		}),
+		.refine(
+			(val) => val === undefined || (typeof val === "number" && val >= 0),
+			{
+				message: "Discount price must be positive or zero",
+			}
+		),
 	language: z.string(),
 	certificate: z.boolean(),
 	accessType: z.enum(["Lifetime", "Limited"]),
-	supportType: z
-		.enum(["Instructor", "Community", "Both", "None"]),
+	supportType: z.enum(["Instructor", "Community", "Both", "None"]),
 	tags: z.string().optional(),
 	learningOutcomes: z.string().optional(),
 	prerequisites: z.string().optional(),
-	modules: z
-		.array(moduleSchema)
-		.min(1, "Course must have at least one module."),
+	modules: z.array(moduleSchema),
+	// .min(1, "Course must have at least one module."),
 });
 
 export type CourseFormValues = z.infer<typeof courseSchema>;
@@ -118,14 +124,18 @@ export const defaultCourseValues: Partial<CourseFormValues> = {
 	tags: "",
 	learningOutcomes: "",
 	prerequisites: "",
-	modules: [{
-		title: "Module 1",
-		description: "",
-		lessons: [{
-			title: "Lesson 1",
-			type: "video",
-			duration: "",
-			description: ""
-		}]
-	}],
+	modules: [
+		{
+			title: "Module 1",
+			description: "",
+			lessons: [
+				{
+					title: "Lesson 1",
+					type: "video",
+					duration: "",
+					description: "",
+				},
+			],
+		},
+	],
 };
