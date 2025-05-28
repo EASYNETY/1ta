@@ -98,7 +98,9 @@ export function AvatarUpload({
     autoUpload: true,
     onUploadSuccess: (response) => {
       console.log('Avatar uploaded successfully:', response);
-      onUrlChange?.(response.data.url);
+      // Get the first uploaded file URL
+      const uploadedFile = response.data.files[0];
+      onUrlChange?.(uploadedFile.url);
     },
     ...uploadOptions,
   });
