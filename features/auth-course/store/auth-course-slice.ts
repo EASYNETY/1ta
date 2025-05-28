@@ -10,6 +10,7 @@ import type { RootState } from "@/store";
 import type { AuthCourse } from "../types/auth-course-interface";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
 import { getCourseIcon } from "@/utils/course-icon-mapping";
+import { getProxiedImageUrl } from "@/utils/imageProxy";
 
 // --- Types ---
 export interface AuthCoursesState {
@@ -50,25 +51,34 @@ export const fetchAuthCourses = createAsyncThunk<
 		console.log("Dispatching fetchAuthCourses: Calling API client...");
 
 		// Use the apiClient's get method with proper error handling
-		const response = await get<{
-			success?: boolean;
-			data?: AuthCourse[];
-			message?: string;
-		} | AuthCourse[]>("/auth_courses");
+		const response = await get<
+			| {
+					success?: boolean;
+					data?: AuthCourse[];
+					message?: string;
+			  }
+			| AuthCourse[]
+		>("/auth_courses");
 
 		console.log("Raw API response structure:", {
 			type: typeof response,
 			isArray: Array.isArray(response),
-			hasSuccess: 'success' in response,
-			hasData: 'data' in response,
-			keys: Object.keys(response || {}).slice(0, 10)
+			hasSuccess: "success" in response,
+			hasData: "data" in response,
+			keys: Object.keys(response || {}).slice(0, 10),
 		});
 
 		// Handle different response formats with robust object-to-array conversion
 		let courses: AuthCourse[];
 
 		// Check if response has the nested structure with success/data properties
-		if (response && typeof response === 'object' && !Array.isArray(response) && 'success' in response && 'data' in response) {
+		if (
+			response &&
+			typeof response === "object" &&
+			!Array.isArray(response) &&
+			"success" in response &&
+			"data" in response
+		) {
 			// This is a nested response format
 			if (!response.success) {
 				console.error("API Error:", response.message || "Unknown error");
@@ -84,22 +94,24 @@ export const fetchAuthCourses = createAsyncThunk<
 			if (Array.isArray(response.data)) {
 				console.log("✅ Standard format detected - using response.data");
 				courses = response.data;
-			} else if (response.data && typeof response.data === 'object') {
+			} else if (response.data && typeof response.data === "object") {
 				console.log("🔍 Analyzing response.data object:", {
 					dataType: typeof response.data,
-					keys: Object.keys(response.data).slice(0, 10)
+					keys: Object.keys(response.data).slice(0, 10),
 				});
 
 				// Check if it's an object with numeric keys
 				const keys = Object.keys(response.data);
-				const numericKeys = keys.filter(key => !isNaN(parseInt(key))).sort((a, b) => parseInt(a) - parseInt(b));
+				const numericKeys = keys
+					.filter((key) => !isNaN(parseInt(key)))
+					.sort((a, b) => parseInt(a) - parseInt(b));
 				const hasNumericKeys = numericKeys.length > 0;
 
 				console.log("🔍 Object analysis:", {
 					totalKeys: keys.length,
 					numericKeys: numericKeys.slice(0, 10),
 					hasNumericKeys,
-					nonNumericKeys: keys.filter(key => isNaN(parseInt(key)))
+					nonNumericKeys: keys.filter((key) => isNaN(parseInt(key))),
 				});
 
 				if (hasNumericKeys) {
@@ -113,7 +125,9 @@ export const fetchAuthCourses = createAsyncThunk<
 						}
 					}
 
-					console.log(`✅ Successfully converted object to array with ${courses.length} items`);
+					console.log(
+						`✅ Successfully converted object to array with ${courses.length} items`
+					);
 				} else {
 					console.log("🔧 Using Object.values as fallback...");
 					courses = Object.values(response.data);
@@ -126,31 +140,37 @@ export const fetchAuthCourses = createAsyncThunk<
 			// This is a direct array response format
 			console.log("✅ Direct array format detected");
 			courses = response;
-		} else if (response && typeof response === 'object') {
+		} else if (response && typeof response === "object") {
 			// Try to extract data from any object structure
 			const responseObj = response as Record<string, any>;
-			const possibleData = responseObj.data || responseObj.courses || responseObj.items || response;
+			const possibleData =
+				responseObj.data ||
+				responseObj.courses ||
+				responseObj.items ||
+				response;
 
 			console.log("🔍 Analyzing object response:", {
 				dataType: typeof possibleData,
 				isArray: Array.isArray(possibleData),
-				keys: Object.keys(possibleData || {}).slice(0, 10)
+				keys: Object.keys(possibleData || {}).slice(0, 10),
 			});
 
 			if (Array.isArray(possibleData)) {
 				console.log("✅ Found array in object structure");
 				courses = possibleData;
-			} else if (possibleData && typeof possibleData === 'object') {
+			} else if (possibleData && typeof possibleData === "object") {
 				// Check if it's an object with numeric keys (the main issue)
 				const keys = Object.keys(possibleData);
-				const numericKeys = keys.filter(key => !isNaN(parseInt(key))).sort((a, b) => parseInt(a) - parseInt(b));
+				const numericKeys = keys
+					.filter((key) => !isNaN(parseInt(key)))
+					.sort((a, b) => parseInt(a) - parseInt(b));
 				const hasNumericKeys = numericKeys.length > 0;
 
 				console.log("🔍 Object analysis:", {
 					totalKeys: keys.length,
 					numericKeys: numericKeys.slice(0, 10),
 					hasNumericKeys,
-					nonNumericKeys: keys.filter(key => isNaN(parseInt(key)))
+					nonNumericKeys: keys.filter((key) => isNaN(parseInt(key))),
 				});
 
 				if (hasNumericKeys) {
@@ -164,13 +184,18 @@ export const fetchAuthCourses = createAsyncThunk<
 						}
 					}
 
-					console.log(`✅ Successfully converted object to array with ${courses.length} items`);
+					console.log(
+						`✅ Successfully converted object to array with ${courses.length} items`
+					);
 				} else {
 					console.log("🔧 Using Object.values as fallback...");
 					courses = Object.values(possibleData);
 				}
 			} else {
-				console.error("API Error: Could not find array data in response", response);
+				console.error(
+					"API Error: Could not find array data in response",
+					response
+				);
 				throw new Error("Failed to extract course data from response");
 			}
 		} else {
@@ -180,20 +205,28 @@ export const fetchAuthCourses = createAsyncThunk<
 
 		// Final validation - ensure we have an array
 		if (!Array.isArray(courses)) {
-			console.error("❌ CRITICAL: courses is still not an array after conversion!", {
-				type: typeof courses,
-				constructor: (courses as any)?.constructor?.name,
-				value: courses
-			});
+			console.error(
+				"❌ CRITICAL: courses is still not an array after conversion!",
+				{
+					type: typeof courses,
+					constructor: (courses as any)?.constructor?.name,
+					value: courses,
+				}
+			);
 			throw new Error("Failed to convert response to array format");
 		}
 
-		console.log(`✅ Successfully processed ${courses.length} auth courses as array`);
+		console.log(
+			`✅ Successfully processed ${courses.length} auth courses as array`
+		);
 
 		// Apply PNG icon mapping to courses
-		const coursesWithIcons = courses.map(course => ({
+		const coursesWithIcons = courses.map((course) => ({
 			...course,
-			iconUrl: getCourseIcon(course.title, course.id)
+			iconUrl:
+				course.image !== "http://34.249.241.206:5000/placeholder.svg"
+					? getProxiedImageUrl(course.image)
+					: getCourseIcon(course.title, course.id),
 		}));
 
 		return coursesWithIcons;
@@ -204,8 +237,12 @@ export const fetchAuthCourses = createAsyncThunk<
 			message = error.message;
 
 			// Handle rate limiting specifically
-			if (error.message.includes("429") || error.message.includes("Too Many Requests")) {
-				message = "Too many requests. Please wait a moment before trying again.";
+			if (
+				error.message.includes("429") ||
+				error.message.includes("Too Many Requests")
+			) {
+				message =
+					"Too many requests. Please wait a moment before trying again.";
 			}
 		}
 
@@ -223,25 +260,33 @@ export const fetchCourseBySlug = createAsyncThunk<
 		console.log(`Dispatching fetchCourseBySlug: ${slug}`);
 
 		// Use the apiClient's get method with proper error handling
-		const response = await get<{
-			success?: boolean;
-			data?: AuthCourse;
-			message?: string;
-		} | AuthCourse>(`/auth_courses/${slug}`);
+		const response = await get<
+			| {
+					success?: boolean;
+					data?: AuthCourse;
+					message?: string;
+			  }
+			| AuthCourse
+		>(`/auth_courses/${slug}`);
 
 		console.log("Raw API response structure:", {
 			type: typeof response,
 			isArray: Array.isArray(response),
-			hasSuccess: 'success' in response,
-			hasData: 'data' in response,
-			keys: Object.keys(response || {}).slice(0, 10)
+			hasSuccess: "success" in response,
+			hasData: "data" in response,
+			keys: Object.keys(response || {}).slice(0, 10),
 		});
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
 
 		// Check if response has the nested structure with success/data properties
-		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+		if (
+			response &&
+			typeof response === "object" &&
+			"success" in response &&
+			"data" in response
+		) {
 			// This is a nested response format
 			if (!response.success) {
 				console.error("API Error:", response.message || "Unknown error");
@@ -260,7 +305,7 @@ export const fetchCourseBySlug = createAsyncThunk<
 		}
 
 		// Validate the course object
-		if (!course || typeof course !== 'object' || !course.id) {
+		if (!course || typeof course !== "object" || !course.id) {
 			console.error("Invalid course data received:", course);
 			throw new Error("Invalid course data received");
 		}
@@ -268,7 +313,10 @@ export const fetchCourseBySlug = createAsyncThunk<
 		// Apply PNG icon mapping to course
 		const courseWithIcon = {
 			...course,
-			iconUrl: getCourseIcon(course.title, course.id)
+			iconUrl:
+				course.image !== "http://34.249.241.206:5000/placeholder.svg"
+					? getProxiedImageUrl(course.image)
+					: getCourseIcon(course.title, course.id),
 		};
 
 		return courseWithIcon;
@@ -289,25 +337,33 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 		console.log(`Dispatching fetchAuthCourseBySlug: ${slug}`);
 
 		// Use the apiClient's get method with proper error handling
-		const response = await get<{
-			success?: boolean;
-			data?: AuthCourse;
-			message?: string;
-		} | AuthCourse>(`/auth_courses/slug/${slug}`);
+		const response = await get<
+			| {
+					success?: boolean;
+					data?: AuthCourse;
+					message?: string;
+			  }
+			| AuthCourse
+		>(`/auth_courses/slug/${slug}`);
 
 		console.log("Raw API response structure:", {
 			type: typeof response,
 			isArray: Array.isArray(response),
-			hasSuccess: 'success' in response,
-			hasData: 'data' in response,
-			keys: Object.keys(response || {}).slice(0, 10)
+			hasSuccess: "success" in response,
+			hasData: "data" in response,
+			keys: Object.keys(response || {}).slice(0, 10),
 		});
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
 
 		// Check if response has the nested structure with success/data properties
-		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+		if (
+			response &&
+			typeof response === "object" &&
+			"success" in response &&
+			"data" in response
+		) {
 			// This is a nested response format
 			if (!response.success) {
 				console.error("API Error:", response.message || "Unknown error");
@@ -326,7 +382,7 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 		}
 
 		// Validate the course object
-		if (!course || typeof course !== 'object' || !course.id) {
+		if (!course || typeof course !== "object" || !course.id) {
 			console.error("Invalid course data received:", course);
 			throw new Error("Invalid course data received");
 		}
@@ -334,7 +390,10 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 		// Apply PNG icon mapping to course
 		const courseWithIcon = {
 			...course,
-			iconUrl: getCourseIcon(course.title, course.id)
+			iconUrl:
+				course.image !== "http://34.249.241.206:5000/placeholder.svg"
+					? getProxiedImageUrl(course.image)
+					: getCourseIcon(course.title, course.id),
 		};
 
 		return courseWithIcon;
@@ -362,15 +421,12 @@ export const markLessonComplete = createAsyncThunk<
 			const response = await post<{
 				success?: boolean;
 				message?: string;
-			} | void>(
-				`/auth_courses/${courseId}/lessons/${lessonId}/complete`,
-				{
-					completed,
-				}
-			);
+			} | void>(`/auth_courses/${courseId}/lessons/${lessonId}/complete`, {
+				completed,
+			});
 
 			// Check if response has the nested structure with success property
-			if (response && typeof response === 'object' && 'success' in response) {
+			if (response && typeof response === "object" && "success" in response) {
 				// This is a nested response format
 				if (!response.success) {
 					console.error("API Error:", response.message || "Unknown error");
@@ -406,35 +462,58 @@ export const createAuthCourse = createAsyncThunk<
 			isAvailableForEnrolment: courseData.available_for_enrolment,
 			tags: Array.isArray(courseData.tags)
 				? courseData.tags
-				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
+				: courseData.tags
+					? courseData.tags
+							.split(",")
+							.map((tag) => tag.trim())
+							.filter(Boolean)
+					: [],
 			learningOutcomes: Array.isArray(courseData.learningOutcomes)
 				? courseData.learningOutcomes
-				: courseData.learningOutcomes ? courseData.learningOutcomes.split('\n').map(item => item.trim()).filter(Boolean) : [],
+				: courseData.learningOutcomes
+					? courseData.learningOutcomes
+							.split("\n")
+							.map((item) => item.trim())
+							.filter(Boolean)
+					: [],
 			prerequisites: Array.isArray(courseData.prerequisites)
 				? courseData.prerequisites
-				: courseData.prerequisites ? courseData.prerequisites.split('\n').map(item => item.trim()).filter(Boolean) : [],
+				: courseData.prerequisites
+					? courseData.prerequisites
+							.split("\n")
+							.map((item) => item.trim())
+							.filter(Boolean)
+					: [],
 		};
 
 		// Make the API call to create the course
-		const response = await post<{
-			success?: boolean;
-			data?: AuthCourse;
-			message?: string;
-		} | AuthCourse>("/auth_courses", processedData);
+		const response = await post<
+			| {
+					success?: boolean;
+					data?: AuthCourse;
+					message?: string;
+			  }
+			| AuthCourse
+		>("/auth_courses", processedData);
 
 		console.log("Raw API response structure:", {
 			type: typeof response,
 			isArray: Array.isArray(response),
-			hasSuccess: 'success' in response,
-			hasData: 'data' in response,
-			keys: Object.keys(response || {}).slice(0, 10)
+			hasSuccess: "success" in response,
+			hasData: "data" in response,
+			keys: Object.keys(response || {}).slice(0, 10),
 		});
 
 		// Handle both response formats (direct or nested with success/data)
 		let course: AuthCourse;
 
 		// Check if response has the nested structure with success/data properties
-		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+		if (
+			response &&
+			typeof response === "object" &&
+			"success" in response &&
+			"data" in response
+		) {
 			// This is a nested response format
 			if (!response.success) {
 				console.error("API Error:", response.message || "Unknown error");
@@ -453,7 +532,7 @@ export const createAuthCourse = createAsyncThunk<
 		}
 
 		// Validate the course object
-		if (!course || typeof course !== 'object' || !course.id) {
+		if (!course || typeof course !== "object" || !course.id) {
 			console.error("Invalid course data received:", course);
 			throw new Error("Invalid course data received");
 		}
@@ -471,77 +550,103 @@ export const updateAuthCourse = createAsyncThunk<
 	AuthCourse, // Return the updated course on success
 	{ couseSlug: string; courseData: CourseFormValues }, // Expect the course ID and form data
 	{ rejectValue: string }
->("auth_courses/updateAuthCourse", async ({ couseSlug, courseData }, { rejectWithValue }) => {
-	try {
-		console.log(`Dispatching updateAuthCourse for course ${couseSlug}`);
+>(
+	"auth_courses/updateAuthCourse",
+	async ({ couseSlug, courseData }, { rejectWithValue }) => {
+		try {
+			console.log(`Dispatching updateAuthCourse for course ${couseSlug}`);
 
-		// Process the form data to match API expectations
-		const processedData = {
-			...courseData,
-			// Map available_for_enrolment to isAvailableForEnrolment for API compatibility
-			isAvailableForEnrolment: courseData.available_for_enrolment,
-			tags: Array.isArray(courseData.tags)
-				? courseData.tags
-				: courseData.tags ? courseData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-			learningOutcomes: Array.isArray(courseData.learningOutcomes)
-				? courseData.learningOutcomes
-				: courseData.learningOutcomes ? courseData.learningOutcomes.split('\n').map(item => item.trim()).filter(Boolean) : [],
-			prerequisites: Array.isArray(courseData.prerequisites)
-				? courseData.prerequisites
-				: courseData.prerequisites ? courseData.prerequisites.split('\n').map(item => item.trim()).filter(Boolean) : [],
-		};
+			// Process the form data to match API expectations
+			const processedData = {
+				...courseData,
+				// Map available_for_enrolment to isAvailableForEnrolment for API compatibility
+				isAvailableForEnrolment: courseData.available_for_enrolment,
+				tags: Array.isArray(courseData.tags)
+					? courseData.tags
+					: courseData.tags
+						? courseData.tags
+								.split(",")
+								.map((tag) => tag.trim())
+								.filter(Boolean)
+						: [],
+				learningOutcomes: Array.isArray(courseData.learningOutcomes)
+					? courseData.learningOutcomes
+					: courseData.learningOutcomes
+						? courseData.learningOutcomes
+								.split("\n")
+								.map((item) => item.trim())
+								.filter(Boolean)
+						: [],
+				prerequisites: Array.isArray(courseData.prerequisites)
+					? courseData.prerequisites
+					: courseData.prerequisites
+						? courseData.prerequisites
+								.split("\n")
+								.map((item) => item.trim())
+								.filter(Boolean)
+						: [],
+			};
 
-		// Make the API call to update the course
-		const response = await put<{
-			success?: boolean;
-			data?: AuthCourse;
-			message?: string;
-		} | AuthCourse>(`/auth_courses/${couseSlug}`, processedData);
+			// Make the API call to update the course
+			const response = await put<
+				| {
+						success?: boolean;
+						data?: AuthCourse;
+						message?: string;
+				  }
+				| AuthCourse
+			>(`/auth_courses/${couseSlug}`, processedData);
 
-		console.log("Raw API response structure:", {
-			type: typeof response,
-			isArray: Array.isArray(response),
-			hasSuccess: 'success' in response,
-			hasData: 'data' in response,
-			keys: Object.keys(response || {}).slice(0, 10)
-		});
+			console.log("Raw API response structure:", {
+				type: typeof response,
+				isArray: Array.isArray(response),
+				hasSuccess: "success" in response,
+				hasData: "data" in response,
+				keys: Object.keys(response || {}).slice(0, 10),
+			});
 
-		// Handle both response formats (direct or nested with success/data)
-		let course: AuthCourse;
+			// Handle both response formats (direct or nested with success/data)
+			let course: AuthCourse;
 
-		// Check if response has the nested structure with success/data properties
-		if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-			// This is a nested response format
-			if (!response.success) {
-				console.error("API Error:", response.message || "Unknown error");
-				throw new Error(response.message || "Failed to update course");
+			// Check if response has the nested structure with success/data properties
+			if (
+				response &&
+				typeof response === "object" &&
+				"success" in response &&
+				"data" in response
+			) {
+				// This is a nested response format
+				if (!response.success) {
+					console.error("API Error:", response.message || "Unknown error");
+					throw new Error(response.message || "Failed to update course");
+				}
+
+				if (!response.data) {
+					console.error("API Error: Missing course data in response");
+					throw new Error("Course data not found in response");
+				}
+
+				course = response.data;
+			} else {
+				// This is a direct response format
+				course = response as AuthCourse;
 			}
 
-			if (!response.data) {
-				console.error("API Error: Missing course data in response");
-				throw new Error("Course data not found in response");
+			// Validate the course object
+			if (!course || typeof course !== "object" || !course.id) {
+				console.error("Invalid course data received:", course);
+				throw new Error("Invalid course data received");
 			}
 
-			course = response.data;
-		} else {
-			// This is a direct response format
-			course = response as AuthCourse;
+			return course;
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : "Failed to update course";
+			console.error("updateAuthCourse Thunk Error:", message);
+			return rejectWithValue(message);
 		}
-
-		// Validate the course object
-		if (!course || typeof course !== 'object' || !course.id) {
-			console.error("Invalid course data received:", course);
-			throw new Error("Invalid course data received");
-		}
-
-		return course;
-	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Failed to update course";
-		console.error("updateAuthCourse Thunk Error:", message);
-		return rejectWithValue(message);
 	}
-});
+);
 
 export const deleteAuthCourse = createAsyncThunk<
 	string, // Return the ID of the deleted course on success
@@ -558,7 +663,7 @@ export const deleteAuthCourse = createAsyncThunk<
 		} | void>(`/auth_courses/${courseId}`);
 
 		// Check if response has the nested structure with success property
-		if (response && typeof response === 'object' && 'success' in response) {
+		if (response && typeof response === "object" && "success" in response) {
 			// This is a nested response format
 			if (!response.success) {
 				console.error("API Error:", response.message || "Unknown error");
@@ -687,7 +792,9 @@ export const authCourseSlice = createSlice({
 			.addCase(updateAuthCourse.fulfilled, (state, action) => {
 				state.status = "succeeded";
 				// Find and update the course in the courses array
-				const index = state.courses.findIndex(course => course.id === action.payload.id);
+				const index = state.courses.findIndex(
+					(course) => course.id === action.payload.id
+				);
 				if (index !== -1) {
 					// Update the course
 					state.courses[index] = action.payload;
@@ -700,13 +807,15 @@ export const authCourseSlice = createSlice({
 					if (oldCategory !== newCategory) {
 						// Remove from old category
 						if (state.coursesByCategory[oldCategory]) {
-							state.coursesByCategory[oldCategory] = state.coursesByCategory[oldCategory].filter(
-								course => course.id !== action.payload.id
-							);
+							state.coursesByCategory[oldCategory] = state.coursesByCategory[
+								oldCategory
+							].filter((course) => course.id !== action.payload.id);
 							// Clean up empty categories
 							if (state.coursesByCategory[oldCategory].length === 0) {
 								delete state.coursesByCategory[oldCategory];
-								state.categories = state.categories.filter(cat => cat !== oldCategory);
+								state.categories = state.categories.filter(
+									(cat) => cat !== oldCategory
+								);
 							}
 						}
 
@@ -725,7 +834,7 @@ export const authCourseSlice = createSlice({
 						// Just update the course in its existing category
 						if (state.coursesByCategory[newCategory]) {
 							const catIndex = state.coursesByCategory[newCategory].findIndex(
-								course => course.id === action.payload.id
+								(course) => course.id === action.payload.id
 							);
 							if (catIndex !== -1) {
 								state.coursesByCategory[newCategory][catIndex] = action.payload;
@@ -734,7 +843,10 @@ export const authCourseSlice = createSlice({
 					}
 
 					// If this is the current course, update it
-					if (state.currentCourse && state.currentCourse.id === action.payload.id) {
+					if (
+						state.currentCourse &&
+						state.currentCourse.id === action.payload.id
+					) {
 						state.currentCourse = action.payload;
 					}
 				}
@@ -768,8 +880,10 @@ export const selectCurrentModuleId = (state: RootState) =>
 export const selectCurrentLessonId = (state: RootState) =>
 	state.auth_courses.currentLessonId;
 export const selectAuthCourseBySlug = (slug: string) => (state: RootState) =>
-	state.auth_courses.courses.find(course => course.slug === slug) ||
-	(state.auth_courses.currentCourse?.slug === slug ? state.auth_courses.currentCourse : null);
+	state.auth_courses.courses.find((course) => course.slug === slug) ||
+	(state.auth_courses.currentCourse?.slug === slug
+		? state.auth_courses.currentCourse
+		: null);
 
 // --- Export Reducer ---
 export default authCourseSlice.reducer;
