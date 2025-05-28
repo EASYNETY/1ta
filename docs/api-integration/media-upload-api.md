@@ -44,24 +44,31 @@ Uploads a media file to the server.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `file` | File | Yes | The media file to upload |
+| `files` | File | Yes | The media file(s) to upload (binary) |
 | `mediaType` | String | Yes | The type of media (`image`, `video`, `document`, `audio`) |
-| `folder` | String | No | Optional folder path to store the media in |
+| `folder` | String | Yes | Folder path to store the media in (e.g., "course-thumbnails", "profile-avatars") |
 
 #### Response
 
 ```json
 {
   "success": true,
+  "message": "Successfully uploaded 1 file(s)",
   "data": {
-    "url": "https://storage.example.com/images/1234567890-image.jpg",
-    "mediaId": "media_1234567890",
-    "mediaType": "image",
-    "filename": "image.jpg",
-    "size": 1024000,
-    "mimeType": "image/jpeg"
-  },
-  "message": "File uploaded successfully"
+    "files": [
+      {
+        "originalName": "IMG-20250525-WA0009.jpg",
+        "filename": "IMG-20250525-WA0009-1748402826404-723016183.jpg",
+        "path": "images\\IMG-20250525-WA0009-1748402826404-723016183.jpg",
+        "url": "/courseTB/IMG-20250525-WA0009-1748402826404-723016183.jpg",
+        "size": 46169,
+        "mimetype": "image/jpeg",
+        "uploadedAt": "2025-05-28T03:27:06.825Z",
+        "uploadedBy": "32a14be8-70d9-437a-b9d0-42e5ab3c8c47"
+      }
+    ],
+    "count": 1
+  }
 }
 ```
 
@@ -274,41 +281,51 @@ const upload = multer({
 });
 
 // Upload endpoint
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/upload', upload.array('files'), (req, res) => {
   try {
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No file uploaded'
+        message: 'No files uploaded'
       });
     }
 
-    const mediaType = req.body.mediaType || 'other';
-    const mediaId = `media_${uuidv4()}`;
-    
+    const mediaType = req.body.mediaType || 'image';
+    const folder = req.body.folder || 'uploads';
+
+    // Process uploaded files
+    const uploadedFiles = req.files.map(file => {
+      // Generate URL (in production, this would be a CDN URL)
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const url = `/${folder}/${file.filename}`;
+
+      return {
+        originalName: file.originalname,
+        filename: file.filename,
+        path: file.path,
+        url,
+        size: file.size,
+        mimetype: file.mimetype,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: req.user?.id || 'anonymous'
+      };
+    });
+
     // In a real implementation, save file info to database
-    
-    // Generate URL (in production, this would be a CDN URL)
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const url = `${baseUrl}/${req.file.path.replace(/\\/g, '/')}`;
-    
+
     return res.status(200).json({
       success: true,
+      message: `Successfully uploaded ${uploadedFiles.length} file(s)`,
       data: {
-        url,
-        mediaId,
-        mediaType,
-        filename: req.file.originalname,
-        size: req.file.size,
-        mimeType: req.file.mimetype
-      },
-      message: 'File uploaded successfully'
+        files: uploadedFiles,
+        count: uploadedFiles.length
+      }
     });
   } catch (error) {
     console.error('Upload error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to upload file'
+      message: 'Failed to upload file(s)'
     });
   }
 });

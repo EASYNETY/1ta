@@ -42,6 +42,7 @@ import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems";
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems";
 import { isStudent } from "@/types/user.types";
+import { getProxiedImageUrl } from "@/utils/imageProxy";
 
 // --- Define Nav Item Type ---
 export interface NavItem {
@@ -367,10 +368,10 @@ function NavMenuUserItem({ user, isSidebarOpen }: NavMenuUserItemProps) {
         )}>
             <AvatarWithVerification
                 user={user}
-                className={cn("size-7", !isSidebarOpen && "size-6")}
+                className={cn("size-9", !isSidebarOpen && "size-6")}
                 verificationSize={isSidebarOpen ? "xs" : "xs"}
             >
-                <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                <AvatarImage src={getProxiedImageUrl(user.avatarUrl as string) || undefined} alt={user.name} />
                 <AvatarFallback className="text-xs text-primary font-medium">
                     {user.name?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>

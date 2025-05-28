@@ -496,27 +496,62 @@ export default function CourseDetailPage() {
                                             <h3 className="mt-6">Course Description</h3>
                                             <div dangerouslySetInnerHTML={{ __html: currentCourse.description }} />
 
-                                            {currentCourse.learningOutcomes && currentCourse.learningOutcomes.length > 0 && (
-                                                <>
-                                                    <h3 className="mt-6">What you'll learn</h3>
-                                                    <ul>
-                                                        {currentCourse.learningOutcomes.map((outcome, index) => (
-                                                            <li key={index}>{outcome}</li>
-                                                        ))}
-                                                    </ul>
-                                                </>
-                                            )}
+                                            {
+                                                currentCourse.learningOutcomes &&
+                                                (Array.isArray(currentCourse.learningOutcomes) ? currentCourse.learningOutcomes : (() => {
+                                                    try {
+                                                        const parsed = JSON.parse(currentCourse.learningOutcomes);
+                                                        return Array.isArray(parsed) ? parsed : [];
+                                                    } catch {
+                                                        return [];
+                                                    }
+                                                })()).length > 0 && (
+                                                    <>
+                                                        <h3 className="mt-6">What you'll learn</h3>
+                                                        <ul>
+                                                            {(Array.isArray(currentCourse.learningOutcomes) ? currentCourse.learningOutcomes : (() => {
+                                                                try {
+                                                                    const parsed = JSON.parse(currentCourse.learningOutcomes);
+                                                                    return Array.isArray(parsed) ? parsed : [];
+                                                                } catch {
+                                                                    return [];
+                                                                }
+                                                            })()).map((outcome, index) => (
+                                                                <li key={index}>{outcome}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </>
+                                                )
+                                            }
 
-                                            {currentCourse.prerequisites && currentCourse.prerequisites.length > 0 && (
-                                                <>
-                                                    <h3 className="mt-6">Prerequisites</h3>
-                                                    <ul>
-                                                        {currentCourse.prerequisites.map((prerequisite, index) => (
-                                                            <li key={index}>{prerequisite}</li>
-                                                        ))}
-                                                    </ul>
-                                                </>
-                                            )}
+                                            {
+                                                currentCourse.prerequisites &&
+                                                (Array.isArray(currentCourse.prerequisites) ? currentCourse.prerequisites : (() => {
+                                                    try {
+                                                        const parsed = JSON.parse(currentCourse.prerequisites);
+                                                        return Array.isArray(parsed) ? parsed : [];
+                                                    } catch {
+                                                        return [];
+                                                    }
+                                                })()).length > 0 && (
+                                                    <>
+                                                        <h3 className="mt-6">Prerequisites</h3>
+                                                        <ul>
+                                                            {(Array.isArray(currentCourse.prerequisites) ? currentCourse.prerequisites : (() => {
+                                                                try {
+                                                                    const parsed = JSON.parse(currentCourse.prerequisites);
+                                                                    return Array.isArray(parsed) ? parsed : [];
+                                                                } catch {
+                                                                    return [];
+                                                                }
+                                                            })()).map((prerequisite, index) => (
+                                                                <li key={index}>{prerequisite}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </>
+                                                )
+                                            }
+
                                         </div>
                                     </CardContent>
                                 </DyraneCard>

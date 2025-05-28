@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage, AvatarWithVerification } from "./avatar";
 import { useAppSelector } from "@/store/hooks";
 import { DyraneButton } from "../dyrane-ui/dyrane-button";
+import { getProxiedImageUrl } from "@/utils/imageProxy";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -285,7 +286,7 @@ function SidebarTrigger({
         verificationSize="xs"
       >
         <AvatarImage
-          src={user?.avatarUrl || undefined}
+          src={getProxiedImageUrl(user?.avatarUrl as string)  || undefined}
           alt={user?.name || "User"}
           className="h-full w-full rounded-full object-cover"
         />

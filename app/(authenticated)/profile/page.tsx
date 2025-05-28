@@ -245,7 +245,7 @@ export default function ProfilePage() {
                         isValid = false
                     }
                 }
-            } else if (user.role === "student") {
+            } else if (user.role === "student" && !data.isCorporateRegistration) {
                 // Individual Student Onboarding Validation
                 if (!data.dateOfBirth) {
                     form.setError("dateOfBirth", { type: "manual", message: "Date of birth is required." })
@@ -398,7 +398,9 @@ export default function ProfilePage() {
                 }
             }
         } catch (error: any) {
-            toast({ title: "Update Error", description: error.message || "Failed to update profile", variant: "destructive" })
+            console.error("Profile update error:", error)
+            const errorMessage = error?.message || error || "Failed to update profile"
+            toast({ title: "Update Error", description: errorMessage, variant: "destructive" })
         } finally {
             setIsSubmitting(false)
         }

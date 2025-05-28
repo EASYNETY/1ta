@@ -1,8 +1,7 @@
 // src/components/course-form/CurriculumForm.tsx
 import React from "react";
 import { useFieldArray, type Control } from "react-hook-form";
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { FormMessage, FormField } from "@/components/ui/form"; // Import FormField for top-level array errors
 import { Plus } from "lucide-react";
@@ -24,7 +23,7 @@ export const CurriculumForm: React.FC<CurriculumFormProps> = ({ control, onBack,
     });
 
     return (
-        <DyraneCard>
+        <Card>
             <CardHeader>
                 <CardTitle>Course Curriculum</CardTitle>
             </CardHeader>
@@ -56,6 +55,6 @@ export const CurriculumForm: React.FC<CurriculumFormProps> = ({ control, onBack,
                 </div>
             </CardContent>
             <FormNavigation onBack={onBack} onNext={onNext} />
-        </DyraneCard>
+        </Card>
     );
 };

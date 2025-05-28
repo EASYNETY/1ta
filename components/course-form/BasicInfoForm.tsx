@@ -1,31 +1,43 @@
 // src/components/course-form/BasicInfoForm.tsx
 import React from "react";
-import { type Control } from "react-hook-form";
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
-import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Import UseFormSetValue type from react-hook-form
+import { type Control, useWatch, type UseFormSetValue } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
-import { Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { getProxiedImageUrl } from "@/utils/imageProxy";
+import { X } from "lucide-react";
+
 import { FormNavigation } from "./FormNavigation";
-import { CATEGORIES, LEVELS } from "@/config/course-form-config";
+import { CATEGORIES, levels } from "@/config/course-form-config";
 import type { CourseFormValues } from "@/lib/schemas/course.schema";
+
+import { FormMediaUpload, StandaloneFormMediaUpload } from "@/components/ui/form-media-upload";
+import { MediaType } from "@/lib/services/media-upload-service";
 
 interface BasicInfoFormProps {
     control: Control<CourseFormValues>;
+    setValue: UseFormSetValue<CourseFormValues>; // Add setValue to props
     onNext: () => void;
 }
 
-// Import the FormMediaUpload component
-import { FormMediaUpload } from "@/components/ui/form-media-upload";
-import { MediaType } from "@/lib/services/media-upload-service";
+export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, setValue, onNext }) => { // Destructure setValue from props
+    const imageUrl = useWatch({
+        control,
+        name: "image",
+    });
 
+    const handleRemoveImage = () => {
+        // Use the passed setValue function instead of control.setValue
+        setValue("image", "", { shouldValidate: true, shouldDirty: true });
+    };
 
-export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, onNext }) => {
     return (
-        <DyraneCard>
+        <Card>
             <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
             </CardHeader>
@@ -99,7 +111,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, onNext })
                                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select a level" /></SelectTrigger></FormControl>
                                     <SelectContent>
-                                        {LEVELS.map((lvl) => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
+                                        {levels.map((lvl) => <SelectItem key={lvl} value={lvl}>{lvl}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -122,23 +134,67 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, onNext })
                     )}
                 />
 
-                {/* Course Thumbnail Upload */}
-                <FormMediaUpload
-                    name="image"
-                    label="Course Thumbnail"
-                    description="Upload a thumbnail image for your course (1280x720px recommended)"
-                    mediaType={MediaType.IMAGE}
-                    showFileName={false}
-                    uploadOptions={{
-                        folder: "course-thumbnails",
-                        onUploadSuccess: (response) => {
-                            console.log("Thumbnail uploaded successfully:", response);
-                        },
-                    }}
-                />
+                {/* Course Thumbnail Upload Section */}
+                <FormItem>
+                    <FormLabel>Course Thumbnail: {imageUrl}</FormLabel>
+                    <div className="mt-2">
+                        {imageUrl && typeof imageUrl === 'string' ? (
+                            <div className="space-y-3">
+                                <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+                                    <Image
+                                        src={getProxiedImageUrl(imageUrl)}
+                                        alt="Course Thumbnail Preview"
+                                        layout="fill"
+                                        objectFit="cover"
+                                        className="rounded-md"
+                                    />
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleRemoveImage}
+                                    className="flex items-center"
+                                >
+                                    <X className="mr-2 h-4 w-4" /> Remove / Change Thumbnail
+                                </Button>
+                                <FormDescription>
+                                    Current thumbnail. Click the button to remove it and upload a new one.
+                                </FormDescription>
+                            </div>
+                        ) : (
+                            <>
+                                <StandaloneFormMediaUpload
+                                    control={control}
+                                    name="image"
+                                    description={
+                                        "Upload a thumbnail image for your course (1280x720px recommended). Max 2MB."
+                                    }
+                                    mediaType={MediaType.IMAGE}
+                                    showFileName={false}
+                                    uploadOptions={{
+                                        folder: "course-thumbnails",
+                                        onUploadSuccess: (response) => {
+                                            console.log("Thumbnail uploaded successfully (external callback):", response);
+                                            // Prepend base URL to relative URL before setting value
+                                            // const baseUrl = "http://34.249.241.206:5000";
+                                            const fullUrl = response.data.files[0].url ? response.data.files[0].url : "";
+                                            setValue("image", fullUrl, { shouldValidate: true, shouldDirty: true });
+                                        },
+                                    }}
+                                />
+                            </>
+                        )}
+                    </div>
+                    <FormField
+                        control={control}
+                        name="image"
+                        render={() => <FormMessage className="mt-1" />}
+                    />
+                </FormItem>
 
             </CardContent>
             <FormNavigation onNext={onNext} />
-        </DyraneCard>
+        </Card>
     );
 };

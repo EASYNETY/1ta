@@ -1,18 +1,30 @@
 // lib/utils.ts
 
+/**
+ * Utility functions for styling, formatting, and string manipulation.
+ * Includes helpers for className merging, currency formatting, color generation, and initials extraction.
+ */
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+/**
+ * Combines class names using clsx and merges Tailwind CSS classes with twMerge.
+ * Useful for conditionally joining class names and resolving conflicts in Tailwind CSS.
+ * @param inputs - Array of class values (strings, objects, arrays).
+ * @returns A single merged className string.
+ */
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
 /**
  * Format a number into a localized currency string.
- * @param amount - The amount to format.
+ * Uses Intl.NumberFormat with currency style and no decimal places.
+ * @param amount - The numeric amount to format.
  * @param currency - The ISO 4217 currency code (e.g., "USD", "NGN").
- * @param locale - Optional locale (defaults to "en-US").
- * @returns Formatted currency string.
+ * @param locale - Optional locale string (default is "en-US").
+ * @returns The formatted currency string.
  */
 export function formatCurrency(
 	amount: number,
@@ -29,7 +41,8 @@ export function formatCurrency(
 
 /**
  * Generates a consistent background color from a string (e.g., userId or name).
- * @param str The input string.
+ * Uses a hash function to create HSL values and converts to HEX.
+ * @param str - The input string to generate color from.
  * @returns A hex color string (e.g., "#RRGGBB").
  */
 export function generateColorFromString(str: string): string {
@@ -51,6 +64,10 @@ export function generateColorFromString(str: string): string {
 /**
  * Converts HSL color values to a HEX string.
  * Assumes h, s, and l are contained in the set [0, 360], [0, 100], [0, 100] respectively.
+ * @param h - Hue degree (0-360).
+ * @param s - Saturation percentage (0-100).
+ * @param l - Lightness percentage (0-100).
+ * @returns HEX color string (e.g., "#RRGGBB").
  */
 export function hslToHex(h: number, s: number, l: number): string {
 	s /= 100;
@@ -71,8 +88,9 @@ export function hslToHex(h: number, s: number, l: number): string {
 
 /**
  * Determines if a color is dark or light to choose contrasting text color.
- * @param hexColor The hex color string (e.g., "#RRGGBB").
- * @returns "dark" (suggests light text) or "light" (suggests dark text)
+ * Uses the HSP (Highly Sensitive Poo) equation to calculate perceived brightness.
+ * @param hexColor - The hex color string (e.g., "#RRGGBB").
+ * @returns "dark" if the color is dark (suggests light text), or "light" if the color is light (suggests dark text).
  */
 export function getContrastColor(hexColor: string): 'dark' | 'light' {
 	if (!hexColor || hexColor.length < 7) return 'dark'; // Default to dark text for invalid/short hex
@@ -89,9 +107,11 @@ export function getContrastColor(hexColor: string): 'dark' | 'light' {
 }
 
 /**
- * Gets initials from a name.
- * @param name The full name string.
- * @returns Initials (e.g., "JD", "J", "Jo").
+ * Gets initials from a name string.
+ * Extracts the first letter of the first and last words if multiple words exist,
+ * or the first two letters if only one word exists.
+ * @param name - The full name string.
+ * @returns Initials in uppercase (e.g., "JD", "J", "Jo"), or "?" if name is empty or invalid.
  */
 export function getInitials(name?: string): string {
 	if (!name || name.trim() === "") return "?";
@@ -102,4 +122,30 @@ export function getInitials(name?: string): string {
 		return nameParts[0].substring(0, Math.min(2, nameParts[0].length)).toUpperCase();
 	}
 	return "?";
+}
+
+/**
+ * Parses an unknown input into an array of type T.
+ * - If the input is already an array, it returns it as is.
+ * - If the input is a JSON string representing an array, it parses and returns the array.
+ * - Otherwise, returns an empty array.
+ * @template T - The type of elements in the returned array (default is string).
+ * @param input - The input value to parse.
+ * @returns An array of type T parsed from the input or an empty array if parsing fails.
+ */
+export function parseToArray<T = string>(input: unknown): T[] {
+  if (Array.isArray(input)) {
+    return input;
+  }
+
+  if (typeof input === 'string') {
+    try {
+      const parsed = JSON.parse(input);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  return [];
 }

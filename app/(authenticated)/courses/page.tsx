@@ -137,7 +137,7 @@ export default function CoursesPage() {
               <CourseRequestsTabContent status={status} />
             </TabsContent>
           )}
-{/*
+          {/*
           {user?.role === "student" && (
             <TabsContent value="recommended">
               <div className="p-6 text-center bg-muted/20 rounded-lg border">

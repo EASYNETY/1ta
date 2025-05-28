@@ -165,6 +165,25 @@ export default function MediaUploadDemo() {
                   onUrlChange={setStandaloneImageUrl}
                   label="Upload Image"
                   description="PNG, JPG or GIF up to 10MB"
+                  uploadOptions={{
+                    folder: "demo-images",
+                    onUploadSuccess: (response) => {
+                      console.log('Image uploaded successfully:', response);
+                      toast({
+                        title: 'Image Uploaded',
+                        description: `File uploaded: ${response.data.files[0].originalName}`,
+                        variant: 'success',
+                      });
+                    },
+                    onUploadError: (error) => {
+                      console.error('Image upload failed:', error);
+                      toast({
+                        title: 'Upload Failed',
+                        description: error.message,
+                        variant: 'destructive',
+                      });
+                    },
+                  }}
                 />
                 {standaloneImageUrl && (
                   <p className="text-sm text-muted-foreground break-all">
@@ -182,6 +201,17 @@ export default function MediaUploadDemo() {
                   onUrlChange={setStandaloneVideoUrl}
                   label="Upload Video"
                   description="MP4, WebM or OGG up to 100MB"
+                  uploadOptions={{
+                    folder: "demo-videos",
+                    onUploadSuccess: (response) => {
+                      console.log('Video uploaded successfully:', response);
+                      toast({
+                        title: 'Video Uploaded',
+                        description: `File uploaded: ${response.data.files[0].originalName}`,
+                        variant: 'success',
+                      });
+                    },
+                  }}
                 />
                 {standaloneVideoUrl && (
                   <p className="text-sm text-muted-foreground break-all">
@@ -211,6 +241,9 @@ export default function MediaUploadDemo() {
                     initialUrl={avatarUrl}
                     onUrlChange={setAvatarUrl}
                     name="John Doe"
+                    uploadOptions={{
+                      folder: "profile-avatars",
+                    }}
                   />
                 </div>
 

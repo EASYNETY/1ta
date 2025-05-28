@@ -125,24 +125,40 @@ const formatCourseDataForForm = (course: ExtendedAuthCourse): Partial<CourseForm
         }) ?? []
     })) ?? [];
 
+    function parseStringOrArray(value: unknown): string[] {
+        if (Array.isArray(value)) return value;
+        if (typeof value === "string") {
+            try {
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+        return [];
+    }
+
+
     return {
         title: course.title ?? "",
         subtitle: course.subtitle ?? "",
+        image: course.image ?? "",
         description: course.description ?? "",
-        category: course.category ?? "", // Need a valid category string
-        level: course.level ?? "All Levels",
-        available_for_enrolment: course.isAvailableForEnrolment ?? true, // Map isAvailableForEnrolment to available_for_enrolment
+        category: course.category ?? "",
+        // @ts-ignore
+        level: course.level ?? "all levels" as "beginner" | "intermediate" | "advanced" | "all levels",
+        available_for_enrolment: course.isAvailableForEnrolment ?? true,
         price: course.priceUSD ?? 0,
         priceNaira: course.priceNaira ?? 0,
-        discountPrice: course.discountPriceUSD, // Can be undefined
-        discountPriceNaira: course.discountPriceNaira, // Can be undefined
+        discountPrice: course.discountPriceUSD,
+        discountPriceNaira: course.discountPriceNaira,
         language: course.language ?? "English",
         certificate: course.certificate ?? true,
         accessType: course.accessType ?? "Lifetime",
         supportType: course.supportType ?? "Both",
-        tags: course.tags?.join(", ") ?? "", // Join array back to string
-        learningOutcomes: course.learningOutcomes?.join("\n") ?? "", // Join array back to string
-        prerequisites: course.prerequisites?.join("\n") ?? "", // Join array back to string
+        tags: parseStringOrArray(course.tags).join(", "),
+        learningOutcomes: parseStringOrArray(course.learningOutcomes).join("\n"),
+        prerequisites: parseStringOrArray(course.prerequisites).join("\n"),
         modules: formattedModules,
     };
 };
@@ -272,7 +288,7 @@ export default function EditCoursePage() {
                 variant: "success",
             });
             // Redirect to course view page or list page after update
-            router.push(`/courses/${slug}`); // Redirect to the course view page
+            // router.push(`/courses`); // Redirect to the course view page
 
         } catch (error) {
             // Error handling remains similar to create page
@@ -345,7 +361,7 @@ export default function EditCoursePage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-2xl md:text-3xl font-bold">{pageTitle}</h1>
                 <DyraneButton variant="outline" asChild>
-                    <Link href={`/courses/${slug}`}>Cancel & View Course</Link>
+                    <Link href={`/courses`}>Cancel & View Courses</Link>
                 </DyraneButton>
             </div>
 
@@ -377,6 +393,7 @@ export default function EditCoursePage() {
                             <BasicInfoForm
                                 // @ts-ignore <-- ACCEPTED from previous state
                                 control={form.control}
+                                setValue={form.setValue}
                                 onNext={() => handleTabChange("details")}
                             />
                         </TabsContent>

@@ -47,7 +47,7 @@ export interface MediaUploadState {
   /**
    * Additional metadata about the uploaded file
    */
-  metadata: Partial<MediaUploadResponse['data']> | null;
+  metadata: MediaUploadResponse['data']['files'][0] | null;
 }
 
 export interface UseMediaUploadOptions extends Partial<MediaUploadOptions> {
@@ -131,7 +131,7 @@ export function useMediaUpload(options: UseMediaUploadOptions = {}) {
           isUploading: false,
           isUploaded: !!initialUrl,
           error: null,
-          metadata: initialUrl ? { url: initialUrl } : null,
+          metadata: null,
         });
         return;
       }
@@ -223,17 +223,20 @@ export function useMediaUpload(options: UseMediaUploadOptions = {}) {
         }
 
         // Validate the response
-        if (!response || !response.data || !response.data.url) {
+        if (!response || !response.data || !response.data.files || response.data.files.length === 0) {
           throw new Error('Invalid response from server');
         }
 
+        // Get the first uploaded file
+        const uploadedFile = response.data.files[0];
+
         setState((prev) => ({
           ...prev,
-          remoteUrl: response.data.url,
+          remoteUrl: uploadedFile.url,
           isUploading: false,
           isUploaded: true,
           progress: 100,
-          metadata: response.data,
+          metadata: uploadedFile,
           error: null, // Clear any error messages
         }));
 
@@ -288,7 +291,7 @@ export function useMediaUpload(options: UseMediaUploadOptions = {}) {
       isUploading: false,
       isUploaded: !!initialUrl,
       error: null,
-      metadata: initialUrl ? { url: initialUrl } : null,
+      metadata: null,
     });
   }, [state.previewUrl, initialUrl]);
 
