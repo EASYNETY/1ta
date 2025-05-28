@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { getProxiedImageUrl } from "@/utils/imageProxy";
 import { X } from "lucide-react";
 
 import { FormNavigation } from "./FormNavigation";
@@ -141,7 +142,7 @@ export const BasicInfoForm: React.FC<BasicInfoFormProps> = ({ control, setValue,
                             <div className="space-y-3">
                                 <div className="relative aspect-video w-full overflow-hidden rounded-md border">
                                     <Image
-                                        src={`/api/images?imageUrl=${encodeURIComponent(imageUrl)}`}
+                                        src={imageUrl}
                                         alt="Course Thumbnail Preview"
                                         layout="fill"
                                         objectFit="cover"
