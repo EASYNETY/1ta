@@ -51,7 +51,9 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
 
     const handleRemove = (e: React.MouseEvent) => {
         e.stopPropagation()
-        dispatch(removeItem(item.courseId))
+        dispatch(removeItem({
+            id: item.courseId,
+        }))
 
         toast({
             title: "Course Removed",
@@ -92,17 +94,17 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                     <p className="text-xs text-muted-foreground truncate">{item.instructor}</p>
                 )}
                 {isAuthenticated && <div className="flex items-center gap-1 mt-0.5">
-                    {item.discountPrice ? (
+                    {item.discountPriceNaira ? (
                         <>
                             <span className="text-xs font-medium">
-                                {renderNairaPrice(convert(item.discountPrice))}
+                                {item.discountPriceNaira}
                             </span>
                             <span className="text-xs text-muted-foreground line-through">
-                                {renderNairaPrice(convert(item.price))}
+                                {item.priceNaira}
                             </span>
                         </>
                     ) : (
-                        <span className="text-xs font-medium">{renderNairaPrice(convert(item.price))}</span>
+                        <span className="text-xs font-medium">{item.priceNaira}</span>
                     )}
                 </div>}
             </div>

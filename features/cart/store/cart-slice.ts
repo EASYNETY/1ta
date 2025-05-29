@@ -4,8 +4,8 @@ export interface CartItem {
 	courseId: string;
 	classId?: string; // Added for class-based enrolment
 	title: string;
-	price: number;
-	discountPrice?: number;
+	priceNaira: number;
+	discountPriceNaira?: number;
 	image?: string;
 	instructor?: string;
 }
@@ -32,7 +32,7 @@ export const cartSlice = createSlice({
 
 			if (!existingItem) {
 				state.items.push(action.payload);
-				state.total += action.payload.discountPrice || action.payload.price;
+				state.total += action.payload.discountPriceNaira || action.payload.priceNaira;
 			}
 		},
 		removeItem: (state, action: PayloadAction<{ id: string, isClassId?: boolean }>) => {
@@ -42,7 +42,7 @@ export const cartSlice = createSlice({
 				: state.items.find(item => item.courseId === action.payload.id);
 
 			if (itemToRemove) {
-				state.total -= itemToRemove.discountPrice || itemToRemove.price;
+				state.total -= itemToRemove.discountPriceNaira || itemToRemove.priceNaira;
 				state.items = action.payload.isClassId
 					? state.items.filter(item => item.classId !== action.payload.id)
 					: state.items.filter(item => item.courseId !== action.payload.id);

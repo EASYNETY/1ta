@@ -47,7 +47,9 @@ export default function CartPage() {
     }, [isCorporateStudent, router, toast])
 
     const handleRemoveItem = (courseId: string) => {
-        dispatch(removeItem(courseId))
+        dispatch(removeItem({
+            id: courseId
+        }))
         toast({
             title: "Item Removed",
             description: "The item has been removed from your cart.",
@@ -111,9 +113,11 @@ export default function CartPage() {
                         <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" />
                         <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
                         <p className="text-muted-foreground mb-6">Browse our courses and add some to your cart.</p>
-                        <DyraneButton asChild>
-                            <a href="/#courses">Browse Courses</a>
-                        </DyraneButton>
+                        {<DyraneButton asChild>
+                            <a
+                                href={user ? '/courses' : "/#courses"}
+                            >Browse Courses</a>
+                        </DyraneButton>}
                     </div>
                 </Card>
             </div>
@@ -171,13 +175,13 @@ export default function CartPage() {
                                         </div>
                                         <div className="flex flex-col items-end justify-between">
                                             <div className="text-right">
-                                                {item.discountPrice ? (
+                                                {item.discountPriceNaira ? (
                                                     <>
-                                                        <p className="line-through text-sm text-muted-foreground">₦{item.price}</p>
-                                                        <p className="font-medium">₦{item.discountPrice}</p>
+                                                        <p className="line-through text-sm text-muted-foreground">₦{item.priceNaira}</p>
+                                                        <p className="font-medium">₦{item.discountPriceNaira}</p>
                                                     </>
                                                 ) : (
-                                                    <p className="font-medium">₦{item.price}</p>
+                                                    <p className="font-medium">₦{item.priceNaira}</p>
                                                 )}
                                             </div>
                                             <button
