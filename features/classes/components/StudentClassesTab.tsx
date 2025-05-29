@@ -22,7 +22,9 @@ const StudentClassesTab: React.FC = () => {
 
     useEffect(() => {
         if (user?.id) { // Fetch only if idle and user exists
-            dispatch(fetchMyEnroledClasses(user.id));
+            dispatch(fetchMyEnroledClasses(user.id)).unwrap().catch((err) => {
+                console.error("Error fetching enrolled classes:", err);
+            });
         }
     }, [dispatch, user?.id]);
 

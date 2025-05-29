@@ -140,7 +140,7 @@ export function ScanResultHandler({
                 const partialMatches = users.filter(user =>
                     user.barcodeId &&
                     (user.barcodeId.includes(lastScannedId) ||
-                     lastScannedId.includes(user.barcodeId))
+                        lastScannedId.includes(user.barcodeId))
                 );
 
                 if (partialMatches.length > 0) {
@@ -212,6 +212,8 @@ export function ScanResultHandler({
             apiStatus={casualScanMode ? 'success' : (markingLoading ? 'loading' : apiStatus)}
             apiError={apiError}
             casualScanMode={casualScanMode}
+            checkInDateTime={new Date().toISOString()}
+            lectureName={selectedClass.courseName}
         />
     );
 }

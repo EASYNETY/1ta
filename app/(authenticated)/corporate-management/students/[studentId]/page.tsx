@@ -34,7 +34,7 @@ const formatDateDisplay = (dateString?: string | null) => {
 
 // Helper for Status Badge
 const getStudentStatusBadge = (isActive?: boolean) => {
-    return isActive === true ? ( // Check explicitly for true
+    return (isActive === true || Number(isActive) === 1) ? ( // Check explicitly for true
         <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-100 dark:border-green-700">
             <CheckCircle className="mr-1 h-3 w-3" />Active
         </Badge>

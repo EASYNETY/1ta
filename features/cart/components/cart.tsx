@@ -24,7 +24,7 @@ export function Cart({ onClose }: CartProps) {
     const [isCheckingOut, setIsCheckingOut] = useState(false)
 
     const handleRemoveItem = (courseId: string) => {
-        dispatch(removeItem(courseId))
+        dispatch(removeItem({ id: courseId }))
     }
 
     const handleClearCart = () => {

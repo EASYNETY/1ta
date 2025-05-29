@@ -7,7 +7,7 @@ import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Sparkles, AlertCircle, QrCode } from "lucide-react"
+import { Sparkles, AlertCircle, GraduationCap } from "lucide-react"
 import Link from "next/link"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { motion } from "framer-motion"
@@ -25,6 +25,7 @@ import { ProgressOverview } from "@/components/dashboard/progress-overview"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { useRouter } from "next/navigation"
 import { isStudent } from "@/types/user.types"
+import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
@@ -193,7 +194,7 @@ export default function DashboardPage() {
                         </DyraneButton>
                         <DyraneButton asChild variant="outline">
                             <Link href="/courses" className="flex items-center gap-2">
-                                <QrCode className="h-4 w-4" />
+                                <GraduationCap className="h-4 w-4" />
                                 Browse Courses
                             </Link>
                         </DyraneButton>
@@ -202,12 +203,17 @@ export default function DashboardPage() {
             case "student":
             default:
                 return (
-                    <DyraneButton asChild>
-                        <Link href="/courses" className="flex items-center gap-2">
-                            <QrCode className="h-4 w-4" />
-                            Browse Courses
-                        </Link>
-                    </DyraneButton>
+                    <div className="flex gap-2">
+                        {isStudent(user) && user.barcodeId && (
+                            <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />
+                        )}
+                        <DyraneButton asChild variant="outline">
+                            <Link href="/courses" className="flex items-center gap-2">
+                                <GraduationCap className="h-4 w-4" />
+                                Browse Courses
+                            </Link>
+                        </DyraneButton>
+                    </div>
                 )
         }
     }
@@ -278,7 +284,7 @@ export default function DashboardPage() {
                                     {/* Removed "View Pricing Plans" button */}
                                     <DyraneButton asChild variant="outline">
                                         <Link href="/courses" className="flex items-center gap-2">
-                                            <QrCode className="h-4 w-4" />
+                                            <GraduationCap className="h-4 w-4" />
                                             Browse Courses
                                         </Link>
                                     </DyraneButton>
@@ -340,7 +346,7 @@ export default function DashboardPage() {
                                 <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
                                 <DyraneButton asChild>
                                     <Link href="/courses" className="flex items-center gap-2">
-                                        <QrCode className="h-4 w-4" />
+                                        <GraduationCap className="h-4 w-4" />
                                         Browse Courses
                                     </Link>
                                 </DyraneButton>
@@ -371,7 +377,7 @@ export default function DashboardPage() {
                                 <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
                                 <DyraneButton asChild>
                                     <Link href="/courses" className="flex items-center gap-2">
-                                        <QrCode className="h-4 w-4" />
+                                        <GraduationCap className="h-4 w-4" />
                                         Browse Courses
                                     </Link>
                                 </DyraneButton>

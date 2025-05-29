@@ -5,7 +5,7 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
 import { cn } from "@/lib/utils";
 import { VerificationBadge } from "./verification-badge";
-import { User } from "@/types/user.types";
+import { isStudent, User } from "@/types/user.types";
 
 function Avatar({
   className,
@@ -72,7 +72,7 @@ function AvatarWithVerification({
   children,
   onClick,
 }: AvatarWithVerificationProps) {
-  const isActive = user?.isActive === true;
+  const isActive = user?.isActive;
 
   // Position the badge relative to the avatar border
   const getBadgePosition = () => {
@@ -89,7 +89,7 @@ function AvatarWithVerification({
         {children}
       </Avatar>
 
-      {showVerification && isActive && (
+      {showVerification && isActive && isStudent(user) && (
         <div className={getBadgePosition()}>
           <VerificationBadge
             size={verificationSize}

@@ -9,6 +9,7 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { updateUserProfileThunk, createCorporateStudentSlotsThunk } from "@/features/auth/store/auth-thunks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
 import { fetchCourses } from "@/features/public-course/store/public-course-slice"
+import { fetchClassById } from "@/features/classes/store/classes-thunks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
@@ -24,6 +25,7 @@ import { ProfileFormFields } from "@/components/profile/ProfileFormFields"
 import { CorporateManagerFields } from "@/components/profile/CorporateManagerFields"
 import { isStudent } from "@/types/user.types"
 import type { User, StudentUser, TeacherUser } from "@/types/user.types"
+import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 
 // Define schema here or import from shared location
 const profileSchema = z.object({
@@ -115,7 +117,45 @@ export default function ProfilePage() {
         return combinedOptions;
     }, [allCourses, publicCourses])
 
+    // Get currentClass from Redux state to show slots info
+    const currentClass = useAppSelector(state => state.classes.currentClass);
+
+    // Initialize the form with more flexible defaults that match what we'll set later
+    const form = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileSchema) as any, // Use type assertion to avoid resolver type conflicts
+        defaultValues: useMemo(() => {
+            // Return empty defaults initially
+            return {
+                name: "",
+                address: "",
+                dateOfBirth: undefined,
+                classId: "",
+                accountType: "individual",
+                bio: "",
+                phone: "",
+                subjects: [],
+                officeHours: "",
+                isCorporateRegistration: false,
+                companyName: "",
+                initialStudentCount: undefined,
+                initialSelectedCourses: [],
+                purchasedStudentSlots: 0,
+            }
+        }, []), // Empty dependency array means this only runs once
+        mode: "onBlur",
+    })
+
     const hasItemsInCart = cartItems.length > 0
+
+    // Dispatch fetchClassById when classId changes
+    useEffect(() => {
+        const subscription = form.watch((value, { name }) => {
+            if (name === "classId" && value.classId) {
+                dispatch(fetchClassById(value.classId));
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [form, dispatch]);
 
     // Function to determine the default course ID
     const determineDefaultCourseId = useCallback(() => {
@@ -144,31 +184,6 @@ export default function ProfilePage() {
 
         return ""
     }, [isOnboarding, hasItemsInCart, cartItems, user, courseOptions])
-
-    // Initialize the form with more flexible defaults that match what we'll set later
-    const form = useForm<ProfileFormValues>({
-        resolver: zodResolver(profileSchema) as any, // Use type assertion to avoid resolver type conflicts
-        defaultValues: useMemo(() => {
-            // Return empty defaults initially
-            return {
-                name: "",
-                address: "",
-                dateOfBirth: undefined,
-                classId: "",
-                accountType: "individual",
-                bio: "",
-                phone: "",
-                subjects: [],
-                officeHours: "",
-                isCorporateRegistration: false,
-                companyName: "",
-                initialStudentCount: undefined,
-                initialSelectedCourses: [],
-                purchasedStudentSlots: 0,
-            }
-        }, []), // Empty dependency array means this only runs once
-        mode: "onBlur",
-    })
 
     // Effect to set form values once user data is available
     useEffect(() => {
@@ -419,10 +434,13 @@ export default function ProfilePage() {
 
     return (
         <div className="mx-auto space-y-6">
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-3xl font-bold flex items-center gap-4">
                 {isOnboarding ? "Complete Your Profile" : "My Profile"}
                 {isCorporateStudent && " (Corporate Student)"}
                 {isCorporateManager && " (Corporate Manager)"}
+                {isStudent(user) && user.barcodeId && (
+                    <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />
+                )}
             </h1>
 
             <ProfileAlerts
@@ -443,6 +461,16 @@ export default function ProfilePage() {
                             </p>
                         </div>
                     )}
+                    {/* Display remaining slots info for selected course */}
+                    {currentClass && (
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md mb-4 text-green-800 dark:text-green-300 text-sm font-semibold">
+                            {currentClass.availableSlots && currentClass.availableSlots > 0 ? (
+                                <>Slots Available: {currentClass.availableSlots} / {currentClass.maxSlots}</>
+                            ) : (
+                                <>No slots available for this course.</>
+                            )}
+                        </div>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <ProfileAvatarInfo
@@ -453,28 +481,28 @@ export default function ProfilePage() {
                                 dispatch(updateUserProfileThunk({
                                     avatarUrl: url
                                 }))
-                                .unwrap()
-                                .then(() => {
-                                    toast({
-                                        title: "Profile Updated",
-                                        description: "Your profile picture has been updated successfully.",
-                                        variant: "success",
+                                    .unwrap()
+                                    .then(() => {
+                                        toast({
+                                            title: "Profile Updated",
+                                            description: "Your profile picture has been updated successfully.",
+                                            variant: "success",
+                                        });
+                                    })
+                                    .catch((error) => {
+                                        toast({
+                                            title: "Update Failed",
+                                            description: error.message || "There was a problem updating your profile picture. Please try again.",
+                                            variant: "destructive",
+                                        });
                                     });
-                                })
-                                .catch((error) => {
-                                    toast({
-                                        title: "Update Failed",
-                                        description: error.message || "There was a problem updating your profile picture. Please try again.",
-                                        variant: "destructive",
-                                    });
-                                });
                             }
                         }}
                     />
 
                     <Form {...form}>
                         <form id="profile-form" onSubmit={form.handleSubmit(handleSubmit)} className="mt-6">
-                            {/* Show corporate manager fields if applicable */}
+                            {/* Show corporate manager fields if applicable */} 
                             {(isOnboarding && form.watch("isCorporateRegistration")) || isCorporateManagerView ? (
                                 <CorporateManagerFields
                                     form={form}

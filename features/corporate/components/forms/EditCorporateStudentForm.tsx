@@ -36,7 +36,7 @@ export function EditCorporateStudentForm({ initialData, onSubmit, isSubmitting }
         resolver: zodResolver(editStudentSchema),
         defaultValues: {
             name: initialData.name || "",
-            isActive: initialData.isActive === true, // Default based on initial data
+            isActive: (initialData.isActive === true || Number(initialData.isActive) === 1), // Default based on initial data
         },
         mode: "onBlur",
     });
@@ -45,7 +45,7 @@ export function EditCorporateStudentForm({ initialData, onSubmit, isSubmitting }
     useEffect(() => {
         form.reset({
             name: initialData.name || "",
-            isActive: initialData.isActive === true,
+                      isActive: (initialData.isActive === true || Number(initialData.isActive) === 1),
         });
     }, [initialData, form]);
 
