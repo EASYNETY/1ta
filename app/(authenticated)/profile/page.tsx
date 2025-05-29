@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, FieldErrors } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
@@ -40,7 +40,23 @@ const profileSchema = z.object({
     subjects: z.array(z.string()).optional().nullable(),
     officeHours: z.string().optional(),
     // Corporate Onboarding Specific Fields
-    isCorporateRegistration: z.boolean().optional(),
+    isCorporateRegistration: z.preprocess(
+        (val) => {
+            // Attempt to convert common numeric representations (0 or 1) to boolean.
+            // This handles cases where a UI component might incorrectly send a number.
+            if (typeof val === 'number') {
+                return val === 1;
+            }
+            // Also handle string "true" or "false" just in case, though less likely for this error
+            if (typeof val === 'string') {
+                if (val.toLowerCase() === 'true') return true;
+                if (val.toLowerCase() === 'false') return false;
+            }
+            // Pass through other values (already boolean, undefined, null) for Zod to handle.
+            return val;
+        },
+        z.boolean().optional() // The underlying type is still an optional boolean.
+    ),
     companyName: z.string().optional(),
     initialStudentCount: z.preprocess(
         (val) => (val === "" || val === null || isNaN(Number(val)) ? undefined : Number(val)),
@@ -77,9 +93,8 @@ export default function ProfilePage() {
     useEffect(() => {
         if (user && !skipOnboarding) {
             setIsOnboarding(!isProfileComplete(user))
-            // Only set isCorporateManager if user is a student
             if (isStudent(user)) {
-                setIsCorporateManager(user.isCorporateManager === true)
+                setIsCorporateManager(user.isCorporateManager === true) // Ensures boolean
             } else {
                 setIsCorporateManager(false)
             }
@@ -90,64 +105,49 @@ export default function ProfilePage() {
         setIsInitialized(true)
     }, [user, skipOnboarding])
 
-    // Prepare course options for the select dropdown, combining auth courses and public courses
     const courseOptions = useMemo(() => {
-        // Get courses from auth_courses
         const authCourseOptions = allCourses.map((course) => ({
             id: course.id,
             name: course.title || course.slug || `Course ${course.id}`,
         }));
-
-        // Get courses from public_courses
         const publicCourseOptions = publicCourses.map((course) => ({
             id: course.id,
             name: course.title || course.slug || `Course ${course.id}`,
         }));
-
-        // Combine both arrays and remove duplicates based on id
         const combinedOptions = [...authCourseOptions];
-
-        // Add public courses that aren't already in the auth courses
         publicCourseOptions.forEach(option => {
             if (!combinedOptions.some(existing => existing.id === option.id)) {
                 combinedOptions.push(option);
             }
         });
-
         return combinedOptions;
     }, [allCourses, publicCourses])
 
-    // Get currentClass from Redux state to show slots info
     const currentClass = useAppSelector(state => state.classes.currentClass);
 
-    // Initialize the form with more flexible defaults that match what we'll set later
     const form = useForm<ProfileFormValues>({
-        resolver: zodResolver(profileSchema) as any, // Use type assertion to avoid resolver type conflicts
-        defaultValues: useMemo(() => {
-            // Return empty defaults initially
-            return {
-                name: "",
-                address: "",
-                dateOfBirth: undefined,
-                classId: "",
-                accountType: "individual",
-                bio: "",
-                phone: "",
-                subjects: [],
-                officeHours: "",
-                isCorporateRegistration: false,
-                companyName: "",
-                initialStudentCount: undefined,
-                initialSelectedCourses: [],
-                purchasedStudentSlots: 0,
-            }
-        }, []), // Empty dependency array means this only runs once
+        resolver: zodResolver(profileSchema) as any,
+        defaultValues: useMemo(() => ({
+            name: "",
+            address: "",
+            dateOfBirth: undefined,
+            classId: "",
+            accountType: "individual",
+            bio: "",
+            phone: "",
+            subjects: [],
+            officeHours: "",
+            isCorporateRegistration: false, // Initialized as boolean
+            companyName: "",
+            initialStudentCount: undefined,
+            initialSelectedCourses: [],
+            purchasedStudentSlots: 0,
+        }), []),
         mode: "onBlur",
     })
 
     const hasItemsInCart = cartItems.length > 0
 
-    // Dispatch fetchClassById when classId changes
     useEffect(() => {
         const subscription = form.watch((value, { name }) => {
             if (name === "classId" && value.classId) {
@@ -157,47 +157,35 @@ export default function ProfilePage() {
         return () => subscription.unsubscribe();
     }, [form, dispatch]);
 
-    // Function to determine the default course ID
     const determineDefaultCourseId = useCallback(() => {
-        // Only access student-specific properties if user is a student
         if (user && isStudent(user)) {
-            // For corporate students, use the pre-assigned course
             if (user.corporateId && !user.isCorporateManager && user.classId) {
                 return user.classId
             }
-
-            // Check if user is already enroled in a course
             if (user.classId && courseOptions.some((c) => c.id === user.classId)) {
                 return user.classId
             }
         }
-
-        // For new signups with items in cart
         if (isOnboarding && hasItemsInCart && cartItems[0]?.courseId) {
             return cartItems[0]?.courseId
         }
-
-        // Fallback if only one course option exists
         if (courseOptions.length === 1) {
             return courseOptions[0].id
         }
-
         return ""
     }, [isOnboarding, hasItemsInCart, cartItems, user, courseOptions])
 
-    // Effect to set form values once user data is available
     useEffect(() => {
         if (user && isInitialized) {
             const defaultCourseId = determineDefaultCourseId()
-
-            // Create form values based on user data
             const formValues: ProfileFormValues = {
                 name: user.name || "",
                 address: isStudent(user) ? user.address || "" : "",
                 bio: user.bio || "",
                 phone: user.phone || "",
                 accountType: user.accountType || "individual",
-                isCorporateRegistration: isStudent(user) ? user.isCorporateManager : false,
+                // Ensure this is explicitly boolean
+                isCorporateRegistration: isStudent(user) ? user.isCorporateManager === true : false,
                 companyName: isStudent(user) ? user.corporateId || "" : "",
                 initialStudentCount: undefined,
                 initialSelectedCourses: [],
@@ -207,31 +195,31 @@ export default function ProfilePage() {
                 subjects: [],
                 officeHours: "",
             }
-
             if (isStudent(user)) {
                 formValues.dateOfBirth = user.dateOfBirth ? new Date(user.dateOfBirth) : undefined
             } else if (user.role === "teacher") {
-                formValues.subjects = user.subjects || []
-                formValues.officeHours = user.officeHours || ""
+                const teacherUser = user as TeacherUser;
+                formValues.subjects = teacherUser.subjects || []
+                formValues.officeHours = teacherUser.officeHours || ""
             }
-
-            // Reset the form with the user data
-            form.reset(formValues, {
-                keepDefaultValues: false, // Don't keep the initial default values
-            })
+            form.reset(formValues, { keepDefaultValues: false })
         }
     }, [user, form, determineDefaultCourseId, isInitialized])
 
-    // Loading state
-    if (!user) {
-        return (
-            <div className="flex h-[50vh] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-            </div>
-        )
-    }
+    const onFormInvalid = (errors: FieldErrors<ProfileFormValues>) => {
+        console.error("Form validation failed (Zod resolver):", errors);
+        // Check if the specific error for isCorporateRegistration is present
+        let description = "Please correct the errors highlighted in the form fields before submitting.";
+        if (errors.isCorporateRegistration) {
+            description = `There's an issue with the 'Corporate Registration' field: ${errors.isCorporateRegistration.message}. Please check its value.`;
+        }
+        toast({
+            title: "Invalid Form Data",
+            description: description,
+            variant: "destructive",
+        });
+    };
 
-    // Form submission handler
     const handleSubmit = async (data: ProfileFormValues) => {
         if (!user) {
             toast({ title: "Error", description: "User session not found. Please log in again.", variant: "destructive" })
@@ -239,13 +227,19 @@ export default function ProfilePage() {
             return
         }
 
-        // --- Contextual Validation ---
-        let isValid = true
-        form.clearErrors()
+        let isValid = true;
+        form.clearErrors([
+            "companyName",
+            "initialStudentCount",
+            "initialSelectedCourses",
+            "dateOfBirth",
+            "classId",
+            "subjects",
+            "name"
+        ]);
 
         if (isOnboarding) {
-            if (data.isCorporateRegistration) {
-                // Corporate Manager Onboarding Validation
+            if (data.isCorporateRegistration) { // This data.isCorporateRegistration should now be a proper boolean due to preprocess
                 if (!data.companyName || data.companyName.trim().length < 2) {
                     form.setError("companyName", { type: "manual", message: "Company name is required." })
                     isValid = false
@@ -261,7 +255,6 @@ export default function ProfilePage() {
                     }
                 }
             } else if (user.role === "student" && !data.isCorporateRegistration) {
-                // Individual Student Onboarding Validation
                 if (!data.dateOfBirth) {
                     form.setError("dateOfBirth", { type: "manual", message: "Date of birth is required." })
                     isValid = false
@@ -271,7 +264,6 @@ export default function ProfilePage() {
                     isValid = false
                 }
             } else if (user.role === "teacher") {
-                // Teacher Onboarding Validation
                 if (!data.subjects || data.subjects.length === 0) {
                     form.setError("subjects", { type: "manual", message: "Please enter at least one subject." })
                     isValid = false
@@ -279,106 +271,80 @@ export default function ProfilePage() {
             }
         }
         if (!data.name || data.name.trim().length < 2) {
-            form.setError("name", { type: "manual", message: "Name is required (min 2 chars)." })
-            isValid = false
+            form.setError("name", { type: "manual", message: "Name is required (min 2 chars)." });
+            isValid = false;
         }
 
         if (!isValid) {
-            toast({ title: "Validation Error", description: "Please fix errors.", variant: "destructive" })
-            return
+            toast({
+                title: "Action Required",
+                description: "Please correct the issues highlighted in the form and try again.",
+                variant: "destructive",
+            });
+            return;
         }
-        // --- End Contextual Validation ---
 
         setIsSubmitting(true)
         let corporateIdForAction: string | undefined
         let corporateActionNeeded = false
 
         try {
-            // Define payload type with proper type casting for student-specific fields
             let updatePayload: Partial<User> = {
-                // Base fields always included
                 name: data.name,
                 bio: data.bio || undefined,
                 phone: data.phone || undefined,
             }
 
-            // Create a separate student-specific payload if needed
             if (isStudent(user) || (isOnboarding && !data.isCorporateRegistration)) {
-                // Cast to StudentUser for student-specific properties
                 const studentPayload = updatePayload as Partial<StudentUser>
-
-                // Add address only for students
                 studentPayload.address = data.address || undefined
-
                 if (data.dateOfBirth) {
                     studentPayload.dateOfBirth = data.dateOfBirth.toISOString()
                 }
-
                 if (!isStudent(user) || !(user.corporateId && !user.isCorporateManager)) {
                     studentPayload.classId = data.classId || undefined
                 }
-
-                // If onboarding as corporate manager
                 if (isOnboarding && data.isCorporateRegistration) {
-                    studentPayload.isCorporateManager = true
+                    studentPayload.isCorporateManager = true // Will be boolean
                     studentPayload.corporateId = data.companyName
                     studentPayload.accountType = "corporate"
                     studentPayload.onboardingStatus = "complete"
-
-                    // Remove fields not applicable to manager profile itself
                     delete studentPayload.classId
                     delete studentPayload.dateOfBirth
-
                     corporateIdForAction = data.companyName || ""
-
                     if (data.initialStudentCount && data.initialSelectedCourses?.length) {
                         corporateActionNeeded = true
-                        // Set initial purchased slots
                         studentPayload.purchasedStudentSlots = data.initialStudentCount
                     }
                 }
-                // For existing corporate managers, handle student slot updates
                 else if (isStudent(user) && user.isCorporateManager) {
-                    if (data.initialStudentCount && data.initialStudentCount > 0) {
-                        // Add to existing slots
+                    if (data.initialStudentCount && data.initialStudentCount > 0 && data.initialSelectedCourses?.length) {
                         const currentSlots = user.purchasedStudentSlots || 0
                         studentPayload.purchasedStudentSlots = currentSlots + data.initialStudentCount
-
                         corporateActionNeeded = true
                         corporateIdForAction = user.corporateId || ""
                     }
                 }
-                // Mark complete for other roles/individual students
                 else if (isOnboarding) {
                     updatePayload.onboardingStatus = "complete"
                 }
-
-                // Use the properly typed payload
                 updatePayload = studentPayload
             } else if (user.role === "teacher") {
-                // Teacher-specific fields
-                // Create a properly typed teacher payload
                 const teacherPayload = updatePayload as Partial<TeacherUser>
                 teacherPayload.subjects = data.subjects || []
                 teacherPayload.officeHours = data.officeHours || undefined
-
                 if (isOnboarding) {
                     teacherPayload.onboardingStatus = "complete"
                 }
-
-                // Use the properly typed payload
                 updatePayload = teacherPayload
             } else if (isOnboarding) {
-                // For non-student roles during onboarding
                 updatePayload.onboardingStatus = "complete"
             }
 
-            // --- Dispatch Profile Update ---
             await dispatch(updateUserProfileThunk(updatePayload)).unwrap()
             toast({ title: isOnboarding ? "Profile Complete!" : "Profile Updated", variant: "success" })
 
-            // --- Trigger Corporate Slot Creation ---
-            if (corporateActionNeeded && corporateIdForAction && data.initialStudentCount && data.initialSelectedCourses) {
+            if (corporateActionNeeded && corporateIdForAction && data.initialStudentCount && data.initialSelectedCourses && data.initialSelectedCourses.length > 0) {
                 try {
                     await dispatch(
                         createCorporateStudentSlotsThunk({
@@ -392,6 +358,13 @@ export default function ProfilePage() {
                         description: `Successfully created ${data.initialStudentCount} student slots.`,
                         variant: "success",
                     })
+                    if (isStudent(user) && user.isCorporateManager) {
+                        form.reset({
+                            ...form.getValues(),
+                            initialStudentCount: undefined,
+                            initialSelectedCourses: [],
+                        });
+                    }
                 } catch (slotError: any) {
                     toast({
                         title: "Error Creating Student Slots",
@@ -401,7 +374,6 @@ export default function ProfilePage() {
                 }
             }
 
-            // --- Mark onboarding done locally & Redirect ---
             if (isOnboarding) {
                 dispatch(skipOnboardingProcess())
                 if (data.isCorporateRegistration) {
@@ -421,25 +393,35 @@ export default function ProfilePage() {
         }
     }
 
-    // Skip onboarding handler
     const handleSkipOnboarding = () => {
         dispatch(skipOnboardingProcess())
         toast({ title: "Onboarding Skipped", description: "You can complete your profile later." })
         router.push("/dashboard")
     }
 
-    // Determine if the user is a corporate student (has corporateId but is not a manager)
     const isCorporateStudent = isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager
-    const isCorporateManagerView = isStudent(user) && user.isCorporateManager
+    const isCorporateManagerView = isStudent(user) && user.isCorporateManager // Now consistently reflects the *user's* status
+
+    if (!user || !isInitialized) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        )
+    }
+
+    // Determine if the form should show Corporate Manager fields based on form state or user's actual role
+    const showCorporateManagerFields = (isOnboarding && form.watch("isCorporateRegistration")) || isCorporateManagerView;
+
 
     return (
         <div className="mx-auto space-y-6">
             <h1 className="text-3xl font-bold flex items-center gap-4">
                 {isOnboarding ? "Complete Your Profile" : "My Profile"}
                 {isCorporateStudent && " (Corporate Student)"}
-                {isCorporateManager && " (Corporate Manager)"}
+                {isCorporateManagerView && " (Corporate Manager)"}
                 {isStudent(user) && user.barcodeId && (
-                    <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="Barcode" />
+                    <BarcodeDialog barcodeId={user.barcodeId} userId={user.id} triggerLabel="View Barcode" />
                 )}
             </h1>
 
@@ -448,7 +430,7 @@ export default function ProfilePage() {
                 hasItemsInCart={hasItemsInCart}
                 cartItemCount={cartItems.length}
                 isCorporateStudent={isCorporateStudent}
-                isCorporateManager={isCorporateManager}
+                isCorporateManager={isCorporateManagerView}
             />
 
             <Card className="bg-card/5 backdrop-blur-sm border-primary/10 shadow-lg">
@@ -461,13 +443,12 @@ export default function ProfilePage() {
                             </p>
                         </div>
                     )}
-                    {/* Display remaining slots info for selected course */}
                     {currentClass && (
-                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md mb-4 text-green-800 dark:text-green-300 text-sm font-semibold">
+                        <div className={`p-3 rounded-md mb-4 text-sm font-semibold ${currentClass.availableSlots && currentClass.availableSlots > 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300' : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300'}`}>
                             {currentClass.availableSlots && currentClass.availableSlots > 0 ? (
-                                <>Slots Available: {currentClass.availableSlots} / {currentClass.maxSlots}</>
+                                <>Slots Available for {currentClass.name || 'selected course'}: {currentClass.availableSlots} / {currentClass.maxSlots}</>
                             ) : (
-                                <>No slots available for this course.</>
+                                <>No slots currently available for {currentClass.name || 'selected course'}.</>
                             )}
                         </div>
                     )}
@@ -476,11 +457,8 @@ export default function ProfilePage() {
                     <ProfileAvatarInfo
                         user={user}
                         onAvatarChange={(url) => {
-                            // When avatar URL changes, update the profile
                             if (user) {
-                                dispatch(updateUserProfileThunk({
-                                    avatarUrl: url
-                                }))
+                                dispatch(updateUserProfileThunk({ avatarUrl: url }))
                                     .unwrap()
                                     .then(() => {
                                         toast({
@@ -501,9 +479,8 @@ export default function ProfilePage() {
                     />
 
                     <Form {...form}>
-                        <form id="profile-form" onSubmit={form.handleSubmit(handleSubmit)} className="mt-6">
-                            {/* Show corporate manager fields if applicable */} 
-                            {(isOnboarding && form.watch("isCorporateRegistration")) || isCorporateManagerView ? (
+                        <form id="profile-form" onSubmit={form.handleSubmit(handleSubmit, onFormInvalid)} className="mt-6">
+                            {showCorporateManagerFields ? (
                                 <CorporateManagerFields
                                     form={form}
                                     courses={courseOptions}
@@ -512,7 +489,6 @@ export default function ProfilePage() {
                                 />
                             ) : null}
 
-                            {/* Standard profile fields */}
                             <ProfileFormFields
                                 form={form}
                                 courses={courseOptions}
@@ -548,7 +524,7 @@ export default function ProfilePage() {
                     <DyraneButton
                         type="submit"
                         form="profile-form"
-                        disabled={isSubmitting || (!form.formState.isDirty && !isOnboarding)}
+                        disabled={isSubmitting || (!form.formState.isDirty && !isOnboarding && !isCorporateManagerView && !(isCorporateManagerView && (form.getValues().initialStudentCount || 0) > 0))}
                         className="w-full sm:w-auto sm:ml-auto"
                     >
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
