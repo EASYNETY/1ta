@@ -93,31 +93,48 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 
 // Initialize payment with Paystack
 export const initiatePayment = createAsyncThunk<
-	PaymentResponse,
-	InitiatePaymentPayload,
-	{ rejectValue: string }
+    PaymentResponse, // This is the expected response from the backend
+    Omit<InitiatePaymentPayload, 'callbackUrl'>, // Thunk caller provides payload *without* clientCallbackUrl
+    { rejectValue: string }
 >(
-	"payment/initiate",
-	async (payload, { rejectWithValue }) => {
-		try {
-			const response = await post<{
-				success: boolean;
-				message: string;
-				data: {
-					payment: PaymentRecord;
-					authorizationUrl: string;
-				}
-			}>('/payments/initialize', payload);
+    "payment/initiate",
+    async (callerPayload, { rejectWithValue }) => { // Renamed to callerPayload
+        try {
+            const baseClientUrl = process.env.NEXT_PUBLIC_BASE_URL;
+            if (!baseClientUrl) {
+                console.error("NEXT_PUBLIC_BASE_URL is not set on the frontend.");
+            }
 
-			if (!response.success) {
-				throw new Error(response.message || 'Failed to initialize payment');
-			}
+            // Construct the full payload to send to the backend, including the callback URL
+            const payloadForBackend: InitiatePaymentPayload = {
+                ...callerPayload,
+                callbackUrl: baseClientUrl ? `${baseClientUrl}/payments/callback` : undefined,
+                // If baseClientUrl is undefined, callbackUrl will be undefined.
+                // Your backend needs to handle this (e.g., use a default or error out).
+            };
 
-			return response.data;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to initialize payment");
-		}
-	}
+            // The backend is expected to return data matching PaymentResponse structure
+            const response = await post<{
+                success: boolean;
+                message: string;
+                data: { // This is the 'data' object from your backend
+                    payment: PaymentRecord;
+                    authorizationUrl: string;
+                    // reference?: string; // if backend also returns reference here
+                }
+            }>('/payments/initialize', payloadForBackend); // Send the augmented payload
+
+            if (!response.success || !response.data || !response.data.authorizationUrl) {
+                throw new Error(response.message || 'Failed to initialize payment or missing authorization URL');
+            }
+
+            // Assuming PaymentResponse matches the structure of response.data
+            return response.data;
+        } catch (e: any) {
+            const errorMessage = e.response?.data?.message || e.message || "Failed to initialize payment";
+            return rejectWithValue(errorMessage);
+        }
+    }
 );
 
 // Verify payment with Paystack
