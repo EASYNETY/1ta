@@ -16,10 +16,13 @@ import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
+import { prepareCheckout } from "@/features/checkout/store/checkoutSlice"
 
 export default function CartPage() {
     const { user, skipOnboarding } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
+    const taxAmount = useAppSelector((state) => state.cart.taxAmount)
+    const totalWithTax = useAppSelector((state) => state.cart.totalWithTax)
     const dispatch = useAppDispatch()
     const router = useRouter()
     const { toast } = useToast()
@@ -70,6 +73,15 @@ export default function CartPage() {
             router.push("/profile")
             return
         }
+        // Dispatch prepareCheckout with totalAmountFromCart from cart slice
+        dispatch(
+            prepareCheckout({
+                cartItems: cart.items,
+                coursesData: [], // Assuming coursesData will be fetched in checkout page
+                user: user,
+                totalAmountFromCart: totalWithTax,
+            }),
+        )
         // If profile is complete, redirect to checkout page
         router.push("/checkout")
     }
@@ -209,12 +221,12 @@ export default function CartPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Tax</span>
-                                <span>₦0</span>
+                                <span>₦{taxAmount.toFixed(2)}</span>
                             </div>
                             <Separator className="my-2" />
                             <div className="flex justify-between font-medium">
                                 <span>Total</span>
-                                <span>₦{cart.total}</span>
+                                <span>₦{totalWithTax.toFixed(2)}</span>
                             </div>
 
                             {isCorporateManager && (

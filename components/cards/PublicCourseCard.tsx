@@ -111,8 +111,8 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
             dispatch(addItem({
                 courseId: course.id,
                 title: course.title,
-                price: getPrice(),
-                discountPrice: getDiscountPrice(),
+                priceNaira: course.priceNaira as number,
+                discountPriceNaira: course.discountPriceNaira,
                 image: course.iconUrl || course.image || getCourseIcon(course.title, course.id),
                 instructor: course.instructor.name,
             }));

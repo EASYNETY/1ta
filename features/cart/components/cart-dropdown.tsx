@@ -27,11 +27,11 @@ export function CartDropdown({ isOpen, onClose, setIsDropdownOpen }: CartDropdow
         convert,
     } = useCurrencyConversion("USD", "NGN")
 
-    const renderNairaPrice = (amount: number | null) => {
-        if (isRateLoading) return <Skeleton className="h-4 w-16 mt-0.5 inline-block" />
-        if (amount === null) return <span className="h-4 inline-block"></span>
-        return formatTargetCurrency(amount)
-    }
+    // const renderNairaPrice = (amount: number | null) => {
+    //     if (isRateLoading) return <Skeleton className="h-4 w-16 mt-0.5 inline-block" />
+    //     if (amount === null) return <span className="h-4 inline-block"></span>
+    //     return formatTargetCurrency(amount)
+    // }
 
     // Animation variants
     const dropdownVariants = {
@@ -98,7 +98,7 @@ export function CartDropdown({ isOpen, onClose, setIsDropdownOpen }: CartDropdow
                                 <div className="p-3 border-t border-border/30 bg-muted/30">
                                     {isAuthenticated && <div className="flex justify-between items-center mb-3">
                                         <span className="text-sm font-medium">Total</span>
-                                        <span className="text-sm font-medium">{renderNairaPrice(convert(cart.total))}</span>
+                                        <span className="text-sm font-medium">₦{cart.total}</span>
                                     </div>}
                                     <DyraneButton asChild className="w-full" size="sm" onClick={onClose}>
                                         {isAuthenticated ? (

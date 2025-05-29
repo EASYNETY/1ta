@@ -65,112 +65,115 @@ const checkoutSlice = createSlice({
 	initialState,
 	reducers: {
 		// Action to prepare checkout items and calculate total
-		prepareCheckout: (
-			state,
-			action: PayloadAction<{
-				cartItems: CartItem[];
-				coursesData: PublicCourse[];
-				user: User | null;
-				corporateStudentCount?: number; // Add student count for corporate managers
-			}>
-		) => {
-			state.status = "preparing";
-			state.items = [];
-			state.totalAmount = 0;
-			state.error = null;
-			state.paymentReference = null;
-			state.skipCheckout = false;
+prepareCheckout: (
+	state,
+	action: PayloadAction<{
+		cartItems: CartItem[];
+		coursesData: PublicCourse[];
+		user: User | null;
+		corporateStudentCount?: number; // Add student count for corporate managers
+		totalAmountFromCart?: number; // New optional total amount from cart slice
+	}>
+) => {
+	state.status = "preparing";
+	state.items = [];
+	state.totalAmount = 0;
+	state.error = null;
+	state.paymentReference = null;
+	state.skipCheckout = false;
 
-			const {
-				cartItems,
-				coursesData,
-				user,
-				corporateStudentCount = 1,
-			} = action.payload;
+	const {
+		cartItems,
+		coursesData,
+		user,
+		corporateStudentCount = 1,
+		totalAmountFromCart,
+	} = action.payload;
 
-			// Check if user is a corporate student (should be redirected away from checkout)
-			if (
-				user &&
-				isStudent(user) &&
-				user.corporateId &&
-				!user.isCorporateManager
-			) {
-				state.status = "failed";
-				state.error = "Corporate students cannot make direct purchases.";
-				return;
-			}
+	// Check if user is a corporate student (should be redirected away from checkout)
+	if (
+		user &&
+		isStudent(user) &&
+		user.corporateId &&
+		!user.isCorporateManager
+	) {
+		state.status = "failed";
+		state.error = "Corporate students cannot make direct purchases.";
+		return;
+	}
 
-			// Check if user is a corporate manager
-			const isCorporateManager =
-				user && isStudent(user) && !!user.isCorporateManager;
+	// If totalAmountFromCart is provided, use it directly
+	if (typeof totalAmountFromCart === "number") {
+		state.totalAmount = totalAmountFromCart;
+	} else {
+		// Check if user is a corporate manager
+		const isCorporateManager =
+			user && isStudent(user) && !!user.isCorporateManager;
 
-			cartItems.forEach((cartItem) => {
-				const course = coursesData.find((c) => c.id === cartItem.courseId);
-				if (course) {
-					let priceToPay = course.priceIndividualUSD ?? 0; // Default to individual price
-					const originalPrice = course.priceIndividualUSD ?? 0; // Original price for display
-					let corporatePriceApplied = false;
+		cartItems.forEach((cartItem) => {
+			const course = coursesData.find((c) => c.id === cartItem.courseId);
+			if (course) {
+				let priceToPay = cartItem.priceNaira ?? course.priceIndividualUSD ?? 0; // Use cart priceNaira first, fallback to course price
+				const originalPrice = cartItem.priceNaira ?? course.priceIndividualUSD ?? 0; // Original price for display
+				let corporatePriceApplied = false;
 
-					// Handle corporate pricing
-					if (isCorporateManager) {
-						// Use corporate price if available
-						// if (course.priceCorporateUSD !== undefined) {
-						// 	priceToPay = course.priceCorporateUSD;
-						// 	corporatePriceApplied = true;
-						// }
-						if (course.priceUSD !== undefined) {
-							priceToPay = course.priceUSD;
-							corporatePriceApplied = true;
-						}
-
-						// For corporate managers, multiply by student count
-						priceToPay = priceToPay * corporateStudentCount;
-					} else if (user && isStudent(user) && user.corporateId) {
-						// Use specific corporate price if available for this corporate ID
-						const corporatePrice =
-							course?.pricing?.corporate?.[user.corporateId];
-						if (typeof corporatePrice === "number") {
-							priceToPay = corporatePrice;
-							corporatePriceApplied = true;
-						}
+				// Handle corporate pricing
+				if (isCorporateManager) {
+					if (course.priceUSD !== undefined) {
+						priceToPay = course.priceUSD;
+						corporatePriceApplied = true;
 					}
 
-					// Handle discounts (apply AFTER selecting individual/corporate base)
-					if (
-						corporatePriceApplied &&
-						course.discountPriceCorporateUSD !== undefined &&
-						!isCorporateManager // Don't apply discount twice for managers
-					) {
-						priceToPay = course.discountPriceCorporateUSD;
-					} else if (
-						!corporatePriceApplied &&
-						course.discountPriceIndividualUSD !== undefined
-					) {
-						priceToPay = course.discountPriceIndividualUSD;
-
-						// For corporate managers, multiply discounted price by student count
-						if (isCorporateManager) {
-							priceToPay = priceToPay * corporateStudentCount;
-						}
+					// For corporate managers, multiply by student count
+					priceToPay = priceToPay * corporateStudentCount;
+				} else if (user && isStudent(user) && user.corporateId) {
+					// Use specific corporate price if available for this corporate ID
+					const corporatePrice =
+						course?.pricing?.corporate?.[user.corporateId];
+					if (typeof corporatePrice === "number") {
+						priceToPay = corporatePrice;
+						corporatePriceApplied = true;
 					}
-
-					state.items.push({
-						...cartItem, // Spread cart item details (id, title, image...)
-						priceToPay: priceToPay as number, // Ensure it's a number
-						originalPrice: originalPrice as number, // Original price for display
-						isCorporatePrice: corporatePriceApplied,
-						courseDetails: course, // Include full course details
-						studentCount: isCorporateManager ? corporateStudentCount : 1, // Add student count
-					});
-					state.totalAmount += priceToPay as number; // Add to total amount
-				} else {
-					console.warn(
-						`Course data not found for cart item ID: ${cartItem.courseId}`
-					);
 				}
-			});
-			state.status = "ready"; // Ready for payment initiation
-		},
+
+				// Handle discounts (apply AFTER selecting individual/corporate base)
+				if (
+					corporatePriceApplied &&
+					course.discountPriceCorporateUSD !== undefined &&
+					!isCorporateManager // Don't apply discount twice for managers
+				) {
+					priceToPay = course.discountPriceCorporateUSD;
+				} else if (
+					!corporatePriceApplied &&
+					course.discountPriceIndividualUSD !== undefined
+				) {
+					priceToPay = course.discountPriceIndividualUSD;
+
+					// For corporate managers, multiply discounted price by student count
+					if (isCorporateManager) {
+						priceToPay = priceToPay * corporateStudentCount;
+					}
+				}
+
+				state.items.push({
+					...cartItem, // Spread cart item details (id, title, image...)
+					priceToPay: priceToPay as number, // Ensure it's a number
+					originalPrice: originalPrice as number, // Original price for display
+					isCorporatePrice: corporatePriceApplied,
+					courseDetails: course, // Include full course details
+					studentCount: isCorporateManager ? corporateStudentCount : 1, // Add student count
+				});
+				state.totalAmount += priceToPay as number; // Add to total amount
+			} else {
+				console.warn(
+					`Course data not found for cart item ID: ${cartItem.courseId}`
+				);
+			}
+		});
+	}
+
+	state.status = "ready"; // Ready for payment initiation
+},
 		setPaymentReference: (state, action: PayloadAction<string | null>) => {
 			state.paymentReference = action.payload;
 		},
