@@ -9,6 +9,7 @@ import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { updateUserProfileThunk, createCorporateStudentSlotsThunk } from "@/features/auth/store/auth-thunks"
 import { skipOnboardingProcess } from "@/features/auth/store/auth-slice"
 import { fetchCourses } from "@/features/public-course/store/public-course-slice"
+import { fetchClassById } from "@/features/classes/store/classes-thunks"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
@@ -116,7 +117,45 @@ export default function ProfilePage() {
         return combinedOptions;
     }, [allCourses, publicCourses])
 
+    // Get currentClass from Redux state to show slots info
+    const currentClass = useAppSelector(state => state.classes.currentClass);
+
+    // Initialize the form with more flexible defaults that match what we'll set later
+    const form = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileSchema) as any, // Use type assertion to avoid resolver type conflicts
+        defaultValues: useMemo(() => {
+            // Return empty defaults initially
+            return {
+                name: "",
+                address: "",
+                dateOfBirth: undefined,
+                classId: "",
+                accountType: "individual",
+                bio: "",
+                phone: "",
+                subjects: [],
+                officeHours: "",
+                isCorporateRegistration: false,
+                companyName: "",
+                initialStudentCount: undefined,
+                initialSelectedCourses: [],
+                purchasedStudentSlots: 0,
+            }
+        }, []), // Empty dependency array means this only runs once
+        mode: "onBlur",
+    })
+
     const hasItemsInCart = cartItems.length > 0
+
+    // Dispatch fetchClassById when classId changes
+    useEffect(() => {
+        const subscription = form.watch((value, { name }) => {
+            if (name === "classId" && value.classId) {
+                dispatch(fetchClassById(value.classId));
+            }
+        });
+        return () => subscription.unsubscribe();
+    }, [form, dispatch]);
 
     // Function to determine the default course ID
     const determineDefaultCourseId = useCallback(() => {
@@ -145,31 +184,6 @@ export default function ProfilePage() {
 
         return ""
     }, [isOnboarding, hasItemsInCart, cartItems, user, courseOptions])
-
-    // Initialize the form with more flexible defaults that match what we'll set later
-    const form = useForm<ProfileFormValues>({
-        resolver: zodResolver(profileSchema) as any, // Use type assertion to avoid resolver type conflicts
-        defaultValues: useMemo(() => {
-            // Return empty defaults initially
-            return {
-                name: "",
-                address: "",
-                dateOfBirth: undefined,
-                classId: "",
-                accountType: "individual",
-                bio: "",
-                phone: "",
-                subjects: [],
-                officeHours: "",
-                isCorporateRegistration: false,
-                companyName: "",
-                initialStudentCount: undefined,
-                initialSelectedCourses: [],
-                purchasedStudentSlots: 0,
-            }
-        }, []), // Empty dependency array means this only runs once
-        mode: "onBlur",
-    })
 
     // Effect to set form values once user data is available
     useEffect(() => {
@@ -447,6 +461,16 @@ export default function ProfilePage() {
                             </p>
                         </div>
                     )}
+                    {/* Display remaining slots info for selected course */}
+                    {currentClass && (
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md mb-4 text-green-800 dark:text-green-300 text-sm font-semibold">
+                            {currentClass.availableSlots && currentClass.availableSlots > 0 ? (
+                                <>Slots Available: {currentClass.availableSlots} / {currentClass.maxSlots}</>
+                            ) : (
+                                <>No slots available for this course.</>
+                            )}
+                        </div>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <ProfileAvatarInfo
@@ -478,7 +502,7 @@ export default function ProfilePage() {
 
                     <Form {...form}>
                         <form id="profile-form" onSubmit={form.handleSubmit(handleSubmit)} className="mt-6">
-                            {/* Show corporate manager fields if applicable */}
+                            {/* Show corporate manager fields if applicable */} 
                             {(isOnboarding && form.watch("isCorporateRegistration")) || isCorporateManagerView ? (
                                 <CorporateManagerFields
                                     form={form}

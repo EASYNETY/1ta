@@ -69,6 +69,8 @@ export const fetchMyEnroledClasses = createAsyncThunk<
 				instructor: { name: item.instructor || 'Instructor' },
 				level: 'All Levels',
 				priceUSD: 0,
+				maxSlots: item.maxSlots || item.max_slots || 0,
+				availableSlots: item.availableSlots || item.available_slots || 0,
 			}));
 		}
 		if (Array.isArray(response)) {
@@ -82,6 +84,8 @@ export const fetchMyEnroledClasses = createAsyncThunk<
 				instructor: { name: item.instructor || 'Instructor' },
 				level: 'All Levels',
 				priceUSD: 0,
+				maxSlots: item.maxSlots || item.max_slots || 0,
+				availableSlots: item.availableSlots || item.available_slots || 0,
 			}));
 		}
 		return response || [];
