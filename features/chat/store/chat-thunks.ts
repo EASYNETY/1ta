@@ -81,19 +81,16 @@ export const sendChatMessage = createAsyncThunk<
 );
 
 export const createChatRoom = createAsyncThunk<
-	ChatRoom, // Returns the created ChatRoom
-	CreateRoomPayload, // Payload defined in mock-chat-data or a similar shared type
+	void, // No return value
+	CreateRoomPayload,
 	{ rejectValue: string }
 >("chat/createRoom", async (payload, { rejectWithValue }) => {
 	try {
-		const response = await post<CreateRoomResponse>("/chat/rooms", payload); // API endpoint for creating rooms
-		if (response.success && response.room) {
-			return response.room;
-		} else {
-			return rejectWithValue(
-				"Failed to create chat room: No room data returned."
-			);
+		const response = await post<CreateRoomResponse>("/chat/rooms", payload);
+		if (!response.success) {
+			return rejectWithValue("Failed to create chat room: No success flag.");
 		}
+		// Don't return anything
 	} catch (e: any) {
 		const errorMessage =
 			e.response?.data?.message || e.message || "Failed to create chat room";
