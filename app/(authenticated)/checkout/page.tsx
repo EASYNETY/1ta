@@ -428,7 +428,7 @@ export default function CheckoutPage() {
                     <div className="py-2">
                         {user?.email && checkoutStatus === "ready" && (
                             <PaystackCheckout
-                                invoiceId={`cart_checkout_${user.id}_${Date.now()}`} // Generate a unique invoice ID
+                                invoiceId={`cart_checkout_${user.id}_${checkoutItems[0]?.courseId || 'general'}_${Date.now()}`} // Generate a unique invoice ID with courseId
                                 courseTitle={
                                     isCorporateManager
                                         ? `Corporate Purchase (${checkoutItems.length} courses for ${corporateStudentCount} students)`

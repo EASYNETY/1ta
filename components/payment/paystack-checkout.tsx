@@ -54,16 +54,11 @@ export function PaystackCheckout({
     const dispatch = useAppDispatch();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
-    const [isPublicKeyAvailable, setIsPublicKeyAvailable] = useState(false);
-    const [paystackBaseConfig, setPaystackBaseConfig] = useState<Omit<PaystackProps, 'onSuccess' | 'onClose'> | null>(null);
 
     // Get payment state from Redux
-    const currentPayment = useAppSelector(selectCurrentPayment);
-    const paymentInitialization = useAppSelector(selectPaymentInitialization);
     const verificationStatus = useAppSelector(selectVerificationStatus);
     const paymentError = useAppSelector(selectPaymentHistoryError);
 
-    const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY;
 
     // Reset payment state on unmount
     useEffect(() => {
@@ -106,15 +101,21 @@ export function PaystackCheckout({
         try {
             setIsLoading(true);
 
-            // Create a payment ID if invoiceId is not provided
-            const paymentInvoiceId = invoiceId || `invoice_${courseId || 'general'}_${Date.now()}`;
+        if (!invoiceId) {
+            toast({ title: "Error", description: "Invoice ID is required.", variant: "destructive" });
+            setIsLoading(false);
+            return;
+        }
 
-            // Dispatch the initiatePayment action
-            const result = await dispatch(initiatePayment({
-                invoiceId: paymentInvoiceId,
-                amount,
-                paymentMethod: 'card'
-            })).unwrap();
+        // Use the passed invoiceId directly
+        const paymentInvoiceId = invoiceId;
+
+        // Dispatch the initiatePayment action
+        const result = await dispatch(initiatePayment({
+            invoiceId: paymentInvoiceId,
+            amount,
+            paymentMethod: 'card'
+        })).unwrap();
 
             // If we're in LIVE mode, redirect to Paystack's authorization URL
             if (IS_LIVE_API && result.authorizationUrl) {
