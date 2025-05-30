@@ -274,7 +274,7 @@ export default function EditCoursePage() {
             // Dispatch the updateAuthCourse thunk
             // @ts-ignore - Ignore type mismatch for instructorId
             const result = await dispatch(updateAuthCourse({
-                couseSlug: courseData.slug,
+                courseSlug: courseData.slug,
                 courseData: data
             })).unwrap();
 

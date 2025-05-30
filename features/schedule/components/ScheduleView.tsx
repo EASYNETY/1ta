@@ -95,14 +95,14 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
             events: safeSort(
                 safeFilter<ScheduleEvent>(events, event => {
                     try {
-                        if (!event || !event.startTime) return false;
-                        const eventDate = parseISO(event.startTime);
+                        if (!event || !event.start_time) return false;
+                        const eventDate = parseISO(event.start_time);
                         return isValid(eventDate) && isSameDay(eventDate, day);
                     } catch { return false; }
                 }),
                 (a, b) => {
                     try {
-                        return parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime();
+                        return parseISO(a.start_time).getTime() - parseISO(b.start_time).getTime();
                     } catch {
                         return 0;
                     }
@@ -159,7 +159,7 @@ const ScheduleView: React.FC<ScheduleViewProps> = ({ role, userId }) => {
                     setDisplayMonth={setDisplayMonthForPicker}
                     onDateSelect={handlePickerSelect}
                     selectedDate={selectedDayForHighlight as Date || undefined} // Pass selected day for visual feedback
-                    // Allow selection of future dates for schedule planning
+                // Allow selection of future dates for schedule planning
                 />
             </PopoverContent>
         </Popover>

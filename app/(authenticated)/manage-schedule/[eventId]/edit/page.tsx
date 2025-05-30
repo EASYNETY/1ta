@@ -18,9 +18,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { UpdateScheduleEventPayload } from '@/features/schedule/store/schedule-slice';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { UpdateScheduleEventPayload } from '@/features/schedule/types/schedule-types';
 
 export default function EditScheduleEventPage() {
     const params = useParams();
