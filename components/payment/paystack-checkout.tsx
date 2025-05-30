@@ -1,82 +1,62 @@
 // components/payment/paystack-checkout.tsx
 "use client";
 import React, { useState, useEffect } from "react";
-// NO: import { usePaystackPayment } from "react-paystack";
-// NO: import type { PaystackProps } from "react-paystack/dist/types";
-
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-    initiatePayment, // Your thunk that calls backend to get authorization_url
-    verifyPayment,   // This will be used on the callback page, not directly here for live
-    selectVerificationStatus, // To show loading if verification is somehow tracked here (less likely for redirect)
+    initiatePayment,
+    resetPaymentState,
+    selectVerificationStatus,
     selectPaymentHistoryError,
-    resetPaymentState
 } from "@/features/payment/store/payment-slice";
-import type { PaymentResponse } from "@/features/payment/types/payment-types"; // Ensure this is the redirect one
-
+import type { PaymentResponse } from "@/features/payment/types/payment-types";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
-import { CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Lock, Loader2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { Lock, Loader2, CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react";
+import { GraduationCap } from "phosphor-react";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added AlertTitle
 import Image from "next/image";
-import { IS_LIVE_API } from "@/lib/api-client"; // To distinguish live from mock
+import { IS_LIVE_API } from "@/lib/api-client";
+import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 interface PaystackCheckoutProps {
-    invoiceId: string; // Make it non-optional if always required for paid items
+    invoiceId: string;
     courseTitle: string;
-    amount: number; // Expecting amount in KOBO
+    amount: number;
     email: string;
-    /**
-     * Called after successful zero-amount or MOCK transaction from *this component*.
-     * For LIVE redirect flow, success is confirmed on the callback page.
-     */
     onSuccess?: (referenceData: { reference: string;[key: string]: any }) => void;
-    /**
-     * Called after MOCK cancellation from *this component*.
-     * For LIVE redirect flow, if user cancels on Paystack, they are redirected to callback_url,
-     * and verification will likely fail or show a specific status if Paystack indicates cancellation.
-     */
     onCancel?: () => void;
-    userId?: string; // Useful for metadata in initiatePayment payload
-    // No specific Paystack config props like publicKey needed here for redirect
+    userId?: string;
 }
 
 export function PaystackCheckout({
     invoiceId,
     courseTitle,
-    amount, // Expecting KOBO
+    amount,
     email,
-    onSuccess: onComponentSuccess, // For zero-amount or mock
-    onCancel: onComponentCancel,   // For mock
+    onSuccess: onComponentSuccess,
+    onCancel: onComponentCancel,
     userId,
 }: PaystackCheckoutProps) {
     const dispatch = useAppDispatch();
     const { toast } = useToast();
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false); // For the button click action
-    const [initError, setInitError] = useState<string | null>(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false); // For initiatePayment thunk
+    const [initError, setInitError] = useState<string | null>(null); // Local error from initiatePayment
 
-    // This verificationStatus is from the global payment slice.
-    // For redirect, actual verification happens on callback page.
-    // We might not see 'loading' here unless some other part of app triggers it.
-    const verificationStatus = useAppSelector(selectVerificationStatus);
-    const paymentError = useAppSelector(selectPaymentHistoryError); // Global payment error
+    // Global states from Redux store
+    const verificationStatus = useAppSelector(selectVerificationStatus); // e.g., 'idle', 'loading', 'succeeded', 'failed'
+    const globalPaymentError = useAppSelector(selectPaymentHistoryError); // Global error message
 
     useEffect(() => {
-        // Reset local error when component mounts or relevant props change
         setInitError(null);
-        // Reset payment state of the slice when this modal/component is used
-        // This ensures a clean state for each payment attempt through the modal.
+        // Reset global payment state when this component mounts or key props change,
+        // ensuring a clean slate for this payment attempt.
         dispatch(resetPaymentState());
-        return () => {
-            // Optional: dispatch(resetPaymentState()) again on unmount if modal always unmounts after use.
-        };
-    }, [dispatch, invoiceId, amount, email]); // Key props that define a new payment attempt
+    }, [dispatch, invoiceId, amount, email]);
 
     const handlePaymentAttempt = async () => {
-        setInitError(null); // Clear previous errors
+        setInitError(null);
         if (!email) {
             setInitError("Email is required to proceed with payment.");
             toast({ title: "Input Error", description: "Email is required.", variant: "destructive" });
@@ -90,7 +70,6 @@ export function PaystackCheckout({
 
         setIsProcessingPayment(true);
 
-        // --- Zero Amount Flow (Free Item) ---
         if (amount === 0) {
             console.log("Processing free item from PaystackCheckout component...");
             setTimeout(() => {
@@ -108,8 +87,7 @@ export function PaystackCheckout({
             return;
         }
 
-        // --- Paid Item Flow ---
-        if (!invoiceId) { // Should always have invoiceId for paid items
+        if (!invoiceId) {
             setInitError("Invoice ID is missing. Cannot proceed.");
             toast({ title: "Configuration Error", description: "Invoice ID is required.", variant: "destructive" });
             setIsProcessingPayment(false);
@@ -117,21 +95,15 @@ export function PaystackCheckout({
         }
 
         try {
-            // Dispatch the initiatePayment action (which talks to YOUR backend)
-            // Backend constructs callback_url and sends it to Paystack
             const result: PaymentResponse = await dispatch(initiatePayment({
                 invoiceId: invoiceId,
                 amount,
-            })).unwrap(); // result is of type PaymentResponse (with authorizationUrl)
+            })).unwrap();
 
             if (IS_LIVE_API) {
                 if (result.authorizationUrl) {
-                    // For LIVE: Redirect to Paystack's payment page.
-                    // Success/failure will be handled on your configured callback_url page.
                     window.location.href = result.authorizationUrl;
-                    // setIsLoading(false) might not be hit if redirect is fast.
-                    // The page will navigate away.
-                    // No toast here as user is leaving.
+                    // Note: setIsProcessingPayment(false) might not be hit if redirect is fast.
                 } else {
                     console.error("Live payment initialization failed: No authorization URL returned from backend.");
                     const errMsg = "Could not get payment link. Please try again or contact support.";
@@ -140,10 +112,7 @@ export function PaystackCheckout({
                     setIsProcessingPayment(false);
                 }
             } else {
-                // MOCK Flow (when IS_LIVE_API is false)
-                // Simulate a successful redirect and immediate "callback" with mock data.
                 console.log("MOCK MODE: Payment initiated, backend returned (mocked) data:", result);
-                console.log("MOCK MODE: Simulating successful payment after 'redirect'.");
                 setTimeout(() => {
                     const mockSuccessReference = {
                         message: 'Mock Payment Successful',
@@ -160,14 +129,14 @@ export function PaystackCheckout({
         } catch (error: any) {
             console.error("Payment Initialization Failed (Thunk Rejected):", error);
             const errMsg = typeof error === 'string' ? error : error.message || "Could not initialize payment. Please try again.";
-            setInitError(errMsg);
+            setInitError(errMsg); // Set local error for this component's direct action
             toast({ title: "Payment Failed", description: errMsg, variant: "destructive" });
             setIsProcessingPayment(false);
         }
     };
 
-    const handleMockCancel = () => { // Only for the explicit mock cancel button
-        if (IS_LIVE_API) return; // Not for live flow
+    const handleMockCancel = () => {
+        if (IS_LIVE_API) return;
         setIsProcessingPayment(false);
         if (onComponentCancel) {
             onComponentCancel();
@@ -177,102 +146,164 @@ export function PaystackCheckout({
     };
 
     const amountInNaira = amount;
+    const accentColor = "bg-primary hover:bg-primary/90";
+
+    // Determine if action buttons should be shown
+    // Hide buttons if:
+    // 1. Initiating payment (isProcessingPayment is true)
+    // 2. Global verification is loading, succeeded, or failed (unless it's idle)
+    const showActionButtons = !isProcessingPayment && verificationStatus === 'idle';
 
     return (
-        <DyraneCard className="w-full max-w-md mx-auto border-none shadow-none bg-transparent">
-            <CardHeader className="pb-2 pt-0">
-                <CardTitle className="flex items-center justify-center gap-2 text-lg font-medium">
-                    <Image src="/paystack.png" alt="Paystack Logo" width={24} height={24} />
-                    Secure Payment
-                </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-2">
-                <div className="mb-4 space-y-1 text-center">
-                    <p className="text-sm text-muted-foreground">{courseTitle}</p>
-                    <p className="font-semibold text-2xl">
-                        {amount === 0 ? 'FREE' : `₦${amountInNaira.toLocaleString()}`}
+        <div className="w-full max-w-sm mx-auto p-6 sm:p-8 bg-background rounded-xl shadow-2xl dark:bg-card/5 backdrop-blur-sm border border-primary/25">
+            <div className="text-center mb-6">
+                <Image src="/paystack.png" alt="Paystack Logo" width={64} height={64} className="mx-auto mb-3 rounded-xl" />
+                <h1 className="text-2xl font-semibold text-foreground dark:text-neutral-100">
+                    {amount === 0 ? "Complete Your Order" : "Secure Payment"}
+                </h1>
+                {amount > 0 && email && (
+                    <p className="text-sm text-muted-foreground mt-1 dark:text-neutral-400">
+                        Paying as <span className="font-medium text-foreground dark:text-neutral-200">{email}</span>
                     </p>
+                )}
+            </div>
+
+            <div className="mb-6 p-4 bg-muted dark:bg-accent/50 rounded-lg">
+                <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-muted-foreground dark:text-neutral-300 flex items-center">
+                        <GraduationCap weight="fill" className="w-4 h-4 mr-2 text-muted-foreground dark:text-neutral-400" />
+                        {courseTitle}
+                    </span>
+                    <span className="text-sm font-medium text-foreground dark:text-neutral-200">
+                        {amount === 0 ? 'FREE' : `₦${amountInNaira.toLocaleString()}`}
+                    </span>
                 </div>
-                <Separator className="my-4" />
+                <Separator className="my-3 bg-border dark:bg-neutral-600" />
+                <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold text-foreground dark:text-neutral-100">Total</span>
+                    <span className="text-xl font-bold text-foreground dark:text-neutral-50">
+                        {amount === 0 ? 'FREE' : `₦${amountInNaira.toLocaleString()}`}
+                    </span>
+                </div>
+            </div>
 
-                {initError && (
-                    <Alert variant="destructive" className="mb-4">
-                        <AlertTriangle className="h-4 w-4" />
-                        <AlertDescription>{initError}</AlertDescription>
-                    </Alert>
-                )}
+            {/* --- UI based on local and global states --- */}
 
-                {isProcessingPayment && (
-                    <div className="py-4 flex flex-col items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                        <p className="text-center text-sm text-muted-foreground">
-                            {amount === 0 ? "Processing free item..." :
-                                IS_LIVE_API ? "Redirecting to secure payment..." :
-                                    "Processing mock payment..."}
-                        </p>
-                    </div>
-                )}
+            {/* 1. Local Initialization Error (takes precedence for this component's actions) */}
+            {initError && (
+                <Alert variant="destructive" className="mb-4 text-sm">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Payment Initiation Failed</AlertTitle>
+                    <AlertDescription>{initError}</AlertDescription>
+                </Alert>
+            )}
 
-                {!isProcessingPayment && (
-                    <>
-                        {amount === 0 ? (
-                            <DyraneButton
-                                onClick={handlePaymentAttempt}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                                size="lg"
-                            >
-                                <CheckCircle className="mr-2 h-5 w-5" />
-                                Get For Free
-                            </DyraneButton>
-                        ) : (
-                            <>
-                                {IS_LIVE_API ? (
+            {/* 2. Global Payment Error (if no local error) */}
+            {!initError && globalPaymentError && (
+                <Alert variant="destructive" className="mb-4 text-sm">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Payment Error</AlertTitle>
+                    <AlertDescription>{globalPaymentError}</AlertDescription>
+                </Alert>
+            )}
+
+            {/* 3. Loader for `initiatePayment` thunk */}
+            {isProcessingPayment && (
+                <div className="py-6 flex flex-col items-center justify-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary dark:text-blue-400 mb-3" />
+                    <p className="text-center text-md text-muted-foreground dark:text-neutral-300">
+                        {amount === 0 ? "Processing..." :
+                            IS_LIVE_API ? "Redirecting to secure payment..." :
+                                "Processing mock payment..."}
+                    </p>
+                    <p className="text-xs text-muted-foreground/70 dark:text-neutral-400 mt-1">Please wait...</p>
+                </div>
+            )}
+
+            {/* 4. UI for Global Verification Status (when not processing initiation) */}
+            {!isProcessingPayment && verificationStatus === 'loading' && (
+                <Alert variant="default" className="mb-4 text-sm bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
+                    <Loader2 className="h-4 w-4 animate-spin text-blue-600 dark:text-blue-400" />
+                    <AlertTitle className="text-blue-700 dark:text-blue-300">Verification In Progress</AlertTitle>
+                    <AlertDescription className="text-blue-600 dark:text-blue-400">
+                        We are currently verifying your payment. Please wait a moment.
+                    </AlertDescription>
+                </Alert>
+            )}
+            {!isProcessingPayment && verificationStatus === 'succeeded' && (
+                <Alert variant="default" className="mb-4 text-sm bg-green-50 dark:bg-green-900/30 border-green-300 dark:border-green-700">
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AlertTitle className="text-green-700 dark:text-green-300">Payment Successful!</AlertTitle>
+                    <AlertDescription className="text-green-600 dark:text-green-400">
+                        Your payment has been confirmed. {onComponentSuccess ? "You will be redirected shortly." : ""}
+                    </AlertDescription>
+                </Alert>
+            )}
+            {!isProcessingPayment && verificationStatus === 'failed' && !globalPaymentError && ( // Avoid double error if globalPaymentError is also set
+                <Alert variant="destructive" className="mb-4 text-sm">
+                    <XCircle className="h-4 w-4" />
+                    <AlertTitle>Payment Verification Failed</AlertTitle>
+                    <AlertDescription>
+                        There was an issue verifying your payment. Please try again or contact support.
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {/* Payment Action Buttons - Shown only if not processing and global status is idle */}
+            {showActionButtons && (
+                <div className="space-y-4">
+                    {amount === 0 ? (
+                        <DyraneButton
+                            onClick={handlePaymentAttempt}
+                            className={cn("w-full text-white py-3 text-base font-medium", "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600")}
+                        >
+                            <CheckCircle className="mr-2 h-5 w-5" /> Get For Free
+                        </DyraneButton>
+                    ) : (
+                        <>
+                            {IS_LIVE_API ? (
+                                <Button
+                                    onClick={handlePaymentAttempt}
+                                    className={cn("w-full text-white py-3 text-base font-medium cursor-pointer", accentColor)}
+                                >
+                                    <Lock className="mr-2 h-5 w-5" /> Pay ₦{amountInNaira.toLocaleString()} Securely
+                                </Button>
+                            ) : (
+                                <div className="space-y-3 pt-2">
+                                    <Alert variant="default" className="bg-yellow-50 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700 mb-3">
+                                        <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                                        <AlertDescription className="text-yellow-700 dark:text-yellow-200 text-xs">
+                                            This is a <span className="font-bold">MOCK MODE</span> demonstration.
+                                        </AlertDescription>
+                                    </Alert>
                                     <DyraneButton
                                         onClick={handlePaymentAttempt}
-                                        className="w-full"
-                                        size="lg"
+                                        className={cn("w-full text-white py-3 text-base font-medium", "bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600")}
                                     >
-                                        <Lock className="mr-2 h-5 w-5" />
-                                        Pay ₦{amountInNaira.toLocaleString()} Securely
+                                        <CheckCircle className="mr-2 h-5 w-5" /> Simulate Successful Payment
                                     </DyraneButton>
-                                ) : (
-                                    /* MOCK UI Buttons */
-                                    <div className="space-y-3">
-                                        <Alert variant="default" className="bg-yellow-50 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700">
-                                            <AlertDescription className="text-yellow-700 dark:text-yellow-200 text-sm text-center">
-                                                <span className="font-bold">MOCK MODE</span>
-                                            </AlertDescription>
-                                        </Alert>
-                                        <DyraneButton
-                                            onClick={handlePaymentAttempt} // Triggers mock success path
-                                            className="w-full bg-green-600 hover:bg-green-700 text-white"
-                                            size="lg"
-                                        >
-                                            <CheckCircle className="mr-2 h-5 w-5" />
-                                            Simulate Successful Payment
-                                        </DyraneButton>
-                                        <DyraneButton
-                                            onClick={handleMockCancel}
-                                            className="w-full"
-                                            variant="outline"
-                                            size="lg"
-                                        >
-                                            <XCircle className="mr-2 h-5 w-5" />
-                                            Simulate Cancel
-                                        </DyraneButton>
-                                    </div>
-                                )}
-                            </>
-                        )}
-                    </>
-                )}
-            </CardContent>
-            <CardFooter className="flex flex-col items-center text-center pt-4 mt-2">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Image src="/paystack.png" alt="Paystack Logo" width={16} height={16} />
-                    <span>Secured by {IS_LIVE_API ? 'Paystack' : 'Mock Interface'}</span>
+                                    <DyraneButton
+                                        onClick={handleMockCancel}
+                                        className="w-full py-3 text-base font-medium border-border dark:border-neutral-600 text-foreground dark:text-neutral-300 hover:bg-muted dark:hover:bg-neutral-700"
+                                        variant="outline"
+                                    >
+                                        <XCircle className="mr-2 h-5 w-5" /> Simulate Cancel
+                                    </DyraneButton>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
-            </CardFooter>
-        </DyraneCard>
+            )}
+
+            <div className="mt-8 text-center">
+                <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground dark:text-neutral-400">
+                    <Lock className="h-3.5 w-3.5" />
+                    <span>Payments secured by</span>
+                    <Image src="/paystack.png" alt="Paystack Logo" width={16} height={16} className="inline-block" />
+                    <span className="font-medium text-foreground dark:text-neutral-300">{IS_LIVE_API ? 'Paystack' : 'Mock Interface'}</span>
+                </div>
+            </div>
+        </div>
     );
 }
