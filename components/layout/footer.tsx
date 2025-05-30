@@ -90,7 +90,7 @@ export function Footer() {
                             <Link href="/" className="">
                                 {mounted && currentTheme && (
                                     <Image
-                                        src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                        src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                                         alt="1techacademy Logo"
                                         className="h-6 w-auto"
                                         priority
@@ -116,9 +116,9 @@ export function Footer() {
 
 
                         {/* Description */}
-                        <p className={cn('text-sm mb-4', mutedTextColor)}>
+                        {/* <p className={cn('text-sm mb-4', mutedTextColor)}>
                             Beyond Limits, Beyond Today.
-                        </p>
+                        </p> */}
 
                         {/* Social Links */}
                         <div className="flex space-x-4">

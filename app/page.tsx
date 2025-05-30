@@ -373,10 +373,10 @@ export default function LandingPage() {
 
                 {/* Contact Info */}
                 <div className="space-y-3 text-muted-foreground w-full flex flex-col items-center md:items-start text-center md:text-left">
-                  <div className="flex items-center md: items-start gap-2">
+                  {/* <div className="flex items-center md: items-start gap-2">
                     <MapPin size={20} />
                     <span><strong>Address:</strong> 17 Aje Street, Sabo Yaba Lagos.</span>
-                  </div>
+                  </div> */}
                   <div className="flex items-center md: items-start gap-2">
                     <Phone size={20} />
                     <span>

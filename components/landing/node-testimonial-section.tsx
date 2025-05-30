@@ -224,7 +224,7 @@ export function NodeTestimonialSection() {
                 <div className="relative z-10 w-full lg:w-1/2 xl:w-[45%] text-center lg:text-left">
                     {/* ... motion.span, motion.h2, motion.p ... */}
                     <motion.span className="block uppercase tracking-widest text-xs font-semibold text-primary mb-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.1 }}> Success Stories </motion.span>
-                    <motion.h2 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-6 text-foreground" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}> Voices from the 1Tech Community </motion.h2>
+                    <motion.h2 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-6 text-foreground" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }}> Voices from the 1Tech Academy Community </motion.h2>
                     <motion.p className="text-base md:text-lg leading-relaxed text-muted-foreground max-w-lg mx-auto lg:mx-0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }}> Discover how students and professionals leverage 1Tech Academy. Hover over the nodes to explore their journeys. </motion.p>
                 </div>
 

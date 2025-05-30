@@ -31,7 +31,7 @@ export default function AuthLayout({
           <div className="flex items-center justify-center mb-8">
             {mounted && currentTheme && (
               <Image
-                src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                 alt="1techacademy Logo"
                 className="h-10 w-auto"
                 priority
