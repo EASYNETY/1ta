@@ -49,7 +49,7 @@ export default function EditClassPage() {
             await dispatch(updateClass({ id: classId, ...payload })).unwrap();
             toast.success(`Class "${data.courseTitle}" updated successfully!`);
             dispatch(resetOperationStatus());
-            router.push('/timetable?tab=all-classes'); // Redirect to class list
+            // router.push('/timetable?tab=all-classes'); // Redirect to class list
         } catch (error: any) {
             console.error("Error updating class:", error);
             toast.error(`Failed to update class: ${error.message || 'Unknown error'}`);
