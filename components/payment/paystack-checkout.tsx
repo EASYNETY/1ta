@@ -176,8 +176,7 @@ export function PaystackCheckout({
         }
     };
 
-    // Convert amount from Kobo to Naira for display
-    const amountInNaira = amount / 100;
+    const amountInNaira = amount;
 
     return (
         <DyraneCard className="w-full max-w-md mx-auto border-none shadow-none bg-transparent">
