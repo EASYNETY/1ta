@@ -5,48 +5,63 @@ import type {
 	PaymentHistoryState,
 	PaymentRecord,
 	InitiatePaymentPayload,
-	PaymentResponse,
-	VerifyPaymentResponse
+	PaymentResponse, // This is { payment: PaymentRecord; authorizationUrl: string; }
+	VerifyPaymentResponse, // This is { payments: PaymentRecord; verification: any; }
 } from "../types/payment-types";
 import { get, post } from "@/lib/api-client";
 
+// --- Helper Interface for Paginated List Data (as returned by apiClient for these list endpoints) ---
+interface PaginatedPaymentsData {
+	payments: PaymentRecord[];
+	pagination: {
+		total: number;
+		page: number; // Or current_page, ensure this matches what apiClient returns
+		limit: number; // Or per_page
+		totalPages: number; // Or last_page or pages
+	};
+}
+
 // --- Thunks ---
 interface FetchMyHistoryParams {
-	userId: string;
+	userId: string; // Assuming backend needs userId in query; if implicit from auth, remove.
 	page?: number;
 	limit?: number;
 }
 export const fetchMyPaymentHistory = createAsyncThunk<
-	{ payments: PaymentRecord[]; total: number },
+	PaginatedPaymentsData, // The thunk will resolve with this object
 	FetchMyHistoryParams,
 	{ rejectValue: string }
 >(
 	"paymentHistory/fetchMy",
 	async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			const response = await get<{
-				success: boolean;
-				data: {
-					payments: PaymentRecord[];
-					pagination: {
-						total: number;
-						page: number;
-						limit: number;
-						totalPages: number;
-					}
-				}
-			}>(`/payments/user/history?page=${page}&limit=${limit}`);
+			// Construct query. Adjust if userId is implicit.
+			const query = `userId=${userId}&page=${page}&limit=${limit}`;
+			// apiClient.get<T> is expected to return T (the unwrapped data)
+			const responseData = await get<PaginatedPaymentsData>(
+				`/payments/user/history?${query}`
+			);
 
-			if (!response.success) {
-				throw new Error(response.data ? 'Server error' : 'Failed to fetch payment history');
+			if (
+				responseData &&
+				Array.isArray(responseData.payments) &&
+				responseData.pagination
+			) {
+				return responseData; // Return the whole { payments, pagination } object
 			}
-
-			return {
-				payments: response.data.payments,
-				total: response.data.pagination.total
-			};
+			console.warn(
+				"fetchMyPaymentHistory: Unexpected data structure from API client. Got:",
+				responseData
+			);
+			throw new Error(
+				"Failed to fetch payment history or invalid data structure"
+			);
 		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to fetch payment history");
+			const errorMessage =
+				e.response?.data?.message ||
+				e.message ||
+				"Failed to fetch payment history";
+			return rejectWithValue(errorMessage);
 		}
 	}
 );
@@ -58,7 +73,7 @@ interface FetchAllHistoryParams {
 	search?: string;
 }
 export const fetchAllPaymentsAdmin = createAsyncThunk<
-	{ payments: PaymentRecord[]; total: number },
+	PaginatedPaymentsData, // The thunk will resolve with this object
 	FetchAllHistoryParams,
 	{ rejectValue: string }
 >(
@@ -69,128 +84,122 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 			if (status) queryParams += `&status=${status}`;
 			if (search) queryParams += `&search=${search}`;
 
-			const response = await get<{
-				payments: PaymentRecord[];
-				pagination: {
-					total: number;
-					page: number;
-					limit: number;
-					totalPages: number;
-				}
-			}>(`/payments?${queryParams}`);
+			// apiClient.get<T> is expected to return T
+			const responseData = await get<PaginatedPaymentsData>(
+				`/payments?${queryParams}`
+			);
 
-			// The API client already processes the response and extracts the data
-			// No need to check for response.success as it's already handled
-			return {
-				payments: response.payments,
-				total: response.pagination.total
-			};
+			if (
+				responseData &&
+				Array.isArray(responseData.payments) &&
+				responseData.pagination
+			) {
+				return responseData; // Return the whole { payments, pagination } object
+			}
+			console.warn(
+				"fetchAllPaymentsAdmin: Unexpected data structure from API client. Got:",
+				responseData
+			);
+			throw new Error("Failed to fetch all payments or invalid data structure");
 		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to fetch all payments");
+			const errorMessage =
+				e.response?.data?.message ||
+				e.message ||
+				"Failed to fetch all payments";
+			return rejectWithValue(errorMessage);
 		}
 	}
 );
 
-// Initialize payment with Paystack
 export const initiatePayment = createAsyncThunk<
-    PaymentResponse, // This is the expected response from the backend
-    Omit<InitiatePaymentPayload, 'callbackUrl'>, // Thunk caller provides payload *without* clientCallbackUrl
-    { rejectValue: string }
->(
-    "payment/initiate",
-    async (callerPayload, { rejectWithValue }) => { // Renamed to callerPayload
-        try {
-            const baseClientUrl = process.env.NEXT_PUBLIC_BASE_URL;
-            if (!baseClientUrl) {
-                console.error("NEXT_PUBLIC_BASE_URL is not set on the frontend.");
-            }
+	PaymentResponse, // This is { payment: PaymentRecord; authorizationUrl: string; }
+	Omit<InitiatePaymentPayload, "callbackUrl">,
+	{ rejectValue: string }
+>("payment/initiate", async (callerPayload, { rejectWithValue }) => {
+	try {
+		const baseClientUrl = process.env.NEXT_PUBLIC_BASE_URL;
+		const payloadForBackend: InitiatePaymentPayload = {
+			...callerPayload,
+			callbackUrl: baseClientUrl
+				? `${baseClientUrl}/payments/callback`
+				: undefined,
+		};
 
-            // Construct the full payload to send to the backend, including the callback URL
-            const payloadForBackend: InitiatePaymentPayload = {
-                ...callerPayload,
-                callbackUrl: baseClientUrl ? `${baseClientUrl}/payments/callback` : undefined,
-                // If baseClientUrl is undefined, callbackUrl will be undefined.
-                // Your backend needs to handle this (e.g., use a default or error out).
-            };
+		// apiClient.post<T> is expected to return T (PaymentResponse in this case)
+		const responseData = await post<PaymentResponse>(
+			"/payments/initialize",
+			payloadForBackend
+		);
 
-            // The backend is expected to return data matching PaymentResponse structure
-            const response = await post<{
-                success: boolean;
-                message: string;
-                data: { // This is the 'data' object from your backend
-                    payment: PaymentRecord;
-                    authorizationUrl: string;
-                    // reference?: string; // if backend also returns reference here
-                }
-            }>('/payments/initialize', payloadForBackend); // Send the augmented payload
+		if (responseData && responseData.payment && responseData.authorizationUrl) {
+			return responseData;
+		}
+		console.warn(
+			"initiatePayment: Unexpected data structure from API client. Got:",
+			responseData
+		);
+		throw new Error(
+			"Failed to initialize payment or missing authorization URL"
+		);
+	} catch (e: any) {
+		const errorMessage =
+			e.response?.data?.message || e.message || "Failed to initialize payment";
+		return rejectWithValue(errorMessage);
+	}
+});
 
-            if (!response.success || !response.data || !response.data.authorizationUrl) {
-                throw new Error(response.message || 'Failed to initialize payment or missing authorization URL');
-            }
-
-            // Assuming PaymentResponse matches the structure of response.data
-            return response.data;
-        } catch (e: any) {
-            const errorMessage = e.response?.data?.message || e.message || "Failed to initialize payment";
-            return rejectWithValue(errorMessage);
-        }
-    }
-);
-
-// Verify payment with Paystack
 export const verifyPayment = createAsyncThunk<
-	VerifyPaymentResponse,
+	VerifyPaymentResponse, // This is { payments: PaymentRecord; verification: any; }
 	{ reference: string },
 	{ rejectValue: string }
->(
-	"payment/verify",
-	async ({ reference }, { rejectWithValue }) => {
-		try {
-			const response = await get<{
-				success: boolean;
-				message: string;
-				data: {
-					payments: PaymentRecord;
-					verification: any;
-				}
-			}>(`/payments/verify/${reference}`);
+>("payment/verify", async ({ reference }, { rejectWithValue }) => {
+	try {
+		// apiClient.get<T> is expected to return T (VerifyPaymentResponse)
+		const responseData = await get<VerifyPaymentResponse>(
+			`/payments/verify/${reference}`
+		);
 
-			if (!response.success) {
-				throw new Error(response.message || 'Failed to verify payment');
-			}
-
-			return response.data;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to verify payment");
+		if (responseData && responseData.payments && responseData.verification) {
+			// Check for key properties
+			return responseData;
 		}
+		console.warn(
+			"verifyPayment: Unexpected data structure from API client. Got:",
+			responseData
+		);
+		throw new Error("Failed to verify payment or invalid data structure");
+	} catch (e: any) {
+		const errorMessage =
+			e.response?.data?.message || e.message || "Failed to verify payment";
+		return rejectWithValue(errorMessage);
 	}
-);
+});
 
-// Fetch a single payment by ID
 export const fetchPaymentById = createAsyncThunk<
-	PaymentRecord,
+	PaymentRecord, // apiClient.get<T> is expected to return T (PaymentRecord)
 	string,
 	{ rejectValue: string }
->(
-	"payment/fetchById",
-	async (paymentId, { rejectWithValue }) => {
-		try {
-			const response = await get<{
-				success: boolean;
-				message: string;
-				data: PaymentRecord;
-			}>(`/payments/${paymentId}`);
+>("payment/fetchById", async (paymentId, { rejectWithValue }) => {
+	try {
+		const paymentRecord = await get<PaymentRecord>(`/payments/${paymentId}`);
 
-			if (!response.success) {
-				throw new Error(response.message || 'Failed to fetch payment');
-			}
-
-			return response.data;
-		} catch (e: any) {
-			return rejectWithValue(e.message || "Failed to fetch payment details");
+		if (paymentRecord && paymentRecord.id) {
+			// Basic validation for a PaymentRecord
+			return paymentRecord;
 		}
+		console.warn(
+			"fetchPaymentById: Unexpected data structure from API client. Got:",
+			paymentRecord
+		);
+		throw new Error("Failed to fetch payment or invalid data structure");
+	} catch (e: any) {
+		const errorMessage =
+			e.response?.data?.message ||
+			e.message ||
+			"Failed to fetch payment details";
+		return rejectWithValue(errorMessage);
 	}
-);
+});
 
 // --- Initial State ---
 const initialState: PaymentHistoryState = {
@@ -204,7 +213,7 @@ const initialState: PaymentHistoryState = {
 	paymentInitialization: null,
 	verificationStatus: "idle",
 	selectedPayment: null,
-	selectedPaymentStatus: "idle"
+	selectedPaymentStatus: "idle",
 };
 
 // --- Slice ---
@@ -220,7 +229,7 @@ const paymentHistorySlice = createSlice({
 			state.paymentInitialization = null;
 			state.verificationStatus = "idle";
 			state.error = null;
-		}
+		},
 	},
 	extraReducers: (builder) => {
 		// Fetch My History
@@ -229,18 +238,20 @@ const paymentHistorySlice = createSlice({
 				state.status = "loading";
 				state.error = null;
 			})
-			.addCase(fetchMyPaymentHistory.fulfilled, (state, action) => {
-				state.status = "succeeded";
-				state.myPayments = action.payload.payments;
-				// Update my pagination state
-				const limit = action.meta.arg.limit || 10;
-				state.myPaymentsPagination = {
-					totalItems: action.payload.total,
-					limit: limit,
-					currentPage: action.meta.arg.page || 1,
-					totalPages: Math.ceil(action.payload.total / limit),
-				};
-			})
+			.addCase(
+				fetchMyPaymentHistory.fulfilled,
+				(state, action: PayloadAction<PaginatedPaymentsData>) => {
+					state.status = "succeeded";
+					state.myPayments = action.payload.payments;
+					state.myPaymentsPagination = {
+						// Use the pagination object from payload
+						totalItems: action.payload.pagination.total,
+						limit: action.payload.pagination.limit,
+						currentPage: action.payload.pagination.page,
+						totalPages: action.payload.pagination.totalPages,
+					};
+				}
+			)
 			.addCase(fetchMyPaymentHistory.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Error fetching payments";
@@ -252,25 +263,25 @@ const paymentHistorySlice = createSlice({
 				state.status = "loading";
 				state.error = null;
 			})
-			.addCase(fetchAllPaymentsAdmin.fulfilled, (state, action) => {
-				state.status = "succeeded";
-
-				// Filter out null values and ensure we have a valid array
-				const validPayments = Array.isArray(action.payload.payments)
-					? action.payload.payments.filter(payment => payment !== null && payment !== undefined)
-					: [];
-
-				state.allPayments = validPayments;
-
-				// Update admin pagination state
-				const limit = action.meta.arg.limit || 10;
-				state.adminPagination = {
-					totalItems: action.payload.total,
-					limit: limit,
-					currentPage: action.meta.arg.page || 1,
-					totalPages: Math.ceil(action.payload.total / limit),
-				};
-			})
+			.addCase(
+				fetchAllPaymentsAdmin.fulfilled,
+				(state, action: PayloadAction<PaginatedPaymentsData>) => {
+					state.status = "succeeded";
+					const validPayments = Array.isArray(action.payload.payments)
+						? action.payload.payments.filter(
+								(payment) => payment !== null && payment !== undefined
+							)
+						: [];
+					state.allPayments = validPayments;
+					state.adminPagination = {
+						// Use the pagination object from payload
+						totalItems: action.payload.pagination.total,
+						limit: action.payload.pagination.limit,
+						currentPage: action.payload.pagination.page,
+						totalPages: action.payload.pagination.totalPages,
+					};
+				}
+			)
 			.addCase(fetchAllPaymentsAdmin.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Error fetching all payments";
@@ -279,16 +290,20 @@ const paymentHistorySlice = createSlice({
 		// Initialize Payment
 		builder
 			.addCase(initiatePayment.pending, (state) => {
-				state.status = "loading";
+				state.status = "loading"; // Or a specific 'initiationStatus'
 				state.error = null;
+				state.paymentInitialization = null; // Reset on new attempt
 			})
-			.addCase(initiatePayment.fulfilled, (state, action) => {
-				state.status = "succeeded";
-				state.currentPayment = action.payload.payment;
-				state.paymentInitialization = {
-					authorizationUrl: action.payload.authorizationUrl
-				};
-			})
+			.addCase(
+				initiatePayment.fulfilled,
+				(state, action: PayloadAction<PaymentResponse>) => {
+					state.status = "succeeded";
+					state.currentPayment = action.payload.payment;
+					state.paymentInitialization = {
+						authorizationUrl: action.payload.authorizationUrl,
+					};
+				}
+			)
 			.addCase(initiatePayment.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Error initializing payment";
@@ -300,14 +315,27 @@ const paymentHistorySlice = createSlice({
 				state.verificationStatus = "loading";
 				state.error = null;
 			})
-			.addCase(verifyPayment.fulfilled, (state, action) => {
-				state.verificationStatus = "succeeded";
-				state.currentPayment = action.payload.payments;
-				// If payment was successful, add it to the user's payment history
-				if (action.payload.payments.status === "succeeded") {
-					state.myPayments = [action.payload.payments, ...state.myPayments];
+			.addCase(
+				verifyPayment.fulfilled,
+				(state, action: PayloadAction<VerifyPaymentResponse>) => {
+					state.verificationStatus = "succeeded";
+					state.currentPayment = action.payload.payments; // Note: API returns 'payments' (plural) for a single payment in VerifyPaymentResponse
+					// If payment was successful, add/update it in the user's payment history
+					if (
+						action.payload.payments &&
+						action.payload.payments.status === "succeeded"
+					) {
+						const existingIndex = state.myPayments.findIndex(
+							(p) => p.id === action.payload.payments.id
+						);
+						if (existingIndex !== -1) {
+							state.myPayments[existingIndex] = action.payload.payments;
+						} else {
+							state.myPayments = [action.payload.payments, ...state.myPayments];
+						}
+					}
 				}
-			})
+			)
 			.addCase(verifyPayment.rejected, (state, action) => {
 				state.verificationStatus = "failed";
 				state.error = action.payload ?? "Error verifying payment";
@@ -319,10 +347,13 @@ const paymentHistorySlice = createSlice({
 				state.selectedPaymentStatus = "loading";
 				state.error = null;
 			})
-			.addCase(fetchPaymentById.fulfilled, (state, action) => {
-				state.selectedPaymentStatus = "succeeded";
-				state.selectedPayment = action.payload;
-			})
+			.addCase(
+				fetchPaymentById.fulfilled,
+				(state, action: PayloadAction<PaymentRecord>) => {
+					state.selectedPaymentStatus = "succeeded";
+					state.selectedPayment = action.payload;
+				}
+			)
 			.addCase(fetchPaymentById.rejected, (state, action) => {
 				state.selectedPaymentStatus = "failed";
 				state.error = action.payload ?? "Error fetching payment details";
@@ -331,9 +362,9 @@ const paymentHistorySlice = createSlice({
 });
 
 // --- Actions & Selectors ---
-export const { clearPaymentHistoryError, resetPaymentState } = paymentHistorySlice.actions;
+export const { clearPaymentHistoryError, resetPaymentState } =
+	paymentHistorySlice.actions;
 
-// History selectors
 export const selectMyPayments = (state: RootState) =>
 	state.paymentHistory.myPayments;
 export const selectAllAdminPayments = (state: RootState) =>
@@ -346,16 +377,12 @@ export const selectAdminPaymentsPagination = (state: RootState) =>
 	state.paymentHistory.adminPagination;
 export const selectMyPaymentsPagination = (state: RootState) =>
 	state.paymentHistory.myPaymentsPagination;
-
-// Payment processing selectors
 export const selectCurrentPayment = (state: RootState) =>
 	state.paymentHistory.currentPayment;
 export const selectPaymentInitialization = (state: RootState) =>
 	state.paymentHistory.paymentInitialization;
 export const selectVerificationStatus = (state: RootState) =>
 	state.paymentHistory.verificationStatus;
-
-// Selected payment selectors
 export const selectSelectedPayment = (state: RootState) =>
 	state.paymentHistory.selectedPayment;
 export const selectSelectedPaymentStatus = (state: RootState) =>
