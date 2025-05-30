@@ -178,7 +178,7 @@ export function Header() {
                                         <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0">
                                             {mounted && currentTheme && (
                                                 <Image
-                                                    src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                                    src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo.png"}
                                                     alt="1techacademy Logo"
                                                     className="h-6 w-auto"
                                                     priority
@@ -299,7 +299,7 @@ export function Header() {
                             <Link href="/dashboard" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
                                 {mounted && currentTheme && (
                                     <Image
-                                        src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                        src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo.png"}
                                         alt="1techacademy Logo"
                                         className="h-6 w-auto"
                                         priority

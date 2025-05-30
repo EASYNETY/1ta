@@ -288,7 +288,7 @@ export default function RootLayout({
         
         {/* Preload key assets */}
         <link rel="preload" href="/logo.png" as="image" />
-        <link rel="preload" href="/logo_dark.png" as="image" />
+        <link rel="preload" href="/logo_md.jpg" as="image" />
         
         {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

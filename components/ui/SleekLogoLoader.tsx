@@ -14,12 +14,12 @@ export function SleekLogoLoader({
     <div className="flex h-screen w-screen items-center justify-center">
       <div className="text-center">
         {/* Logo with simple pulse animation */}
-        {/* Use /logo_dark.png for larger screens and icon.png for small screens */}
+        {/* Use /logo_md.jpg for larger screens and icon.png for small screens */}
         <div className="animate-pulse mx-auto">
-          {/* Large screens - use logo_dark.png (bigger size) aspect ratio is 5873/1024 */}
+          {/* Large screens - use logo_md.jpg (bigger size) aspect ratio is 5873/1024 */}
           <div className="hidden md:block w[250px] h-[100px]">
             <Image
-              src="/logo_dark.png"
+              src="/logo_md.jpg"
               alt="1Tech Academy"
               width={250}
               height={100}

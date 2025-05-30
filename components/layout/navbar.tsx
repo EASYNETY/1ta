@@ -78,7 +78,7 @@ export default function NavBar() {
                 <Link href="/" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
                     {mounted && currentTheme && (
                         <Image
-                            src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                            src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                             alt="1techacademy Logo"
                             className="h-6 w-auto"
                             priority
@@ -196,7 +196,7 @@ export default function NavBar() {
                                     <Link href="/" className=""> {/* flex-shrink-0 prevents shrinking */}
                                         {mounted && currentTheme && (
                                             <Image
-                                                src={currentTheme === "dark" ? "/logo_dark.png" : "/logo.png"}
+                                                src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                                                 alt="1techacademy Logo"
                                                 className="h-6 w-auto"
                                                 priority
