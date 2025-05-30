@@ -182,54 +182,65 @@ export const fetchScheduleEventById = createAsyncThunk<
 // Create schedule event
 export const createScheduleEvent = createAsyncThunk<
 	ScheduleEvent,
-	CreateScheduleEventPayloadType, // Expecting snake_case payload from form
-	{ dispatch: any; rejectValue: string } // Added dispatch for custom logic
+	CreateScheduleEventPayloadType,
+	{ dispatch: any; rejectValue: string }
 >("schedule/createEvent", async (eventData, { dispatch, rejectWithValue }) => {
 	try {
-		// This assumes post<ScheduleEvent> directly returns the created ScheduleEvent object
-		// If it's wrapped like { success: true, data: ScheduleEvent }, this needs adjustment
-		// const response = await post<{ data: ScheduleEvent }>("/schedule-events", eventData);
-		// if (response && response.data) {
-		//    const newEvent = response.data;
-		//    // ... custom logic ...
-		//    return newEvent;
-		// }
-		// throw new Error("Invalid response from create event");
-		const newEvent = await post<ScheduleEvent>("/schedule-events", eventData); // Original simpler version
+		console.log(
+			"SCHEDULE_SLICE: Attempting to create schedule event with payload:",
+			eventData
+		);
+		// Assumes `post` returns the created ScheduleEvent directly
+		const newScheduleEvent = await post<ScheduleEvent>(
+			"/schedule-events",
+			eventData
+		);
 
-		// --- CUSTOM LOGIC (assuming it's still needed) ---
+		if (!newScheduleEvent || !newScheduleEvent.id) {
+			// Basic validation
+			console.error(
+				"SCHEDULE_SLICE: Failed to create schedule event. Invalid event object received from API.",
+				newScheduleEvent
+			);
+			throw new Error(
+				"Failed to create event: Invalid event object received from API"
+			);
+		}
+		console.log(
+			"SCHEDULE_SLICE: Schedule event created successfully:",
+			newScheduleEvent
+		);
+
+		// --- CUSTOM LOGIC ---
 		if (eventData.course_slug && eventData.class_id) {
 			try {
 				await dispatch(
 					updateAuthCourse({
 						courseSlug: eventData.course_slug,
-						courseData: { class_id: eventData.class_id } as any,
+						courseData: { classId: eventData.class_id } as any,
 					})
 				).unwrap();
-			} catch (e: any) {
+			} catch (error: any) {
 				console.error(
-					"Failed to update course during event creation:",
-					e.message
+					`SCHEDULE_SLICE: Failed updateAuthCourse for ${eventData.course_slug}:`,
+					error.message || error
 				);
 			}
 		}
 		if (eventData.class_id && eventData.course_id) {
 			try {
 				await dispatch(
-					updateClass({
-						id: eventData.class_id,
-						courseId: eventData.course_id,
-					} as UpdateClassPayload)
+					updateClass({ id: eventData.class_id, courseId: eventData.course_id })
 				).unwrap();
-			} catch (e: any) {
+			} catch (error: any) {
 				console.error(
-					"Failed to update class during event creation:",
-					e.message
+					`SCHEDULE_SLICE: Failed updateClass for ${eventData.class_id}:`,
+					error.message || error
 				);
 			}
 		}
 		// --- END CUSTOM LOGIC ---
-		return newEvent;
+		return newScheduleEvent;
 	} catch (error: any) {
 		const errorMessage =
 			error.response?.data?.message ||
@@ -242,27 +253,83 @@ export const createScheduleEvent = createAsyncThunk<
 // Update schedule event
 export const updateScheduleEvent = createAsyncThunk<
 	ScheduleEvent,
-	UpdateScheduleEventPayloadType, // Expecting snake_case payload with ID from form
-	{ rejectValue: string }
->("schedule/updateEvent", async (updatePayload, { rejectWithValue }) => {
-	// Changed from { id, ...updateData } to single payload
-	try {
-		const { id, ...payloadBody } = updatePayload;
-		if (!id) return rejectWithValue("Event ID missing for update");
-		// This assumes put<ScheduleEvent> directly returns the updated ScheduleEvent object
-		// If it's wrapped like { success: true, data: ScheduleEvent }, this needs adjustment
-		// const response = await put<{ data: ScheduleEvent }>(`/schedule-events/${id}`, payloadBody);
-		// if (response && response.data) return response.data;
-		// throw new Error("Invalid response from update event");
-		return await put<ScheduleEvent>(`/schedule-events/${id}`, payloadBody); // Original simpler version
-	} catch (error: any) {
-		const errorMessage =
-			error.response?.data?.message ||
-			error.message ||
-			`Failed to update event ${updatePayload.id}`;
-		return rejectWithValue(errorMessage);
+	UpdateScheduleEventPayloadType,
+	{ dispatch: any; rejectValue: string }
+>(
+	"schedule/updateEvent",
+	async (updatePayload, { dispatch, rejectWithValue }) => {
+		try {
+			const { id, ...payloadBody } = updatePayload;
+			if (!id) {
+				return rejectWithValue("Event ID is missing for update operation.");
+			}
+			console.log(
+				`SCHEDULE_SLICE: Attempting to update schedule event ${id} with payload:`,
+				payloadBody
+			);
+			// Assumes `put` returns the updated ScheduleEvent directly
+			const updatedScheduleEvent = await put<ScheduleEvent>(
+				`/schedule-events/${id}`,
+				payloadBody
+			);
+
+			if (!updatedScheduleEvent || !updatedScheduleEvent.id) {
+				// Basic validation
+				console.error(
+					`SCHEDULE_SLICE: Failed to update schedule event ${id}. Invalid event object received from API.`,
+					updatedScheduleEvent
+				);
+				throw new Error(
+					`Failed to update event ${id}: Invalid event object received from API`
+				);
+			}
+			console.log(
+				`SCHEDULE_SLICE: Schedule event ${id} updated successfully:`,
+				updatedScheduleEvent
+			);
+
+			// --- CUSTOM LOGIC ---
+			if (updatePayload.course_slug && updatePayload.class_id) {
+				try {
+					await dispatch(
+						updateAuthCourse({
+							courseSlug: updatePayload.course_slug,
+							courseData: { classId: updatePayload.class_id } as any,
+						})
+					).unwrap();
+				} catch (error: any) {
+					console.error(
+						`SCHEDULE_SLICE: Failed updateAuthCourse (event update) for ${updatePayload.course_slug}:`,
+						error.message || error
+					);
+				}
+			}
+			if (updatePayload.class_id && updatePayload.course_id) {
+				try {
+					await dispatch(
+						updateClass({
+							id: updatePayload.class_id,
+							courseId: updatePayload.course_id,
+						})
+					).unwrap();
+				} catch (error: any) {
+					console.error(
+						`SCHEDULE_SLICE: Failed updateClass (event update) for ${updatePayload.class_id}:`,
+						error.message || error
+					);
+				}
+			}
+			// --- END CUSTOM LOGIC ---
+			return updatedScheduleEvent;
+		} catch (error: any) {
+			const errorMessage =
+				error.response?.data?.message ||
+				error.message ||
+				`Failed to update event ${updatePayload.id}`;
+			return rejectWithValue(errorMessage);
+		}
 	}
-});
+);
 
 // Delete schedule event
 export const deleteScheduleEvent = createAsyncThunk<

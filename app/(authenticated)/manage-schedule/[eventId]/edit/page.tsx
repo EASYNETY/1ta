@@ -47,7 +47,7 @@ export default function EditScheduleEventPage() {
             await dispatch(updateScheduleEvent(data)).unwrap();
             toast.success(`Event "${data.title || currentEvent?.title}" updated successfully!`);
             dispatch(resetOperationStatus());
-            router.push('/manage-schedule'); // Redirect after update
+            // router.push('/manage-schedule'); // Redirect after update
         } catch (error: any) {
             toast.error(`Failed to update event: ${error.message || 'Unknown error'}`);
             // isSubmitting is handled by operationStatus
