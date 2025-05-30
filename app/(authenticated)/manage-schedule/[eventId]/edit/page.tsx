@@ -18,9 +18,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { UpdateScheduleEventPayload } from '@/features/schedule/store/schedule-slice';
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { UpdateScheduleEventPayload } from '@/features/schedule/types/schedule-types';
 
 export default function EditScheduleEventPage() {
     const params = useParams();
@@ -47,7 +47,7 @@ export default function EditScheduleEventPage() {
             await dispatch(updateScheduleEvent(data)).unwrap();
             toast.success(`Event "${data.title || currentEvent?.title}" updated successfully!`);
             dispatch(resetOperationStatus());
-            router.push('/manage-schedule'); // Redirect after update
+            // router.push('/manage-schedule'); // Redirect after update
         } catch (error: any) {
             toast.error(`Failed to update event: ${error.message || 'Unknown error'}`);
             // isSubmitting is handled by operationStatus

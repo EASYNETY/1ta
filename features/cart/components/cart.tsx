@@ -76,13 +76,13 @@ export function Cart({ onClose }: CartProps) {
                         <div className="flex-1 min-w-0">
                             <h4 className="text-sm font-medium truncate">{item.title}</h4>
                             <div className="flex items-center mt-1">
-                                {item.discountPrice ? (
+                                {item.discountPriceNaira ? (
                                     <>
-                                        <span className="text-sm font-bold text-primary">₦{item.discountPrice.toFixed(2)}</span>
-                                        <span className="text-xs text-muted-foreground line-through ml-2">₦{item.price.toFixed(2)}</span>
+                                        <span className="text-sm font-bold text-primary">₦{item.discountPriceNaira}</span>
+                                        <span className="text-xs text-muted-foreground line-through ml-2">₦{item.priceNaira}</span>
                                     </>
                                 ) : (
-                                    <span className="text-sm font-bold text-primary">₦{item.price.toFixed(2)}</span>
+                                    <span className="text-sm font-bold text-primary">₦{item.priceNaira}</span>
                                 )}
                             </div>
                         </div>

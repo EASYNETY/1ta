@@ -548,13 +548,13 @@ export const createAuthCourse = createAsyncThunk<
 
 export const updateAuthCourse = createAsyncThunk<
 	AuthCourse, // Return the updated course on success
-	{ couseSlug: string; courseData: CourseFormValues }, // Expect the course ID and form data
+	{ courseSlug: string; courseData: CourseFormValues }, // Expect the course ID and form data
 	{ rejectValue: string }
 >(
 	"auth_courses/updateAuthCourse",
-	async ({ couseSlug, courseData }, { rejectWithValue }) => {
+	async ({ courseSlug, courseData }, { rejectWithValue }) => {
 		try {
-			console.log(`Dispatching updateAuthCourse for course ${couseSlug}`);
+			console.log(`Dispatching updateAuthCourse for course ${courseSlug}`);
 
 			// Process the form data to match API expectations
 			const processedData = {
@@ -595,7 +595,7 @@ export const updateAuthCourse = createAsyncThunk<
 						message?: string;
 				  }
 				| AuthCourse
-			>(`/auth_courses/${couseSlug}`, processedData);
+			>(`/auth_courses/${courseSlug}`, processedData);
 
 			console.log("Raw API response structure:", {
 				type: typeof response,

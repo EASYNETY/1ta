@@ -16,10 +16,13 @@ import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
+import { prepareCheckout } from "@/features/checkout/store/checkoutSlice"
 
 export default function CartPage() {
     const { user, skipOnboarding } = useAppSelector((state) => state.auth)
     const cart = useAppSelector((state) => state.cart)
+    const taxAmount = useAppSelector((state) => state.cart.taxAmount)
+    const totalWithTax = useAppSelector((state) => state.cart.totalWithTax)
     const dispatch = useAppDispatch()
     const router = useRouter()
     const { toast } = useToast()
@@ -47,7 +50,9 @@ export default function CartPage() {
     }, [isCorporateStudent, router, toast])
 
     const handleRemoveItem = (courseId: string) => {
-        dispatch(removeItem(courseId))
+        dispatch(removeItem({
+            id: courseId
+        }))
         toast({
             title: "Item Removed",
             description: "The item has been removed from your cart.",
@@ -68,6 +73,15 @@ export default function CartPage() {
             router.push("/profile")
             return
         }
+        // Dispatch prepareCheckout with totalAmountFromCart from cart slice
+        dispatch(
+            prepareCheckout({
+                cartItems: cart.items,
+                coursesData: [], // Assuming coursesData will be fetched in checkout page
+                user: user,
+                totalAmountFromCart: totalWithTax,
+            }),
+        )
         // If profile is complete, redirect to checkout page
         router.push("/checkout")
     }
@@ -111,9 +125,11 @@ export default function CartPage() {
                         <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" />
                         <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
                         <p className="text-muted-foreground mb-6">Browse our courses and add some to your cart.</p>
-                        <DyraneButton asChild>
-                            <a href="/#courses">Browse Courses</a>
-                        </DyraneButton>
+                        {<DyraneButton asChild>
+                            <a
+                                href={user ? '/courses' : "/#courses"}
+                            >Browse Courses</a>
+                        </DyraneButton>}
                     </div>
                 </Card>
             </div>
@@ -171,13 +187,13 @@ export default function CartPage() {
                                         </div>
                                         <div className="flex flex-col items-end justify-between">
                                             <div className="text-right">
-                                                {item.discountPrice ? (
+                                                {item.discountPriceNaira ? (
                                                     <>
-                                                        <p className="line-through text-sm text-muted-foreground">₦{item.price}</p>
-                                                        <p className="font-medium">₦{item.discountPrice}</p>
+                                                        <p className="line-through text-sm text-muted-foreground">₦{item.priceNaira}</p>
+                                                        <p className="font-medium">₦{item.discountPriceNaira}</p>
                                                     </>
                                                 ) : (
-                                                    <p className="font-medium">₦{item.price}</p>
+                                                    <p className="font-medium">₦{item.priceNaira}</p>
                                                 )}
                                             </div>
                                             <button
@@ -205,12 +221,12 @@ export default function CartPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Tax</span>
-                                <span>₦0</span>
+                                <span>₦{taxAmount.toFixed(2)}</span>
                             </div>
                             <Separator className="my-2" />
                             <div className="flex justify-between font-medium">
                                 <span>Total</span>
-                                <span>₦{cart.total}</span>
+                                <span>₦{totalWithTax.toFixed(2)}</span>
                             </div>
 
                             {isCorporateManager && (

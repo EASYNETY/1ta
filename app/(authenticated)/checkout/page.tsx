@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { useToast } from "@/hooks/use-toast"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
@@ -41,6 +41,7 @@ export default function CheckoutPage() {
     const dispatch = useAppDispatch()
     const router = useRouter()
     const { toast } = useToast()
+    const searchParams = useSearchParams();
 
     // Selectors
     const { user, isAuthenticated } = useAppSelector((state) => state.auth)
@@ -183,6 +184,28 @@ export default function CheckoutPage() {
                 // Keep user on checkout page to see error?
             })
     }
+
+    useEffect(() => {
+        const paymentStatus = searchParams.get('payment_status');
+        const paymentRef = searchParams.get('ref');
+
+        if (paymentStatus === 'verification_failed') {
+            toast({
+                title: "Payment Verification Failed",
+                description: `We couldn't confirm your last payment attempt (Ref: ${paymentRef || 'N/A'}). Please try again or contact support.`,
+                variant: "destructive",
+            });
+        } else if (paymentStatus === 'declined') {
+            toast({
+                title: "Payment Declined",
+                description: `Your payment (Ref: ${paymentRef || 'N/A'}) was not successful. Please try a different payment method or contact your bank.`,
+                variant: "destructive",
+            });
+        }
+        // You might want to clear these query params from the URL after showing the toast
+        // to prevent it from showing again on refresh.
+        // router.replace('/checkout', { shallow: true }); // If you want to clean URL
+    }, [searchParams, toast, router]);
 
     const handlePaymentCancel = () => {
         dispatch(setShowPaymentModal(false))
@@ -400,7 +423,7 @@ export default function CheckoutPage() {
                             >
                                 {(isLoading || isEnroling) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {isEnroling ? "Processing Enrolment..." :
-                                 totalAmount === 0 ? "Complete Free Enrolment" : "Proceed to Payment"}
+                                    totalAmount === 0 ? "Complete Free Enrolment" : "Proceed to Payment"}
                             </DyraneButton>
                             <p className="text-xs text-muted-foreground text-center">
                                 {isCorporateManager
@@ -428,7 +451,7 @@ export default function CheckoutPage() {
                     <div className="py-2">
                         {user?.email && checkoutStatus === "ready" && (
                             <PaystackCheckout
-                                invoiceId={`cart_checkout_${user.id}_${Date.now()}`} // Generate a unique invoice ID
+                                invoiceId={`cart_checkout_${user.id}_${checkoutItems[0]?.courseId || 'general'}_${Date.now()}`} // Generate a unique invoice ID with courseId
                                 courseTitle={
                                     isCorporateManager
                                         ? `Corporate Purchase (${checkoutItems.length} courses for ${corporateStudentCount} students)`
