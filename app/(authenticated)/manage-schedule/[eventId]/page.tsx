@@ -21,6 +21,7 @@ import type { ScheduleEvent, ScheduleEventType } from '@/features/schedule/types
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // For instructor avatar
+import { Card } from '@/components/ui/card';
 
 // Helpers
 const formatDate = (dateString?: string): string => {
@@ -148,7 +149,7 @@ export default function ViewScheduleEventPage() {
                 )}
 
                 {currentEvent && !isLoading && (
-                    <DyraneCard>
+                    <Card>
                         <DyraneCardHeader>
                             <div className="flex justify-between items-start">
                                 <DyraneCardTitle className="text-2xl font-semibold">
@@ -237,7 +238,7 @@ export default function ViewScheduleEventPage() {
                                 <Link href={`/manage-schedule/${eventId}/edit`}>Edit Event</Link>
                             </Button>
                         </DyraneCardFooter>
-                    </DyraneCard>
+                    </Card>
                 )}
             </div>
         </AuthorizationGuard>
