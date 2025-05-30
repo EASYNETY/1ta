@@ -104,8 +104,8 @@ export function HeroAnimation() {
   }, [cycleImage]) // Dependency array includes memoized function
 
   return (
-    // Container with aspect ratio, overflow hidden, and base styles
-    <div className="relative aspect-[4/3] md:aspect-video h-full w-full overflow-hidden rounded-2xl shadow-lg bg-muted dark:bg-slate-800/50">
+    // Container with reduced vertical padding/margin
+    <div className="relative aspect-[4/3] md:aspect-video h-full w-full overflow-hidden rounded-2xl shadow-lg bg-muted dark:bg-slate-800/50 pt-2 pb-2 md:pt-4 md:pb-4">
       {/* AnimatePresence handles enter/exit animations */}
       <AnimatePresence initial={false} mode="wait">
         <motion.div
@@ -134,8 +134,8 @@ export function HeroAnimation() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Caption Area */}
-      <div className="absolute bottom-0 left-0 p-4 md:p-6 z-10 w-full pointer-events-none">
+      {/* Caption Area with reduced padding */}
+      <div className="absolute bottom-0 left-0 p-2 md:p-3 z-10 w-full pointer-events-none">
         {/* AnimatePresence for caption text transition */}
         <AnimatePresence initial={false} mode="wait">
           <motion.h3
@@ -153,7 +153,7 @@ export function HeroAnimation() {
       </div>
 
       {/* Navigation Dots */}
-      <div className="absolute bottom-5 right-5 z-10 flex space-x-2 md:bottom-6 md:right-6">
+      <div className="absolute bottom-2 right-2 z-10 flex space-x-2 md:bottom-3 md:right-3">
         {heroImages.map((_, index) => (
           <button
             key={`dot-${index}`}
