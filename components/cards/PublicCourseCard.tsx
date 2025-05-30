@@ -20,6 +20,7 @@ import { AbstractBackground } from "../layout/abstract-background"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
 import { getCourseIcon } from "@/utils/course-icon-mapping"
+import { Tag } from "phosphor-react"
 
 interface PublicCourseCardProps {
     course: PublicCourse | AuthCourse
@@ -132,6 +133,10 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
 
     // --- MODAL VIEW ---
     if (isModal) {
+        // Get price and currency for modal display
+        const price = course.priceNaira || 0
+        const discountPrice = course.discountPriceNaira || 0
+        const currencySymbol = "₦";
         return (
             <div className="relative">
                 <AbstractBackground className="opacity-90 dark:opacity-80" />
@@ -148,7 +153,18 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                             {/* ... Rest of Modal Content (Title, Stats, Tabs, etc.) ... */}
                             <h2 className="text-2xl font-bold mb-2">{course.title}</h2>
                             {course.subtitle && <p className="text-muted-foreground mb-4">{course.subtitle}</p>}
-                            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm"> <span className="inline-flex items-center"><Layers className="size-4 mr-2 text-muted-foreground" />{course.lessonCount} lessons</span> {course.totalVideoDuration && (<span className="inline-flex items-center"><Clock className="size-4 mr-2 text-muted-foreground" />{course.totalVideoDuration}</span>)} </div>
+                            <div className="flex flex-wrap gap-x-6 gap-y-2 mb-6 text-sm">
+                                <span className="inline-flex items-center">
+                                    <Layers className="size-4 mr-2 text-muted-foreground" />
+                                    {course.lessonCount} lessons
+                                </span>
+                                {course.totalVideoDuration && (
+                                    <span className="inline-flex items-center">
+                                        <Clock className="size-4 mr-2 text-muted-foreground" />
+                                        {course.totalVideoDuration}
+                                    </span>
+                                )}
+                            </div>
                             <Tabs defaultValue="overview" className="w-full">
                                 <TabsList className="mb-4 grid w-full grid-cols-3"> <TabsTrigger value="overview" className="hover:bg-background/50 cursor-pointer">Overview</TabsTrigger> <TabsTrigger value="curriculum" className="hover:bg-background/50 cursor-pointer">Curriculum</TabsTrigger> <TabsTrigger value="instructor" className="hover:bg-background/50 cursor-pointer">Instructor</TabsTrigger> </TabsList>
                                 <TabsContent value="overview" className="space-y-6 text-sm"> <div> <h3 className="font-semibold mb-2 text-base">Description</h3> <div className="text-muted-foreground leading-relaxed prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: course.description || "" }} /> </div> {course.learningOutcomes && course.learningOutcomes.length > 0 && (<div><h3 className="font-semibold mb-2 text-base">What You'll Learn</h3><ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">{course.learningOutcomes.map((outcome, index) => (<li key={index} className="flex items-start"><CheckCircle className="size-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" /><span>{outcome}</span></li>))}</ul></div>)} {course.prerequisites && course.prerequisites.length > 0 && (<div><h3 className="font-semibold mb-2 text-base">Prerequisites</h3><ul className="list-disc pl-5 space-y-1 text-muted-foreground">{course.prerequisites.map((prereq, index) => (<li key={index}>{prereq}</li>))}</ul></div>)} </TabsContent>
@@ -157,19 +173,64 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                             </Tabs>
                         </div>
                         {/* Modal Footer */}
-                        <div className="p-6 border-t flex justify-between items-center mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm">
-                            <DyraneButton variant="ghost" onClick={() => onClose?.()} >
-                                Close
-                            </DyraneButton>
-                            {('available_for_enrolment' in course ? course.available_for_enrolment !== false : true) ? (
-                                <DyraneButton size="lg" onClick={handleEnrolNow}>
-                                    {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enrol now</span>)}
-                                </DyraneButton>
-                            ) : (
-                                <DyraneButton size="lg" disabled className="cursor-not-allowed opacity-70">
-                                    <span className="text-sm">Not Available for Enrolment</span>
-                                </DyraneButton>
-                            )}
+                        <div className="p-4 sm:p-6 border-t flex flex-col sm:flex-row justify-between items-center gap-4 mt-auto sticky bottom-0 bg-background/90 backdrop-blur-sm">
+                            {/* === NEW: PRICE DISPLAY FOR MODAL FOOTER === */}
+                            <div className="text-center sm:text-left order-2 sm:order-1">
+                                {(() => {
+                                    if (typeof discountPrice === 'number' && price > 0) {
+                                        return (
+                                            <div className="flex items-baseline gap-x-2 justify-center sm:justify-start">
+                                                <Tag className="size-5 text-primary flex-shrink-0 relative top-[-2px]" weight="fill" />
+                                                <span className="text-2xl font-bold text-primary">
+                                                    {currencySymbol}{price}
+                                                </span>
+                                                {discountPrice > 0 &&
+                                                    <span className="text-base text-muted-foreground line-through">
+                                                        {currencySymbol}{discountPrice}
+                                                    </span>
+                                                }
+                                            </div>
+                                        );
+                                    }
+                                    if (price > 0) {
+                                        return (
+                                            <div className="flex items-center gap-x-2 justify-center sm:justify-start">
+                                                <Tag className="size-5 text-muted-foreground flex-shrink-0 relative top-[-2px]" />
+                                                <span className="text-2xl font-bold text-foreground">
+                                                    {currencySymbol}{price.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <div className="flex items-center gap-x-2 justify-center sm:justify-start">
+                                            <Tag className="size-5 text-green-600 flex-shrink-0 relative top-[-2px]" />
+                                            <span className="text-2xl font-bold text-green-600">
+                                                Free
+                                            </span>
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                            {/* === END: PRICE DISPLAY === */}
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-x-3 order-1 sm:order-2 w-full sm:w-auto justify-center sm:justify-end">
+                                {onClose && (
+                                    <DyraneButton variant="ghost" onClick={() => onClose?.()} className="flex-shrink-0">
+                                        Close
+                                    </DyraneButton>
+                                )}
+                                {('available_for_enrolment' in course ? course.available_for_enrolment !== false : true) ? (
+                                    <DyraneButton size="lg" onClick={handleEnrolNow} className="flex-grow sm:flex-grow-0">
+                                        {isAlreadyInCart ? (<span className="text-sm flex items-center"><CheckCircle className="size-4 mr-2" /> Selected</span>) : (<span className="text-sm">Enrol now</span>)}
+                                    </DyraneButton>
+                                ) : (
+                                    <DyraneButton size="lg" disabled className="cursor-not-allowed opacity-70 flex-grow sm:flex-grow-0">
+                                        <span className="text-sm">Not Available for Enrolment</span>
+                                    </DyraneButton>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
