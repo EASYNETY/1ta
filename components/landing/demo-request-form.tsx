@@ -9,17 +9,20 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea"; // Added Textarea
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select
+import { Combobox } from "@/components/ui/combobox";
 import { CardContent, CardFooter } from "@/components/ui/card"; // Keep using base card parts if DyraneCard doesn't export them
 import { CheckCircle, Loader2 } from "lucide-react"; // Added Loader2
 import { MotionTokens } from "@/lib/motion.tokens";
 import { cn } from "@/lib/utils";
 import { Controller } from "react-hook-form"; // Add this import at the top
+import { useAppSelector } from "@/store/hooks";
+import { selectAllCourses } from "@/features/public-course/store/public-course-slice";
 
 // Refined Schema for 1Tech Academy Inquiry
 const inquiryFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
+  phone: z.string().min(7, { message: "Please enter a valid phone number" }), // Added phone number
   interest: z.string().min(1, { message: "Please select an area of interest" }), // Added area of interest
   message: z.string().optional(), // Optional message field
 });
@@ -53,10 +56,20 @@ export function DemoRequestForm() {
     defaultValues: { // Set default values
       name: "",
       email: "",
+      phone: "", // Added phone
       interest: "",
       message: "",
     }
   });
+
+  // --- Local state for course search ---
+  const [courseSearch, setCourseSearch] = useState("");
+  const [showCourseDropdown, setShowCourseDropdown] = useState(false);
+  const allCourses = useAppSelector(selectAllCourses);
+  const courseTitles = allCourses.map((c) => c.title);
+  const filteredCourseTitles = courseTitles.filter((title) =>
+    title.toLowerCase().includes(courseSearch.toLowerCase())
+  );
 
   // --- Submit Handler ---
   const onSubmit = async (data: InquiryFormValues) => {
@@ -74,6 +87,7 @@ export function DemoRequestForm() {
         body: JSON.stringify({
           name: data.name,
           email: data.email,
+          phone: data.phone, // Added phone
           interest: data.interest,
           message: data.message
         })
@@ -137,7 +151,7 @@ export function DemoRequestForm() {
         </motion.div>
         <h3 className="text-lg font-semibold mb-1 text-foreground">Thank You!</h3> {/* Adjusted text */}
         <p className="text-muted-foreground mb-6 text-sm">
-          Your inquiry has been sent successfully! We will get back to you within 24 hours. {/* Updated text */}
+          Your inquiry has been sent successfully! We will get back to you within 24 hours ia mail. {/* Updated text */}
         </p>
         <DyraneButton variant="outline" size="sm" onClick={() => setIsSubmitted(false)}> {/* Smaller button */}
           Send Another Inquiry
@@ -178,31 +192,58 @@ export function DemoRequestForm() {
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </motion.div>
 
-          {/* Area of Interest Select Field */}
+          {/* Phone Field */}
+          <motion.div className="space-y-1.5" variants={itemVariants}>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="e.g., +2348012345678" // Updated placeholder
+              {...register("phone")}
+              aria-invalid={errors.phone ? "true" : "false"}
+              disabled={isSubmitting}
+            />
+            {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+          </motion.div>
+
+          {/* Area of Interest Select Field (Searchable Dropdown) */}
           <motion.div className="space-y-1.5" variants={itemVariants}>
             <Label htmlFor="interest">Area of Interest</Label>
-            {/* Need Controller for Shadcn Select with React Hook Form */}
-            <Controller
-              name="interest"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value} // Control the value
-                  disabled={isSubmitting}
-                >
-                  <SelectTrigger id="interest" aria-invalid={errors.interest ? "true" : "false"}>
-                    <SelectValue placeholder="Select a category..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {areasOfInterest.map((area) => (
-                      <SelectItem key={area} value={area}>{area}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="relative">
+              <Input
+                id="interest"
+                placeholder="Type or select a course..."
+                value={courseSearch || (control._formValues.interest || "")}
+                onChange={(e) => {
+                  setCourseSearch(e.target.value);
+                  setShowCourseDropdown(true);
+                  // Clear field value if user types
+                  control.setValue("interest", "");
+                }}
+                onFocus={() => setShowCourseDropdown(true)}
+                onBlur={() => setTimeout(() => setShowCourseDropdown(false), 150)}
+                autoComplete="off"
+                aria-invalid={errors.interest ? "true" : "false"}
+                disabled={isSubmitting}
+              />
+              {showCourseDropdown && filteredCourseTitles.length > 0 && (
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-md shadow-lg max-h-48 overflow-auto">
+                  {filteredCourseTitles.map((title) => (
+                    <li
+                      key={title}
+                      className="px-4 py-2 cursor-pointer hover:bg-primary/10"
+                      onMouseDown={() => {
+                        control.setValue("interest", title, { shouldValidate: true });
+                        setCourseSearch(title);
+                        setShowCourseDropdown(false);
+                      }}
+                    >
+                      {title}
+                    </li>
+                  ))}
+                </ul>
               )}
-            />
+            </div>
             {errors.interest && <p className="text-xs text-destructive">{errors.interest.message}</p>}
           </motion.div>
 

@@ -173,7 +173,7 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-8"
+                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-4"
                     >
                         {currentCourses.map((course, index) => (
                             <motion.div
@@ -210,7 +210,7 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-8"
+                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-4"
                     >
                         {futureCourses.map((course, index) => (
                             <motion.div
@@ -242,7 +242,7 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-8" // Add pb-8 to grid
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-4" // Add pb-8 to grid
                     >
                         {allCourses.map((course, index) => (
                             <motion.div key={`all-${course.id}-${index}`} variants={itemVariants} className="pb-2"> {/* Add pb-2 to each card */}
