@@ -154,7 +154,7 @@ export function CoursesSection() {
     )
 
     return (
-        <div className="space-y-16">
+        <div className="space-y-16 pb-16"> {/* Add pb-16 for extra bottom padding */}
             {/* Current Courses Section */}
             {currentCourses.length > 0 && (
                 <motion.div
@@ -171,10 +171,10 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-8" // Add pb-8 to grid
                     >
                         {currentCourses.map((course, index) => (
-                            <motion.div key={`current-${course.id}-${index}`} variants={itemVariants}>
+                            <motion.div key={`current-${course.id}-${index}`} variants={itemVariants} className="pb-2"> {/* Add pb-2 to each card */}
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}
@@ -197,10 +197,10 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-8" // Add pb-8 to grid
                     >
                         {futureCourses.map((course, index) => (
-                            <motion.div key={`future-${course.id}-${index}`} variants={itemVariants}>
+                            <motion.div key={`future-${course.id}-${index}`} variants={itemVariants} className="pb-2"> {/* Add pb-2 to each card */}
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}
@@ -220,10 +220,10 @@ export function CoursesSection() {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-8" // Add pb-8 to grid
                     >
                         {allCourses.map((course, index) => (
-                            <motion.div key={`all-${course.id}-${index}`} variants={itemVariants}>
+                            <motion.div key={`all-${course.id}-${index}`} variants={itemVariants} className="pb-2"> {/* Add pb-2 to each card */}
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}
