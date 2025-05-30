@@ -19,7 +19,7 @@ export function SleekLogoLoader({
           {/* Large screens - use logo_md.jpg (bigger size) aspect ratio is 5873/1024 */}
           <div className="hidden md:block w[250px] h-[100px]">
             <Image
-              src="/logo_md.jpg"
+              src="/logo_dark.png"
               alt="1Tech Academy"
               width={250}
               height={100}

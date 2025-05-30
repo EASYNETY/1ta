@@ -75,18 +75,18 @@ export default function NavBar() {
             <div className="flex h-16 items-center justify-between gap-x-4 px-4 sm:px-6 lg:px-8 w-full"> {/* Added gap, adjusted padding */}
 
                 {/* Logo */}
-                <Link href="/" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0"> {/* flex-shrink-0 prevents shrinking */}
+                <Link href="/" className="flex items-center space-x-2 flex-shrink-0 mr-4 lg:mr-0">
                     {mounted && currentTheme && (
                         <Image
                             src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                             alt="1techacademy Logo"
-                            className="h-6 w-auto"
+                            className="h-10 w-auto md:h-12" // Increased height for better visibility
                             priority
-                            width={80}
-                            height={14}
+                            width={180}
+                            height={60}
                         />
                     )}
-                    {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
+                    {(!mounted || !currentTheme) && <div className="h-10 w-[120px] bg-muted rounded animate-pulse"></div>}
                 </Link>
 
                 {/* Desktop Navigation Menu - Centered */}
@@ -193,18 +193,18 @@ export default function NavBar() {
                                     {/* Wrap title in VisuallyHidden for screen readers only */}
                                     <VisuallyHidden>Navigation Menu</VisuallyHidden>
                                     {/* Logo */}
-                                    <Link href="/" className=""> {/* flex-shrink-0 prevents shrinking */}
+                                    <Link href="/" className="">
                                         {mounted && currentTheme && (
                                             <Image
                                                 src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                                                 alt="1techacademy Logo"
-                                                className="h-6 w-auto"
+                                                className="h-10 w-auto md:h-12" // Increased height for better visibility
                                                 priority
-                                                width={80}
-                                                height={14}
+                                                width={180}
+                                                height={60}
                                             />
                                         )}
-                                        {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>} {/* Adjusted skeleton */}
+                                        {(!mounted || !currentTheme) && <div className="h-10 w-[120px] bg-muted rounded animate-pulse"></div>}
                                     </Link>
                                 </SheetTitle>
                                 {/* Optionally add SheetDescription here if needed */}

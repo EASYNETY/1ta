@@ -110,7 +110,7 @@ export default function LandingPage() {
 
         {/* About Us Section */}
 
-        <section id="about_us" className="py-16 relative overflow-hidden">
+        <section id="about_us" className="py-8 relative overflow-hidden"> {/* Reduced py-16 to py-8 */}
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative text-center">
@@ -119,7 +119,7 @@ export default function LandingPage() {
               description="We are a community where creativity thrives, innovation takes shape, and transformation begins. Here, you'll build problem-solving skills, grow your professional network, and gain the confidence to turn ideas into reality." />
 
             {/* Grid for Vision & Mission Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 mx-auto mb-16 lg:mb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 mx-auto mb-4 lg:mb-8">
               {/* Vision Card */}
               <Card
                 title={visionContent.title}
@@ -128,7 +128,7 @@ export default function LandingPage() {
                 imageAlt={visionContent.imageAlt}
                 modalContent={visionContent.modalContent}
                 icon={<visionContent.icon className="h-8 w-8" />}
-                className="h-full"
+                className="flex flex-col h-full"
               />
               {/* Mission Card */}
               <Card
@@ -138,7 +138,7 @@ export default function LandingPage() {
                 imageAlt={missionContent.imageAlt}
                 modalContent={missionContent.modalContent}
                 icon={<missionContent.icon className="h-8 w-8" />}
-                className="h-full"
+                className="flex flex-col h-full"
               />
             </div>
 
@@ -264,7 +264,7 @@ export default function LandingPage() {
 
 
         {/* Explore Our Courses Section */}
-        <section id="courses" className="py-16 relative overflow-hidden">
+        <section id="courses" className="py-8 relative overflow-hidden"> {/* Reduced py-16 to py-8 */}
           <AbstractBackground className="opacity-90 dark:opacity-80" />
 
           <div className="px-4 md:px-6 relative">

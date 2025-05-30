@@ -182,8 +182,8 @@ export function Header() {
                                                     alt="1techacademy Logo"
                                                     className="h-6 w-auto"
                                                     priority
-                                                    width={80}
-                                                    height={14}
+                                                    width={150}
+                                                    height={50}
                                                 />
                                             )}
                                             {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}

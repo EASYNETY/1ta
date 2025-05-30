@@ -154,7 +154,7 @@ export function CoursesSection() {
     )
 
     return (
-        <div className="space-y-16 pb-16"> {/* Add pb-16 for extra bottom padding */}
+        <div className="space-y-16 pb-16">
             {/* Current Courses Section */}
             {currentCourses.length > 0 && (
                 <motion.div
@@ -167,14 +167,25 @@ export function CoursesSection() {
                         title="Current Courses"
                         description="Courses currently available for enrolment"
                     />
+                    {/* Mobile label for clarity */}
+                    <div className="block md:hidden text-center text-primary font-semibold mb-2 text-base">Tap a course to view details</div>
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-8" // Add pb-8 to grid
+                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-8"
                     >
                         {currentCourses.map((course, index) => (
-                            <motion.div key={`current-${course.id}-${index}`} variants={itemVariants} className="pb-2"> {/* Add pb-2 to each card */}
+                            <motion.div
+                                key={`current-${course.id}-${index}`}
+                                variants={itemVariants}
+                                className="pb-2 cursor-pointer rounded-xl shadow-md border border-primary/10 bg-white dark:bg-slate-900 transition-transform duration-200 hover:scale-[1.03] active:scale-95 focus-within:ring-2 focus-within:ring-primary/40"
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => handleViewCourse(course)}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`View details for ${course.title}`}
+                            >
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}
@@ -193,14 +204,25 @@ export function CoursesSection() {
                         title="Future Courses"
                         description="Upcoming courses that will be available soon"
                     />
+                    {/* Mobile label for clarity */}
+                    <div className="block md:hidden text-center text-primary font-semibold mb-2 text-base">Tap a course to view details</div>
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 pb-8" // Add pb-8 to grid
+                        className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-8"
                     >
                         {futureCourses.map((course, index) => (
-                            <motion.div key={`future-${course.id}-${index}`} variants={itemVariants} className="pb-2"> {/* Add pb-2 to each card */}
+                            <motion.div
+                                key={`future-${course.id}-${index}`}
+                                variants={itemVariants}
+                                className="pb-2 cursor-pointer rounded-xl shadow-md border border-primary/10 bg-white dark:bg-slate-900 transition-transform duration-200 hover:scale-[1.03] active:scale-95 focus-within:ring-2 focus-within:ring-primary/40"
+                                whileTap={{ scale: 0.97 }}
+                                onClick={() => handleViewCourse(course)}
+                                tabIndex={0}
+                                role="button"
+                                aria-label={`View details for ${course.title}`}
+                            >
                                 <PublicCourseCard course={course} onClick={() => handleViewCourse(course)} onClose={handleCloseModal} />
                             </motion.div>
                         ))}
