@@ -297,7 +297,7 @@ export function AuthCourseCard({
 
             {/* Card Content */}
             <DyraneCardContent className="flex-1 p-4 space-y-2">
-                <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1 h-10">
+                <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1">
                     <span className={onClick ? "group-hover:text-primary transition-colors" : ""}>{course.title}</span>
                 </h3>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">

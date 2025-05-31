@@ -82,8 +82,8 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
                 addItem({
                     courseId: course.id,
                     title: course.title,
-                    price: course.priceUSD,
-                    discountPrice: course.discountPriceUSD,
+                    priceNaira: displayNairaAmount as number,
+                    discountPriceNaira: discountedNairaAmount as number,
                     image: course.iconUrl || course.image || getCourseIcon(course.title, course.id),
                     instructor: course.instructor.name,
                 }),

@@ -256,7 +256,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
 
             {/* Card Content */}
             <DyraneCardContent className="flex-1 p-4 space-y-2">
-                <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1 h-10"><span className={onClick ? "group-hover:text-primary transition-colors" : ""}>{course.title}</span></h3>
+                <h3 className="font-semibold text-base leading-snug line-clamp-2 mb-1"><span className={onClick ? "group-hover:text-primary transition-colors" : ""}>{course.title}</span></h3>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground"> <span className="inline-flex items-center"><Layers className="size-3.5 mr-1" />{course.lessonCount} lessons</span> {course.totalVideoDuration && (<span className="inline-flex items-center"><Clock className="size-3.5 mr-1" />{course.totalVideoDuration}</span>)} </div>
             </DyraneCardContent>
 

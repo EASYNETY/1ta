@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 
 import { Badge } from "@/components/ui/badge"
 import { TechnologyCourseModal } from "@/components/modals/TechnologyCourseModal"
-import { TechnologyMarquee } from "./TechnologyMarquee"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { getCourseIcon } from "@/utils/course-icon-mapping"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
@@ -1088,7 +1087,7 @@ export function AppleTechnologyDisplay() {
       const bIsoNumber = b.name.match(/ISO\s+(\d+)/)?.[0] || ""
 
       return (isoOrder[aIsoNumber as keyof typeof isoOrder] || 999) -
-             (isoOrder[bIsoNumber as keyof typeof isoOrder] || 999)
+        (isoOrder[bIsoNumber as keyof typeof isoOrder] || 999)
     })
   ]
 
@@ -1127,7 +1126,7 @@ export function AppleTechnologyDisplay() {
       // Yield control to prevent blocking UI (micro-optimization)
       if (i + batchSize < courses.length) {
         // Small delay to prevent blocking
-        setTimeout(() => {}, 0);
+        setTimeout(() => { }, 0);
       }
     }
 
@@ -1183,21 +1182,19 @@ export function AppleTechnologyDisplay() {
       <div className="flex justify-center mb-8">
         <div className="inline-flex bg-card/5 backdrop-blur-sm rounded-full p-1 border border-border/50">
           <button
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              activeTab === 'current'
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === 'current'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
             onClick={() => setActiveTab('current')}
           >
             Current Courses
           </button>
           <button
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-              activeTab === 'future'
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === 'future'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
-            }`}
+              }`}
             onClick={() => setActiveTab('future')}
           >
             Future Courses
@@ -1215,81 +1212,40 @@ export function AppleTechnologyDisplay() {
       {/* Technology display - Marquee on small screens, grid on larger screens */}
       <AnimatePresence mode="wait">
         {activeTab === 'current' ? (
-          <>
-            {isSmallScreen ? (
-              <motion.div
-                key="current-marquee"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-4"
-              >
-                {/* <h3 className="text-xl font-semibold text-center">Current Technologies</h3> */}
-                <TechnologyMarquee
-                  courses={currentCourses}
-                  onClick={handleIconClick}
-                  direction="left"
-                  speed={20}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="current-grid"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
-              >
-                {currentCourses.map((course, index) => (
-                  <TechnologyCard
-                    key={`${course.id}-${index}`}
-                    course={course}
-                    onClick={() => handleIconClick(course)}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </>
+          <motion.div
+            key="current-grid"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
+          >
+            {currentCourses.map((course, index) => (
+              <TechnologyCard
+                key={`${course.id}-${index}`}
+                course={course}
+                onClick={() => handleIconClick(course)}
+              />
+            ))}
+          </motion.div>
+
         ) : (
-          <>
-            {isSmallScreen ? (
-              <motion.div
-                key="future-marquee"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-4"
-              >
-                {/* <h3 className="text-xl font-semibold text-center">Future Technologies</h3> */}
-                <TechnologyMarquee
-                  courses={futureCourses}
-                  onClick={handleIconClick}
-                  direction="left"
-                  speed={20}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="future-grid"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
-              >
-                {futureCourses.map((course, index) => (
-                  <TechnologyCard
-                    key={`${course.id}-${index}`}
-                    course={course}
-                    onClick={() => handleIconClick(course)}
-                  />
-                ))}
-              </motion.div>
-            )}
-          </>
+          <motion.div
+            key="future-grid"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
+          >
+            {futureCourses.map((course, index) => (
+              <TechnologyCard
+                key={`${course.id}-${index}`}
+                course={course}
+                onClick={() => handleIconClick(course)}
+              />
+            ))}
+          </motion.div>
         )}
       </AnimatePresence>
 
