@@ -48,7 +48,7 @@ export default function CheckoutPage() {
     const searchParams = useSearchParams();
 
     // --- Selectors ---
-    const { user, isAuthenticated } = useAppSelector((state) => state.auth)
+    const { user, isAuthenticated, isInitialized: authIsInitialized } = useAppSelector((state) => state.auth)
     const cartItemsFromStore = useAppSelector(selectCartItems) // Get cart items for initial check
     const totalAmountFromCartStore = useAppSelector(selectCartTotalWithTax); // Get invoiced amount
 
@@ -74,69 +74,87 @@ export default function CheckoutPage() {
 
     // --- Effects ---
 
-    // Redirect if not authenticated or if corporate student
+    // Effect 1: Primary Authentication and Page Readiness Check
     useEffect(() => {
+        // Wait for auth state to be fully initialized
+        if (!authIsInitialized) {
+            console.log("CheckoutPage: Auth not initialized, waiting...");
+            setIsPageLoading(true); // Keep loading until auth is initialized
+            return;
+        }
+
+        console.log(`CheckoutPage: Auth initialized. isAuthenticated: ${isAuthenticated}, user exists: ${!!user}`);
+
         if (!isAuthenticated) {
             toast({
                 title: "Authentication Required",
-                description: "Please log in to proceed.",
+                description: "Your session may have expired. Please log in to proceed.",
                 variant: "default",
             });
-            router.push("/signup?redirect=/checkout"); // Redirect back to checkout after login
+            // Capture current checkout path for redirect after login
+            const checkoutPathWithQuery = `/checkout${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+            router.push(`/login?redirect=${encodeURIComponent(checkoutPathWithQuery)}`);
+            return; // Stop further processing in this effect if not authenticated
+        }
+
+        // If authenticated but user object is somehow null (should ideally be caught by AuthProvider too)
+        if (!user) {
+            toast({
+                title: "User Data Missing",
+                description: "Could not load user details. Please try logging in again.",
+                variant: "destructive",
+            });
+            // Optionally dispatch an action to attempt re-fetching user or mark as unauthenticated
+            // dispatch(setAuthStatus({ isAuthenticated: false, user: null })); // Example
+            router.push(`/login?redirect=/checkout`); // Or just login
             return;
         }
-        if (isCorporateStudent) {
+
+
+        if (isCorporateStudent) { // Assuming isCorporateStudent is derived correctly based on 'user'
             toast({
                 title: "Access Restricted",
                 description: "Corporate students don't make direct purchases.",
                 variant: "destructive",
             });
             router.push("/dashboard");
+            return;
         }
-    }, [isAuthenticated, isCorporateStudent, router, toast]);
-
-
-    // Main effect to handle page load, check for invoiceId, and cart status
-    useEffect(() => {
-        setIsPageLoading(true);
-        if (!isAuthenticated || isCorporateStudent) return; // Handled by above useEffect
 
         // If invoiceId is not in checkout state, it means prepareCheckout wasn't called
-        // (e.g., direct navigation or cart became empty after invoice creation but before nav).
-        // This page *requires* an invoiceId to have been set by the cart page.
         if (!invoiceIdFromCheckoutState) {
             if (cartItemsFromStore.length > 0) {
                 toast({
-                    title: "Checkout Session Expired",
-                    description: "Please return to your cart to proceed.",
+                    title: "Checkout Session Invalid",
+                    description: "Please return to your cart to re-initiate checkout.",
                     variant: "default",
                 });
                 router.push("/cart");
             } else {
-                // Cart is empty, and no invoice - normal to redirect
-                router.push("/courses");
+                router.push("/courses"); // Cart is empty, no invoice
             }
-            return; // Stop further processing in this effect
+            return;
         }
 
-        // If we have an invoiceId, it means prepareCheckout was called from CartPage.
-        // The checkout state (items, totalAmount) should already be set.
-        // We don't need to call prepareCheckout again here.
-
-        setIsPageLoading(false); // Setup complete
+        // If all checks pass, page is ready
+        setIsPageLoading(false);
 
     }, [
+        authIsInitialized, // CRITICAL: wait for this
         isAuthenticated,
-        isCorporateStudent,
+        user, // CRITICAL: ensure user object is present
+        isCorporateStudent, // This depends on 'user'
         invoiceIdFromCheckoutState,
-        cartItemsFromStore,
+        cartItemsFromStore, // For the "no invoice" check
         router,
         toast,
-        dispatch // Added dispatch though not directly used in this logic path
+        searchParams,
+        dispatch // If you dispatch actions from here
     ]);
 
 
-    // Effect 3: Cleanup checkout state on unmount
+
+    // Effect 2: Cleanup checkout state on unmount
     // THIS IS THE CRITICAL CHANGE: Only reset if navigating AWAY MANUALLY
     // while checkout is in a "transient" state (like 'ready' but not yet paid/failed).
     // Do NOT reset if it's just a re-render or HMR.
@@ -271,7 +289,7 @@ export default function CheckoutPage() {
 
     // --- Render Logic ---
 
-    if (isPageLoading || (!isAuthenticated && !isCorporateStudent)) { // Show loader if page is loading or auth checks are pending
+    if (isPageLoading) { // Show loader if page is loading or auth checks are pending
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
