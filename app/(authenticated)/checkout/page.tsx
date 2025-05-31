@@ -135,15 +135,38 @@ export default function CheckoutPage() {
     ]);
 
 
-    // Cleanup checkout state on unmount
+    // Effect 3: Cleanup checkout state on unmount
+    // THIS IS THE CRITICAL CHANGE: Only reset if navigating AWAY MANUALLY
+    // while checkout is in a "transient" state (like 'ready' but not yet paid/failed).
+    // Do NOT reset if it's just a re-render or HMR.
     useEffect(() => {
-        return () => {
-            // Only reset if not in a final success/failure state from this session
-            if (checkoutStatus !== "succeeded" && checkoutStatus !== "failed") {
-                dispatch(resetCheckout());
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            // This doesn't reliably work for SPA navigation, but good for browser close/refresh
+            if (checkoutStatus === "ready" || checkoutStatus === "processing_payment") {
+                // Consider if you want to warn user or auto-reset here.
+                // For now, we let the router-based cleanup handle it.
             }
         };
-    }, [dispatch, checkoutStatus]);
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            // The logic for resetting on SPA navigation away from /checkout
+            // should ideally be tied to *why* the user is leaving.
+            // If they click "Skip Checkout", that button's handler can dispatch resetCheckout.
+            // If they use browser back from /checkout to /cart, /cart should re-initiate.
+            // A blanket reset on unmount is too broad.
+            // We will rely on CartPage re-initiating a clean checkout process if user returns.
+            console.log("CheckoutPage unmounting. Current status:", checkoutStatus);
+            // If explicitly skipping, skipCheckout flag is true.
+            // If payment succeeded/failed, we don't reset.
+            // If payment was just cancelled from modal, modal's onOpenChange might reset.
+            // This leaves manual navigation away (e.g. clicking a link in nav bar)
+            // if (checkoutStatus !== "succeeded" && checkoutStatus !== "failed" && !selectSkipCheckout(store.getState())) {
+            //    dispatch(resetCheckout());
+            // }
+        };
+    }, [dispatch, checkoutStatus]); // Removed 'store' as a direct dependency
 
 
     // Handle payment success from PaystackCheckout
