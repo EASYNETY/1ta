@@ -97,14 +97,14 @@ export function CourseMiniCard({ item, onClick, className }: CourseMiniCardProps
                     {item.discountPriceNaira ? (
                         <>
                             <span className="text-xs font-medium">
-                                ₦{item.discountPriceNaira}
+                                ₦{item.discountPriceNaira.toLocaleString()}
                             </span>
                             <span className="text-xs text-muted-foreground line-through">
-                                ₦{item.priceNaira}
+                                ₦{item.priceNaira.toLocaleString()}
                             </span>
                         </>
                     ) : (
-                        <span className="text-xs font-medium">₦{item.priceNaira}</span>
+                        <span className="text-xs font-medium">₦{item.priceNaira.toLocaleString()}</span>
                     )}
                 </div>}
             </div>

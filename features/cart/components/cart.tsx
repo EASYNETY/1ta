@@ -78,11 +78,11 @@ export function Cart({ onClose }: CartProps) {
                             <div className="flex items-center mt-1">
                                 {item.discountPriceNaira ? (
                                     <>
-                                        <span className="text-sm font-bold text-primary">₦{item.discountPriceNaira}</span>
-                                        <span className="text-xs text-muted-foreground line-through ml-2">₦{item.priceNaira}</span>
+                                        <span className="text-sm font-bold text-primary">₦{item.discountPriceNaira.toLocaleString()}</span>
+                                        <span className="text-xs text-muted-foreground line-through ml-2">₦{item.priceNaira.toLocaleString()}</span>
                                     </>
                                 ) : (
-                                    <span className="text-sm font-bold text-primary">₦{item.priceNaira}</span>
+                                    <span className="text-sm font-bold text-primary">₦{item.priceNaira.toLocaleString()}</span>
                                 )}
                             </div>
                         </div>

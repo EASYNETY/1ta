@@ -182,11 +182,11 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                                             <div className="flex items-baseline gap-x-2 justify-center sm:justify-start">
                                                 <Tag className="size-5 text-primary flex-shrink-0 relative top-[-2px]" weight="fill" />
                                                 <span className="text-2xl font-bold text-primary">
-                                                    {currencySymbol}{price}
+                                                    {currencySymbol}{price.toLocaleString()}
                                                 </span>
                                                 {discountPrice > 0 &&
                                                     <span className="text-base text-muted-foreground line-through">
-                                                        {currencySymbol}{discountPrice}
+                                                        {currencySymbol}{discountPrice.toExponential()}
                                                     </span>
                                                 }
                                             </div>

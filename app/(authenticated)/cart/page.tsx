@@ -189,11 +189,11 @@ export default function CartPage() {
                                             <div className="text-right">
                                                 {item.discountPriceNaira ? (
                                                     <>
-                                                        <p className="line-through text-sm text-muted-foreground">₦{item.priceNaira}</p>
-                                                        <p className="font-medium">₦{item.discountPriceNaira}</p>
+                                                        <p className="line-through text-sm text-muted-foreground">₦{item.priceNaira.toLocaleString()}</p>
+                                                        <p className="font-medium">₦{item.discountPriceNaira.toLocaleString()}</p>
                                                     </>
                                                 ) : (
-                                                    <p className="font-medium">₦{item.priceNaira}</p>
+                                                    <p className="font-medium">₦{item.priceNaira.toLocaleString()}</p>
                                                 )}
                                             </div>
                                             <button
@@ -217,16 +217,16 @@ export default function CartPage() {
                         <div className="space-y-2 mb-4">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Subtotal</span>
-                                <span>₦{cart.total}</span>
+                                <span>₦{cart.total.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Tax</span>
-                                <span>₦{taxAmount.toFixed(2)}</span>
+                                <span>₦{taxAmount.toLocaleString()}</span>
                             </div>
                             <Separator className="my-2" />
                             <div className="flex justify-between font-medium">
                                 <span>Total</span>
-                                <span>₦{totalWithTax.toFixed(2)}</span>
+                                <span>₦{totalWithTax.toLocaleString()}</span>
                             </div>
 
                             {isCorporateManager && (

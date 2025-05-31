@@ -98,7 +98,7 @@ export function CartDropdown({ isOpen, onClose, setIsDropdownOpen }: CartDropdow
                                 <div className="p-3 border-t border-border/30 bg-muted/30">
                                     {isAuthenticated && <div className="flex justify-between items-center mb-3">
                                         <span className="text-sm font-medium">Total</span>
-                                        <span className="text-sm font-medium">₦{cart.total}</span>
+                                        <span className="text-sm font-medium">₦{cart.total.toLocaleString()}</span>
                                     </div>}
                                     <DyraneButton asChild className="w-full" size="sm" onClick={onClose}>
                                         {isAuthenticated ? (
