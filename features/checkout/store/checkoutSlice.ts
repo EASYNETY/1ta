@@ -102,26 +102,36 @@ const checkoutSlice = createSlice({
 			// The totalAmount is now primarily driven by totalAmountFromCart (the invoiced amount)
 			state.totalAmount = totalAmountFromCart;
 
-			// Populate checkout items for display purposes on the checkout page.
-			// The pricing logic here should match how the invoice items were constructed,
-			// or simply display what was in the cart if detailed breakdown isn't needed
-			// once an invoice is made.
 			state.items = cartItems.map((cartItem) => {
 				const courseDetail = coursesData.find(
 					(c) => c.id === cartItem.courseId
 				);
-				// The priceToPay on the checkout item should reflect what was itemized on the invoice.
-				// If totalAmountFromCart is the source of truth, individual item prices here are for display.
-				// For simplicity, we'll use the cart item's price, assuming it reflects the invoiced item price.
-				const priceForThisItem =
-					cartItem.discountPriceNaira ?? cartItem.priceNaira;
+
+				let priceToPay: number;
+				const originalPrice = cartItem.priceNaira; // Original price is always priceNaira
+
+				// Determine the priceToPay based on discountPriceNaira
+				if (
+					typeof cartItem.discountPriceNaira === "number" &&
+					cartItem.discountPriceNaira > 0
+				) {
+					// This includes the case where discountPriceNaira is 0 (free item)
+					priceToPay = cartItem.discountPriceNaira;
+				} else {
+					// No discount (discountPriceNaira is null or undefined)
+					priceToPay = cartItem.priceNaira;
+				}
+
+				// This needs to be determined by your corporate logic if applicable during invoice creation.
+				// If corporate logic modifies priceToPay, it should happen here or before.
+				const isCorporatePriceApplied = false; // Placeholder for your corporate logic
 
 				return {
-					...cartItem,
-					priceToPay: priceForThisItem,
-					originalPrice: cartItem.priceNaira, // Assuming cartItem.priceNaira is the original
-					isCorporatePrice: false, // This needs to be determined by your corporate logic if applicable during invoice creation
-					courseDetails: courseDetail,
+					...cartItem, // Spreads id, title, image, instructor etc. from cartItem
+					priceToPay: priceToPay,
+					originalPrice: originalPrice, // Always show the original price for comparison display
+					isCorporatePrice: isCorporatePriceApplied,
+					courseDetails: courseDetail, // Full course details if available and needed
 					studentCount:
 						user && isStudent(user) && user.isCorporateManager
 							? corporateStudentCount
