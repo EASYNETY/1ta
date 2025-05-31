@@ -201,7 +201,19 @@ export default function CartPage() {
         return (<div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6"> <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" /> <h2 className="text-xl font-semibold mb-2">Access Restricted</h2> <p className="text-muted-foreground mb-6">Corporate students don't need to make purchases.</p> <DyraneButton asChild> <a href="/dashboard">Go to Dashboard</a> </DyraneButton> </div>);
     }
     if (!hasItems) {
-        return (<div className="mx-auto"> <h1 className="text-3xl font-bold mb-8">Your Cart</h1> <Card className="p-8 text-center"> <div className="flex flex-col items-center justify-center py-12"> <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" /> <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2> <p className="text-muted-foreground mb-6">Browse our courses and add some to your cart.</p> <DyraneButton asChild> <a href={user ? '/courses' : "/#courses"}>Browse Courses</a> </DyraneButton> </div> </Card> </div>);
+        return (
+            <div className="mx-auto">
+                <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+                <Card className="p-8 text-center">
+                    <div className="flex flex-col items-center justify-center py-12">
+                        <GraduationCap className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
+                        <p className="text-muted-foreground mb-6">Browse our courses and add some to your cart.</p>
+                        <button className="bg-primary rounded-xl p-4">
+                            <a href={user ? '/courses' : "/#courses"}>Browse Courses</a>
+                        </button>
+                    </div> </Card>
+            </div>);
     }
 
     return (
@@ -236,25 +248,27 @@ export default function CartPage() {
                         ))}
                     </motion.div>
                 </div>
-                <div>
-                    <Card className="p-6">
-                        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-                        <div className="space-y-2 mb-4">
-                            <div className="flex justify-between"> <span className="text-muted-foreground">Subtotal</span> <span>₦{cart.total.toLocaleString()}</span> </div>
-                            <div className="flex justify-between"> <span className="text-muted-foreground">Tax</span> <span>₦{taxAmount.toLocaleString()}</span> </div>
-                            <Separator className="my-2" />
-                            <div className="flex justify-between font-medium"> <span>Total</span> <span>₦{totalWithTax.toLocaleString()}</span> </div>
-                            {isCorporateManager && (<p className="text-xs text-muted-foreground mt-2"> * Final price will be calculated at checkout based on your student count </p>)}
-                        </div>
-                        <DyraneButton
-                            className="w-full mt-4"
-                            onClick={handleCheckout}
-                            disabled={isInitiatingCheckout || invoiceCreationStatus === 'loading'}
-                        >
-                            {(isInitiatingCheckout || invoiceCreationStatus === 'loading') ? "Processing..." : (<> Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" /> </>)}
-                        </DyraneButton>
-                    </Card>
-                </div>
+                {
+                    hasItems &&
+                    <div>
+                        <Card className="p-6">
+                            <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                            <div className="space-y-2 mb-4">
+                                <div className="flex justify-between"> <span className="text-muted-foreground">Subtotal</span> <span>₦{cart.total.toLocaleString()}</span> </div>
+                                <div className="flex justify-between"> <span className="text-muted-foreground">Tax</span> <span>₦{taxAmount.toLocaleString()}</span> </div>
+                                <Separator className="my-2" />
+                                <div className="flex justify-between font-medium"> <span>Total</span> <span>₦{totalWithTax.toLocaleString()}</span> </div>
+                                {isCorporateManager && (<p className="text-xs text-muted-foreground mt-2"> * Final price will be calculated at checkout based on your student count </p>)}
+                            </div>
+                            <DyraneButton
+                                className="w-full mt-4"
+                                onClick={handleCheckout}
+                                disabled={isInitiatingCheckout || invoiceCreationStatus === 'loading'}
+                            >
+                                {(isInitiatingCheckout || invoiceCreationStatus === 'loading') ? "Processing..." : (<> Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" /> </>)}
+                            </DyraneButton>
+                        </Card>
+                    </div>}
             </div>
         </div>
     );
