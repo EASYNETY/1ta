@@ -30,7 +30,8 @@ import {
     setCheckoutError,
     setSkipCheckout,
     selectCheckoutInvoiceId, // Important selector
-    setPaymentProcessingStatus, // Import if you use it
+    setPaymentProcessingStatus,
+    setCheckoutStatus, // Import if you use it
 } from "@/features/checkout/store/checkoutSlice"
 import type { User } from "@/types/user.types"
 import { isStudent } from "@/types/user.types"
@@ -464,7 +465,7 @@ export default function CheckoutPage() {
                         if (!open) {
                             // If modal is closed while payment was "processing" (Paystack modal was open),
                             // reset status to ready, unless an error/success has occurred from Paystack callback
-                            dispatch(resetCheckout()); // Or a softer reset if needed
+                            dispatch(setCheckoutStatus('ready')); // Or a softer reset if needed
                         }
                     }
                 }}

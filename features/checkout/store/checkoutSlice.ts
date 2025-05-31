@@ -176,6 +176,9 @@ const checkoutSlice = createSlice({
 			// This is a robust way to reset.
 			Object.assign(state, initialState);
 		},
+		setCheckoutStatus: (state, action) => {
+			state.status = action.payload;
+		},
 		setCheckoutError: (state, action: PayloadAction<string>) => {
 			state.status = "failed";
 			state.error = action.payload;
@@ -218,6 +221,7 @@ export const {
 	setPaymentReference,
 	setShowPaymentModal,
 	resetCheckout,
+	setCheckoutStatus,
 	setCheckoutError,
 	setSkipCheckout,
 	setPaymentProcessingStatus, // Export if added
