@@ -96,6 +96,8 @@ export function PaystackCheckout({
 
         try {
             const result: PaymentResponse = await dispatch(initiatePayment({
+                user_id: userId as string,
+                userId: userId as string,
                 invoiceId: invoiceId,
                 amount,
                 paymentMethod: "paystack"
