@@ -17,6 +17,20 @@ export interface AuthResponseData {
 	};
 }
 
+// Define the payload type for changing password
+export interface ChangePasswordPayload {
+	currentPassword: string;
+	newPassword: string;
+	// No confirmPassword here, as it's usually validated on the frontend
+	// and only newPassword is sent to the backend.
+}
+
+// Define the expected success response type from the API for this thunk
+export interface ChangePasswordSuccessResponse {
+	message: string;
+	// Add other properties if your API returns more on success
+}
+
 // Combined auth response
 export type AuthResponse = ApiResponse<AuthResponseData>;
 

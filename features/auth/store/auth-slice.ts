@@ -12,6 +12,7 @@ const initialState: AuthState = {
 	isInitialized: false,
 	isLoading: false,
 	error: null,
+	passwordChangeError: null,
 	skipOnboarding: false,
 	users: [],
 	totalUsers: 0,
@@ -86,6 +87,9 @@ export const authSlice = createSlice({
 				} as User;
 			}
 		},
+		clearPasswordChangeError: (state) => {
+			state.passwordChangeError = null;
+		},
 		skipOnboardingProcess: (state) => {
 			state.skipOnboarding = true;
 		},
@@ -109,22 +113,28 @@ export const {
 	setOnboardingStatus,
 	skipOnboardingProcess,
 	resetSkipOnboarding,
+	clearPasswordChangeError,
 } = authSlice.actions;
 
 // --- Selectors ---
 // Selector for the currently authenticated user
 export const selectCurrentUser = (state: RootState) => state.auth.user;
-export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated;
+export const selectIsAuthenticated = (state: RootState) =>
+	state.auth.isAuthenticated;
 export const selectAuthLoading = (state: RootState) => state.auth.isLoading; // For login/signup process
-export const selectAuthError = (state: RootState) => state.auth.error;     // For login/signup process
-export const selectIsInitialized = (state: RootState) => state.auth.isInitialized;
+export const selectAuthError = (state: RootState) => state.auth.error; // For login/signup process
+export const selectIsInitialized = (state: RootState) =>
+	state.auth.isInitialized;
 export const selectAuthToken = (state: RootState) => state.auth.token;
 
 // VVVV ADD THESE SELECTORS FOR THE USER LIST VVVV
 export const selectAllUsers = (state: RootState): User[] => state.auth.users;
-export const selectTotalUsers = (state: RootState): number => state.auth.totalUsers;
-export const selectUsersLoading = (state: RootState): boolean => state.auth.usersLoading;
-export const selectUsersError = (state: RootState): string | null => state.auth.usersError;
+export const selectTotalUsers = (state: RootState): number =>
+	state.auth.totalUsers;
+export const selectUsersLoading = (state: RootState): boolean =>
+	state.auth.usersLoading;
+export const selectUsersError = (state: RootState): string | null =>
+	state.auth.usersError;
 // ^^^^ END OF ADDED SELECTORS ^^^^
 
 export default authSlice.reducer;

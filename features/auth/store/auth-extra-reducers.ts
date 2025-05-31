@@ -8,8 +8,12 @@ import {
 	signupThunk,
 	refreshTokenThunk,
 	createCorporateStudentSlotsThunk,
+	changePasswordThunk,
 } from "./auth-thunks";
-import type { AuthResponse } from "../types/auth-types";
+import type {
+	AuthResponse,
+	ChangePasswordSuccessResponse,
+} from "../types/auth-types";
 import {
 	deleteUser,
 	fetchAllUsers,
@@ -76,6 +80,36 @@ export const addAuthExtraReducers = (builder: any) => {
 			state.isInitialized = true;
 		}
 	);
+
+	// --- Handle Change Password Thunk ---
+	builder
+		.addCase(changePasswordThunk.pending, (state: AuthState) => {
+			state.isLoading = true;
+			state.error = null;
+		})
+		.addCase(
+			changePasswordThunk.fulfilled,
+			(
+				state: AuthState,
+				action: PayloadAction<ChangePasswordSuccessResponse> // Use the defined success response type
+			) => {
+				state.isLoading = false;
+				// action.payload is now correctly typed as ChangePasswordSuccessResponse
+				console.log("Password change successful:", action.payload.message);
+				// You might want to clear any specific password change error here if you had one
+				// e.g., state.passwordChangeError = null;
+			}
+		)
+		.addCase(
+			changePasswordThunk.rejected,
+			(
+				state: AuthState,
+				action: ReturnType<typeof changePasswordThunk.rejected> // This correctly infers the payload as string (rejectValue)
+			) => {
+				state.isLoading = false;
+				state.error = action.payload ?? "Failed to change password"; // action.payload is the string from rejectValue
+			}
+		);
 
 	// --- Handle Token Refresh ---
 	builder.addCase(
@@ -241,7 +275,10 @@ export const addAuthExtraReducers = (builder: any) => {
 
 	builder.addCase(
 		fetchAllUsersComplete.rejected,
-		(state: AuthState, action: ReturnType<typeof fetchAllUsersComplete.rejected>) => {
+		(
+			state: AuthState,
+			action: ReturnType<typeof fetchAllUsersComplete.rejected>
+		) => {
 			state.usersLoading = false;
 			state.usersError = action.payload ?? "Failed to fetch all users";
 		}

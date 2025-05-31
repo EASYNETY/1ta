@@ -4,6 +4,8 @@ import { post, get, put, ApiError } from "@/lib/live/auth-api-client";
 import type { User, AuthState } from "@/types/user.types";
 import type {
 	AuthResponse,
+	ChangePasswordPayload,
+	ChangePasswordSuccessResponse,
 	LoginCredentials,
 	RegisterData,
 	ResetPasswordPayload,
@@ -173,17 +175,23 @@ export const fetchUserProfileThunk = createAsyncThunk<
 			if (error.status === 401) {
 				// If we still get a 401 after the API client's refresh attempt,
 				// it means the refresh token is invalid or expired
-				console.error("Failed to authenticate user after token refresh attempt");
+				console.error(
+					"Failed to authenticate user after token refresh attempt"
+				);
 
 				// Dispatch logout action to clear auth state
 				dispatch({ type: AUTH_ACTIONS.LOGOUT });
 
-				return rejectWithValue("Your session has expired. Please log in again.");
+				return rejectWithValue(
+					"Your session has expired. Please log in again."
+				);
 			}
 
 			// For network errors, provide a more user-friendly message
 			if (error.isNetworkError) {
-				return rejectWithValue("Network error. Please check your internet connection and try again.");
+				return rejectWithValue(
+					"Network error. Please check your internet connection and try again."
+				);
 			}
 
 			// For other errors, use the error message from the API
@@ -204,41 +212,44 @@ export const updateUserProfileThunk = createAsyncThunk<
 	User,
 	Partial<User>,
 	{ rejectValue: string; state: { auth: AuthState } }
->("auth/updateUserProfile", async (profileData, { rejectWithValue, getState }) => {
-	try {
-		// Get the current user ID from the state
-		const { user } = getState().auth;
-		if (!user || !user.id) {
-			return rejectWithValue("User not authenticated");
-		}
-
-		// Use the user ID in the endpoint path
-		const response = await put<{ success: boolean; data: User }>(
-			`/users/${user.id}`,
-			profileData
-		);
-		return response.data;
-	} catch (error: any) {
-		let errorMessage = "Failed to update profile";
-
-		if (error instanceof ApiError && error.data) {
-			errorMessage = error.data.message || errorMessage;
-
-			// Handle validation errors
-			if (error.data.errors && Array.isArray(error.data.errors)) {
-				const validationErrors = error.data.errors
-					.map((err: any) => `${err.path}: ${err.msg}`)
-					.join(", ");
-
-				errorMessage = `${errorMessage}: ${validationErrors}`;
+>(
+	"auth/updateUserProfile",
+	async (profileData, { rejectWithValue, getState }) => {
+		try {
+			// Get the current user ID from the state
+			const { user } = getState().auth;
+			if (!user || !user.id) {
+				return rejectWithValue("User not authenticated");
 			}
-		} else if (error instanceof Error) {
-			errorMessage = error.message;
-		}
 
-		return rejectWithValue(errorMessage);
+			// Use the user ID in the endpoint path
+			const response = await put<{ success: boolean; data: User }>(
+				`/users/${user.id}`,
+				profileData
+			);
+			return response.data;
+		} catch (error: any) {
+			let errorMessage = "Failed to update profile";
+
+			if (error instanceof ApiError && error.data) {
+				errorMessage = error.data.message || errorMessage;
+
+				// Handle validation errors
+				if (error.data.errors && Array.isArray(error.data.errors)) {
+					const validationErrors = error.data.errors
+						.map((err: any) => `${err.path}: ${err.msg}`)
+						.join(", ");
+
+					errorMessage = `${errorMessage}: ${validationErrors}`;
+				}
+			} else if (error instanceof Error) {
+				errorMessage = error.message;
+			}
+
+			return rejectWithValue(errorMessage);
+		}
 	}
-});
+);
 
 // --- Forgot Password Thunk ---
 export const forgotPasswordThunk = createAsyncThunk<
@@ -286,6 +297,58 @@ export const resetPasswordThunk = createAsyncThunk<
 			error instanceof Error
 				? error.message
 				: "Failed to reset password. Link may be invalid/expired.";
+		return rejectWithValue(errorMessage);
+	}
+});
+
+// --- Change Password Thunk ---
+export const changePasswordThunk = createAsyncThunk<
+	ChangePasswordSuccessResponse, // Type for the fulfilled action's payload
+	ChangePasswordPayload, // Type for the thunk argument
+	{
+		rejectValue: string; // Type for the rejected action's payload
+		state: { auth: AuthState }; // Type for getState
+	}
+>("auth/changePassword", async (payload, { rejectWithValue, getState }) => {
+	try {
+		const { user } = getState().auth;
+		if (!user || !user.id) {
+			return rejectWithValue("User not authenticated. Cannot change password.");
+		}
+
+		// Assuming your API returns something like { success: boolean, message: string }
+		// Adjust the 'put' call and response handling based on your actual API structure
+		const response = await put<{
+			success: boolean;
+			message: string;
+			data?: any;
+		}>( // Broader type for 'put' response
+			"/users/change-password", // <<<< ADJUST THIS TO YOUR API ENDPOINT
+			payload
+		);
+
+		// Check for success based on your API's response structure
+		if (!response.success) {
+			// Or response.status >= 400, etc.
+			return rejectWithValue(
+				response.message || "Failed to change password due to an API error."
+			);
+		}
+
+		return { message: response.message || "Password updated successfully." };
+	} catch (error: any) {
+		let errorMessage = "Failed to change password";
+		if (error instanceof ApiError && error.data) {
+			errorMessage = error.data.message || errorMessage;
+			if (error.data.errors && Array.isArray(error.data.errors)) {
+				const validationErrors = error.data.errors
+					.map((err: any) => `${err.path ? `${err.path}: ` : ""}${err.msg}`)
+					.join("; ");
+				errorMessage = `${errorMessage}. ${validationErrors}`;
+			}
+		} else if (error instanceof Error) {
+			errorMessage = error.message;
+		}
 		return rejectWithValue(errorMessage);
 	}
 });

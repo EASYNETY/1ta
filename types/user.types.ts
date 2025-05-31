@@ -1,7 +1,13 @@
 // types/user.types.ts
 
 // Defines the possible primary roles within the platform
-export type UserRole = "super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student";
+export type UserRole =
+	| "super_admin"
+	| "admin"
+	| "accounting"
+	| "customer_care"
+	| "teacher"
+	| "student";
 
 // Defines the nature of the account, often defaulted by backend or set by Admin
 export type AccountType = "individual" | "corporate" | "institutional";
@@ -88,10 +94,10 @@ export interface TeacherUser extends BaseUser {
 	/** Text description of availability (e.g., "Mon 2-4 PM via Zoom"). Optional. Editable via Settings. */
 	officeHours?: string | null;
 	// Note: List of facilitated classes (`taughtClassIds`) is fetched separately.
-    /** Department the facilitator belongs to (e.g., Academics). Optional. */
-    department?: string | null; // ADDED
-    /** Shift or schedule information. Optional. */
-    shift?: string | null; // ADDED
+	/** Department the facilitator belongs to (e.g., Academics). Optional. */
+	department?: string | null; // ADDED
+	/** Shift or schedule information. Optional. */
+	shift?: string | null; // ADDED
 }
 
 // --- Super Admin Specific Information ---
@@ -100,10 +106,10 @@ export interface SuperAdminUser extends BaseUser {
 	role: "super_admin";
 	/** List of specific super admin permissions (e.g., 'delete_users', 'manage_system'). Optional for future granular control. For Super Admin, this is often implicitly all '*' */
 	permissions?: string[] | null;
-    /** Department (e.g., Management, IT). Optional. */
-    department?: string | null; // ADDED
-    /** Shift or schedule information. Optional. */
-    shift?: string | null; // ADDED
+	/** Department (e.g., Management, IT). Optional. */
+	department?: string | null; // ADDED
+	/** Shift or schedule information. Optional. */
+	shift?: string | null; // ADDED
 }
 
 // --- Admin Specific Information ---
@@ -112,10 +118,10 @@ export interface AdminUser extends BaseUser {
 	role: "admin";
 	/** List of specific admin permissions (e.g., 'manage_users'). Optional for future granular control. */
 	permissions?: string[] | null;
-    /** Department the admin belongs to. Optional. */
-    department?: string | null; // ADDED
-    /** Shift or schedule information. Optional. */
-    shift?: string | null; // ADDED
+	/** Department the admin belongs to. Optional. */
+	department?: string | null; // ADDED
+	/** Shift or schedule information. Optional. */
+	shift?: string | null; // ADDED
 }
 
 // --- Accounting Specific Information ---
@@ -126,8 +132,8 @@ export interface AccountingUser extends BaseUser {
 	permissions?: string[] | null;
 	/** Department or team within accounting */
 	department?: string | null; // This was already here
-    /** Shift or schedule information. Optional. */
-    shift?: string | null; // ADDED
+	/** Shift or schedule information. Optional. */
+	shift?: string | null; // ADDED
 }
 
 // --- Customer Care Specific Information ---
@@ -136,15 +142,21 @@ export interface CustomerCareUser extends BaseUser {
 	role: "customer_care";
 	/** List of specific customer care permissions (e.g., 'view_tickets', 'scan_barcodes'). Optional for future granular control. */
 	permissions?: string[] | null;
-    /** Department the customer care agent belongs to (e.g., Support). Optional. */
-    department?: string | null; // ADDED
+	/** Department the customer care agent belongs to (e.g., Support). Optional. */
+	department?: string | null; // ADDED
 	/** Shift or schedule information */
 	shift?: string | null; // This was already here
 }
 
 // --- Union Type ---
 // The primary type used across the frontend to represent any authenticated user.
-export type User = StudentUser | TeacherUser | SuperAdminUser | AdminUser | AccountingUser | CustomerCareUser;
+export type User =
+	| StudentUser
+	| TeacherUser
+	| SuperAdminUser
+	| AdminUser
+	| AccountingUser
+	| CustomerCareUser;
 
 // --- Type Guards (Utility Functions) ---
 // Helper functions to easily check the role of a `User` object.
@@ -157,7 +169,9 @@ export function isTeacher(user: User | null | undefined): user is TeacherUser {
 	return user?.role === "teacher";
 }
 
-export function isSuperAdmin(user: User | null | undefined): user is SuperAdminUser {
+export function isSuperAdmin(
+	user: User | null | undefined
+): user is SuperAdminUser {
 	return user?.role === "super_admin";
 }
 
@@ -165,11 +179,15 @@ export function isAdmin(user: User | null | undefined): user is AdminUser {
 	return user?.role === "admin";
 }
 
-export function isAccounting(user: User | null | undefined): user is AccountingUser {
+export function isAccounting(
+	user: User | null | undefined
+): user is AccountingUser {
 	return user?.role === "accounting";
 }
 
-export function isCustomerCare(user: User | null | undefined): user is CustomerCareUser {
+export function isCustomerCare(
+	user: User | null | undefined
+): user is CustomerCareUser {
 	return user?.role === "customer_care";
 }
 
@@ -199,6 +217,7 @@ export interface AuthState {
 	isLoading: boolean;
 	/** Stores error messages from failed auth operations. */
 	error: string | null;
+	passwordChangeError: string | null;
 	/** UI flag set if the user explicitly skips the onboarding prompt. */
 	skipOnboarding: boolean;
 	/** Users State Management */
