@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Loader2, ShoppingCart, AlertTriangle, ArrowLeft, Users } from "lucide-react"
 import { PaystackCheckout } from "@/components/payment/paystack-checkout" // Real or Mock handler inside
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden" // Keep for Dialog title
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog" // Keep Dialog
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog" // Keep Dialog
 import { clearCart, selectCartItems } from "@/features/cart/store/cart-slice"
 import {
     prepareCheckout,
@@ -442,13 +442,13 @@ export default function CheckoutPage() {
                 open={showPaymentModal}
                 onOpenChange={(open) => !isLoading && !isEnroling && dispatch(setShowPaymentModal(open))}
             >
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md p-6 bg-card/5 backdrop-blur-sm rounded-2xl border-primary/25">
                     <DialogHeader>
                         <DialogTitle>
                             <VisuallyHidden>Complete Your Payment</VisuallyHidden>
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="py-2">
+                    <div className="">
                         {user?.email && checkoutStatus === "ready" && (
                             <PaystackCheckout
                                 invoiceId={`cart_checkout_${user.id}_${checkoutItems[0]?.courseId || 'general'}_${Date.now()}`} // Generate a unique invoice ID with courseId

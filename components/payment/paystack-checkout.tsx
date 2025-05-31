@@ -156,7 +156,7 @@ export function PaystackCheckout({
     const showActionButtons = !isProcessingPayment && verificationStatus === 'idle';
 
     return (
-        <div className="w-full max-w-sm mx-auto p-6 sm:p-8 bg-background rounded-xl shadow-2xl dark:bg-card/5 backdrop-blur-sm border border-primary/25">
+        <div className="w-full max-w-sm mx-auto p-6 sm:p-8 bg-background rounded-xl shadow-2xl dark:bg-card/5 backdrop-blur-sm">
             <div className="text-center mb-6">
                 <Image src="/paystack.png" alt="Paystack Logo" width={64} height={64} className="mx-auto mb-3 rounded-xl" />
                 <h1 className="text-2xl font-semibold text-foreground dark:text-neutral-100">
