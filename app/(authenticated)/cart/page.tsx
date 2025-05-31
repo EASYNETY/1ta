@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { removeItem } from "@/features/cart/store/cart-slice"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
-import { isStudent } from "@/types/user.types" // Import type guard
+import { isStudent, User } from "@/types/user.types" // Import type guard
 import { Trash2, GraduationCap, ArrowRight, AlertTriangle } from "lucide-react"
 import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
@@ -17,6 +17,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { prepareCheckout } from "@/features/checkout/store/checkoutSlice"
+import { createInvoiceThunk, selectInvoiceCreationStatus } from "@/features/payment/store/payment-slice"
+import { CreateInvoicePayload, InvoiceItem } from "@/features/payment/types/payment-types"
 
 export default function CartPage() {
     const { user, skipOnboarding } = useAppSelector((state) => state.auth)
@@ -30,6 +32,7 @@ export default function CartPage() {
 
     const profileComplete = user ? isProfileComplete(user) : false
     const hasItems = cart.items.length > 0
+    const invoiceCreationStatus = useAppSelector(selectInvoiceCreationStatus); // Track invoice creation
 
     // Check if user is a corporate student (has corporateId but is not a manager)
     const isCorporateStudent = user && isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager
@@ -60,31 +63,86 @@ export default function CartPage() {
         })
     }
 
-    const handleCheckout = () => {
-        setIsProcessing(true)
+    const handleCheckout = async () => { // Make async
+        setIsProcessing(true);
 
-        // If profile is not complete, redirect to profile page
+        if (!user) {
+            toast({ title: "Error", description: "User not found.", variant: "destructive" });
+            setIsProcessing(false);
+            return;
+        }
+
         if (!profileComplete && !skipOnboarding) {
             toast({
                 title: "Profile Incomplete",
                 description: "Please complete your profile before proceeding to checkout.",
                 variant: "default",
-            })
-            router.push("/profile")
-            return
+            });
+            router.push("/profile");
+            setIsProcessing(false);
+            return;
         }
-        // Dispatch prepareCheckout with totalAmountFromCart from cart slice
-        dispatch(
-            prepareCheckout({
-                cartItems: cart.items,
-                coursesData: [], // Assuming coursesData will be fetched in checkout page
-                user: user,
-                totalAmountFromCart: totalWithTax,
-            }),
-        )
-        // If profile is complete, redirect to checkout page
-        router.push("/checkout")
-    }
+
+        if (cart.items.length === 0) {
+            toast({ title: "Cart Empty", description: "Your cart is empty.", variant: "default" });
+            setIsProcessing(false);
+            return;
+        }
+
+        // --- Create Invoice ---
+        const invoiceItems: InvoiceItem[] = cart.items.map(item => ({
+            description: item.title,
+            amount: item.discountPriceNaira ?? item.priceNaira, // Use discounted price if available
+            quantity: 1, // Assuming 1 for each course
+            courseId: item.courseId,
+        }));
+
+        const today = new Date();
+        const dueDate = new Date(today.setDate(today.getDate() + 7)); // Example: Due in 7 days
+        const formattedDueDate = dueDate.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+        const invoicePayload: CreateInvoicePayload = {
+            studentId: user.id,
+            amount: totalWithTax, // Use the total amount including tax from cart
+            description: `Course enrolment: ${cart.items.map(i => i.title).join(', ')}`,
+            dueDate: formattedDueDate,
+            items: invoiceItems,
+        };
+
+        try {
+            const resultAction = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
+            // resultAction is CreateInvoiceResponse here
+            const createdInvoice = resultAction.data; // The created invoice object
+
+            toast({
+                title: "Invoice Created",
+                description: `Invoice ${createdInvoice.id} ready for payment.`,
+                variant: "success",
+            });
+
+            // --- Prepare Checkout with Invoice ID ---
+            dispatch(
+                prepareCheckout({
+                    cartItems: cart.items, // Still pass cart items for display on checkout page
+                    coursesData: [], // Assuming coursesData will be fetched in checkout page if needed
+                    user: user as User,
+                    totalAmountFromCart: totalWithTax, // The amount on the invoice
+                    invoiceId: createdInvoice.id, // <<<< PASS THE CREATED INVOICE ID
+                }),
+            );
+            router.push("/checkout");
+
+        } catch (error: any) {
+            toast({
+                title: "Invoice Creation Failed",
+                description: typeof error === 'string' ? error : "Could not create an invoice. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
 
     // Define proper motion variants
     const container: Variants = {
@@ -235,8 +293,8 @@ export default function CartPage() {
                                 </p>
                             )}
                         </div>
-                        <DyraneButton className="w-full mt-4" onClick={handleCheckout} disabled={isProcessing}>
-                            {isProcessing ? (
+                        <DyraneButton className="w-full mt-4" onClick={handleCheckout} disabled={isProcessing || invoiceCreationStatus === 'loading'}>
+                            {isProcessing || invoiceCreationStatus === 'loading' ? (
                                 "Processing..."
                             ) : (
                                 <>

@@ -6,7 +6,9 @@ import type {
 	PaymentRecord,
 	InitiatePaymentPayload,
 	PaymentResponse, // This is { payment: PaymentRecord; authorizationUrl: string; }
-	VerifyPaymentResponse, // This is { payments: PaymentRecord; verification: any; }
+	VerifyPaymentResponse,
+	CreateInvoiceResponse,
+	CreateInvoicePayload, // This is { payments: PaymentRecord; verification: any; }
 } from "../types/payment-types";
 import { get, post } from "@/lib/api-client";
 
@@ -201,6 +203,41 @@ export const fetchPaymentById = createAsyncThunk<
 	}
 });
 
+// --- NEW: Create Invoice Thunk ---
+export const createInvoiceThunk = createAsyncThunk<
+	CreateInvoiceResponse, // Type for fulfilled action's payload
+	CreateInvoicePayload, // Type for the thunk argument
+	{ rejectValue: string }
+>("payment/createInvoice", async (payload, { rejectWithValue }) => {
+	try {
+		// apiClient.post<T> is expected to return T (CreateInvoiceResponse in this case)
+		const responseData = await post<CreateInvoiceResponse>(
+			"/invoices", // Your endpoint from the spec /api/invoices
+			payload
+		);
+
+		if (
+			responseData &&
+			responseData.success &&
+			responseData.data &&
+			responseData.data.id
+		) {
+			return responseData;
+		}
+		console.warn(
+			"createInvoiceThunk: Unexpected data structure from API client. Got:",
+			responseData
+		);
+		throw new Error(
+			"Failed to create invoice or invalid data structure returned by server."
+		);
+	} catch (e: any) {
+		const errorMessage =
+			e.response?.data?.message || e.message || "Failed to create invoice";
+		return rejectWithValue(errorMessage);
+	}
+});
+
 // --- Initial State ---
 const initialState: PaymentHistoryState = {
 	myPayments: [],
@@ -214,6 +251,9 @@ const initialState: PaymentHistoryState = {
 	verificationStatus: "idle",
 	selectedPayment: null,
 	selectedPaymentStatus: "idle",
+	currentInvoice: null,
+	invoiceCreationStatus: "idle",
+	invoiceError: null,
 };
 
 // --- Slice ---
@@ -229,9 +269,32 @@ const paymentHistorySlice = createSlice({
 			state.paymentInitialization = null;
 			state.verificationStatus = "idle";
 			state.error = null;
+			state.currentInvoice = null; // Reset invoice
+			state.invoiceCreationStatus = "idle"; // Reset invoice status
+			state.invoiceError = null; // Reset invoice error
 		},
 	},
 	extraReducers: (builder) => {
+		// --- NEW: Create Invoice Thunk ---
+		builder
+			.addCase(createInvoiceThunk.pending, (state) => {
+				state.invoiceCreationStatus = "loading";
+				state.invoiceError = null;
+				state.currentInvoice = null; // Clear previous invoice on new attempt
+			})
+			.addCase(
+				createInvoiceThunk.fulfilled,
+				(state, action: PayloadAction<CreateInvoiceResponse>) => {
+					state.invoiceCreationStatus = "succeeded";
+					state.currentInvoice = action.payload.data; // Store the created invoice
+					state.invoiceError = null;
+				}
+			)
+			.addCase(createInvoiceThunk.rejected, (state, action) => {
+				state.invoiceCreationStatus = "failed";
+				state.invoiceError = action.payload ?? "Error creating invoice";
+				state.currentInvoice = null;
+			});
 		// Fetch My History
 		builder
 			.addCase(fetchMyPaymentHistory.pending, (state) => {
@@ -388,4 +451,11 @@ export const selectSelectedPayment = (state: RootState) =>
 export const selectSelectedPaymentStatus = (state: RootState) =>
 	state.paymentHistory.selectedPaymentStatus;
 
+// New selectors for invoice
+export const selectCurrentInvoice = (state: RootState) =>
+	state.paymentHistory.currentInvoice;
+export const selectInvoiceCreationStatus = (state: RootState) =>
+	state.paymentHistory.invoiceCreationStatus;
+export const selectInvoiceError = (state: RootState) =>
+	state.paymentHistory.invoiceError;
 export default paymentHistorySlice.reducer;

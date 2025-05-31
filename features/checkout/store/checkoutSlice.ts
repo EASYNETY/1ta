@@ -6,32 +6,28 @@ import {
 } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
-	CheckoutState,
+	CheckoutState, // This should now include invoiceId
+	CheckoutItem, // Type from checkout-types.ts
 	EnrolCoursesPayload,
 	EnrolCoursesResponse,
-} from "../types/checkout-types";
-import type { User } from "@/types/user.types"; // Import user type
-import { isStudent } from "@/types/user.types"; // Import type guard
+} from "../types/checkout-types"; // Ensure CheckoutState here matches the one in checkout-types.ts
+import type { User } from "@/types/user.types";
+import { isStudent } from "@/types/user.types";
 import type { PublicCourse } from "@/features/public-course/types/public-course-interface";
-// Assume an API client function exists or will be created for enrolment
-import { post } from "@/lib/api-client";
+import { post } from "@/lib/api-client"; // Your API client
 import type { CartItem } from "@/features/cart/store/cart-slice";
-// Import a way to get course details, maybe from another slice or direct fetch
-// For simplicity, assume we pass course data when preparing checkout
-// import { selectPublicCourseById } from '@/features/public-course/store/public-course-slice';
 
 // --- Async Thunk for Enrolment ---
 export const enrolCoursesAfterPayment = createAsyncThunk<
-	EnrolCoursesResponse, // Return type
-	EnrolCoursesPayload, // Argument type
+	EnrolCoursesResponse,
+	EnrolCoursesPayload,
 	{ state: RootState; rejectValue: string }
 >("checkout/enrolCourses", async (payload, { getState, rejectWithValue }) => {
 	const { auth } = getState();
 	if (!auth.token) return rejectWithValue("Not authenticated");
 
 	try {
-		console.log("Thunk: Enroling courses after payment...");
-		// Replace '/enrolments/purchase' with your actual backend endpoint
+		console.log("Thunk: Enroling courses after payment with payload:", payload);
 		const response = await post<EnrolCoursesResponse>(
 			"/enrolments/purchase",
 			payload,
@@ -44,7 +40,12 @@ export const enrolCoursesAfterPayment = createAsyncThunk<
 		}
 		return response;
 	} catch (error: any) {
-		return rejectWithValue(error.message || "Failed to enrol in courses");
+		const message =
+			typeof error.message === "string"
+				? error.message
+				: "Failed to enrol in courses";
+		console.error("Enrolment thunk error:", error);
+		return rejectWithValue(message);
 	}
 });
 
@@ -56,144 +57,130 @@ const initialState: CheckoutState = {
 	status: "idle",
 	error: null,
 	showPaymentModal: false,
-	skipCheckout: false, // New property to skip checkout
+	invoiceId: null, // Correctly initialized
+	skipCheckout: false,
 };
+
+// --- Payload Interface for prepareCheckout Action ---
+// This should be consistent with what CartPage dispatches
+interface PrepareCheckoutActionPayload {
+	cartItems: CartItem[];
+	coursesData: PublicCourse[]; // Used for detailed info if not in cartItem
+	user: User | null;
+	corporateStudentCount?: number;
+	totalAmountFromCart: number; // The total amount that the invoice was created for
+	invoiceId: string; // The ID of the created invoice
+}
 
 // --- Slice Definition ---
 const checkoutSlice = createSlice({
 	name: "checkout",
 	initialState,
 	reducers: {
-		// Action to prepare checkout items and calculate total
-prepareCheckout: (
-	state,
-	action: PayloadAction<{
-		cartItems: CartItem[];
-		coursesData: PublicCourse[];
-		user: User | null;
-		corporateStudentCount?: number; // Add student count for corporate managers
-		totalAmountFromCart?: number; // New optional total amount from cart slice
-	}>
-) => {
-	state.status = "preparing";
-	state.items = [];
-	state.totalAmount = 0;
-	state.error = null;
-	state.paymentReference = null;
-	state.skipCheckout = false;
+		prepareCheckout: (
+			state,
+			action: PayloadAction<PrepareCheckoutActionPayload> // Use the defined payload type
+		) => {
+			state.status = "preparing";
+			state.items = []; // Reset items
+			state.totalAmount = 0; // Reset total
+			state.error = null;
+			state.paymentReference = null;
+			state.skipCheckout = false; // Reset skip flag
 
-	const {
-		cartItems,
-		coursesData,
-		user,
-		corporateStudentCount = 1,
-		totalAmountFromCart,
-	} = action.payload;
+			const {
+				cartItems,
+				coursesData, // This data might be used if cart items lack full details
+				user,
+				corporateStudentCount = 1, // Default to 1 if not provided
+				totalAmountFromCart, // This is the invoiced amount
+				invoiceId,
+			} = action.payload;
 
-	// Check if user is a corporate student (should be redirected away from checkout)
-	if (
-		user &&
-		isStudent(user) &&
-		user.corporateId &&
-		!user.isCorporateManager
-	) {
-		state.status = "failed";
-		state.error = "Corporate students cannot make direct purchases.";
-		return;
-	}
+			state.invoiceId = invoiceId; // Store the invoice ID
 
-	// If totalAmountFromCart is provided, use it directly
-	if (typeof totalAmountFromCart === "number") {
-		state.totalAmount = totalAmountFromCart;
-	} else {
-		// Check if user is a corporate manager
-		const isCorporateManager =
-			user && isStudent(user) && !!user.isCorporateManager;
+			// The totalAmount is now primarily driven by totalAmountFromCart (the invoiced amount)
+			state.totalAmount = totalAmountFromCart;
 
-		cartItems.forEach((cartItem) => {
-			const course = coursesData.find((c) => c.id === cartItem.courseId);
-			if (course) {
-				let priceToPay = cartItem.priceNaira ?? course.priceIndividualUSD ?? 0; // Use cart priceNaira first, fallback to course price
-				const originalPrice = cartItem.priceNaira ?? course.priceIndividualUSD ?? 0; // Original price for display
-				let corporatePriceApplied = false;
-
-				// Handle corporate pricing
-				if (isCorporateManager) {
-					if (course.priceUSD !== undefined) {
-						priceToPay = course.priceUSD;
-						corporatePriceApplied = true;
-					}
-
-					// For corporate managers, multiply by student count
-					priceToPay = priceToPay * corporateStudentCount;
-				} else if (user && isStudent(user) && user.corporateId) {
-					// Use specific corporate price if available for this corporate ID
-					const corporatePrice =
-						course?.pricing?.corporate?.[user.corporateId];
-					if (typeof corporatePrice === "number") {
-						priceToPay = corporatePrice;
-						corporatePriceApplied = true;
-					}
-				}
-
-				// Handle discounts (apply AFTER selecting individual/corporate base)
-				if (
-					corporatePriceApplied &&
-					course.discountPriceCorporateUSD !== undefined &&
-					!isCorporateManager // Don't apply discount twice for managers
-				) {
-					priceToPay = course.discountPriceCorporateUSD;
-				} else if (
-					!corporatePriceApplied &&
-					course.discountPriceIndividualUSD !== undefined
-				) {
-					priceToPay = course.discountPriceIndividualUSD;
-
-					// For corporate managers, multiply discounted price by student count
-					if (isCorporateManager) {
-						priceToPay = priceToPay * corporateStudentCount;
-					}
-				}
-
-				state.items.push({
-					...cartItem, // Spread cart item details (id, title, image...)
-					priceToPay: priceToPay as number, // Ensure it's a number
-					originalPrice: originalPrice as number, // Original price for display
-					isCorporatePrice: corporatePriceApplied,
-					courseDetails: course, // Include full course details
-					studentCount: isCorporateManager ? corporateStudentCount : 1, // Add student count
-				});
-				state.totalAmount += priceToPay as number; // Add to total amount
-			} else {
-				console.warn(
-					`Course data not found for cart item ID: ${cartItem.courseId}`
+			// Populate checkout items for display purposes on the checkout page.
+			// The pricing logic here should match how the invoice items were constructed,
+			// or simply display what was in the cart if detailed breakdown isn't needed
+			// once an invoice is made.
+			state.items = cartItems.map((cartItem) => {
+				const courseDetail = coursesData.find(
+					(c) => c.id === cartItem.courseId
 				);
-			}
-		});
-	}
+				// The priceToPay on the checkout item should reflect what was itemized on the invoice.
+				// If totalAmountFromCart is the source of truth, individual item prices here are for display.
+				// For simplicity, we'll use the cart item's price, assuming it reflects the invoiced item price.
+				const priceForThisItem =
+					cartItem.discountPriceNaira ?? cartItem.priceNaira;
 
-	state.status = "ready"; // Ready for payment initiation
-},
+				return {
+					...cartItem,
+					priceToPay: priceForThisItem,
+					originalPrice: cartItem.priceNaira, // Assuming cartItem.priceNaira is the original
+					isCorporatePrice: false, // This needs to be determined by your corporate logic if applicable during invoice creation
+					courseDetails: courseDetail,
+					studentCount:
+						user && isStudent(user) && user.isCorporateManager
+							? corporateStudentCount
+							: 1,
+				};
+			});
+
+			// If user is a corporate student (not manager), they shouldn't reach here usually
+			// But as a safeguard:
+			if (
+				user &&
+				isStudent(user) &&
+				user.corporateId &&
+				!user.isCorporateManager
+			) {
+				state.status = "failed";
+				state.error = "Corporate students cannot make direct purchases.";
+				return;
+			}
+
+			state.status = "ready";
+		},
 		setPaymentReference: (state, action: PayloadAction<string | null>) => {
 			state.paymentReference = action.payload;
 		},
 		setShowPaymentModal: (state, action: PayloadAction<boolean>) => {
 			state.showPaymentModal = action.payload;
-			if (action.payload) state.error = null; // Clear error when opening modal
+			if (action.payload) {
+				// When opening modal
+				state.error = null; // Clear previous errors
+				// Ensure status is 'ready' if we are showing payment modal
+				if (state.status !== "ready" && state.status !== "processing_payment") {
+					// This might indicate an issue, but for now, let modal open
+					console.warn(
+						`Payment modal opened with checkout status: ${state.status}`
+					);
+				}
+			}
 		},
-		resetCheckout: () => {
-			return initialState; // Reset to initial state
+		resetCheckout: (state) => {
+			// Return a new state object that is a copy of the initial state
+			// This is a robust way to reset.
+			Object.assign(state, initialState);
 		},
 		setCheckoutError: (state, action: PayloadAction<string>) => {
 			state.status = "failed";
 			state.error = action.payload;
+			state.showPaymentModal = false; // Close payment modal on error
 		},
 		setSkipCheckout: (state, action: PayloadAction<boolean>) => {
 			state.skipCheckout = action.payload;
-			// If skipping, ensure payment modal is closed
 			if (action.payload) {
 				state.showPaymentModal = false;
 			}
+		},
+		// Potentially add a new action if payment processing needs its own status
+		setPaymentProcessingStatus: (state) => {
+			state.status = "processing_payment";
+			state.error = null;
 		},
 	},
 	extraReducers: (builder) => {
@@ -205,14 +192,12 @@ prepareCheckout: (
 			.addCase(enrolCoursesAfterPayment.fulfilled, (state, action) => {
 				state.status = "succeeded";
 				state.error = null;
-				// Optionally clear items here or rely on clearCart dispatch from component
-				// state.items = [];
-				// state.totalAmount = 0;
 				console.log("Enrolment successful:", action.payload);
 			})
 			.addCase(enrolCoursesAfterPayment.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Enrolment processing failed.";
+				state.showPaymentModal = false; // Ensure modal is closed if enrolment fails after payment attempt
 			});
 	},
 });
@@ -225,18 +210,26 @@ export const {
 	resetCheckout,
 	setCheckoutError,
 	setSkipCheckout,
+	setPaymentProcessingStatus, // Export if added
 } = checkoutSlice.actions;
 
 // --- Selectors ---
-export const selectCheckoutItems = (state: RootState) => state.checkout.items;
-export const selectCheckoutTotalAmount = (state: RootState) =>
+export const selectCheckoutInvoiceId = (state: RootState): string | null =>
+	state.checkout.invoiceId;
+export const selectCheckoutItems = (state: RootState): CheckoutItem[] =>
+	state.checkout.items;
+export const selectCheckoutTotalAmount = (state: RootState): number =>
 	state.checkout.totalAmount;
-export const selectCheckoutStatus = (state: RootState) => state.checkout.status;
-export const selectCheckoutError = (state: RootState) => state.checkout.error;
-export const selectCheckoutShowPaymentModal = (state: RootState) =>
+export const selectCheckoutStatus = (
+	state: RootState
+): CheckoutState["status"] => state.checkout.status;
+export const selectCheckoutError = (state: RootState): string | null =>
+	state.checkout.error;
+export const selectCheckoutShowPaymentModal = (state: RootState): boolean =>
 	state.checkout.showPaymentModal;
-export const selectCheckoutPaymentReference = (state: RootState) =>
-	state.checkout.paymentReference;
+export const selectCheckoutPaymentReference = (
+	state: RootState
+): string | null => state.checkout.paymentReference;
 export const selectSkipCheckout = (state: RootState): boolean =>
 	state.checkout.skipCheckout;
 

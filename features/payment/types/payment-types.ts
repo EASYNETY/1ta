@@ -96,4 +96,43 @@ export interface PaymentHistoryState {
 	selectedPayment: PaymentRecord | null;
 	// Status of fetching a single payment
 	selectedPaymentStatus: "idle" | "loading" | "succeeded" | "failed";
+	currentInvoice: Invoice | null;
+	invoiceCreationStatus: "idle" | "loading" | "succeeded" | "failed";
+	invoiceError: string | null;
+}
+
+export interface InvoiceItem {
+	description: string; // e.g., course name
+	amount: number; // Amount for this item
+	quantity: number; // Quantity (usually 1 for a course, or student count for corporate)
+	courseId?: string; // Optional: Store the original course ID for reference
+}
+
+export interface Invoice {
+	id: string; // UUID returned by the backend
+	studentId: string;
+	amount: number;
+	description: string;
+	dueDate: string; // ISO8601 format (YYYY-MM-DD)
+	items: InvoiceItem[];
+	status: "pending" | "paid" | "cancelled" | "overdue"; // Example statuses
+	createdAt: string;
+	updatedAt: string;
+	paymentId?: string | null; // Link to a PaymentRecord if paid
+}
+
+// Payload for creating an invoice
+export interface CreateInvoicePayload {
+	studentId: string;
+	amount: number;
+	description: string;
+	dueDate: string; // Optional on client, backend might default
+	items: InvoiceItem[];
+}
+
+// API Response when creating an invoice
+export interface CreateInvoiceResponse {
+	success: true;
+	message: string;
+	data: Invoice; // The created invoice object
 }

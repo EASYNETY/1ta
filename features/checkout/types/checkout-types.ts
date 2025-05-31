@@ -26,6 +26,7 @@ export interface CheckoutState {
 		| "failed";
 	error: string | null;
 	showPaymentModal: boolean; // To control the PaystackCheckout display
+	invoiceId: string | null; // <<<< NEW: Store invoiceId
 	skipCheckout: boolean; // To skip checkout process
 }
 
