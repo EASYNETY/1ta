@@ -27,10 +27,52 @@ import {
 import {
     createInvoiceThunk,
     resetPaymentState,
+    selectCurrentInvoice, // Added this selector
     selectInvoiceCreationStatus,
     selectInvoiceError
-} from "@/features/payment/store/payment-slice"
-import type { CreateInvoicePayload, InvoiceItem } from "@/features/payment/types/payment-types"
+} from "@/features/payment/store/payment-slice" // Assuming selectCurrentInvoice is exported
+import type { CreateInvoicePayload, InvoiceItem, Invoice } from "@/features/payment/types/payment-types" // Added Invoice
+
+// Helper function for comparing invoice items (ideally from a shared utils or payment-slice if exported)
+function compareInvoiceItemsForCartPage(a: InvoiceItem, b: InvoiceItem): number {
+    const courseIdA = a.courseId ?? '';
+    const courseIdB = b.courseId ?? '';
+    if (courseIdA < courseIdB) return -1;
+    if (courseIdA > courseIdB) return 1;
+    if (a.description < b.description) return -1;
+    if (a.description > b.description) return 1;
+    if (a.amount < b.amount) return -1;
+    if (a.amount > b.amount) return 1;
+    if (a.quantity < b.quantity) return -1;
+    if (a.quantity > b.quantity) return 1;
+    return 0;
+}
+
+function areCartInvoiceItemsEffectivelyEqual(
+    cartItemsPayload: InvoiceItem[],
+    existingInvoiceItems: InvoiceItem[]
+): boolean {
+    if (cartItemsPayload.length !== existingInvoiceItems.length) return false;
+    if (cartItemsPayload.length === 0) return true;
+
+    const sortedCartItems = [...cartItemsPayload].sort(compareInvoiceItemsForCartPage);
+    const sortedExistingItems = [...existingInvoiceItems].sort(compareInvoiceItemsForCartPage);
+
+    for (let i = 0; i < sortedCartItems.length; i++) {
+        const item1 = sortedCartItems[i];
+        const item2 = sortedExistingItems[i];
+        if (
+            item1.description !== item2.description ||
+            item1.amount !== item2.amount ||
+            item1.quantity !== item2.quantity ||
+            (item1.courseId ?? null) !== (item2.courseId ?? null)
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 export default function CartPage() {
     const dispatch = useAppDispatch();
@@ -40,22 +82,26 @@ export default function CartPage() {
     const { user, skipOnboarding } = useAppSelector((state) => state.auth);
     const cart = useAppSelector((state) => state.cart);
     const taxAmount = useAppSelector((state) => state.cart.taxAmount);
-    const totalWithTax = useAppSelector((state) => state.cart.totalWithTax);
+    const totalWithTax = useAppSelector((state) => state.cart.totalWithTax); // This is the current cart's total
 
     const [isInitiatingCheckout, setIsInitiatingCheckout] = useState(false);
-    // Use a ref to store the current attempt's invoice ID to avoid stale closures in useEffect
     const currentAttemptInvoiceIdRef = useRef<string | null>(null);
 
-    const invoiceCreationStatus = useAppSelector(selectInvoiceCreationStatus);
-    const invoiceCreationError = useAppSelector(selectInvoiceError);
-    const checkoutPreparationStatus = useAppSelector(selectCheckoutStatus);
-    const preparedInvoiceIdFromCheckoutSlice = useAppSelector(selectCheckoutInvoiceId);
+    // Selectors for existing payment/invoice state
+    const existingCurrentInvoice = useAppSelector(selectCurrentInvoice);
+    const existingInvoiceCreationStatus = useAppSelector(selectInvoiceCreationStatus);
+    const invoiceCreationError = useAppSelector(selectInvoiceError); // Used in useEffect
+
+    // Selectors for existing checkout state
+    const existingCheckoutPreparationStatus = useAppSelector(selectCheckoutStatus);
+    const existingPreparedInvoiceIdFromCheckoutSlice = useAppSelector(selectCheckoutInvoiceId);
+
 
     const profileComplete = user ? isProfileComplete(user) : false;
     const hasItems = cart.items.length > 0;
     const isCorporateStudent = user && isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager;
     const isCorporateManager = user && isStudent(user) && Boolean(user.isCorporateManager);
-    // Redirect corporate students
+
     useEffect(() => {
         if (isCorporateStudent) {
             toast({
@@ -82,70 +128,132 @@ export default function CartPage() {
             return;
         }
         setIsInitiatingCheckout(true);
-        currentAttemptInvoiceIdRef.current = null; // Reset ref
+        // currentAttemptInvoiceIdRef.current is reset more conditionally below or after successful creation
 
-        // Dispatch resets first to ensure a clean state for selectors in useEffect
-        console.log("CartPage: Resetting payment and checkout states...");
-        await dispatch(resetPaymentState());
-        await dispatch(resetCheckout());
-        // Give Redux a moment to process state updates if needed, though usually synchronous for reducers
-        // await new Promise(resolve => setTimeout(resolve, 0)); // Optional, usually not needed
+        let proceedWithNewInvoiceFlow = true;
 
-        console.log("CartPage: handleCheckout - Initiating checkout process...");
-
+        // Pre-checks for user, profile, cart items (these should run regardless of reset logic)
         if (!user) {
             toast({ title: "Error", description: "User not found.", variant: "destructive" });
-            setIsInitiatingCheckout(false); // Reset flag
+            setIsInitiatingCheckout(false);
             return;
         }
         if (!profileComplete && !skipOnboarding) {
             toast({ title: "Profile Incomplete", description: "Please complete your profile.", variant: "default" });
             router.push("/profile");
-            setIsInitiatingCheckout(false); // Reset flag
+            setIsInitiatingCheckout(false);
             return;
         }
         if (!hasItems) {
             toast({ title: "Cart Empty", description: "Your cart is empty.", variant: "default" });
-            setIsInitiatingCheckout(false); // Reset flag
+            setIsInitiatingCheckout(false);
             return;
         }
 
-        const invoiceItems: InvoiceItem[] = cart.items.map(item => ({
-            description: item.title,
-            amount: item.discountPriceNaira ?? item.priceNaira,
-            quantity: 1, courseId: item.courseId,
-        }));
-        const today = new Date();
-        const dueDate = new Date(today.setDate(today.getDate() + 7));
-        const formattedDueDate = dueDate.toISOString().split('T')[0];
-        const invoicePayload: CreateInvoicePayload = {
-            studentId: user.id, amount: totalWithTax,
-            description: `Course enrolment: ${cart.items.map(i => i.title).join(', ')}`,
-            dueDate: formattedDueDate, items: invoiceItems,
-        };
+        // --- Conditional Reset and Reuse Logic ---
+        if (
+            existingCurrentInvoice &&
+            existingInvoiceCreationStatus === "succeeded" &&
+            existingCheckoutPreparationStatus === "ready" &&
+            existingPreparedInvoiceIdFromCheckoutSlice === existingCurrentInvoice.id
+        ) {
+            console.log("CartPage: Found a previously prepared invoice:", existingCurrentInvoice.id);
+            // An invoice was successfully created and checkout was prepared.
+            // Now, check if it's for the *current* cart contents.
 
-        try {
-            console.log("CartPage: Dispatching createInvoiceThunk...");
-            const createdInvoice = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
-            // 'createdInvoice' is the Invoice object
-            currentAttemptInvoiceIdRef.current = createdInvoice.id; // Set the ref immediately
-            console.log("CartPage: Invoice created successfully, ID:", createdInvoice.id);
-            toast({ title: "Invoice Created", description: `Invoice ${createdInvoice.id} ready. Preparing checkout...`, variant: "success" });
+            const currentCartInvoiceItems: InvoiceItem[] = cart.items.map(item => ({
+                description: item.title,
+                amount: item.discountPriceNaira ?? item.priceNaira,
+                quantity: 1, courseId: item.courseId,
+            }));
 
-            console.log("CartPage: Dispatching prepareCheckout with invoiceId:", createdInvoice.id);
-            dispatch(
-                prepareCheckout({
-                    cartItems: cart.items, coursesData: [],
-                    user: user as User, totalAmountFromCart: totalWithTax,
-                    invoiceId: createdInvoice.id,
-                })
-            );
-            // useEffect will handle navigation and final reset of isInitiatingCheckout
-        } catch (error: any) {
-            console.error("CartPage: Error during createInvoiceThunk:", error);
-            toast({ title: "Checkout Initiation Failed", description: typeof error === 'string' ? error : error?.message || "Could not create an invoice.", variant: "destructive" });
-            setIsInitiatingCheckout(false); // Reset on error
-            currentAttemptInvoiceIdRef.current = null;
+            // Compare key aspects: studentId, total amount, due date (might need care if generated on the fly), and items.
+            // Due date comparison can be tricky if it's always "today + 7 days".
+            // For simplicity, let's focus on amount and items primarily for cart identity.
+            const isCartEffectivelyIdentical =
+                existingCurrentInvoice.studentId === user.id && // Should always match if same user
+                existingCurrentInvoice.amount === totalWithTax && // Compare current cart total with existing invoice total
+                areCartInvoiceItemsEffectivelyEqual(currentCartInvoiceItems, existingCurrentInvoice.items);
+
+            if (isCartEffectivelyIdentical) {
+                console.log("CartPage: Cart is identical to the previously prepared invoice. Attempting to reuse.");
+                currentAttemptInvoiceIdRef.current = existingCurrentInvoice.id; // Signal useEffect to use this ID
+                proceedWithNewInvoiceFlow = false;
+                // No need to dispatch resets or create new invoice/prepare checkout.
+                // The useEffect will handle navigation.
+            } else {
+                console.log("CartPage: Cart has changed or details mismatch. Resetting and creating new invoice.");
+                console.log(
+                    `Comparison details: existingAmount=${existingCurrentInvoice.amount}, currentTotalWithTax=${totalWithTax}, studentIdMatch=${existingCurrentInvoice.studentId === user.id}`
+                );
+                console.log("Existing items:", JSON.stringify(existingCurrentInvoice.items));
+                console.log("Current cart items for payload:", JSON.stringify(currentCartInvoiceItems));
+                await dispatch(resetPaymentState());
+                await dispatch(resetCheckout());
+                currentAttemptInvoiceIdRef.current = null; // Clear ref for new invoice
+            }
+        } else {
+            // No fully prepared invoice, or some state is not 'succeeded'/'ready'.
+            // Or this is the very first attempt. Reset for a fresh start.
+            console.log("CartPage: No fully prepared identical invoice found, or states not ready. Resetting for new flow.");
+            console.log(`Relevant states: existingInvoiceCreationStatus=${existingInvoiceCreationStatus}, existingCheckoutPreparationStatus=${existingCheckoutPreparationStatus}, existingPreparedInvoiceIdFromCheckoutSlice=${existingPreparedInvoiceIdFromCheckoutSlice}, existingCurrentInvoiceId=${existingCurrentInvoice?.id}`);
+            await dispatch(resetPaymentState());
+            await dispatch(resetCheckout());
+            currentAttemptInvoiceIdRef.current = null; // Clear ref for new invoice
+        }
+
+
+        // --- Proceed with new invoice creation if decided ---
+        if (proceedWithNewInvoiceFlow) {
+            console.log("CartPage: Proceeding with new invoice creation flow...");
+
+            const invoiceItems: InvoiceItem[] = cart.items.map(item => ({
+                description: item.title,
+                amount: item.discountPriceNaira ?? item.priceNaira,
+                quantity: 1, courseId: item.courseId,
+            }));
+            const today = new Date();
+            const dueDate = new Date(today.setDate(today.getDate() + 7)); // Creates a new date object
+            const formattedDueDate = dueDate.toISOString().split('T')[0];
+
+            const invoicePayload: CreateInvoicePayload = {
+                studentId: user.id, // User is confirmed not null above
+                amount: totalWithTax,
+                description: `Course enrolment: ${cart.items.map(i => i.title).join(', ')}`,
+                dueDate: formattedDueDate,
+                items: invoiceItems,
+            };
+
+            try {
+                console.log("CartPage: Dispatching createInvoiceThunk...");
+                const createdInvoice = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
+                currentAttemptInvoiceIdRef.current = createdInvoice.id; // Set ref for new invoice
+                console.log("CartPage: Invoice created successfully, ID:", createdInvoice.id);
+                toast({ title: "Invoice Created", description: `Invoice ${createdInvoice.id} ready. Preparing checkout...`, variant: "success" });
+
+                console.log("CartPage: Dispatching prepareCheckout with invoiceId:", createdInvoice.id);
+                dispatch(
+                    prepareCheckout({
+                        cartItems: cart.items,
+                        coursesData: [], // Assuming this is correct for your setup
+                        user: user as User, // User is confirmed not null
+                        totalAmountFromCart: totalWithTax,
+                        invoiceId: createdInvoice.id,
+                    })
+                );
+                // useEffect will handle navigation and final reset of isInitiatingCheckout
+            } catch (error: any) {
+                console.error("CartPage: Error during createInvoiceThunk:", error);
+                toast({ title: "Checkout Initiation Failed", description: typeof error === 'string' ? error : error?.message || "Could not create an invoice.", variant: "destructive" });
+                setIsInitiatingCheckout(false); // Reset flag on error
+                currentAttemptInvoiceIdRef.current = null; // Clear ref on error
+            }
+        } else {
+            // Not proceeding with new invoice flow because we are reusing.
+            // isInitiatingCheckout is already true.
+            // currentAttemptInvoiceIdRef.current is set to the existing invoice ID.
+            // The useEffect should now pick this up and navigate.
+            console.log("CartPage: Reusing existing prepared invoice ID:", currentAttemptInvoiceIdRef.current, ". Relying on useEffect for navigation.");
         }
     };
 
@@ -154,48 +262,56 @@ export default function CartPage() {
         console.log(
             `CartPage Nav useEffect: isInitiatingCheckout=${isInitiatingCheckout}, ` +
             `currentAttemptInvoiceIdRef.current=${currentAttemptInvoiceIdRef.current}, ` +
-            `invoiceCreationStatus=${invoiceCreationStatus}, ` +
-            `checkoutPreparationStatus=${checkoutPreparationStatus}, ` +
-            `preparedInvoiceIdFromSlice=${preparedInvoiceIdFromCheckoutSlice}`
+            `invoiceCreationStatus=${existingInvoiceCreationStatus}, ` + // Use the selector variable for consistency
+            `checkoutPreparationStatus=${existingCheckoutPreparationStatus}, ` + // Use the selector variable
+            `preparedInvoiceIdFromSlice=${existingPreparedInvoiceIdFromCheckoutSlice}` // Use the selector variable
         );
 
         if (isInitiatingCheckout && currentAttemptInvoiceIdRef.current) {
+            // Check against the Redux state values directly for conditions
             if (
-                invoiceCreationStatus === "succeeded" &&
-                checkoutPreparationStatus === "ready" &&
-                preparedInvoiceIdFromCheckoutSlice === currentAttemptInvoiceIdRef.current
+                existingInvoiceCreationStatus === "succeeded" &&
+                existingCheckoutPreparationStatus === "ready" &&
+                existingPreparedInvoiceIdFromCheckoutSlice === currentAttemptInvoiceIdRef.current
             ) {
-                console.log("CartPage: All conditions met. Navigating to /checkout with invoiceId:", currentAttemptInvoiceIdRef.current);
+                console.log("CartPage: All conditions met in useEffect. Navigating to /checkout with invoiceId:", currentAttemptInvoiceIdRef.current);
                 router.push("/checkout");
-                setIsInitiatingCheckout(false);
-                currentAttemptInvoiceIdRef.current = null;
-            } else if (invoiceCreationStatus === "failed") {
+                setIsInitiatingCheckout(false); // Reset after initiating navigation
+                // currentAttemptInvoiceIdRef.current = null; // Optional: clear ref after nav
+            } else if (existingInvoiceCreationStatus === "failed") {
                 console.error("CartPage: Invoice creation failed (observed by useEffect). Error:", invoiceCreationError);
                 toast({ title: "Invoice Error", description: invoiceCreationError || "Failed to create invoice.", variant: "destructive" });
-
                 setIsInitiatingCheckout(false);
                 currentAttemptInvoiceIdRef.current = null;
-            } else if (checkoutPreparationStatus === "failed" && invoiceCreationStatus === "succeeded") {
-                console.error("CartPage: Checkout preparation failed (observed by useEffect).");
+            } else if (existingCheckoutPreparationStatus === "failed" && existingInvoiceCreationStatus === "succeeded") {
+                // This case implies invoice was created, but checkout prep failed for it.
+                console.error("CartPage: Checkout preparation failed (observed by useEffect) for invoice:", currentAttemptInvoiceIdRef.current);
                 toast({ title: "Checkout Error", description: "Failed to prepare checkout.", variant: "destructive" });
-
                 setIsInitiatingCheckout(false);
                 currentAttemptInvoiceIdRef.current = null;
             }
+            // If states are still 'loading' or not yet 'ready'/'succeeded', useEffect will re-run when they change.
         }
+        // If isInitiatingCheckout is true, but currentAttemptInvoiceIdRef.current is null (e.g. after an error in handleCheckout before ref was set)
+        // and an error didn't set isInitiatingCheckout to false, this useEffect won't navigate, which is correct.
+        // The toast for the error should have appeared from handleCheckout.
     }, [
-        isInitiatingCheckout, // This is a local state, will trigger effect when changed
-        // currentAttemptInvoiceIdRef.current, // A ref change doesn't trigger useEffect, so we rely on other deps
-        invoiceCreationStatus,
-        checkoutPreparationStatus,
-        preparedInvoiceIdFromCheckoutSlice,
+        isInitiatingCheckout,
+        existingInvoiceCreationStatus, // Dependency on Redux state
+        existingCheckoutPreparationStatus, // Dependency on Redux state
+        existingPreparedInvoiceIdFromCheckoutSlice, // Dependency on Redux state
         invoiceCreationError,
         router,
         toast,
+        // currentAttemptInvoiceIdRef.current is a ref, its change doesn't trigger useEffect directly.
+        // The effect relies on isInitiatingCheckout and the Redux states changing.
+        // When reusing an invoice, currentAttemptInvoiceIdRef is set, and isInitiatingCheckout is true.
+        // The Redux states (existingInvoiceCreationStatus, etc.) should ALREADY be in the "succeeded"/"ready" state
+        // for the reuse path, so the condition inside useEffect should immediately pass.
     ]);
 
     const container: Variants = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } };
-    const itemVariant: Variants = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }; // Renamed to avoid conflict
+    const itemVariant: Variants = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
 
     if (isCorporateStudent) {
         return (<div className="flex flex-col items-center justify-center min-h-[400px] text-center p-6"> <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" /> <h2 className="text-xl font-semibold mb-2">Access Restricted</h2> <p className="text-muted-foreground mb-6">Corporate students don't need to make purchases.</p> <DyraneButton asChild> <a href="/dashboard">Go to Dashboard</a> </DyraneButton> </div>);
@@ -224,7 +340,7 @@ export default function CartPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <motion.div className="space-y-4" variants={container} initial="hidden" animate="show">
-                        {cart.items.map((cartItem) => ( // Use cartItem to avoid conflict with itemVariant
+                        {cart.items.map((cartItem) => (
                             <motion.div key={cartItem.courseId} variants={itemVariant}>
                                 <Card className="p-4">
                                     <div className="flex gap-4">
@@ -248,27 +364,26 @@ export default function CartPage() {
                         ))}
                     </motion.div>
                 </div>
-                {
-                    hasItems &&
-                    <div>
-                        <Card className="p-6">
-                            <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-                            <div className="space-y-2 mb-4">
-                                <div className="flex justify-between"> <span className="text-muted-foreground">Subtotal</span> <span>₦{cart.total.toLocaleString()}</span> </div>
-                                <div className="flex justify-between"> <span className="text-muted-foreground">Tax</span> <span>₦{taxAmount.toLocaleString()}</span> </div>
-                                <Separator className="my-2" />
-                                <div className="flex justify-between font-medium"> <span>Total</span> <span>₦{totalWithTax.toLocaleString()}</span> </div>
-                                {isCorporateManager && (<p className="text-xs text-muted-foreground mt-2"> * Final price will be calculated at checkout based on your student count </p>)}
-                            </div>
-                            <DyraneButton
-                                className="w-full mt-4"
-                                onClick={handleCheckout}
-                                disabled={isInitiatingCheckout || invoiceCreationStatus === 'loading'}
-                            >
-                                {(isInitiatingCheckout || invoiceCreationStatus === 'loading') ? "Processing..." : (<> Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" /> </>)}
-                            </DyraneButton>
-                        </Card>
-                    </div>}
+                <div>
+                    <Card className="p-6">
+                        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+                        <div className="space-y-2 mb-4">
+                            <div className="flex justify-between"> <span className="text-muted-foreground">Subtotal</span> <span>₦{cart.total.toLocaleString()}</span> </div>
+                            <div className="flex justify-between"> <span className="text-muted-foreground">Tax</span> <span>₦{taxAmount.toLocaleString()}</span> </div>
+                            <Separator className="my-2" />
+                            <div className="flex justify-between font-medium"> <span>Total</span> <span>₦{totalWithTax.toLocaleString()}</span> </div>
+                            {isCorporateManager && (<p className="text-xs text-muted-foreground mt-2"> * Final price will be calculated at checkout based on your student count </p>)}
+                        </div>
+                        <DyraneButton
+                            className="w-full mt-4"
+                            onClick={handleCheckout}
+                            disabled={isInitiatingCheckout || existingInvoiceCreationStatus === 'loading'} // Check existing status too
+                            asChild={false} // Explicitly false as per previous fix
+                        >
+                            {(isInitiatingCheckout || existingInvoiceCreationStatus === 'loading') ? "Processing..." : (<> Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" /> </>)}
+                        </DyraneButton>
+                    </Card>
+                </div>
             </div>
         </div>
     );
