@@ -98,6 +98,7 @@ export function PaystackCheckout({
             const result: PaymentResponse = await dispatch(initiatePayment({
                 invoiceId: invoiceId,
                 amount,
+                paymentMethod: "paystack"
             })).unwrap();
 
             if (IS_LIVE_API) {

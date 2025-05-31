@@ -49,6 +49,7 @@ export interface InitiatePaymentPayload {
 	invoiceId: string;
 	amount: number;
 	callbackUrl?: string;
+	paymentMethod: string;
 }
 
 // Response from payment initialization
