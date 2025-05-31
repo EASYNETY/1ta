@@ -303,7 +303,7 @@ export function PaystackCheckout({
                 <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground dark:text-neutral-400">
                     <Lock className="h-3.5 w-3.5" />
                     <span>Payments secured by</span>
-                    <Image src="/paystack.png" alt="Paystack Logo" width={16} height={16} className="inline-block" />
+                    <Image src="/paystack.png" alt="Paystack Logo" width={16} height={16} className="inline-block rounded-md" />
                     <span className="font-medium text-foreground dark:text-neutral-300">{IS_LIVE_API ? 'Paystack' : 'Mock Interface'}</span>
                 </div>
             </div>
