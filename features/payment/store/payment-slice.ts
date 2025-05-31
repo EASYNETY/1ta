@@ -215,22 +215,8 @@ export const createInvoiceThunk = createAsyncThunk<
 			"/invoices", // Your endpoint from the spec /api/invoices
 			payload
 		);
-
-		if (
-			responseData &&
-			responseData.success &&
-			responseData.data &&
-			responseData.data.id
-		) {
-			return responseData;
-		}
-		console.warn(
-			"createInvoiceThunk: Unexpected data structure from API client. Got:",
-			responseData
-		);
-		throw new Error(
-			"Failed to create invoice or invalid data structure returned by server."
-		);
+		console.log("responseData", responseData);
+		return responseData;
 	} catch (e: any) {
 		const errorMessage =
 			e.response?.data?.message || e.message || "Failed to create invoice";
@@ -286,7 +272,8 @@ const paymentHistorySlice = createSlice({
 				createInvoiceThunk.fulfilled,
 				(state, action: PayloadAction<CreateInvoiceResponse>) => {
 					state.invoiceCreationStatus = "succeeded";
-					state.currentInvoice = action.payload.data; // Store the created invoice
+					state.currentInvoice = action.payload
+					console.log("state.currentInvoice", state.currentInvoice);
 					state.invoiceError = null;
 				}
 			)

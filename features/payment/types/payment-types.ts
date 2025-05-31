@@ -132,7 +132,14 @@ export interface CreateInvoicePayload {
 
 // API Response when creating an invoice
 export interface CreateInvoiceResponse {
-	success: true;
-	message: string;
-	data: Invoice; // The created invoice object
+	id: string; // UUID returned by the backend
+	studentId: string;
+	amount: number;
+	description: string;
+	dueDate: string; // ISO8601 format (YYYY-MM-DD)
+	items: InvoiceItem[];
+	status: "pending" | "paid" | "cancelled" | "overdue"; // Example statuses
+	createdAt: string;
+	updatedAt: string;
+	paymentId?: string | null; // Link to a PaymentRecord if paid
 }

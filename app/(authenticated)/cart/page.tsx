@@ -112,7 +112,7 @@ export default function CartPage() {
         try {
             const resultAction = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
             // resultAction is CreateInvoiceResponse here
-            const createdInvoice = resultAction.data; // The created invoice object
+            const createdInvoice = resultAction; // The created invoice object
 
             toast({
                 title: "Invoice Created",
