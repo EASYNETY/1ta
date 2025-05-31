@@ -459,7 +459,7 @@ export default function CheckoutPage() {
                 open={showPaymentModal}
                 onOpenChange={(open) => {
                     // Allow closing only if not in the middle of an API call triggered by the modal
-                    if (!isPaymentModalAction && !isEnroling) {
+                    if (!isEnroling) {
                         dispatch(setShowPaymentModal(open));
                         if (!open) {
                             // If modal is closed while payment was "processing" (Paystack modal was open),
@@ -469,6 +469,11 @@ export default function CheckoutPage() {
                     }
                 }}
             >
+                <VisuallyHidden>
+                    <DialogTitle>
+                        Secure Payment
+                    </DialogTitle>
+                </VisuallyHidden>
                 <DialogContent className="sm:max-w-md p-0 bg-transparent border-none shadow-none">
                     {/* DialogHeader removed as PaystackCheckout has its own title feel */}
                     <div className="">
