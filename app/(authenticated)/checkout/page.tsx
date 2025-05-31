@@ -475,7 +475,7 @@ export default function CheckoutPage() {
                         Secure Payment
                     </DialogTitle>
                 </VisuallyHidden>
-                <DialogContent className="sm:max-w-md p-0 bg-transparent border-none shadow-none">
+                <DialogContent className="sm:max-w-md py-8 bg-card/5 backdrop-blur-sm border border-primary/5 shadow-none">
                     {/* DialogHeader removed as PaystackCheckout has its own title feel */}
                     <div className="">
                         {user?.email && checkoutStatus === "processing_payment" && invoiceIdFromCheckoutState && (
