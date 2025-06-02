@@ -10,11 +10,9 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { removeItem } from "@/features/cart/store/cart-slice"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 import { isStudent, User } from "@/types/user.types"
-import { Trash2, GraduationCap, ArrowRight, AlertTriangle } from "lucide-react"
-import Image from "next/image"
+import { GraduationCap, ArrowRight, AlertTriangle } from "lucide-react"
 import { motion, type Variants } from "framer-motion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 
 // Import actions and selectors for both checkout and payment (invoice) slices
@@ -31,7 +29,15 @@ import {
     selectInvoiceCreationStatus,
     selectInvoiceError
 } from "@/features/payment/store/payment-slice" // Assuming selectCurrentInvoice is exported
-import type { CreateInvoicePayload, InvoiceItem, Invoice } from "@/features/payment/types/payment-types" // Added Invoice
+import type { CreateInvoicePayload, InvoiceItem } from "@/features/payment/types/payment-types"
+
+// Import public course selectors and components
+import {
+    selectAllCourses,
+    fetchCourses
+} from "@/features/public-course/store/public-course-slice"
+import { EnhancedCourseItem } from "@/components/cart/enhanced-course-item"
+import { PaymentBreakdown } from "@/components/payment/payment-breakdown"
 
 // Helper function for comparing invoice items (ideally from a shared utils or payment-slice if exported)
 function compareInvoiceItemsForCartPage(a: InvoiceItem, b: InvoiceItem): number {
@@ -81,10 +87,10 @@ export default function CartPage() {
 
     const { user, skipOnboarding } = useAppSelector((state) => state.auth);
     const cart = useAppSelector((state) => state.cart);
-    const taxAmount = useAppSelector((state) => state.cart.taxAmount);
     const totalWithTax = useAppSelector((state) => state.cart.totalWithTax); // This is the current cart's total
 
     const [isInitiatingCheckout, setIsInitiatingCheckout] = useState(false);
+    const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
     const currentAttemptInvoiceIdRef = useRef<string | null>(null);
 
     // Selectors for existing payment/invoice state
@@ -95,6 +101,9 @@ export default function CartPage() {
     // Selectors for existing checkout state
     const existingCheckoutPreparationStatus = useAppSelector(selectCheckoutStatus);
     const existingPreparedInvoiceIdFromCheckoutSlice = useAppSelector(selectCheckoutInvoiceId);
+
+    // Selectors for course details
+    const allCourses = useAppSelector(selectAllCourses);
 
 
     const profileComplete = user ? isProfileComplete(user) : false;
@@ -112,6 +121,28 @@ export default function CartPage() {
             router.push("/dashboard");
         }
     }, [isCorporateStudent, router, toast]);
+
+    // Helper function to get course details for a cart item
+    const getCourseDetails = (courseId: string) => {
+        return allCourses.find(course => course.id === courseId);
+    };
+
+    // Fetch courses if not already loaded
+    useEffect(() => {
+        if (allCourses.length === 0) {
+            dispatch(fetchCourses());
+        }
+    }, [dispatch, allCourses.length]);
+
+    const toggleExpandedItem = (courseId: string) => {
+        const newExpandedItems = new Set(expandedItems);
+        if (newExpandedItems.has(courseId)) {
+            newExpandedItems.delete(courseId);
+        } else {
+            newExpandedItems.add(courseId);
+        }
+        setExpandedItems(newExpandedItems);
+    };
 
     const handleRemoveItem = (courseId: string) => {
         dispatch(removeItem({ id: courseId }));
@@ -342,45 +373,51 @@ export default function CartPage() {
                     <motion.div className="space-y-4" variants={container} initial="hidden" animate="show">
                         {cart.items.map((cartItem) => (
                             <motion.div key={cartItem.courseId} variants={itemVariant}>
-                                <Card className="p-4">
-                                    <div className="flex gap-4">
-                                        <div className="w-24 h-16 relative bg-muted rounded-md overflow-hidden flex-shrink-0">
-                                            {cartItem.image ? (<Image src={cartItem.image || "/placeholder.svg"} alt={cartItem.title} fill className="object-cover" />) : (<div className="w-full h-full flex items-center justify-center bg-muted"> <GraduationCap className="h-6 w-6 text-muted-foreground" /> </div>)}
-                                        </div>
-                                        <div className="flex-1">
-                                            <h3 className="font-medium">{cartItem.title}</h3>
-                                            {cartItem.instructor && (<p className="text-sm text-muted-foreground">Instructor: {cartItem.instructor}</p>)}
-                                            {isCorporateManager && (<p className="text-xs text-blue-600 dark:text-blue-400 mt-1"> Corporate pricing will be applied at checkout </p>)}
-                                        </div>
-                                        <div className="flex flex-col items-end justify-between">
-                                            <div className="text-right">
-                                                {cartItem.discountPriceNaira ? (<> <p className="line-through text-sm text-muted-foreground">₦{cartItem.priceNaira.toLocaleString()}</p> <p className="font-medium">₦{cartItem.discountPriceNaira.toLocaleString()}</p> </>) : (<p className="font-medium">₦{cartItem.priceNaira.toLocaleString()}</p>)}
-                                            </div>
-                                            <button onClick={() => handleRemoveItem(cartItem.courseId)} className="text-muted-foreground hover:text-destructive transition-colors" aria-label="Remove item" > <Trash2 className="h-4 w-4" /> </button>
-                                        </div>
+                                <EnhancedCourseItem
+                                    cartItem={cartItem}
+                                    courseDetails={getCourseDetails(cartItem.courseId)}
+                                    onRemove={handleRemoveItem}
+                                    isExpanded={expandedItems.has(cartItem.courseId)}
+                                    onToggleExpand={() => toggleExpandedItem(cartItem.courseId)}
+                                />
+                                {isCorporateManager && (
+                                    <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                                            Corporate pricing will be applied at checkout based on your student count
+                                        </p>
                                     </div>
-                                </Card>
+                                )}
                             </motion.div>
                         ))}
                     </motion.div>
                 </div>
-                <div>
+                <div className="space-y-6">
+                    {/* Payment Breakdown Component */}
+                    <PaymentBreakdown cartItems={cart.items} />
+
+                    {/* Corporate Manager Notice */}
+                    {isCorporateManager && (
+                        <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
+                                <strong>Corporate Purchase:</strong> Final pricing will be calculated at checkout based on your student count.
+                            </p>
+                        </Card>
+                    )}
+
+                    {/* Checkout Button */}
                     <Card className="p-6">
-                        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-                        <div className="space-y-2 mb-4">
-                            <div className="flex justify-between"> <span className="text-muted-foreground">Subtotal</span> <span>₦{cart.total.toLocaleString()}</span> </div>
-                            <div className="flex justify-between"> <span className="text-muted-foreground">Tax</span> <span>₦{taxAmount.toLocaleString()}</span> </div>
-                            <Separator className="my-2" />
-                            <div className="flex justify-between font-medium"> <span>Total</span> <span>₦{totalWithTax.toLocaleString()}</span> </div>
-                            {isCorporateManager && (<p className="text-xs text-muted-foreground mt-2"> * Final price will be calculated at checkout based on your student count </p>)}
-                        </div>
                         <DyraneButton
-                            className="w-full mt-4"
+                            className="w-full"
                             onClick={handleCheckout}
-                            disabled={isInitiatingCheckout || existingInvoiceCreationStatus === 'loading'} // Check existing status too
-                            asChild={false} // Explicitly false as per previous fix
+                            disabled={isInitiatingCheckout || existingInvoiceCreationStatus === 'loading'}
+                            asChild={false}
                         >
-                            {(isInitiatingCheckout || existingInvoiceCreationStatus === 'loading') ? "Processing..." : (<> Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" /> </>)}
+                            {(isInitiatingCheckout || existingInvoiceCreationStatus === 'loading') ? "Processing..." : (
+                                <>
+                                    Proceed to Checkout
+                                    <ArrowRight className="ml-2 h-4 w-4" />
+                                </>
+                            )}
                         </DyraneButton>
                     </Card>
                 </div>

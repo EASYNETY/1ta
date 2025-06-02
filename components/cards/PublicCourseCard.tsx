@@ -1,3 +1,5 @@
+// components/cards/PublicCourseCard.tsx
+
 "use client"
 import Image from "next/image" // Keep Image for fallback
 // import Link from "next/link" // Link might not be needed if button handles action

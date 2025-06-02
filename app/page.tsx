@@ -26,22 +26,32 @@ import { NodeTestimonialSection } from "@/components/landing/node-testimonial-se
 import { useEffect } from "react"
 // import { fetchCourses } from "@/features/courses/store/course-slice"
 import { fetchCourses } from "@/features/public-course/store/public-course-slice"
-import { useAppDispatch } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { Card } from "@/components/cards/FeatureCard"
 import { Envelope, Eye, FacebookLogo, MapPin, Target, TiktokLogo, YoutubeLogo } from "phosphor-react"
 import { whatWeDoFeatureData, whoWeAreFeatureData } from "@/data/landing-data"
 import { StandOutSlideshowSimple } from "@/components/landing/stand-out-slideshow-simple"
 import { AppleTechnologyDisplay } from "@/components/landing/AppleTechnologyDisplay"
+import { useRouter } from "next/navigation"
 
 export default function LandingPage() {
 
   // --- Redux Hooks ---
   const dispatch = useAppDispatch()
+  const { isAuthenticated } = useAppSelector((state) => state.auth)
+  const router = useRouter()
 
   // --- Fetch courses on mount ---
   useEffect(() => {
-    dispatch(fetchCourses())
-  }, [])
+    if (!isAuthenticated) {
+      dispatch(fetchCourses())
+    } else
+      router.push("/dashboard")
+  }, [
+    dispatch,
+    isAuthenticated,
+    router,
+  ])
 
   // Define content for Mission and Vision FeatureCards
   const missionContent = {

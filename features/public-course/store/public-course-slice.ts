@@ -226,7 +226,7 @@ export const fetchCourses = createAsyncThunk<
 				"❌ CRITICAL: courses is still not an array after conversion!",
 				{
 					type: typeof courses,
-					constructor: courses?.constructor?.name,
+					constructor: (courses as any)?.constructor?.name,
 					value: courses,
 				}
 			);
@@ -335,6 +335,15 @@ export const selectCoursesStatus = (state: RootState) =>
 	state.public_courses.status;
 export const selectCoursesError = (state: RootState) =>
 	state.public_courses.error;
+
+// Selectors for individual courses
+export const selectPublicCourseById =
+	(courseId: string) => (state: RootState) =>
+		state.public_courses.allCourses.find((course) => course.id === courseId);
+
+export const selectPublicCourseBySlug = (slug: string) => (state: RootState) =>
+	state.public_courses.allCourses.find((course) => course.slug === slug);
+
 // Export potential sync actions if you add any
 // export const { clearCourses } = courseSlice.actions;
 

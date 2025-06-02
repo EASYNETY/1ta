@@ -1,5 +1,58 @@
 // features/payment/types/payment-types.ts
 
+// Payment Breakdown Types for Enhanced Cart Display
+export interface PaymentBreakdownItem {
+  id: string;
+  category: 'tuition' | 'materials' | 'refreshments' | 'exam_fees' | 'exam_materials';
+  description: string;
+  amount: number;
+  quantity?: number;
+  isIncluded: boolean; // Some items might be included in course price
+  details?: string; // Additional details for the item
+}
+
+export interface BreakdownSection {
+  title: string;
+  items: PaymentBreakdownItem[];
+  totalAmount: number;
+  icon?: string; // Icon name for the section
+}
+
+export interface PaymentBreakdown {
+  courseItems: any[]; // Cart items
+  additionalItems: PaymentBreakdownItem[];
+  sections: BreakdownSection[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  currency: string;
+}
+
+// Course Detail Display Types
+export interface CourseDetailView {
+  id: string;
+  title: string;
+  subtitle?: string;
+  description: string;
+  instructor: {
+    name: string;
+    title?: string;
+    avatar?: string;
+  };
+  image: string;
+  previewVideoUrl?: string;
+  level: string;
+  duration?: string;
+  moduleCount?: number;
+  lessonCount?: number;
+  learningOutcomes?: string[];
+  prerequisites?: string[];
+  certificate?: boolean;
+  priceNaira: number;
+  discountPriceNaira?: number;
+  tags?: string[];
+}
+
 // Represents a record of a completed (or attempted) payment transaction
 export interface PaymentRecord {
 	id: string; // Your internal DB ID for the payment record
