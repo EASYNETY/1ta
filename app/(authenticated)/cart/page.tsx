@@ -368,7 +368,7 @@ export default function CartPage() {
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
             {!profileComplete && !skipOnboarding && (<Alert variant="default" className="mb-6 bg-primary/5 border-primary/20"> <AlertTitle>Complete Your Profile</AlertTitle> <AlertDescription>Please complete your profile before proceeding to checkout.</AlertDescription> </Alert>)}
             {isCorporateManager && (<Alert variant="default" className="mb-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"> <AlertTitle>Corporate Purchase</AlertTitle> <AlertDescription> As a corporate manager, you'll be purchasing these courses for all students in your organization. The final price will be calculated at checkout based on your student count. </AlertDescription> </Alert>)}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <motion.div className="space-y-4" variants={container} initial="hidden" animate="show">
                         {cart.items.map((cartItem) => (

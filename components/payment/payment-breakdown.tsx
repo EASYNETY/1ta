@@ -209,7 +209,7 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
   }
 
   return (
-    <Card className={cn("", className)}>
+    <Card className={cn("w-full border-none", className)}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold">Payment Breakdown</h2>

@@ -249,15 +249,21 @@ export function EnhancedCourseItem({
                     {onToggleExpand && (
                       <DyraneButton
                         variant="ghost"
-                        size="sm"
+                        size="lg"
                         onClick={onToggleExpand}
-                        className="h-8 w-8 p-0"
                         aria-label={isExpanded ? "Collapse details" : "Expand details"}
                       >
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4" />
+                          <>
+                            <span>
+                              Collapse details
+                            </span>
+                            <ChevronUp className="h-4 w-4" /></>
                         ) : (
-                          <ChevronDown className="h-4 w-4" />
+                          <>
+                            <span>
+                              Expand details
+                            </span><ChevronDown className="h-4 w-4" /></>
                         )}
                       </DyraneButton>
                     )}
