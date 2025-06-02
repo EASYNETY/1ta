@@ -10,7 +10,7 @@ import type { PaymentRecord } from "../types/payment-types";
  */
 export const formatCurrency = (amount: number, currency: string): string => {
 	// Convert from smallest unit to major unit
-	const majorAmount = amount / 100;
+	const majorAmount = amount;
 
 	try {
 		return new Intl.NumberFormat("en-NG", {

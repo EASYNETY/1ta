@@ -133,7 +133,7 @@ const AdminPaymentsTable: React.FC = () => {
     // Format amount helper
     const formatAmount = (amount: number, currency: string): string => {
         // Assuming amount is in smallest unit (kobo/cents)
-        const majorAmount = amount / 100
+        const majorAmount = amount
         try {
             return new Intl.NumberFormat("en-NG", {
                 style: "currency",
