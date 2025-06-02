@@ -1,3 +1,4 @@
+// app/(authenticated)/payments/callback/page.tsx
 "use client";
 
 import { useEffect, Suspense } from 'react';
