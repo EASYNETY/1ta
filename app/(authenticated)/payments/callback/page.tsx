@@ -27,23 +27,127 @@ import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
 
-// Helper function to parse metadata string from PaymentRecord
+// Dynamic helper function to parse metadata from various sources
 const getMetadataFromPaymentRecord = (record: PaymentRecord | null): Record<string, any> => {
     if (!record) return {};
-    // Prioritize gatewayRef, then description, for storing stringified metadata
-    // This is a workaround due to PaymentRecord not having a dedicated metadata field.
-    const potentialJson = record.gatewayRef || record.description;
-    if (typeof potentialJson === 'string' && potentialJson.startsWith('{') && potentialJson.endsWith('}')) {
-        try {
-            return JSON.parse(potentialJson);
-        } catch (e) {
-            console.warn("Callback: Could not parse metadata from PaymentRecord field:", potentialJson, e);
+
+    // Define potential metadata sources in order of priority
+    const metadataSources = [
+        // Direct metadata field (if backend adds it in future)
+        (record as any).metadata,
+        // Current workaround fields
+        record.gatewayRef,
+        record.description,
+        // Additional potential fields
+        (record as any).providerMetadata,
+        (record as any).transactionMetadata,
+        // Fallback to any field that looks like JSON
+        ...Object.values(record).filter(value =>
+            typeof value === 'string' &&
+            value.startsWith('{') &&
+            value.endsWith('}')
+        )
+    ];
+
+    // Try each source until we find valid JSON
+    for (const source of metadataSources) {
+        if (!source) continue;
+
+        // If it's already an object, return it
+        if (typeof source === 'object' && source !== null) {
+            console.log("Callback: Found metadata as object:", source);
+            return source;
+        }
+
+        // If it's a string that looks like JSON, try to parse it
+        if (typeof source === 'string' && source.startsWith('{') && source.endsWith('}')) {
+            try {
+                const parsed = JSON.parse(source);
+                console.log("Callback: Successfully parsed metadata from string:", parsed);
+                return parsed;
+            } catch (e) {
+                console.warn("Callback: Could not parse potential metadata:", source, e);
+                continue;
+            }
         }
     }
-    // If not found or not parsable, return an empty object.
-    // Consider logging this scenario more formally if metadata is critical.
-    console.warn("Callback: Metadata not found or not in expected stringified JSON format in gatewayRef or description.");
+
+    console.warn("Callback: No valid metadata found in any source");
     return {};
+};
+
+// Dynamic helper to extract payment record from verification response
+const extractPaymentFromVerification = (verificationResponse: any): PaymentRecord | null => {
+    if (!verificationResponse) return null;
+
+    // Handle different response structures
+    const possiblePaymentSources = [
+        // Current expected structure (plural)
+        verificationResponse.payments,
+        // Alternative structure (singular) - from API docs
+        verificationResponse.payment,
+        // Direct response (if response is the payment itself)
+        verificationResponse.id ? verificationResponse : null,
+        // Nested in data field
+        verificationResponse.data?.payments,
+        verificationResponse.data?.payment,
+        verificationResponse.data
+    ];
+
+    for (const source of possiblePaymentSources) {
+        if (source && typeof source === 'object' && source.id) {
+            console.log("Callback: Found payment record from source:", source);
+            return source as PaymentRecord;
+        }
+    }
+
+    console.warn("Callback: Could not extract payment record from verification response:", verificationResponse);
+    return null;
+};
+
+// Dynamic helper to get enrollment data with fallbacks
+const getEnrollmentData = (
+    metadata: Record<string, any>,
+    paymentRecord: PaymentRecord | null,
+    searchParams: URLSearchParams
+): {
+    courseIds: string[];
+    invoiceId: string;
+    isCorporate: boolean;
+    studentCount?: number;
+} => {
+    // Try multiple sources for course IDs
+    const courseIds = metadata.course_ids ||
+                     metadata.courseIds ||
+                     metadata.courses ||
+                     (metadata.items && Array.isArray(metadata.items) ?
+                         metadata.items.map((item: any) => item.courseId || item.course_id).filter(Boolean) :
+                         []);
+
+    // Try multiple sources for invoice ID
+    const invoiceId = metadata.invoice_id ||
+                     metadata.invoiceId ||
+                     paymentRecord?.providerReference ||
+                     searchParams.get('invoice_id') ||
+                     'unknown';
+
+    // Try multiple sources for corporate info
+    const isCorporate = metadata.is_corporate_purchase ||
+                       metadata.isCorporate ||
+                       metadata.corporate ||
+                       false;
+
+    // Try multiple sources for student count
+    const studentCount = metadata.corporate_student_count ||
+                        metadata.studentCount ||
+                        metadata.student_count;
+
+    return {
+        courseIds: Array.isArray(courseIds) ? courseIds : [],
+        invoiceId,
+        isCorporate,
+        studentCount
+    };
 };
 
 function PaymentCallbackContent() {
@@ -88,11 +192,11 @@ function PaymentCallbackContent() {
             if (verifiedPaymentDetails.status === 'succeeded') {
                 toast({ title: "Payment Verified!", description: "Finalizing enrolment...", variant: "success" });
 
+                // Use dynamic helpers to extract data
                 const metadata = getMetadataFromPaymentRecord(verifiedPaymentDetails);
-                const courseIdsToEnrol: string[] = metadata.course_ids || [];
-                const originalInvoiceId: string = metadata.invoice_id || verifiedPaymentDetails.providerReference;
-                const isCorporate: boolean = metadata.is_corporate_purchase || false;
-                const studentCount: number | undefined = metadata.corporate_student_count;
+                const enrollmentData = getEnrollmentData(metadata, verifiedPaymentDetails, searchParams);
+
+                const { courseIds: courseIdsToEnrol, invoiceId, isCorporate, studentCount } = enrollmentData;
 
                 if (courseIdsToEnrol.length === 0 && !isCorporate) {
                     toast({ title: "Enrolment Issue", description: "Items for enrolment not found. Contact support.", variant: "destructive" });

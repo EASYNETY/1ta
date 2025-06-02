@@ -24,6 +24,10 @@ export interface PaymentRecord {
 	receiptNumber?: string;
 	receiptItems?: ReceiptItem[];
 	billingDetails?: BillingDetails;
+	// Optional: Metadata fields for future flexibility
+	metadata?: Record<string, any>; // Direct metadata field
+	providerMetadata?: Record<string, any>; // Provider-specific metadata
+	transactionMetadata?: Record<string, any>; // Transaction-specific metadata
 }
 
 // Represents an item in a receipt
@@ -60,9 +64,10 @@ export interface PaymentResponse {
 	authorizationUrl: string;
 }
 
-// Response from payment verification
+// Response from payment verification - flexible to handle both formats
 export interface VerifyPaymentResponse {
-	payments: PaymentRecord;
+	payments?: PaymentRecord; // Current format (plural)
+	payment?: PaymentRecord;  // Alternative format (singular) from API docs
 	verification: any; // The verification data from Paystack
 }
 

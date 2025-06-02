@@ -151,20 +151,33 @@ export const initiatePayment = createAsyncThunk<
 });
 
 export const verifyPayment = createAsyncThunk<
-	VerifyPaymentResponse, // This is { payments: PaymentRecord; verification: any; }
+	VerifyPaymentResponse, // Flexible response format
 	{ reference: string },
 	{ rejectValue: string }
 >("payment/verify", async ({ reference }, { rejectWithValue }) => {
 	try {
 		// apiClient.get<T> is expected to return T (VerifyPaymentResponse)
-		const responseData = await get<VerifyPaymentResponse>(
+		const responseData = await get<any>(
 			`/payments/verify/${reference}`
 		);
 
-		if (responseData && responseData.payments && responseData.verification) {
-			// Check for key properties
-			return responseData;
+		// Dynamic validation - accept either format
+		const hasPaymentData = responseData && (
+			(responseData.payments && responseData.verification) || // Current format
+			(responseData.payment && responseData.verification) ||   // Alternative format
+			responseData.id // Direct payment record response
+		);
+
+		if (hasPaymentData) {
+			// Normalize response to our expected format
+			const normalizedResponse: VerifyPaymentResponse = {
+				payments: responseData.payments || responseData.payment || responseData,
+				payment: responseData.payment || responseData.payments || responseData,
+				verification: responseData.verification || {}
+			};
+			return normalizedResponse;
 		}
+
 		console.warn(
 			"verifyPayment: Unexpected data structure from API client. Got:",
 			responseData
@@ -369,19 +382,23 @@ const paymentHistorySlice = createSlice({
 				verifyPayment.fulfilled,
 				(state, action: PayloadAction<VerifyPaymentResponse>) => {
 					state.verificationStatus = "succeeded";
-					state.currentPayment = action.payload.payments; // Note: API returns 'payments' (plural) for a single payment in VerifyPaymentResponse
+
+					// Dynamic extraction to handle both 'payments' (plural) and 'payment' (singular)
+					const paymentRecord = action.payload.payments ||
+										 (action.payload as any).payment ||
+										 null;
+
+					state.currentPayment = paymentRecord;
+
 					// If payment was successful, add/update it in the user's payment history
-					if (
-						action.payload.payments &&
-						action.payload.payments.status === "succeeded"
-					) {
+					if (paymentRecord && paymentRecord.status === "succeeded") {
 						const existingIndex = state.myPayments.findIndex(
-							(p) => p.id === action.payload.payments.id
+							(p) => p.id === paymentRecord.id
 						);
 						if (existingIndex !== -1) {
-							state.myPayments[existingIndex] = action.payload.payments;
+							state.myPayments[existingIndex] = paymentRecord;
 						} else {
-							state.myPayments = [action.payload.payments, ...state.myPayments];
+							state.myPayments = [paymentRecord, ...state.myPayments];
 						}
 					}
 				}
