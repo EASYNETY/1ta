@@ -146,7 +146,7 @@ function BreakdownSectionComponent({ section, isOpen, onToggle }: BreakdownSecti
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
-          className="px-3 pb-3 w-full"
+          className="px-3 pb-3 w-full mt-4"
         >
           <div className="space-y-2 ml-11">
             {section.items.map((item) => (
