@@ -28,6 +28,13 @@ export interface PublicCourse {
 			[corporateId: string]: number; // Corporate pricing per corporate ID
 		};
 		individual?: number; // Individual pricing
+		//     additionalCosts?: { // New structure for detailed inclusive costs
+		//       refreshments?: number;
+		//       examRegistration?: number;
+		//       examCertification?: number;
+		//       courseMaterials?: number;
+		//       examMaterials?: number;
+		//     };
 	};
 	discountPriceCorporateUSD?: number; // Optional discount for corporate pricing
 	discountPriceIndividualUSD?: number; // Optional discount for individual pricing
@@ -56,6 +63,10 @@ export interface PublicCourse {
 	supportType?: "Instructor" | "Community" | "Both" | "None"; // Default assumption
 }
 
+// interface PublicCourse {
+//   // ... existing fields
+
+// }
 export type CourseCategory =
 	| "Web Development"
 	| "Data Science"
