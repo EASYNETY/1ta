@@ -1,6 +1,6 @@
 **Technical Fix Document / E-Ticket Summary**
 
-**Project:** OneTechAcademy Dashboard
+**Project:** SmartEdu Frontend Application
 **Date Reported:** May 27, 2025
 **Reporter:** Israel
 
