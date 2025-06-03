@@ -132,7 +132,7 @@ function PaymentCallbackContent() {
 
                 if ((isReadyForNewFetch || isDifferentInvoiceNeeded) && invoiceFetchStatus !== 'loading') {
                     console.log('EFFECT 2: Dispatching getInvoiceById for paymentInvoiceId:', paymentInvoiceId);
-                    toast({ title: "Payment Verified", description: "Fetching invoice details...", variant: "info" });
+                    toast({ title: "Payment Verified", description: "Fetching invoice details..."});
                     dispatch(getInvoiceById(paymentInvoiceId));
                 } else {
                     console.log("EFFECT 2: Conditions to fetch invoice NOT met. isReadyForNewFetch:", isReadyForNewFetch, "isDifferentInvoiceNeeded:", isDifferentInvoiceNeeded, "invoiceFetchStatus:", invoiceFetchStatus);
