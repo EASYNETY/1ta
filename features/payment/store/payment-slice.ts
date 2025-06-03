@@ -237,33 +237,78 @@ export const createInvoiceThunk = createAsyncThunk<
 	}
 });
 
-// --- NEW: Get Invoice By ID Thunk ---
+// features/payment/store/payment-slice.ts
+
+// Ensure GetInvoiceApiResponse and InvoiceDataFromApi are defined in your payment-types.ts
+// and that InvoiceDataFromApi has 'amount' as string.
+
 export const getInvoiceById = createAsyncThunk<
-	Invoice, // The thunk will resolve with a single Invoice object
+	Invoice, // The thunk will resolve with the transformed frontend Invoice object
 	string, // Argument is the invoiceId (string)
 	{ rejectValue: string }
->("payment/getInvoiceById", async (invoiceId, { rejectWithValue }) => {
-	try {
-		// The API client's 'get' method destructures the outer 'data' object.
-		// So, we expect the response here to be { invoice: Invoice }
-		const responseData = await get<{ invoice: Invoice }>(
-			`/invoices/${invoiceId}`
-		);
+>(
+	"payment/getInvoiceById",
+	async (invoiceId, { rejectWithValue, getState }) => {
+		// Added getState
+		try {
+			// Assuming your apiClient.get already unwraps any top-level 'data' or 'success' field
+			// and returns what was previously InvoiceDataFromApi
+			const responseDataFromApi = await get<Invoice>( // Expect the direct API data structure for an invoice
+				`/invoices/${invoiceId}`
+			);
+			console.log(
+				"getInvoiceById: Raw response from API client for invoice:",
+				responseDataFromApi
+			);
 
-		if (responseData && responseData.invoice && responseData.invoice.id) {
-			return responseData.invoice; // Return the actual invoice object
+			if (responseDataFromApi && responseDataFromApi.id) {
+				// Transform InvoiceDataFromApi to your frontend Invoice type
+				const transformedInvoice: Invoice = {
+					...responseDataFromApi,
+				};
+				console.log("getInvoiceById: Transformed invoice:", transformedInvoice);
+				return transformedInvoice;
+			}
+
+			console.warn(
+				"getInvoiceById: Unexpected data structure from API client or missing ID. Expected direct invoice object. Got:",
+				responseDataFromApi
+			);
+			// Check if the response was accidentally nested, e.g. { data: InvoiceDataFromApi } or { invoice: InvoiceDataFromApi }
+			if (
+				(responseDataFromApi as any).data &&
+				(responseDataFromApi as any).data.id
+			) {
+				console.warn(
+					"getInvoiceById: It seems the data was nested under 'data'. Attempting to use that."
+				);
+				const nestedData = (responseDataFromApi as any).data as Invoice;
+				const transformedInvoice: Invoice = { ...nestedData };
+				return transformedInvoice;
+			}
+			if (
+				(responseDataFromApi as any).invoice &&
+				(responseDataFromApi as any).invoice.id
+			) {
+				console.warn(
+					"getInvoiceById: It seems the data was nested under 'invoice'. Attempting to use that."
+				);
+				const nestedData = (responseDataFromApi as any).invoice as Invoice;
+				const transformedInvoice: Invoice = { ...nestedData };
+				return transformedInvoice;
+			}
+
+			throw new Error(
+				"Failed to fetch invoice or invalid data structure from API"
+			);
+		} catch (e: any) {
+			const errorMessage =
+				e.response?.data?.message || e.message || "Failed to fetch invoice";
+			console.error("getInvoiceById: Error caught:", errorMessage, e);
+			return rejectWithValue(errorMessage);
 		}
-		console.warn(
-			"getInvoiceById: Unexpected data structure from API client. Expected { invoice: ... }. Got:",
-			responseData
-		);
-		throw new Error("Failed to fetch invoice or invalid data structure");
-	} catch (e: any) {
-		const errorMessage =
-			e.response?.data?.message || e.message || "Failed to fetch invoice";
-		return rejectWithValue(errorMessage);
 	}
-});
+);
 
 // --- Initial State ---
 const initialState: PaymentHistoryState = {
@@ -516,6 +561,7 @@ export const selectCourseIdsFromCurrentInvoice = (
 ): string[] => {
 	const currentInvoice = state.paymentHistory.currentInvoice;
 	if (currentInvoice && Array.isArray(currentInvoice.items)) {
+		console.log("fetch courseid", currentInvoice);
 		return currentInvoice.items
 			.map((item) => item.courseId) // Assumes InvoiceItemFromApi has 'courseId'
 			.filter(

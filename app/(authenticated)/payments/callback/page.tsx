@@ -1,7 +1,7 @@
 // app/(authenticated)/payments/callback/page.tsx
 "use client";
 
-import { useEffect, Suspense, useState } from 'react'; // Added useState
+import { useEffect, Suspense, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,7 @@ import {
     selectCourseIdsFromCurrentInvoice,
     selectInvoiceFetchError
 } from '@/features/payment/store/payment-slice';
-import type { PaymentRecord, Invoice } from '@/features/payment/types/payment-types';
+import type { PaymentRecord, Invoice } from '@/features/payment/types/payment-types'; // Ensure Invoice type is correct
 
 import {
     enrolCoursesAfterPayment,
@@ -32,50 +32,47 @@ import Link from 'next/link';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Dynamic helper function to parse metadata from various sources (Keep as is)
+// Helper: Get metadata from PaymentRecord (Ensure this utility is robust)
 const getMetadataFromPaymentRecord = (record: PaymentRecord | null): Record<string, any> => {
     if (!record) return {};
+    // Prioritize direct metadata if available
+    if (typeof record.metadata === 'object' && record.metadata !== null) {
+        return record.metadata;
+    }
+    // Fallback to other potential stringified JSON sources
     const metadataSources = [
-        (record as any).metadata, record.gatewayRef, record.description,
-        (record as any).providerMetadata, (record as any).transactionMetadata,
-        ...Object.values(record).filter(value =>
-            typeof value === 'string' && value.startsWith('{') && value.endsWith('}')
-        )
+        record.gatewayRef, // Often contains metadata from Paystack
+        record.description, // Less likely but possible
+        (record as any).providerMetadata, // If you have such fields
+        (record as any).transactionMetadata,
+        // This generic check can be risky if non-JSON strings match
+        // ...Object.values(record).filter(value =>
+        //     typeof value === 'string' &&
+        //     value.startsWith('{') &&
+        //     value.endsWith('}')
+        // )
     ];
     for (const source of metadataSources) {
         if (!source) continue;
-        if (typeof source === 'object' && source !== null) return source;
-        if (typeof source === 'string' && source.startsWith('{') && source.endsWith('}')) {
-            try { return JSON.parse(source); } catch (e) { /* continue */ }
+        if (typeof source === 'object' && source !== null) return source; // Should not happen if not record.metadata
+        if (typeof source === 'string') { // Assume it might be JSON
+            try {
+                const parsed = JSON.parse(source);
+                if (typeof parsed === 'object' && parsed !== null) return parsed;
+            } catch (e) { /* Ignore parse errors, try next source */ }
         }
     }
-    return {};
-};
-
-// Dynamic helper to extract payment record from verification response (Keep as is)
-const extractPaymentFromVerification = (verificationResponse: any): PaymentRecord | null => {
-    if (!verificationResponse) return null;
-    const possiblePaymentSources = [
-        verificationResponse.payments, verificationResponse.payment,
-        verificationResponse.id ? verificationResponse : null,
-        verificationResponse.data?.payments, verificationResponse.data?.payment,
-        verificationResponse.data
-    ];
-    for (const source of possiblePaymentSources) {
-        if (source && typeof source === 'object' && source.id) {
-            return source as PaymentRecord;
-        }
-    }
-    return null;
+    return {}; // No valid metadata found
 };
 
 
 function PaymentCallbackContent() {
     const dispatch = useAppDispatch();
-    const router = useRouter();
+    const router = useRouter(); // Direct use now
     const searchParams = useSearchParams();
-    const { toast } = useToast();
+    const { toast } = useToast(); // Direct use now
 
+    // --- Redux State Selectors ---
     const verificationStatus = useAppSelector(selectVerificationStatus);
     const verificationError = useAppSelector(selectPaymentHistoryError);
     const verifiedPaymentDetails = useAppSelector(selectCurrentPayment);
@@ -87,86 +84,140 @@ function PaymentCallbackContent() {
 
     const { user } = useAppSelector((state) => state.auth);
 
-    // State to track if enrolment has been attempted for the current payment
-    const [enrolmentAttempted, setEnrolmentAttempted] = useState(false);
+    // --- Local State for Flow Control ---
+    // Flag to indicate if the main processing (invoice fetch + enrolment) has been initiated/completed
+    // for the current paymentReference obtained from the URL.
+    const [processingAttemptedForCurrentPaymentRef, setProcessingAttemptedForCurrentPaymentRef] = useState(false);
+    // Stores the last payment reference from the URL for which a processing cycle was initiated.
+    // This helps Effect 1 determine if the URL reference is genuinely new.
+    const [lastProcessedPaymentRefFromUrl, setLastProcessedPaymentRefFromUrl] = useState<string | null>(null);
 
 
-    // Effect 1: Verify Payment
+    // --- Effect 1: Initial Payment Verification ---
     useEffect(() => {
+        console.log("EFFECT 1 (Verify Payment) - Running. Current verificationStatus:", verificationStatus, "Last processed URL ref:", lastProcessedPaymentRefFromUrl);
         const reference = searchParams.get('reference');
         const trxref = searchParams.get('trxref');
-        const paymentReference = trxref || reference;
+        const paymentReferenceFromUrl = trxref || reference;
 
-        if (paymentReference) {
-            // Only verify if status is idle or if the payment reference has changed
-            if (verificationStatus === 'idle' || (verifiedPaymentDetails && verifiedPaymentDetails.providerReference !== paymentReference)) {
-                setEnrolmentAttempted(false); // Reset enrolment attempt flag for new verification
-                dispatch(verifyPayment({ reference: paymentReference }));
+        if (paymentReferenceFromUrl) {
+            // Determine if this is a genuinely new transaction from the URL
+            // or if we need to re-initiate because the state was reset (e.g., verificationStatus is 'idle')
+            // but we haven't started processing this specific URL reference yet.
+            const isNewUrlReference = lastProcessedPaymentRefFromUrl !== paymentReferenceFromUrl;
+            const needsFreshVerificationCycle = verificationStatus === 'idle' && !processingAttemptedForCurrentPaymentRef;
+
+
+            if (isNewUrlReference || needsFreshVerificationCycle) {
+                console.log(`EFFECT 1: Initiating new verification cycle for URL ref: ${paymentReferenceFromUrl}. isNewUrlReference: ${isNewUrlReference}, needsFreshVerificationCycle: ${needsFreshVerificationCycle}`);
+                dispatch(resetPaymentState()); // Clear previous payment/invoice state
+                setProcessingAttemptedForCurrentPaymentRef(false); // Reset flag for this new/fresh URL reference
+                setLastProcessedPaymentRefFromUrl(paymentReferenceFromUrl); // Mark this URL ref as being processed now
+                dispatch(verifyPayment({ reference: paymentReferenceFromUrl }));
+            } else {
+                console.log("EFFECT 1: No new verification cycle needed for URL ref:", paymentReferenceFromUrl, "Current verificationStatus:", verificationStatus, "processingAttemptedForCurrentPaymentRef:", processingAttemptedForCurrentPaymentRef);
             }
         } else {
-            toast({ title: "Invalid Payment Link", description: "Redirecting to checkout.", variant: "destructive" });
+            console.log("EFFECT 1: No payment reference found in URL.");
+            toast({ title: "Invalid Payment Link", description: "No payment reference found. Please try the checkout process again.", variant: "destructive" });
             router.replace('/checkout');
         }
-    }, [searchParams, dispatch, verificationStatus, verifiedPaymentDetails]); // Removed router, toast from deps as they are stable
+    }, [searchParams, dispatch, verificationStatus, lastProcessedPaymentRefFromUrl, processingAttemptedForCurrentPaymentRef, router, toast]);
 
-    // Effect 2: Fetch Invoice if Payment is Verified and has invoiceId
+
+    // --- Effect 2: Fetch Invoice (if needed after successful payment verification) ---
     useEffect(() => {
+        console.log("EFFECT 2 (Fetch Invoice) - Running. verificationStatus:", verificationStatus, "processingAttemptedForCurrentPaymentRef:", processingAttemptedForCurrentPaymentRef, "invoiceFetchStatus:", invoiceFetchStatus);
+
+        if (processingAttemptedForCurrentPaymentRef) {
+            console.log("EFFECT 2: Main processing already attempted/underway for current payment ref, skipping invoice fetch logic.");
+            return; // If Effect 3 has taken over for this payment reference, don't interfere.
+        }
+
         if (verificationStatus === 'succeeded' && verifiedPaymentDetails && verifiedPaymentDetails.status === 'succeeded') {
-            // Check for invoiceId in payment details (ensure your PaymentRecord type has invoiceId)
-            const paymentInvoiceId = (verifiedPaymentDetails as any).invoiceId || (verifiedPaymentDetails as any).invoice_id || // If backend adds it directly
-                getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId || // From metadata
+            const paymentInvoiceId = (verifiedPaymentDetails as any).invoiceId || (verifiedPaymentDetails as any).invoice_id ||
+                getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId ||
                 getMetadataFromPaymentRecord(verifiedPaymentDetails).invoice_id;
 
+            console.log("EFFECT 2: Payment verified. PaymentInvoiceId:", paymentInvoiceId, "CurrentInvoiceId in state:", currentInvoice?.id);
 
             if (paymentInvoiceId) {
-                // Fetch invoice only if not already fetched/fetching for this paymentInvoiceId or if currentInvoice is null
-                if (invoiceFetchStatus === 'idle' || (currentInvoice && currentInvoice.id !== paymentInvoiceId)) {
-                    toast({ title: "Payment Verified", description: "Fetching invoice details...", });
+                const isDifferentInvoiceNeeded = currentInvoice?.id !== paymentInvoiceId;
+                const isReadyForNewFetch = invoiceFetchStatus === 'idle'; // Ready if idle (e.g. after resetPaymentState)
+
+                // Fetch if:
+                // 1. Invoice status is 'idle' (meaning ready for a new fetch attempt)
+                // OR 2. The current invoice in state is not the one we need for this paymentInvoiceId
+                // AND 3. We are not already 'loading' an invoice.
+                if ((isReadyForNewFetch || isDifferentInvoiceNeeded) && invoiceFetchStatus !== 'loading') {
+                    console.log('EFFECT 2: Dispatching getInvoiceById for paymentInvoiceId:', paymentInvoiceId);
+                    toast({ title: "Payment Verified", description: "Fetching invoice details..." });
                     dispatch(getInvoiceById(paymentInvoiceId));
+                } else {
+                    console.log("EFFECT 2: Conditions to fetch invoice NOT met. isReadyForNewFetch:", isReadyForNewFetch, "isDifferentInvoiceNeeded:", isDifferentInvoiceNeeded, "invoiceFetchStatus:", invoiceFetchStatus);
                 }
-            } else if (!enrolmentAttempted) { // No invoiceId, proceed with metadata-based enrolment (original logic)
-                // This branch handles cases where there's no invoiceId, relying on metadata.
-                // It will be effectively skipped if invoiceId is found and invoice fetching starts.
-                // The actual enrolment will then happen in Effect 3.
-                console.log("No invoiceId found on payment, will attempt enrolment with metadata if available.");
-                // We can't directly call the enrolment logic here as it needs course IDs
-                // which will be derived in the next effect if invoice is not fetched.
+            } else {
+                console.log("EFFECT 2: No paymentInvoiceId found. Enrolment (Effect 3) will rely on metadata if applicable.");
+                // If no invoice ID, we consider this "invoice step" skippable.
+                // Effect 3 needs to be able to run based on verificationStatus alone if no invoiceId.
+                // To allow Effect 3 to proceed if it's waiting on invoiceFetchStatus to be non-idle,
+                // we might need to signal that invoice fetching is "done" (by not being applicable).
+                // We can achieve this by setting processingAttemptedForCurrentPaymentRef to true here IF Effect 3 solely depends on it.
+                // For now, let's assume Effect 3 has a path that doesn't strictly require invoiceFetchStatus === 'succeeded'.
             }
         }
-    }, [verificationStatus, verifiedPaymentDetails, dispatch, invoiceFetchStatus, currentInvoice, enrolmentAttempted]);
+    }, [
+        verificationStatus,
+        verifiedPaymentDetails,
+        invoiceFetchStatus,
+        currentInvoice,
+        processingAttemptedForCurrentPaymentRef,
+        dispatch,
+        toast
+    ]);
 
 
-    // Effect 3: Handle Enrolment after Payment Verification AND Invoice Fetch (if applicable)
+    // --- Effect 3: Handle Enrolment (Main Processing Logic after verification and optional invoice fetch) ---
     useEffect(() => {
-        if (enrolmentAttempted) return; // Prevent re-enrolment
+        console.log("EFFECT 3 (Handle Enrolment) - Running. verificationStatus:", verificationStatus, "invoiceFetchStatus:", invoiceFetchStatus, "processingAttemptedForCurrentPaymentRef:", processingAttemptedForCurrentPaymentRef, "User:", !!user);
+
+        if (processingAttemptedForCurrentPaymentRef) {
+            console.log("EFFECT 3: Main processing already attempted/completed for current payment ref. Exiting.");
+            return;
+        }
 
         const paymentRefForUrl = verifiedPaymentDetails?.providerReference || searchParams.get('trxref') || searchParams.get('reference') || 'unknown';
 
         if (!user) {
-            if (verificationStatus === 'succeeded' || verificationStatus === 'failed' || invoiceFetchStatus === 'succeeded' || invoiceFetchStatus === 'failed') {
-                toast({ title: "User session lost", description: "Please log in.", variant: "destructive" });
-                router.replace('/login');
+            if (verificationStatus === 'succeeded' || verificationStatus === 'failed' ||
+                invoiceFetchStatus === 'succeeded' || invoiceFetchStatus === 'failed') {
+                console.log("EFFECT 3: User session lost while processing payment.");
+                toast({ title: "User session lost", description: "Please log in to complete your enrolment.", variant: "destructive" });
+                // router.replace('/login'); // Consider uncommenting
             }
             return;
         }
 
-        // Condition 1: Payment verified, invoice fetched successfully
+        const paymentHasInvoiceId = !!((verifiedPaymentDetails as any)?.invoiceId || (verifiedPaymentDetails as any)?.invoice_id ||
+            getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId ||
+            getMetadataFromPaymentRecord(verifiedPaymentDetails).invoice_id);
+
+        // --- Path 1: Successful Payment AND Successful Invoice Fetch (if an invoice was expected) ---
         if (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' &&
-            invoiceFetchStatus === 'succeeded' && currentInvoice) {
+            paymentHasInvoiceId && invoiceFetchStatus === 'succeeded' && currentInvoice) {
+            console.log("EFFECT 3: Path 1 - Invoice Success. Enrolling with invoice items. Invoice ID:", currentInvoice.id);
+            setProcessingAttemptedForCurrentPaymentRef(true); // Mark processing as initiated for this path
 
             if (courseIdsFromInvoice.length > 0) {
-                toast({ title: "Invoice Fetched!", description: "Finalizing enrolment with invoice items...", variant: "success" });
+                toast({ title: "Invoice Details Fetched!", description: "Finalizing enrolment with items from invoice...", variant: "success" });
                 const enrolmentPayload: EnrolCoursesPayload = {
                     userId: user.id,
-                    courseIds: courseIdsFromInvoice, // Use courseIds from the fetched invoice
+                    courseIds: courseIdsFromInvoice,
                     paymentReference: { reference: verifiedPaymentDetails.providerReference, status: verifiedPaymentDetails.status, message: 'Payment verified, invoice processed' },
                     totalAmountPaid: verifiedPaymentDetails.amount,
-                    // isCorporatePurchase, studentCount can still come from invoice metadata or payment metadata
                     isCorporatePurchase: currentInvoice.metadata?.isCorporate || getMetadataFromPaymentRecord(verifiedPaymentDetails).isCorporate || false,
                     corporateStudentCount: currentInvoice.metadata?.studentCount || getMetadataFromPaymentRecord(verifiedPaymentDetails).studentCount,
                 };
-
-                setEnrolmentAttempted(true);
                 dispatch(enrolCoursesAfterPayment(enrolmentPayload))
                     .unwrap()
                     .then((enrolmentResponse) => {
@@ -175,54 +226,58 @@ function PaymentCallbackContent() {
                         router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}&invoice=${currentInvoice.id}`);
                     })
                     .catch((enrolmentErrorMsg) => {
-                        toast({ variant: "destructive", title: "Enrolment Failed After Payment", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support." });
+                        toast({ variant: "destructive", title: "Enrolment Failed After Payment", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support for assistance." });
                         router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_failed&invoice=${currentInvoice.id}`);
                     })
                     .finally(() => {
-                        dispatch(resetPaymentState()); // Reset after everything
+                        console.log("EFFECT 3: Path 1 - Enrolment promise finally. Resetting payment state.");
+                        dispatch(resetPaymentState());
                     });
             } else {
-                toast({ title: "Enrolment Issue", description: "No course items found in the invoice. Contact support.", variant: "destructive" });
-                setEnrolmentAttempted(true);
+                toast({ title: "Enrolment Issue", description: "No course items found in the fetched invoice. Please contact support.", variant: "destructive" });
+                console.log("EFFECT 3: Path 1 - No course IDs in invoice. Resetting payment state.");
                 dispatch(resetPaymentState());
                 router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=invoice_items_missing&invoice=${currentInvoice.id}`);
             }
         }
-        // Condition 2: Payment verified, but no invoiceId was found on payment, or invoice fetch failed
-        // And we haven't tried enrolling yet.
+        // --- Path 2: Successful Payment BUT (Invoice Fetch Failed OR No Invoice ID was ever present) - Fallback to Metadata ---
         else if (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' &&
-            (invoiceFetchStatus === 'failed' || (!((verifiedPaymentDetails as any).invoiceId || getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId || getMetadataFromPaymentRecord(verifiedPaymentDetails).invoice_id) && invoiceFetchStatus !== 'loading'))) {
+            ((paymentHasInvoiceId && invoiceFetchStatus === 'failed') || // Invoice was expected but fetch failed
+                (!paymentHasInvoiceId && invoiceFetchStatus !== 'loading')     // No invoice was ever expected, and not stuck in loading
+            )
+        ) {
+            console.log("EFFECT 3: Path 2 - Metadata Fallback. PaymentHasInvoiceId:", paymentHasInvoiceId, "InvoiceFetchStatus:", invoiceFetchStatus);
+            setProcessingAttemptedForCurrentPaymentRef(true); // Mark processing as initiated for this path
 
-            toast({ title: "Proceeding with Payment Metadata", description: invoiceFetchStatus === 'failed' ? `Invoice fetch failed: ${invoiceFetchError}. Trying enrolment with payment metadata.` : "No invoice linked directly to payment, using payment metadata.", });
+            const reason = (paymentHasInvoiceId && invoiceFetchStatus === 'failed')
+                ? `Invoice fetch failed: ${invoiceFetchError || 'Unknown error'}.`
+                : "No specific invoice linked to this payment.";
+            toast({ title: "Proceeding with Payment Metadata", description: `${reason} Attempting enrolment with available payment data.`, });
 
             const metadata = getMetadataFromPaymentRecord(verifiedPaymentDetails);
-            // Your original getEnrollmentData might be useful here if you adapt it,
-            // or extract course IDs directly from metadata.
             const courseIdsFromMetadata = metadata.course_ids || metadata.courseIds || metadata.courses ||
                 (metadata.items && Array.isArray(metadata.items) ?
                     metadata.items.map((item: any) => item.courseId || item.course_id).filter(Boolean) :
                     []);
 
             if (courseIdsFromMetadata.length === 0 && !metadata.isCorporate) {
-                toast({ title: "Enrolment Issue", description: "Items for enrolment not found in payment metadata. Contact support.", variant: "destructive" });
-                setEnrolmentAttempted(true);
+                toast({ title: "Enrolment Issue", description: "Course items for enrolment not found in payment metadata. Please contact support.", variant: "destructive" });
+                console.log("EFFECT 3: Path 2 - No course IDs in metadata. Resetting payment state.");
                 dispatch(resetPaymentState());
                 router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_data_missing`);
-                return;
+                return; // Exit early
             }
 
             const enrolmentPayload: EnrolCoursesPayload = {
                 userId: user.id,
                 courseIds: courseIdsFromMetadata,
-                paymentReference: { reference: verifiedPaymentDetails.providerReference, status: verifiedPaymentDetails.status, message: 'Payment verified' },
+                paymentReference: { reference: verifiedPaymentDetails.providerReference, status: verifiedPaymentDetails.status, message: 'Payment verified, metadata used for enrolment' },
                 totalAmountPaid: verifiedPaymentDetails.amount,
                 isCorporatePurchase: metadata.isCorporate || false,
                 corporateStudentCount: metadata.studentCount,
-                // invoiceId might still be in metadata even if not on payment record directly
             };
 
             if (courseIdsFromMetadata.length > 0 || metadata.isCorporate) {
-                setEnrolmentAttempted(true);
                 dispatch(enrolCoursesAfterPayment(enrolmentPayload))
                     .unwrap()
                     .then((enrolmentResponse) => {
@@ -231,158 +286,195 @@ function PaymentCallbackContent() {
                         router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}`);
                     })
                     .catch((enrolmentErrorMsg) => {
-                        toast({ variant: "destructive", title: "Enrolment Failed After Payment (from metadata)", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support." });
+                        toast({ variant: "destructive", title: "Enrolment Failed (from metadata)", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support for assistance." });
                         router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_failed`);
                     })
                     .finally(() => {
+                        console.log("EFFECT 3: Path 2 - Enrolment promise finally. Resetting payment state.");
                         dispatch(resetPaymentState());
                     });
-            } else {
-                toast({ title: "Payment Successful (metadata check)!", description: "Transaction complete, but no specific courses found to enrol via metadata.", variant: "success" });
+            } else { // This case should ideally be caught by the check above
+                toast({ title: "Payment Successful (Metadata)", description: "Transaction complete. No specific courses found in metadata to enrol.", variant: "success" });
                 dispatch(clearCart());
-                setEnrolmentAttempted(true);
+                console.log("EFFECT 3: Path 2 - No specific courses in metadata. Resetting payment state.");
                 dispatch(resetPaymentState());
                 router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}`);
             }
         }
-        // Condition 3: Payment verification itself failed, or payment status was not 'succeeded'
+        // --- Path 3: Payment Verification Failed OR Payment Status from Gateway Not Succeeded ---
         else if (verificationStatus === 'failed' || (verifiedPaymentDetails && verifiedPaymentDetails.status !== 'succeeded')) {
-            if (!enrolmentAttempted) { // Ensure this runs only once
-                const errorMsg = verificationStatus === 'failed' ?
-                    (verificationError || "Could not confirm payment.") :
-                    `Payment status: ${verifiedPaymentDetails?.status}. Try again or contact support.`;
-                toast({ title: "Payment Not Successful", description: errorMsg, variant: "destructive" });
-                setEnrolmentAttempted(true);
-                dispatch(resetPaymentState());
-                router.replace(`/checkout?payment_status=${verificationStatus === 'failed' ? 'verification_failed' : 'declined'}&ref=${paymentRefForUrl}`);
+            console.log("EFFECT 3: Path 3 - Payment/Verification failed. VerificationStatus:", verificationStatus, "Payment Status from Gateway:", verifiedPaymentDetails?.status);
+            setProcessingAttemptedForCurrentPaymentRef(true); // Mark processing as "handled" (as a failure)
+
+            const errorMsg = verificationStatus === 'failed' ?
+                (verificationError || "Could not confirm payment with payment provider.") :
+                `Payment status reported by provider was: ${verifiedPaymentDetails?.status}. Please try again or contact support.`;
+            toast({ title: "Payment Not Successful", description: errorMsg, variant: "destructive" });
+            console.log("EFFECT 3: Path 3 - Payment/Verification failure. Resetting payment state.");
+            dispatch(resetPaymentState());
+            router.replace(`/checkout?payment_status=${verificationStatus === 'failed' ? 'verification_failed' : 'declined'}&ref=${paymentRefForUrl}`);
+        } else {
+            // This 'else' block indicates that none of the primary processing paths were met.
+            // This could be because we are still waiting for an async operation (e.g., invoice fetch is 'loading').
+            // Or, some unexpected combination of states.
+            if (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' && paymentHasInvoiceId && invoiceFetchStatus === 'loading') {
+                console.log("EFFECT 3: Conditions not met yet - Payment is successful, invoice ID was sought, but invoice is still loading. Waiting for invoice fetch to complete...");
+            } else {
+                console.log("EFFECT 3: Conditions not met for any primary processing path. verificationStatus:", verificationStatus, "paymentStatus:", verifiedPaymentDetails?.status, "invoiceFetchStatus:", invoiceFetchStatus, "currentInvoice:", !!currentInvoice, "paymentHasInvoiceId:", paymentHasInvoiceId);
             }
         }
-
     }, [
-        verificationStatus, verifiedPaymentDetails,
-        invoiceFetchStatus, currentInvoice, invoiceFetchError, // Invoice related
-        courseIdsFromInvoice, // Derived from currentInvoice
-        dispatch, router, toast, user,
-        enrolmentAttempted, searchParams, verificationError // Added verificationError & searchParams
+        verificationStatus,
+        verifiedPaymentDetails,
+        invoiceFetchStatus,
+        currentInvoice,
+        courseIdsFromInvoice,
+        processingAttemptedForCurrentPaymentRef,
+        user,
+        dispatch,
+        router,
+        toast,
+        searchParams,
+        verificationError,
+        invoiceFetchError
     ]);
 
 
-    // --- UI Rendering based on status ---
-    // Loading state: either payment verification or invoice fetching
-    if (verificationStatus === 'loading' ||
-        (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' && invoiceFetchStatus === 'loading' && ((verifiedPaymentDetails as any).invoiceId || getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId)) ||
-        (verificationStatus === 'idle' && (searchParams.get('reference') || searchParams.get('trxref')))) {
-        const message = verificationStatus === 'loading' || verificationStatus === 'idle'
-            ? "Verifying Your Payment"
-            : "Fetching Invoice Details";
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-                {/* ... Skeleton UI ... */}
-                <div className="w-full max-w-md space-y-4">
-                    <Skeleton className="h-8 w-3/4 mx-auto" /> <Skeleton className="h-4 w-full mx-auto" />
-                    <Skeleton className="h-4 w-5/6 mx-auto" />
-                    <div className="flex justify-center pt-4"> <Loader2 className="h-12 w-12 animate-spin text-primary" /> </div>
-                    <Skeleton className="h-10 w-1/2 mx-auto mt-6" />
+    // --- UI Rendering Logic ---
+    const renderUI = () => {
+        console.log("UI RENDER: verificationStatus:", verificationStatus, "invoiceFetchStatus:", invoiceFetchStatus, "processingAttemptedForCurrentPaymentRef:", processingAttemptedForCurrentPaymentRef, "verifiedPaymentDetails:", !!verifiedPaymentDetails);
+        const paymentReferenceFromUrl = searchParams.get('trxref') || searchParams.get('reference');
+        const paymentHasInvoiceId = !!((verifiedPaymentDetails as any)?.invoiceId || (verifiedPaymentDetails as any)?.invoice_id ||
+            getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId ||
+            getMetadataFromPaymentRecord(verifiedPaymentDetails).invoice_id);
+
+        // State 1: Initial Loading (Payment Verification or Initial Invoice Fetch if applicable)
+        if ((verificationStatus === 'loading' || (verificationStatus === 'idle' && !!paymentReferenceFromUrl)) ||
+            (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' &&
+                paymentHasInvoiceId && invoiceFetchStatus === 'loading' && !processingAttemptedForCurrentPaymentRef) // Invoice is loading, and main processing hasn't started
+        ) {
+            const message = (verificationStatus === 'loading' || (verificationStatus === 'idle' && !!paymentReferenceFromUrl))
+                ? "Verifying Your Payment"
+                : "Fetching Invoice Details";
+            console.log("UI RENDER: State 1 - Primary Loading. Message:", message);
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+                    <h1 className="text-2xl font-semibold mb-2 mt-8">{message}</h1>
+                    <p className="text-muted-foreground">Please wait, we're processing your information...</p>
+                    <Loader2 className="h-12 w-12 animate-spin text-primary mt-6" />
                 </div>
-                <h1 className="text-2xl font-semibold mb-2 mt-8">{message}</h1>
-                <p className="text-muted-foreground">Please wait, we're processing your information...</p>
-            </div>
-        );
-    }
-
-    // Successful payment and enrolment (this state might be brief due to redirect)
-    if (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' &&
-        (invoiceFetchStatus === 'succeeded' || (!((verifiedPaymentDetails as any).invoiceId || getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId) && invoiceFetchStatus !== 'loading' && invoiceFetchStatus !== 'failed')) &&
-        enrolmentAttempted) { // Check enrolmentAttempted to ensure we are past the enrolment logic
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-                <CheckCircle className="h-16 w-16 text-green-500 mb-6" />
-                <h1 className="text-2xl font-semibold mb-2">Processing Complete!</h1>
-                <p className="text-muted-foreground">Redirecting you shortly...</p>
-                <Loader2 className="h-8 w-8 animate-spin text-primary mt-4" />
-            </div>
-        );
-    }
-
-
-    // Handles various failure scenarios
-    if (verificationStatus === 'failed' ||
-        (verifiedPaymentDetails && verifiedPaymentDetails.status !== 'succeeded') ||
-        (invoiceFetchStatus === 'failed' && verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded')) {
-
-        let title = "Payment Issue";
-        let description = "An unexpected error occurred.";
-        const paymentAttemptRef = verifiedPaymentDetails?.providerReference || searchParams.get('trxref') || searchParams.get('reference');
-
-        if (verificationStatus === 'failed') {
-            title = "Payment Verification Problem";
-            description = verificationError || "Could not communicate with the payment provider.";
-        } else if (verifiedPaymentDetails && verifiedPaymentDetails.status !== 'succeeded') {
-            title = "Payment Not Successful";
-            description = `The payment status was: ${verifiedPaymentDetails.status}.`;
-        } else if (invoiceFetchStatus === 'failed') {
-            title = "Invoice Processing Issue";
-            description = `Payment was successful, but we couldn't fetch invoice details: ${invoiceFetchError || 'Unknown error'}. Enrolment via metadata might have been attempted.`;
+            );
         }
 
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-                <XCircle className="h-16 w-16 text-destructive mb-6" />
-                <h1 className="text-2xl font-semibold mb-2">{title}</h1>
-                <Alert variant="destructive" className="max-w-md text-left my-4">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Issue Detected</AlertTitle>
-                    <AlertDescription>{description} <br /> If you believe you were charged or need assistance, please contact support.</AlertDescription>
-                </Alert>
-                {paymentAttemptRef && <p className="text-sm text-muted-foreground mt-1">Reference: {paymentAttemptRef}</p>}
-                <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                    <DyraneButton variant="outline" asChild className="w-full sm:w-auto">
-                        <Link href="/checkout">Try Checkout Again</Link>
-                    </DyraneButton>
-                    <DyraneButton asChild className="w-full sm:w-auto">
-                        <Link href="/support">Contact Support</Link>
-                    </DyraneButton>
+        // State 2: Processing has been attempted (Effect 3 ran one of its main paths)
+        // This state is often brief if redirects happen quickly.
+        if (processingAttemptedForCurrentPaymentRef) {
+            // If we reached here, it means Effect 3 has run.
+            // We can show a generic "processing complete" or rely on redirects.
+            // If payment was successful, it's good feedback.
+            if (verifiedPaymentDetails?.status === 'succeeded') {
+                console.log("UI RENDER: State 2 - Processing Attempted, Payment Succeeded. Waiting for redirect or final state.");
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+                        <CheckCircle className="h-16 w-16 text-green-500 mb-6" />
+                        <h1 className="text-2xl font-semibold mb-2">Processing Complete!</h1>
+                        <p className="text-muted-foreground">Your transaction has been processed. You should be redirected shortly.</p>
+                        <Loader2 className="h-8 w-8 animate-spin text-primary mt-4" />
+                    </div>
+                );
+            }
+            // If payment verification or payment status itself failed, that will be handled by State 3.
+            // This block essentially catches the "success" path of processingAttempted.
+        }
+
+
+        // State 3: Failure States
+        let showFailureUI = false;
+        let failureTitle = "Payment Issue";
+        let failureDescription = "An unexpected error occurred during payment processing.";
+
+        if (verificationStatus === 'failed') {
+            showFailureUI = true;
+            failureTitle = "Payment Verification Problem";
+            failureDescription = verificationError || "Could not communicate with the payment provider for verification.";
+        } else if (verificationStatus === 'succeeded' && verifiedPaymentDetails && verifiedPaymentDetails.status !== 'succeeded') {
+            showFailureUI = true;
+            failureTitle = "Payment Not Successful";
+            failureDescription = `The payment status reported by the provider was: ${verifiedPaymentDetails.status}.`;
+        }
+        // This case might be too broad if Effect 3 already redirected or gave a toast for invoice fetch failure.
+        // else if (paymentHasInvoiceId && invoiceFetchStatus === 'failed' && verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' && !processingAttemptedForCurrentPaymentRef) {
+        //     showFailureUI = true;
+        //     failureTitle = "Invoice Retrieval Issue";
+        //     failureDescription = `Your payment was successful, but we couldn't retrieve the full invoice details (${invoiceFetchError || 'Unknown error'}). Please contact support.`;
+        // }
+
+
+        if (showFailureUI) {
+            console.log("UI RENDER: State 3 - Failure UI. Title:", failureTitle);
+            const paymentAttemptRef = verifiedPaymentDetails?.providerReference || searchParams.get('trxref') || searchParams.get('reference');
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+                    <XCircle className="h-16 w-16 text-destructive mb-6" />
+                    <h1 className="text-2xl font-semibold mb-2">{failureTitle}</h1>
+                    <Alert variant="destructive" className="max-w-md text-left my-4">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Issue Detected</AlertTitle>
+                        <AlertDescription>{failureDescription} <br /> If you believe you were charged or need assistance, please contact support.</AlertDescription>
+                    </Alert>
+                    {paymentAttemptRef && <p className="text-sm text-muted-foreground mt-1">Reference: {paymentAttemptRef}</p>}
+                    <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                        <DyraneButton variant="outline" asChild className="w-full sm:w-auto">
+                            <Link href="/checkout">Try Checkout Again</Link>
+                        </DyraneButton>
+                        <DyraneButton asChild className="w-full sm:w-auto">
+                            <Link href="/support">Contact Support</Link>
+                        </DyraneButton>
+                    </div>
                 </div>
-            </div>
-        );
-    }
+            );
+        }
 
+        // State 4: Fallback for Invalid Page Access (No reference in URL and everything is idle)
+        if (!paymentReferenceFromUrl && verificationStatus === 'idle' && invoiceFetchStatus === 'idle' && !verifiedPaymentDetails) {
+            console.log("UI RENDER: State 4 - Invalid Page Access.");
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+                    <Alert variant="destructive" className="max-w-md">
+                        <AlertTriangle className="h-4 w-4" /> <AlertTitle>Invalid Page Access</AlertTitle>
+                        <AlertDescription>This page should be accessed via a payment redirect. Please start your checkout process again.</AlertDescription>
+                    </Alert>
+                    <DyraneButton className="mt-6" asChild> <Link href="/checkout">Go to Checkout</Link> </DyraneButton>
+                </div>
+            );
+        }
 
-    // Fallback for initial load if no reference in URL
-    if (!searchParams.get('reference') && !searchParams.get('trxref') && verificationStatus === 'idle') {
-        // ... (your existing UI for this case)
+        // State 5: Default/Waiting Fallback (e.g., payment verified, no invoice ID, Effect 3 conditions not yet met for metadata)
+        console.log("UI RENDER: State 5 - Hitting default/waiting fallback UI.");
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-                <Alert variant="destructive" className="max-w-md">
-                    <AlertTriangle className="h-4 w-4" /> <AlertTitle>Invalid Page Access</AlertTitle>
-                    <AlertDescription>This page should be accessed via a payment redirect. Please start your checkout process again.</AlertDescription>
-                </Alert>
-                <DyraneButton className="mt-6" asChild> <Link href="/checkout">Go to Checkout</Link> </DyraneButton>
+                <h1 className="text-2xl font-semibold mb-2 mt-8">Finalizing Payment Process</h1>
+                <p className="text-muted-foreground">Please wait a moment while we complete the necessary steps...</p>
+                <Loader2 className="h-12 w-12 animate-spin text-primary mt-6" />
             </div>
         );
-    }
+    };
 
-    // Default fallback
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-            {/* ... Skeleton UI ... */}
-            <Skeleton className="h-8 w-1/2 mb-4" /> <Skeleton className="h-4 w-3/4 mb-2" />
-            <Skeleton className="h-4 w-3/4" />
-            <p className="mt-6 text-muted-foreground">Loading payment information...</p>
-        </div>
-    );
+    return renderUI();
 }
 
-// Main component using Suspense
+// Main component using Suspense for useSearchParams
 export default function PaymentCallbackPage() {
     return (
         <Suspense fallback={
             <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-background">
-                {/* ... Skeleton UI ... */}
                 <div className="w-full max-w-sm space-y-4">
-                    <Skeleton className="h-10 w-3/4 mx-auto" /> <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-6 w-5/6 mx-auto" /> <Skeleton className="h-6 w-1/2 mx-auto" />
-                    <div className="pt-4"> <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" /> </div>
+                    <Skeleton className="h-10 w-3/4 mx-auto" />
+                    <Skeleton className="h-6 w-full mx-auto" />
+                    <Skeleton className="h-6 w-5/6 mx-auto" />
+                    <div className="pt-4">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+                    </div>
                 </div>
             </div>
         }>
