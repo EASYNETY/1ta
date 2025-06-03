@@ -1,89 +1,64 @@
 // features/payment/types/payment-types.ts
 
-// Payment Breakdown Types for Enhanced Cart Display
+// --- Payment Breakdown Types for Enhanced Cart Display ---
 export interface PaymentBreakdownItem {
-  id: string;
-  category: 'tuition' | 'materials' | 'refreshments' | 'exam_fees' | 'exam_materials';
-  description: string;
-  amount: number;
-  quantity?: number;
-  isIncluded: boolean; // Some items might be included in course price
-  details?: string; // Additional details for the item
+	id: string;
+	category:
+		| "tuition"
+		| "materials"
+		| "refreshments"
+		| "exam_fees"
+		| "exam_materials";
+	description: string;
+	amount: number;
+	quantity?: number;
+	isIncluded: boolean;
+	details?: string;
 }
 
 export interface BreakdownSection {
-  title: string;
-  items: PaymentBreakdownItem[];
-  totalAmount: number;
-  icon?: string; // Icon name for the section
+	title: string;
+	items: PaymentBreakdownItem[];
+	totalAmount: number;
+	icon?: string;
 }
 
 export interface PaymentBreakdown {
-  courseItems: any[]; // Cart items
-  additionalItems: PaymentBreakdownItem[];
-  sections: BreakdownSection[];
-  subtotal: number;
-  tax: number;
-  total: number;
-  currency: string;
-}
-
-// Course Detail Display Types
-export interface CourseDetailView {
-  id: string;
-  title: string;
-  subtitle?: string;
-  description: string;
-  instructor: {
-    name: string;
-    title?: string;
-    avatar?: string;
-  };
-  image: string;
-  previewVideoUrl?: string;
-  level: string;
-  duration?: string;
-  moduleCount?: number;
-  lessonCount?: number;
-  learningOutcomes?: string[];
-  prerequisites?: string[];
-  certificate?: boolean;
-  priceNaira: number;
-  discountPriceNaira?: number;
-  tags?: string[];
-}
-
-// Represents a record of a completed (or attempted) payment transaction
-export interface PaymentRecord {
-	id: string; // Your internal DB ID for the payment record
-	userId: string;
-	userName?: string; // For Admin view
-	amount: number; // Amount paid (in smallest unit like kobo/cents)
+	courseItems: any[]; // Consider typing this more specifically if possible
+	additionalItems: PaymentBreakdownItem[];
+	sections: BreakdownSection[];
+	subtotal: number;
+	tax: number;
+	total: number;
 	currency: string;
-	status: "pending" | "succeeded" | "failed" | "refunded";
-	provider: "paystack" | "stripe" | "mock" | "corporate"; // Added corporate possibility
-	providerReference: string; // Transaction ID/Reference from the provider
-	gatewayRef?: string; // Gateway reference number for reconciliation
-	transactionId?: string; // Internal transaction ID for tracking
-	reconciliationStatus?: "pending" | "reconciled" | "disputed" | "failed"; // Reconciliation status
-	description: string; // e.g., "Enrolment: Course Title(s)"
-	createdAt: string; // ISO Date string
-	// Optional: Link to items purchased
-	relatedItemIds?: { type: "course" | "other"; id: string }[];
-	// Optional: Basic card info for display (retrieved securely by backend from provider)
-	cardType?: string;
-	last4?: string;
-	// Optional: Receipt information
-	receiptNumber?: string;
-	receiptItems?: ReceiptItem[];
-	billingDetails?: BillingDetails;
-	// Optional: Metadata fields for future flexibility
-	metadata?: Record<string, any>; // Direct metadata field
-	providerMetadata?: Record<string, any>; // Provider-specific metadata
-	transactionMetadata?: Record<string, any>; // Transaction-specific metadata
 }
 
-// Represents an item in a receipt
+// --- Course Detail Display Types ---
+export interface CourseDetailView {
+	id: string;
+	title: string;
+	subtitle?: string;
+	description: string;
+	instructor: {
+		name: string;
+		title?: string;
+		avatar?: string;
+	};
+	image: string;
+	previewVideoUrl?: string;
+	level: string;
+	duration?: string;
+	moduleCount?: number;
+	lessonCount?: number;
+	learningOutcomes?: string[];
+	prerequisites?: string[];
+	certificate?: boolean;
+	priceNaira: number;
+	discountPriceNaira?: number;
+	tags?: string[];
+}
+
+// --- Payment Record & Related Types ---
 export interface ReceiptItem {
 	id: string;
 	name: string;
@@ -93,7 +68,6 @@ export interface ReceiptItem {
 	totalPrice: number;
 }
 
-// Represents billing details for a receipt
 export interface BillingDetails {
 	name: string;
 	email: string;
@@ -101,105 +75,169 @@ export interface BillingDetails {
 	phone?: string;
 }
 
-// Payload for initializing a payment
-export interface InitiatePaymentPayload {
-	user_id: string;
+export interface PaymentRecord {
+	id: string;
 	userId: string;
-	invoiceId: string;
+	userName?: string;
 	amount: number;
+	currency: string;
+	status:
+		| "pending"
+		| "succeeded"
+		| "failed"
+		| "refunded"
+		| "processing"
+		| "requires_action"; // Added more statuses
+	provider: "paystack" | "stripe" | "mock" | "corporate";
+	providerReference: string;
+	gatewayRef?: string;
+	transactionId?: string;
+	reconciliationStatus?: "pending" | "reconciled" | "disputed" | "failed";
+	description: string;
+	createdAt: string;
+	relatedItemIds?: { type: "course" | "other"; id: string }[];
+	cardType?: string;
+	last4?: string;
+	receiptNumber?: string;
+	receiptItems?: ReceiptItem[];
+	billingDetails?: BillingDetails;
+	metadata?: Record<string, any>;
+	providerMetadata?: Record<string, any>;
+	transactionMetadata?: Record<string, any>;
+	invoiceId?: string | null;
+	invoice_id?: string | null;
+}
+// --- Payment Flow Types ---
+export interface InitiatePaymentPayload {
+	user_id: string; // Consider standardizing to userId or user_id
+	userId: string; // Redundant with user_id, choose one
+	invoiceId: string;
+	amount: number; // This amount should be the total from the invoice
 	callbackUrl?: string;
-	paymentMethod: string;
+	paymentMethod: "paystack" | "stripe" | "corporate"; // Or other methods
 }
 
-// Response from payment initialization
 export interface PaymentResponse {
-	payment: PaymentRecord;
-	authorizationUrl: string;
+	payment: PaymentRecord; // The payment record created/updated
+	authorizationUrl: string; // URL to redirect user for payment
 }
 
-// Response from payment verification - flexible to handle both formats
 export interface VerifyPaymentResponse {
-	payments?: PaymentRecord; // Current format (plural)
-	payment?: PaymentRecord;  // Alternative format (singular) from API docs
-	verification: any; // The verification data from Paystack
+	payments?: PaymentRecord;
+	payment?: PaymentRecord;
+	verification: any; // Verification data from the payment provider
 }
 
-// State for the payment slice
+// --- Invoice Related Types (Updated based on Postman response) ---
+
+// Information about the student associated with the invoice
+export interface StudentInfo {
+	id: string;
+	name: string;
+	email: string;
+}
+
+// An item within an invoice (matches API structure for items array)
+export interface InvoiceItem {
+	description: string;
+	amount: number; // In the API items, amount is a number
+	quantity: number;
+	courseId: string; // Or number, ensure consistency
+}
+
+// Structure of the 'data' object received from GET /api/invoices/:id
+export interface InvoiceDataFromApi {
+	id: string;
+	studentId: string;
+	amount: string; // API sends total invoice amount as a STRING
+	description: string;
+	dueDate: string; // ISO YYYY-MM-DD
+	status: "pending" | "paid" | "cancelled" | "overdue";
+	items: InvoiceItem[]; // Array of invoice items from API
+	metadata: any | null; // Can be more specific if structure is known
+	createdAt: string; // ISO datetime string
+	updatedAt: string; // ISO datetime string
+	student: StudentInfo; // Nested student information
+	paymentId?: string | null; // Link to a PaymentRecord if paid
+}
+
+// The overall API response structure for fetching a single invoice (GET /api/invoices/:id)
+export interface GetInvoiceApiResponse {
+	success: boolean;
+	data: InvoiceDataFromApi; // The actual invoice data is nested here
+}
+
+// Your desired frontend Invoice type (after transformation)
+// This is what will be stored in Redux state and used in components
+export interface Invoice {
+	id: string;
+	studentId: string;
+	amount: number; // Frontend desires amount as a NUMBER
+	description: string;
+	dueDate: string; // ISO YYYY-MM-DD
+	items: InvoiceItem[]; // Items structure matches API, but amounts might be adjusted post-fetch
+	status: "pending" | "paid" | "cancelled" | "overdue";
+	metadata: any | null;
+	createdAt: string; // ISO datetime string
+	updatedAt: string; // ISO datetime string
+	student: StudentInfo; // Includes student details
+	paymentId?: string | null;
+}
+
+// Payload for creating an invoice (POST /api/invoices)
+// This should match what your backend endpoint for creating invoices expects.
+// It might be different from the `Invoice` type used for display.
+export interface CreateInvoicePayload {
+	studentId: string;
+	amount: number; // Usually, the backend calculates the total amount from items.
+	// If you send 'amount', ensure backend logic handles it (e.g., as an override or for validation).
+	description: string;
+	dueDate?: string; // Optional on client, backend might default (e.g., YYYY-MM-DD)
+	items: Array<{
+		// Define item structure for creation payload
+		description: string;
+		amount: number; // Amount for this specific item
+		quantity: number;
+		courseId?: string; // If applicable
+	}>;
+	// Add any other fields required by your POST /api/invoices endpoint
+}
+
+// API Response when creating an invoice (POST /api/invoices)
+// This should ideally return the created invoice in the frontend-friendly 'Invoice' format,
+// or in the 'InvoiceDataFromApi' format if it needs transformation.
+// For simplicity, let's assume it returns the transformed 'Invoice' type.
+export type CreateInvoiceResponse = Invoice;
+// If it returns the API structure that needs transformation:
+// export type CreateInvoiceResponse = InvoiceDataFromApi; // Then transform in thunk
+
+// --- Redux State Types ---
+export interface PaginationMeta {
+	currentPage: number;
+	totalPages: number;
+	totalItems: number;
+	limit: number;
+}
+
 export interface PaymentHistoryState {
 	myPayments: PaymentRecord[];
-	allPayments: PaymentRecord[]; // For Admin view
+	allPayments: PaymentRecord[];
 	status: "idle" | "loading" | "succeeded" | "failed";
 	error: string | null;
-	// Pagination for Admin view
-	adminPagination: {
-		currentPage: number;
-		totalPages: number;
-		totalItems: number;
-		limit: number;
-	} | null;
-	// Pagination for My Payments view
-	myPaymentsPagination: {
-		currentPage: number;
-		totalPages: number;
-		totalItems: number;
-		limit: number;
-	} | null;
-	// Current payment being processed
+	adminPagination: PaginationMeta | null;
+	myPaymentsPagination: PaginationMeta | null;
 	currentPayment: PaymentRecord | null;
-	// Payment initialization data
 	paymentInitialization: {
 		authorizationUrl: string;
 	} | null;
-	// Status of payment verification
 	verificationStatus: "idle" | "loading" | "succeeded" | "failed";
-	// Selected payment for receipt
 	selectedPayment: PaymentRecord | null;
-	// Status of fetching a single payment
 	selectedPaymentStatus: "idle" | "loading" | "succeeded" | "failed";
-	currentInvoice: Invoice | null;
+
+	// Invoice related state
+	currentInvoice: Invoice | null; // Holds the frontend-transformed Invoice object
 	invoiceCreationStatus: "idle" | "loading" | "succeeded" | "failed";
-	invoiceError: string | null;
-}
-
-export interface InvoiceItem {
-	description: string; // e.g., course name
-	amount: number; // Amount for this item
-	quantity: number; // Quantity (usually 1 for a course, or student count for corporate)
-	courseId?: string; // Optional: Store the original course ID for reference
-}
-
-export interface Invoice {
-	id: string; // UUID returned by the backend
-	studentId: string;
-	amount: number;
-	description: string;
-	dueDate: string; // ISO8601 format (YYYY-MM-DD)
-	items: InvoiceItem[];
-	status: "pending" | "paid" | "cancelled" | "overdue"; // Example statuses
-	createdAt: string;
-	updatedAt: string;
-	paymentId?: string | null; // Link to a PaymentRecord if paid
-}
-
-// Payload for creating an invoice
-export interface CreateInvoicePayload {
-	studentId: string;
-	amount: number;
-	description: string;
-	dueDate: string; // Optional on client, backend might default
-	items: InvoiceItem[];
-}
-
-// API Response when creating an invoice
-export interface CreateInvoiceResponse {
-	id: string; // UUID returned by the backend
-	studentId: string;
-	amount: number;
-	description: string;
-	dueDate: string; // ISO8601 format (YYYY-MM-DD)
-	items: InvoiceItem[];
-	status: "pending" | "paid" | "cancelled" | "overdue"; // Example statuses
-	createdAt: string;
-	updatedAt: string;
-	paymentId?: string | null; // Link to a PaymentRecord if paid
+	invoiceCreationError: string | null;
+	invoiceFetchStatus: "idle" | "loading" | "succeeded" | "failed";
+	invoiceFetchError: string | null;
 }

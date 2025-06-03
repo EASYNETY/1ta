@@ -27,7 +27,7 @@ import {
     resetPaymentState,
     selectCurrentInvoice, // Added this selector
     selectInvoiceCreationStatus,
-    selectInvoiceError
+    selectInvoiceCreationError
 } from "@/features/payment/store/payment-slice" // Assuming selectCurrentInvoice is exported
 import type { CreateInvoicePayload, InvoiceItem } from "@/features/payment/types/payment-types"
 
@@ -96,7 +96,7 @@ export default function CartPage() {
     // Selectors for existing payment/invoice state
     const existingCurrentInvoice = useAppSelector(selectCurrentInvoice);
     const existingInvoiceCreationStatus = useAppSelector(selectInvoiceCreationStatus);
-    const invoiceCreationError = useAppSelector(selectInvoiceError); // Used in useEffect
+    const invoiceCreationError = useAppSelector(selectInvoiceCreationError); // Used in useEffect
 
     // Selectors for existing checkout state
     const existingCheckoutPreparationStatus = useAppSelector(selectCheckoutStatus);
@@ -311,7 +311,7 @@ export default function CartPage() {
                 // currentAttemptInvoiceIdRef.current = null; // Optional: clear ref after nav
             } else if (existingInvoiceCreationStatus === "failed") {
                 console.error("CartPage: Invoice creation failed (observed by useEffect). Error:", invoiceCreationError);
-                toast({ title: "Invoice Error", description: invoiceCreationError || "Failed to create invoice.", variant: "destructive" });
+                toast({ title: "Invoice Error", description: invoiceCreationError as string || "Failed to create invoice.", variant: "destructive" });
                 setIsInitiatingCheckout(false);
                 currentAttemptInvoiceIdRef.current = null;
             } else if (existingCheckoutPreparationStatus === "failed" && existingInvoiceCreationStatus === "succeeded") {

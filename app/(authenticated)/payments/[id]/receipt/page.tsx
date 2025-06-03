@@ -82,7 +82,7 @@ export default function PaymentReceiptPage() {
         </Alert>
       )}
       {searchParams.get('status') === 'enrolment_data_missing' && (
-        <Alert className="my-4"> {/* Use warning or error */}
+        <Alert className="my-4 bg-amber-50 border-amber-200"> {/* Use warning or error */}
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Action Required: Enrolment Data</AlertTitle>
           <AlertDescription>

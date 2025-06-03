@@ -5,11 +5,13 @@ import type {
 	PaymentHistoryState,
 	PaymentRecord,
 	InitiatePaymentPayload,
-	PaymentResponse, // This is { payment: PaymentRecord; authorizationUrl: string; }
+	PaymentResponse,
 	VerifyPaymentResponse,
-	CreateInvoiceResponse,
-	CreateInvoicePayload, // This is { payments: PaymentRecord; verification: any; }
-} from "../types/payment-types";
+	CreateInvoiceResponse, // Assumed to be 'Invoice' type
+	CreateInvoicePayload,
+	Invoice, // Assuming Invoice type is imported or defined
+	// InvoiceItem, // If needed separately
+} from "../types/payment-types"; // Make sure Invoice is exported from here
 import { get, post } from "@/lib/api-client";
 
 // --- Helper Interface for Paginated List Data (as returned by apiClient for these list endpoints) ---
@@ -17,29 +19,27 @@ interface PaginatedPaymentsData {
 	payments: PaymentRecord[];
 	pagination: {
 		total: number;
-		page: number; // Or current_page, ensure this matches what apiClient returns
-		limit: number; // Or per_page
-		totalPages: number; // Or last_page or pages
+		page: number;
+		limit: number;
+		totalPages: number;
 	};
 }
 
 // --- Thunks ---
 interface FetchMyHistoryParams {
-	userId: string; // Assuming backend needs userId in query; if implicit from auth, remove.
+	userId: string;
 	page?: number;
 	limit?: number;
 }
 export const fetchMyPaymentHistory = createAsyncThunk<
-	PaginatedPaymentsData, // The thunk will resolve with this object
+	PaginatedPaymentsData,
 	FetchMyHistoryParams,
 	{ rejectValue: string }
 >(
 	"paymentHistory/fetchMy",
 	async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			// Construct query. Adjust if userId is implicit.
 			const query = `userId=${userId}&page=${page}&limit=${limit}`;
-			// apiClient.get<T> is expected to return T (the unwrapped data)
 			const responseData = await get<PaginatedPaymentsData>(
 				`/payments/user/history?${query}`
 			);
@@ -49,7 +49,7 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 				Array.isArray(responseData.payments) &&
 				responseData.pagination
 			) {
-				return responseData; // Return the whole { payments, pagination } object
+				return responseData;
 			}
 			console.warn(
 				"fetchMyPaymentHistory: Unexpected data structure from API client. Got:",
@@ -75,7 +75,7 @@ interface FetchAllHistoryParams {
 	search?: string;
 }
 export const fetchAllPaymentsAdmin = createAsyncThunk<
-	PaginatedPaymentsData, // The thunk will resolve with this object
+	PaginatedPaymentsData,
 	FetchAllHistoryParams,
 	{ rejectValue: string }
 >(
@@ -86,7 +86,6 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 			if (status) queryParams += `&status=${status}`;
 			if (search) queryParams += `&search=${search}`;
 
-			// apiClient.get<T> is expected to return T
 			const responseData = await get<PaginatedPaymentsData>(
 				`/payments?${queryParams}`
 			);
@@ -96,7 +95,7 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 				Array.isArray(responseData.payments) &&
 				responseData.pagination
 			) {
-				return responseData; // Return the whole { payments, pagination } object
+				return responseData;
 			}
 			console.warn(
 				"fetchAllPaymentsAdmin: Unexpected data structure from API client. Got:",
@@ -114,7 +113,7 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 );
 
 export const initiatePayment = createAsyncThunk<
-	PaymentResponse, // This is { payment: PaymentRecord; authorizationUrl: string; }
+	PaymentResponse,
 	Omit<InitiatePaymentPayload, "callbackUrl">,
 	{ rejectValue: string }
 >("payment/initiate", async (callerPayload, { rejectWithValue }) => {
@@ -127,7 +126,6 @@ export const initiatePayment = createAsyncThunk<
 				: undefined,
 		};
 
-		// apiClient.post<T> is expected to return T (PaymentResponse in this case)
 		const responseData = await post<PaymentResponse>(
 			"/payments/initialize",
 			payloadForBackend
@@ -151,29 +149,24 @@ export const initiatePayment = createAsyncThunk<
 });
 
 export const verifyPayment = createAsyncThunk<
-	VerifyPaymentResponse, // Flexible response format
+	VerifyPaymentResponse,
 	{ reference: string },
 	{ rejectValue: string }
 >("payment/verify", async ({ reference }, { rejectWithValue }) => {
 	try {
-		// apiClient.get<T> is expected to return T (VerifyPaymentResponse)
-		const responseData = await get<any>(
-			`/payments/verify/${reference}`
-		);
+		const responseData = await get<any>(`/payments/verify/${reference}`);
 
-		// Dynamic validation - accept either format
-		const hasPaymentData = responseData && (
-			(responseData.payments && responseData.verification) || // Current format
-			(responseData.payment && responseData.verification) ||   // Alternative format
-			responseData.id // Direct payment record response
-		);
+		const hasPaymentData =
+			responseData &&
+			((responseData.payments && responseData.verification) ||
+				(responseData.payment && responseData.verification) ||
+				responseData.id);
 
 		if (hasPaymentData) {
-			// Normalize response to our expected format
 			const normalizedResponse: VerifyPaymentResponse = {
 				payments: responseData.payments || responseData.payment || responseData,
 				payment: responseData.payment || responseData.payments || responseData,
-				verification: responseData.verification || {}
+				verification: responseData.verification || {},
 			};
 			return normalizedResponse;
 		}
@@ -191,7 +184,7 @@ export const verifyPayment = createAsyncThunk<
 });
 
 export const fetchPaymentById = createAsyncThunk<
-	PaymentRecord, // apiClient.get<T> is expected to return T (PaymentRecord)
+	PaymentRecord,
 	string,
 	{ rejectValue: string }
 >("payment/fetchById", async (paymentId, { rejectWithValue }) => {
@@ -199,7 +192,6 @@ export const fetchPaymentById = createAsyncThunk<
 		const paymentRecord = await get<PaymentRecord>(`/payments/${paymentId}`);
 
 		if (paymentRecord && paymentRecord.id) {
-			// Basic validation for a PaymentRecord
 			return paymentRecord;
 		}
 		console.warn(
@@ -216,23 +208,58 @@ export const fetchPaymentById = createAsyncThunk<
 	}
 });
 
-// --- NEW: Create Invoice Thunk ---
 export const createInvoiceThunk = createAsyncThunk<
-	CreateInvoiceResponse, // Type for fulfilled action's payload
-	CreateInvoicePayload, // Type for the thunk argument
+	CreateInvoiceResponse, // This is expected to be an Invoice object
+	CreateInvoicePayload,
 	{ rejectValue: string }
 >("payment/createInvoice", async (payload, { rejectWithValue }) => {
 	try {
-		// apiClient.post<T> is expected to return T (CreateInvoiceResponse in this case)
-		const responseData = await post<CreateInvoiceResponse>(
-			"/invoices", // Your endpoint from the spec /api/invoices
+		const responseData = await post<CreateInvoiceResponse>( // Expects Invoice
+			"/invoices",
 			payload
 		);
-		console.log("responseData", responseData);
-		return responseData;
+		// Assuming CreateInvoiceResponse is directly the Invoice object
+		if (responseData && (responseData as Invoice).id) {
+			return responseData;
+		}
+		console.warn(
+			"createInvoiceThunk: Unexpected data structure from API client for invoice creation. Got:",
+			responseData
+		);
+		throw new Error(
+			"Failed to create invoice or invalid data structure returned"
+		);
 	} catch (e: any) {
 		const errorMessage =
 			e.response?.data?.message || e.message || "Failed to create invoice";
+		return rejectWithValue(errorMessage);
+	}
+});
+
+// --- NEW: Get Invoice By ID Thunk ---
+export const getInvoiceById = createAsyncThunk<
+	Invoice, // The thunk will resolve with a single Invoice object
+	string, // Argument is the invoiceId (string)
+	{ rejectValue: string }
+>("payment/getInvoiceById", async (invoiceId, { rejectWithValue }) => {
+	try {
+		// The API client's 'get' method destructures the outer 'data' object.
+		// So, we expect the response here to be { invoice: Invoice }
+		const responseData = await get<{ invoice: Invoice }>(
+			`/invoices/${invoiceId}`
+		);
+
+		if (responseData && responseData.invoice && responseData.invoice.id) {
+			return responseData.invoice; // Return the actual invoice object
+		}
+		console.warn(
+			"getInvoiceById: Unexpected data structure from API client. Expected { invoice: ... }. Got:",
+			responseData
+		);
+		throw new Error("Failed to fetch invoice or invalid data structure");
+	} catch (e: any) {
+		const errorMessage =
+			e.response?.data?.message || e.message || "Failed to fetch invoice";
 		return rejectWithValue(errorMessage);
 	}
 });
@@ -250,9 +277,12 @@ const initialState: PaymentHistoryState = {
 	verificationStatus: "idle",
 	selectedPayment: null,
 	selectedPaymentStatus: "idle",
+	// Invoice states
 	currentInvoice: null,
 	invoiceCreationStatus: "idle",
-	invoiceError: null,
+	invoiceCreationError: null, // Renamed from invoiceError
+	invoiceFetchStatus: "idle", // New
+	invoiceFetchError: null, // New
 };
 
 // --- Slice ---
@@ -268,33 +298,63 @@ const paymentHistorySlice = createSlice({
 			state.paymentInitialization = null;
 			state.verificationStatus = "idle";
 			state.error = null;
-			state.currentInvoice = null; // Reset invoice
-			state.invoiceCreationStatus = "idle"; // Reset invoice status
-			state.invoiceError = null; // Reset invoice error
+			// Reset all invoice related states
+			state.currentInvoice = null;
+			state.invoiceCreationStatus = "idle";
+			state.invoiceCreationError = null;
+			state.invoiceFetchStatus = "idle";
+			state.invoiceFetchError = null;
+		},
+		// You might want a specific reducer to clear just invoice errors or reset invoice state
+		clearInvoiceErrors: (state) => {
+			state.invoiceCreationError = null;
+			state.invoiceFetchError = null;
 		},
 	},
 	extraReducers: (builder) => {
-		// --- NEW: Create Invoice Thunk ---
+		// Create Invoice Thunk
 		builder
 			.addCase(createInvoiceThunk.pending, (state) => {
 				state.invoiceCreationStatus = "loading";
-				state.invoiceError = null;
+				state.invoiceCreationError = null;
 				state.currentInvoice = null; // Clear previous invoice on new attempt
 			})
 			.addCase(
 				createInvoiceThunk.fulfilled,
 				(state, action: PayloadAction<CreateInvoiceResponse>) => {
+					// CreateInvoiceResponse is Invoice
 					state.invoiceCreationStatus = "succeeded";
-					state.currentInvoice = action.payload
-					console.log("state.currentInvoice", state.currentInvoice);
-					state.invoiceError = null;
+					state.currentInvoice = action.payload; // Assumes payload is the Invoice object
+					state.invoiceCreationError = null;
 				}
 			)
 			.addCase(createInvoiceThunk.rejected, (state, action) => {
 				state.invoiceCreationStatus = "failed";
-				state.invoiceError = action.payload ?? "Error creating invoice";
+				state.invoiceCreationError = action.payload ?? "Error creating invoice";
 				state.currentInvoice = null;
 			});
+
+		// --- NEW: Get Invoice By ID Thunk ---
+		builder
+			.addCase(getInvoiceById.pending, (state) => {
+				state.invoiceFetchStatus = "loading";
+				state.invoiceFetchError = null;
+				state.currentInvoice = null; // Clear previous/current invoice before fetching new one
+			})
+			.addCase(
+				getInvoiceById.fulfilled,
+				(state, action: PayloadAction<Invoice>) => {
+					state.invoiceFetchStatus = "succeeded";
+					state.currentInvoice = action.payload; // Store the fetched invoice
+					state.invoiceFetchError = null;
+				}
+			)
+			.addCase(getInvoiceById.rejected, (state, action) => {
+				state.invoiceFetchStatus = "failed";
+				state.invoiceFetchError = action.payload ?? "Error fetching invoice";
+				state.currentInvoice = null;
+			});
+
 		// Fetch My History
 		builder
 			.addCase(fetchMyPaymentHistory.pending, (state) => {
@@ -307,7 +367,6 @@ const paymentHistorySlice = createSlice({
 					state.status = "succeeded";
 					state.myPayments = action.payload.payments;
 					state.myPaymentsPagination = {
-						// Use the pagination object from payload
 						totalItems: action.payload.pagination.total,
 						limit: action.payload.pagination.limit,
 						currentPage: action.payload.pagination.page,
@@ -337,7 +396,6 @@ const paymentHistorySlice = createSlice({
 						: [];
 					state.allPayments = validPayments;
 					state.adminPagination = {
-						// Use the pagination object from payload
 						totalItems: action.payload.pagination.total,
 						limit: action.payload.pagination.limit,
 						currentPage: action.payload.pagination.page,
@@ -353,9 +411,9 @@ const paymentHistorySlice = createSlice({
 		// Initialize Payment
 		builder
 			.addCase(initiatePayment.pending, (state) => {
-				state.status = "loading"; // Or a specific 'initiationStatus'
+				state.status = "loading";
 				state.error = null;
-				state.paymentInitialization = null; // Reset on new attempt
+				state.paymentInitialization = null;
 			})
 			.addCase(
 				initiatePayment.fulfilled,
@@ -382,15 +440,9 @@ const paymentHistorySlice = createSlice({
 				verifyPayment.fulfilled,
 				(state, action: PayloadAction<VerifyPaymentResponse>) => {
 					state.verificationStatus = "succeeded";
-
-					// Dynamic extraction to handle both 'payments' (plural) and 'payment' (singular)
-					const paymentRecord = action.payload.payments ||
-										 (action.payload as any).payment ||
-										 null;
-
+					const paymentRecord =
+						action.payload.payments || (action.payload as any).payment || null;
 					state.currentPayment = paymentRecord;
-
-					// If payment was successful, add/update it in the user's payment history
 					if (paymentRecord && paymentRecord.status === "succeeded") {
 						const existingIndex = state.myPayments.findIndex(
 							(p) => p.id === paymentRecord.id
@@ -429,8 +481,11 @@ const paymentHistorySlice = createSlice({
 });
 
 // --- Actions & Selectors ---
-export const { clearPaymentHistoryError, resetPaymentState } =
-	paymentHistorySlice.actions;
+export const {
+	clearPaymentHistoryError,
+	resetPaymentState,
+	clearInvoiceErrors,
+} = paymentHistorySlice.actions;
 
 export const selectMyPayments = (state: RootState) =>
 	state.paymentHistory.myPayments;
@@ -455,11 +510,36 @@ export const selectSelectedPayment = (state: RootState) =>
 export const selectSelectedPaymentStatus = (state: RootState) =>
 	state.paymentHistory.selectedPaymentStatus;
 
-// New selectors for invoice
-export const selectCurrentInvoice = (state: RootState) =>
-	state.paymentHistory.currentInvoice;
+export const selectCourseIdsFromCurrentInvoice = (
+	state: RootState
+): string[] => {
+	const currentInvoice = state.paymentHistory.currentInvoice;
+	if (currentInvoice && Array.isArray(currentInvoice.items)) {
+		return currentInvoice.items
+			.map((item) => item.courseId) // Assumes InvoiceItemFromApi has 'courseId'
+			.filter(
+				(courseId): courseId is string =>
+					typeof courseId === "string" && courseId.trim() !== ""
+			); // Filter out undefined/empty
+	}
+	return [];
+};
+
+// Invoice selectors
+export const selectCurrentInvoice = (
+	state: RootState // This now serves for created or fetched invoice
+) => state.paymentHistory.currentInvoice;
+
 export const selectInvoiceCreationStatus = (state: RootState) =>
 	state.paymentHistory.invoiceCreationStatus;
-export const selectInvoiceError = (state: RootState) =>
-	state.paymentHistory.invoiceError;
+export const selectInvoiceCreationError = (
+	state: RootState // Renamed
+) => state.paymentHistory.invoiceCreationError;
+
+// New selectors for invoice fetching
+export const selectInvoiceFetchStatus = (state: RootState) =>
+	state.paymentHistory.invoiceFetchStatus;
+export const selectInvoiceFetchError = (state: RootState) =>
+	state.paymentHistory.invoiceFetchError;
+
 export default paymentHistorySlice.reducer;
