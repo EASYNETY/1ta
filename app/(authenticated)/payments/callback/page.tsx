@@ -202,7 +202,7 @@ function PaymentCallbackContent() {
                     toast({ title: "Enrolment Issue", description: "Items for enrolment not found. Contact support.", variant: "destructive" });
                     dispatch(resetPaymentState());
                     // Redirect to receipt page indicating data missing
-                    router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_data_missing`);
+                    // router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_data_missing`);
                     return;
                 }
 
