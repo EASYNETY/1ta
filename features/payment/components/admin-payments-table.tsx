@@ -45,7 +45,7 @@ const getStatusBadge = (status: PaymentRecord["status"]) => {
             return (
                 <Badge variant="secondary" className="text-xs">
                     <CheckCircle className="mr-1 h-3 w-3" />
-                    Succeeded
+                    Successful
                 </Badge>
             )
         case "pending":
@@ -170,7 +170,7 @@ const AdminPaymentsTable: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Statuses</SelectItem>
-                        <SelectItem value="succeeded">Succeeded</SelectItem>
+                        <SelectItem value="succeeded">Successful</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="failed">Failed</SelectItem>
                         <SelectItem value="refunded">Refunded</SelectItem>

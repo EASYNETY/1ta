@@ -340,8 +340,8 @@ export default function LandingPage() {
 
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Available Courses"
-              description="Master the tools and platforms shaping the future of tech."
+              title="Future Courses"
+              description="Exciting new programs are on the way! Get ahead by joining the waitlist and be the first to know when these courses go live."
             />
 
             <AppleTechnologyDisplay />

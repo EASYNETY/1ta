@@ -152,7 +152,7 @@ export function DemoRequestForm() {
         </motion.div>
         <h3 className="text-lg font-semibold mb-1 text-foreground">Thank You!</h3> {/* Adjusted text */}
         <p className="text-muted-foreground mb-6 text-sm">
-          Your inquiry has been sent successfully! We will get back to you within 24 hours ia mail. {/* Updated text */}
+          Your inquiry has been sent successfully! We will get back to you within 24 hours via mail. {/* Updated text */}
         </p>
         <DyraneButton variant="outline" size="sm" onClick={() => setIsSubmitted(false)}> {/* Smaller button */}
           Send Another Inquiry

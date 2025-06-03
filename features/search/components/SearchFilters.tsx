@@ -82,7 +82,7 @@ const STATUS_OPTIONS = {
     { value: "completed", label: "Completed" },
     { value: "in-progress", label: "In Progress" },
     { value: "overdue", label: "Overdue" },
-    { value: "succeeded", label: "Succeeded" },
+    { value: "succeeded", label: "Successful" },
     { value: "failed", label: "Failed" },
     { value: "refunded", label: "Refunded" }
   ],
@@ -114,7 +114,7 @@ const STATUS_OPTIONS = {
     { value: "cancelled", label: "Cancelled" }
   ],
   payment: [
-    { value: "succeeded", label: "Succeeded" },
+    { value: "succeeded", label: "Successful" },
     { value: "pending", label: "Pending" },
     { value: "failed", label: "Failed" },
     { value: "refunded", label: "Refunded" }

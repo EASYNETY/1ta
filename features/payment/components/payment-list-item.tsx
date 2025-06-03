@@ -52,7 +52,7 @@ export const PaymentListItem: React.FC<PaymentListItemProps> = ({ payment }) => 
         return (
           <Badge variant="secondary">
             <CheckCircle className="mr-1 h-3 w-3" />
-            Succeeded
+            Successful
           </Badge>
         )
       case "pending":
