@@ -113,7 +113,7 @@ function PaymentCallbackContent() {
     useEffect(() => {
         if (verificationStatus === 'succeeded' && verifiedPaymentDetails && verifiedPaymentDetails.status === 'succeeded') {
             // Check for invoiceId in payment details (ensure your PaymentRecord type has invoiceId)
-            const paymentInvoiceId = (verifiedPaymentDetails as any).invoiceId || // If backend adds it directly
+            const paymentInvoiceId = (verifiedPaymentDetails as any).invoiceId || (verifiedPaymentDetails as any).invoice_id || // If backend adds it directly
                 getMetadataFromPaymentRecord(verifiedPaymentDetails).invoiceId || // From metadata
                 getMetadataFromPaymentRecord(verifiedPaymentDetails).invoice_id;
 
