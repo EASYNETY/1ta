@@ -51,6 +51,7 @@ export function DemoRequestForm() {
     control, // Needed for Shadcn Select with React Hook Form
     formState: { errors },
     reset, // Add reset function
+    setValue, // <-- Add this line
   } = useForm<InquiryFormValues>({
     resolver: zodResolver(inquiryFormSchema),
     defaultValues: { // Set default values
@@ -218,7 +219,7 @@ export function DemoRequestForm() {
                   setCourseSearch(e.target.value);
                   setShowCourseDropdown(true);
                   // Clear field value if user types
-                  control.setValue("interest", "");
+                  setValue("interest", ""); // <-- Use setValue from useForm
                 }}
                 onFocus={() => setShowCourseDropdown(true)}
                 onBlur={() => setTimeout(() => setShowCourseDropdown(false), 150)}
@@ -233,7 +234,7 @@ export function DemoRequestForm() {
                       key={title}
                       className="px-4 py-2 cursor-pointer hover:bg-primary/10"
                       onMouseDown={() => {
-                        control.setValue("interest", title, { shouldValidate: true });
+                        setValue("interest", title, { shouldValidate: true }); // <-- Use setValue from useForm
                         setCourseSearch(title);
                         setShowCourseDropdown(false);
                       }}

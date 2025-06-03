@@ -275,13 +275,16 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
             <div className="text-xs text-blue-700 dark:text-blue-300">
               <p className="font-medium mb-1">What's included:</p>
               <ul className="space-y-1">
+                <li>• Tuition Fee</li>
+                <li>• Exam Fee</li>
                 <li>• Course access and materials</li>
                 <li>• Instructor support</li>
                 {cartItems.some(item => getCourseDetails(item.courseId)?.certificate) && (
-                  <li>• Certificate of completion</li>
+                  <li>• International certificate of completion</li>
                 )}
+                <li>• 3 Refreshments daily</li>
                 {cartItems.some(item => getCourseDetails(item.courseId)?.accessType === "Lifetime") && (
-                  <li>• Lifetime access</li>
+                  <li>• 1 month post training material access</li>
                 )}
               </ul>
               {tax > 0 && (
