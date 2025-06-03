@@ -95,7 +95,7 @@ function PaymentCallbackContent() {
             if (isNewUrlReference || needsFreshVerificationCycle) {
                 console.log(`EFFECT 1: Initiating new verification cycle for URL ref: ${paymentReferenceFromUrl}. isNewUrlReference: ${isNewUrlReference}, needsFreshVerificationCycle: ${needsFreshVerificationCycle}`);
                 dispatch(resetPaymentState());
-                //dispatch(resetCheckout()); // << Reset checkout state for a new/fresh cycle
+                dispatch(resetCheckout()); // << Reset checkout state for a new/fresh cycle
                 setProcessingAttemptedForCurrentPaymentRef(false);
                 setLastProcessedPaymentRefFromUrl(paymentReferenceFromUrl);
                 dispatch(verifyPayment({ reference: paymentReferenceFromUrl }));
@@ -132,7 +132,7 @@ function PaymentCallbackContent() {
 
                 if ((isReadyForNewFetch || isDifferentInvoiceNeeded) && invoiceFetchStatus !== 'loading') {
                     console.log('EFFECT 2: Dispatching getInvoiceById for paymentInvoiceId:', paymentInvoiceId);
-                    toast({ title: "Payment Verified", description: "Fetching invoice details..."});
+                    toast({ title: "Payment Verified", description: "Fetching invoice details..." });
                     dispatch(getInvoiceById(paymentInvoiceId));
                 } else {
                     console.log("EFFECT 2: Conditions to fetch invoice NOT met. isReadyForNewFetch:", isReadyForNewFetch, "isDifferentInvoiceNeeded:", isDifferentInvoiceNeeded, "invoiceFetchStatus:", invoiceFetchStatus);
@@ -198,12 +198,12 @@ function PaymentCallbackContent() {
                     .then((enrolmentResponse) => {
                         toast({ variant: "success", title: "Enrolment Successful!", description: enrolmentResponse.message || `You're now enroled!` });
                         dispatch(clearCart());
-                        //dispatch(resetCheckout());
+                        dispatch(resetCheckout());
                         router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}&invoice=${currentInvoice.id}`);
                     })
                     .catch((enrolmentErrorMsg) => {
                         toast({ variant: "destructive", title: "Enrolment Failed After Payment", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support for assistance." });
-                        //dispatch(resetCheckout());
+                        dispatch(resetCheckout());
                         router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_failed&invoice=${currentInvoice.id}`);
                     })
                     .finally(() => {
@@ -213,7 +213,7 @@ function PaymentCallbackContent() {
             } else {
                 toast({ title: "Enrolment Issue", description: "No course items found in the fetched invoice. Please contact support.", variant: "destructive" });
                 console.log("EFFECT 3: Path 1 - No course IDs in invoice. Resetting payment and checkout state.");
-                //dispatch(resetCheckout());
+                dispatch(resetCheckout());
                 dispatch(resetPaymentState());
                 router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=invoice_items_missing&invoice=${currentInvoice.id}`);
             }
@@ -241,7 +241,7 @@ function PaymentCallbackContent() {
             if (courseIdsFromMetadata.length === 0 && !metadata.isCorporate) {
                 toast({ title: "Enrolment Issue", description: "Course items for enrolment not found in payment metadata. Please contact support.", variant: "destructive" });
                 console.log("EFFECT 3: Path 2 - No course IDs in metadata. Resetting payment and checkout state.");
-                //dispatch(resetCheckout()); // << RESET CHECKOUT
+                dispatch(resetCheckout()); // << RESET CHECKOUT
                 dispatch(resetPaymentState());
                 router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_data_missing`);
                 return;
@@ -262,12 +262,12 @@ function PaymentCallbackContent() {
                     .then((enrolmentResponse) => {
                         toast({ variant: "success", title: "Enrolment Successful (from metadata)!", description: enrolmentResponse.message || `You're now enroled!` });
                         dispatch(clearCart());
-                        //dispatch(resetCheckout());
+                        dispatch(resetCheckout());
                         router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}`);
                     })
                     .catch((enrolmentErrorMsg) => {
                         toast({ variant: "destructive", title: "Enrolment Failed (from metadata)", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support for assistance." });
-                        //dispatch(resetCheckout());
+                        dispatch(resetCheckout());
                         router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_failed`);
                     })
                     .finally(() => {
@@ -277,31 +277,45 @@ function PaymentCallbackContent() {
             } else {
                 toast({ title: "Payment Successful (Metadata)", description: "Transaction complete. No specific courses found in metadata to enrol.", variant: "success" });
                 dispatch(clearCart());
-                //dispatch(resetCheckout());
+                dispatch(resetCheckout());
                 console.log("EFFECT 3: Path 2 - No specific courses in metadata. Resetting payment state.");
                 dispatch(resetPaymentState());
                 router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}`);
             }
         }
         // --- Path 3: Payment Verification Failed OR Payment Status from Gateway Not Succeeded ---
-        else if (verificationStatus === 'failed' || (verifiedPaymentDetails && verifiedPaymentDetails.status !== 'succeeded')) {
-            console.log("EFFECT 3: Path 3 - Payment/Verification failed. VerificationStatus:", verificationStatus, "Payment Status from Gateway:", verifiedPaymentDetails?.status);
+        else if (verificationStatus === 'failed' ||
+            (verifiedPaymentDetails && verifiedPaymentDetails.status !== 'succeeded') // <<<< RESTORE THIS LINE
+        ) {
+            console.log("EFFECT 3: Path 3 - Payment/Verification failed OR Gateway status not succeeded. VerificationStatus:", verificationStatus, "Payment Status from Gateway:", verifiedPaymentDetails?.status);
             setProcessingAttemptedForCurrentPaymentRef(true);
 
-            const errorMsg = verificationStatus === 'failed' ?
-                (verificationError || "Could not confirm payment with payment provider.") :
-                `Payment status reported by provider was: ${verifiedPaymentDetails?.status}. Please try again or contact support.`;
-            toast({ title: "Payment Not Successful", description: errorMsg, variant: "destructive" });
-            console.log("EFFECT 3: Path 3 - Payment/Verification failure. Resetting payment and checkout state.");
-            // //dispatch(resetCheckout());
-            dispatch(resetPaymentState());
-            router.replace(`/checkout?payment_status=${verificationStatus === 'failed' ? 'verification_failed' : 'declined'}&ref=${paymentRefForUrl}`);
-        } else {
-            if (verificationStatus === 'succeeded' && verifiedPaymentDetails?.status === 'succeeded' && paymentHasInvoiceId && invoiceFetchStatus === 'loading') {
-                console.log("EFFECT 3: Conditions not met yet - Payment is successful, invoice ID was sought, but invoice is still loading. Waiting for invoice fetch to complete...");
-            } else {
-                console.log("EFFECT 3: Conditions not met for any primary processing path. verificationStatus:", verificationStatus, "paymentStatus:", verifiedPaymentDetails?.status, "invoiceFetchStatus:", invoiceFetchStatus, "currentInvoice:", !!currentInvoice, "paymentHasInvoiceId:", paymentHasInvoiceId);
+            let statusParam = 'declined'; // Default
+            let toastVariant: "destructive" | "warning" | "default" = "destructive";
+            let toastTitle = "Payment Not Successful";
+            let toastDescription = `An issue occurred with your payment.`;
+
+            if (verificationStatus === 'failed') {
+                toastDescription = verificationError || "Could not confirm payment with payment provider.";
+                statusParam = 'verification_failed';
+            } else if (verifiedPaymentDetails) { // Implies verificationStatus was 'succeeded' but payment.status was not
+                toastDescription = `Payment status from provider: ${verifiedPaymentDetails.status}. Please try again or contact support.`;
+                if (verifiedPaymentDetails.status === 'pending') {
+                    statusParam = 'pending_confirmation';
+                    toastVariant = "default";
+                    toastTitle = "Payment Pending";
+                    toastDescription = `Your payment is ${verifiedPaymentDetails.status}. We will notify you of updates. Ref: ${paymentRefForUrl}`;
+                } else {
+                    // For other non-succeeded statuses like 'failed' by gateway
+                    statusParam = 'declined_by_gateway'; // Be more specific if needed
+                }
             }
+
+            toast({ title: toastTitle, description: toastDescription, variant: toastVariant });
+            console.log("EFFECT 3: Path 3 - Resetting payment and checkout state. Redirecting to checkout.");
+            dispatch(resetCheckout()); // Ensure this is called
+            dispatch(resetPaymentState());
+            router.replace(`/checkout?payment_status=${statusParam}&ref=${paymentRefForUrl}`);
         }
     }, [
         verificationStatus,
