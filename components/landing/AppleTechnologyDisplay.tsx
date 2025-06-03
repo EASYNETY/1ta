@@ -1181,7 +1181,7 @@ export function AppleTechnologyDisplay() {
       {/* Apple-style segmented control */}
       <div className="flex justify-center mb-8">
         <div className="inline-flex bg-card/5 backdrop-blur-sm rounded-full p-1 border border-border/50">
-          <button
+          {/* <button
             className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === 'current'
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
@@ -1189,7 +1189,7 @@ export function AppleTechnologyDisplay() {
             onClick={() => setActiveTab('current')}
           >
             Current Courses
-          </button>
+          </button> */}
           <button
             className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 ${activeTab === 'future'
                 ? 'bg-primary text-primary-foreground shadow-sm'

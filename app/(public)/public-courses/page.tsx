@@ -269,7 +269,7 @@ export default function PublicCoursesPage() {
       <div className="py-12">
         <div className="flex flex-col items-center mb-8">
           <GraduationCap className="h-10 w-10 text-primary mb-3" />
-          <h1 className="text-3xl font-bold text-center">Explore Our Courses</h1>
+          <h1 className="text-3xl font-bold text-center">Explore Our Available  Courses</h1>
           <p className="text-muted-foreground text-center mt-4 max-w-2xl">
             Browse through our comprehensive catalog of tech courses designed to help you advance your career.
           </p>
