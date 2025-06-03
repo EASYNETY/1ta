@@ -52,6 +52,9 @@ export default function PaymentHistoryPage() {
             case "admin":
                 // Admin table handles its own loading/error/empty states internally
                 return <AdminPaymentsTable />
+            case "super_admin":
+                // Admin table handles its own loading/error/empty states internally
+                return <AdminPaymentsTable />
             case "student":
                 if (isLoading) {
                     return (
@@ -87,7 +90,7 @@ export default function PaymentHistoryPage() {
                 return (
                     <div className="text-center py-10 border rounded-lg bg-card">
                         <LifeBuoy className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                        <p className="text-muted-foreground">Payment history is not applicable for your role.</p>
+                        <p className="text-muted-foreground">Payment history is not applicable for your role, {user.role}</p>
                     </div>
                 )
         }
