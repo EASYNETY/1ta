@@ -95,7 +95,7 @@ function PaymentCallbackContent() {
             if (isNewUrlReference || needsFreshVerificationCycle) {
                 console.log(`EFFECT 1: Initiating new verification cycle for URL ref: ${paymentReferenceFromUrl}. isNewUrlReference: ${isNewUrlReference}, needsFreshVerificationCycle: ${needsFreshVerificationCycle}`);
                 dispatch(resetPaymentState());
-                dispatch(resetCheckout()); // << Reset checkout state for a new/fresh cycle
+                //dispatch(resetCheckout()); // << Reset checkout state for a new/fresh cycle
                 setProcessingAttemptedForCurrentPaymentRef(false);
                 setLastProcessedPaymentRefFromUrl(paymentReferenceFromUrl);
                 dispatch(verifyPayment({ reference: paymentReferenceFromUrl }));
@@ -198,12 +198,12 @@ function PaymentCallbackContent() {
                     .then((enrolmentResponse) => {
                         toast({ variant: "success", title: "Enrolment Successful!", description: enrolmentResponse.message || `You're now enroled!` });
                         dispatch(clearCart());
-                        dispatch(resetCheckout());
+                        //dispatch(resetCheckout());
                         router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}&invoice=${currentInvoice.id}`);
                     })
                     .catch((enrolmentErrorMsg) => {
                         toast({ variant: "destructive", title: "Enrolment Failed After Payment", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support for assistance." });
-                        dispatch(resetCheckout());
+                        //dispatch(resetCheckout());
                         router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_failed&invoice=${currentInvoice.id}`);
                     })
                     .finally(() => {
@@ -213,7 +213,7 @@ function PaymentCallbackContent() {
             } else {
                 toast({ title: "Enrolment Issue", description: "No course items found in the fetched invoice. Please contact support.", variant: "destructive" });
                 console.log("EFFECT 3: Path 1 - No course IDs in invoice. Resetting payment and checkout state.");
-                dispatch(resetCheckout());
+                //dispatch(resetCheckout());
                 dispatch(resetPaymentState());
                 router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=invoice_items_missing&invoice=${currentInvoice.id}`);
             }
@@ -241,7 +241,7 @@ function PaymentCallbackContent() {
             if (courseIdsFromMetadata.length === 0 && !metadata.isCorporate) {
                 toast({ title: "Enrolment Issue", description: "Course items for enrolment not found in payment metadata. Please contact support.", variant: "destructive" });
                 console.log("EFFECT 3: Path 2 - No course IDs in metadata. Resetting payment and checkout state.");
-                dispatch(resetCheckout()); // << RESET CHECKOUT
+                //dispatch(resetCheckout()); // << RESET CHECKOUT
                 dispatch(resetPaymentState());
                 router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_data_missing`);
                 return;
@@ -262,12 +262,12 @@ function PaymentCallbackContent() {
                     .then((enrolmentResponse) => {
                         toast({ variant: "success", title: "Enrolment Successful (from metadata)!", description: enrolmentResponse.message || `You're now enroled!` });
                         dispatch(clearCart());
-                        dispatch(resetCheckout());
+                        //dispatch(resetCheckout());
                         router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}`);
                     })
                     .catch((enrolmentErrorMsg) => {
                         toast({ variant: "destructive", title: "Enrolment Failed (from metadata)", description: typeof enrolmentErrorMsg === 'string' ? enrolmentErrorMsg : "Contact support for assistance." });
-                        dispatch(resetCheckout());
+                        //dispatch(resetCheckout());
                         router.replace(`/payments/${verifiedPaymentDetails.id}/receipt?status=enrolment_failed`);
                     })
                     .finally(() => {
@@ -277,7 +277,7 @@ function PaymentCallbackContent() {
             } else {
                 toast({ title: "Payment Successful (Metadata)", description: "Transaction complete. No specific courses found in metadata to enrol.", variant: "success" });
                 dispatch(clearCart());
-                dispatch(resetCheckout());
+                //dispatch(resetCheckout());
                 console.log("EFFECT 3: Path 2 - No specific courses in metadata. Resetting payment state.");
                 dispatch(resetPaymentState());
                 router.replace(`/dashboard?payment_success=true&ref=${paymentRefForUrl}`);
@@ -293,7 +293,7 @@ function PaymentCallbackContent() {
                 `Payment status reported by provider was: ${verifiedPaymentDetails?.status}. Please try again or contact support.`;
             toast({ title: "Payment Not Successful", description: errorMsg, variant: "destructive" });
             console.log("EFFECT 3: Path 3 - Payment/Verification failure. Resetting payment and checkout state.");
-            // dispatch(resetCheckout());
+            // //dispatch(resetCheckout());
             dispatch(resetPaymentState());
             router.replace(`/checkout?payment_status=${verificationStatus === 'failed' ? 'verification_failed' : 'declined'}&ref=${paymentRefForUrl}`);
         } else {
