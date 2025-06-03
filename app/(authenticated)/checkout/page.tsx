@@ -131,6 +131,11 @@ export default function CheckoutPage() {
                 });
                 router.push("/cart");
             } else {
+                toast({
+                    title: "Cart Empty",
+                    description: "Please return to courses to add a course",
+                    variant: "default",
+                });
                 router.push("/courses"); // Cart is empty, no invoice
             }
             return;
