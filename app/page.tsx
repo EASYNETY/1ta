@@ -279,7 +279,7 @@ export default function LandingPage() {
 
           <div className="px-4 md:px-6 relative">
             <SectionHeader
-              title="Explore Our Courses"
+              title="Explore Our Available Courses"
               description="Unlock your potential with industry-leading tech courses taught by experts."
             />
             <CoursesSection />

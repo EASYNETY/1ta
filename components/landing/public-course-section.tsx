@@ -84,7 +84,7 @@ export function CoursesSection() {
         return (
             <section className="container py-16 md:py-24 space-y-12">
                 <SectionHeader
-                    title="Explore Our Courses"
+                    title="Explore Our Available Courses"
                     description="Unlock your potential with industry-leading tech courses taught by experts."
                 />
                 <div>

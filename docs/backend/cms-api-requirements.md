@@ -108,7 +108,7 @@ We need API endpoints to manage the following public pages through our CMS:
       "enabled": true,
       "order": 4,
       "data": {
-        "title": "Explore Our Courses",
+        "title": "Explore Our Available Courses",
         "description": "Professional training programs"
       }
     },

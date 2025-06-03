@@ -1211,8 +1211,9 @@ export function AppleTechnologyDisplay() {
 
       {/* Technology display - Marquee on small screens, grid on larger screens */}
       <AnimatePresence mode="wait">
-        {activeTab === 'current' ? (
-          <motion.div
+        {/* {activeTab === 'future' ? ( */}
+        {/* Commented out current course grid, only show future courses */}
+        {/*   <motion.div
             key="current-grid"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1227,9 +1228,8 @@ export function AppleTechnologyDisplay() {
                 onClick={() => handleIconClick(course)}
               />
             ))}
-          </motion.div>
-
-        ) : (
+          </motion.div> */}
+        {/* ) : ( */}
           <motion.div
             key="future-grid"
             initial={{ opacity: 0, y: 20 }}
@@ -1246,7 +1246,7 @@ export function AppleTechnologyDisplay() {
               />
             ))}
           </motion.div>
-        )}
+        {/* )} */}
       </AnimatePresence>
 
       {/* Course Details Modal */}
