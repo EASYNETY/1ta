@@ -44,19 +44,42 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
- * Generates a receipt number if one doesn't exist
- * @param payment Payment record
- * @returns Receipt number
+ * Generates a receipt number if one doesn't exist, or provides a fallback.
+ * @param payment Payment record (can be null or undefined)
+ * @param fallbackId A fallback ID to use if payment is not available (e.g., paymentId from UnifiedReceiptData)
+ * @returns Receipt number string or a fallback
  */
-export const getReceiptNumber = (payment: PaymentRecord): string => {
-	if (payment.receiptNumber) return payment.receiptNumber;
+export const getReceiptNumber = (
+	payment: PaymentRecord | null | undefined,
+	fallbackId?: string
+): string => {
+	if (payment && payment.receiptNumber) {
+		return payment.receiptNumber;
+	}
 
-	// Generate a receipt number based on payment ID and date
-	const date = new Date(payment.createdAt);
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
+	if (payment && payment.id && payment.createdAt) {
+		// Generate a receipt number based on payment ID and date
+		try {
+			const date = new Date(payment.createdAt);
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, "0");
+			const day = String(date.getDate()).padStart(2, "0");
+			// Ensure payment.id is a string before calling replace
+			const paymentIdDigits =
+				typeof payment.id === "string" ? payment.id.replace(/[^0-9]/g, "") : "";
+			return `RCPT-${paymentIdDigits}-${year}${month}${day}`;
+		} catch (e) {
+			// Fallback if date parsing or other operations fail
+			return fallbackId
+				? `RCPT-${fallbackId.substring(0, 8).toUpperCase()}`
+				: "RCPT-N/A";
+		}
+	}
 
-	return `RCPT-${payment.id.replace(/[^0-9]/g, "")}-${year}${month}${day}`;
+	// If payment is null/undefined or lacks necessary fields, use fallbackId or a generic N/A
+	if (fallbackId) {
+		return `RCPT-${fallbackId.substring(0, 8).toUpperCase()}`;
+	}
+
+	return "RCPT-N/A"; // Ultimate fallback
 };
-

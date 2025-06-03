@@ -9,7 +9,8 @@ import type {
 	VerifyPaymentResponse,
 	CreateInvoiceResponse, // Assumed to be 'Invoice' type
 	CreateInvoicePayload,
-	Invoice, // Assuming Invoice type is imported or defined
+	Invoice,
+	UnifiedReceiptData, // Assuming Invoice type is imported or defined
 	// InvoiceItem, // If needed separately
 } from "../types/payment-types"; // Make sure Invoice is exported from here
 import { get, post } from "@/lib/api-client";
@@ -525,6 +526,126 @@ export const selectCourseIdsFromCurrentInvoice = (
 	return [];
 };
 
+// features/payment/store/payment-slice.ts
+// ... (imports, other types, ensure InvoiceItem is defined correctly for UnifiedReceiptData.items)
+
+export const selectUnifiedReceiptData = (
+	state: RootState
+): UnifiedReceiptData | null => {
+	const payment = state.paymentHistory.selectedPayment;
+	const invoice = state.paymentHistory.currentInvoice;
+
+	if (!payment) {
+		return null; // Essential payment data is missing
+	}
+
+	// Initialize with payment data
+	const receiptData: UnifiedReceiptData = {
+		paymentId: payment.id,
+		paymentDate: payment.createdAt,
+		paymentStatus: payment.status,
+		paymentAmount: payment.amount,
+		paymentCurrency: payment.currency,
+		paymentMethod: payment.provider,
+		paymentProviderReference: payment.providerReference || undefined,
+		studentName: payment.userName, // Fallback from payment
+		studentEmail: undefined,
+		billingDetails: payment.billingDetails || null,
+		items: [], // Default empty, will be populated below
+		originalPaymentRecord: payment,
+		originalInvoice: null,
+		invoiceId: undefined,
+		invoiceDescription: undefined,
+		invoiceDueDate: undefined,
+		invoiceStatus: undefined,
+	};
+
+	let itemsFound = false;
+
+	// Priority 1: Use items from a matched and valid Invoice
+	if (
+		invoice &&
+		payment.invoiceId &&
+		invoice.id === payment.invoiceId &&
+		invoice.items &&
+		invoice.items.length > 0
+	) {
+		receiptData.invoiceId = invoice.id;
+		receiptData.invoiceDescription = invoice.description;
+		receiptData.invoiceDueDate = invoice.dueDate;
+		receiptData.invoiceStatus = invoice.status;
+		receiptData.items = invoice.items.map((item) => ({
+			description: item.description,
+			amount: item.amount,
+			quantity: item.quantity,
+			courseId: item.courseId,
+		}));
+		if (invoice.student) {
+			receiptData.studentName = invoice.student.name;
+			receiptData.studentEmail = invoice.student.email;
+		}
+		receiptData.originalInvoice = invoice;
+		itemsFound = true;
+	}
+
+	// Priority 2: If no invoice items, check PaymentRecord.receiptItems
+	if (!itemsFound && payment.receiptItems && payment.receiptItems.length > 0) {
+		receiptData.items = payment.receiptItems.map((pItem) => ({
+			description: pItem.name,
+			amount: pItem.unitPrice,
+			quantity: pItem.quantity,
+			courseId: pItem.id, // Or map differently if pItem.id is not a courseId equivalent
+		}));
+		if (!receiptData.invoiceDescription) {
+			// Only set if not already set by a matched invoice
+			receiptData.invoiceDescription =
+				payment.description || "Payment for items listed";
+		}
+		itemsFound = true;
+	}
+
+	// Priority 3: Fallback to a single summary item based on payment.description
+	if (!itemsFound && payment.description && payment.amount > 0) {
+		receiptData.items.push({
+			description: payment.description,
+			amount: payment.amount,
+			quantity: 1,
+			courseId: payment.relatedItemIds?.[0]?.id || "SUMMARY_PAYMENT_DESC",
+		});
+		if (!receiptData.invoiceDescription) {
+			// Only set if not already set
+			receiptData.invoiceDescription = payment.description;
+		}
+		itemsFound = true;
+	}
+
+	// Priority 4: ENSURE AT LEAST ONE ITEM - The "Catch-All" Item
+	// This runs if itemsFound is still false (meaning no items from invoice, payment.receiptItems, or payment.description)
+	if (!itemsFound) {
+		receiptData.items.push({
+			description:
+				receiptData.invoiceDescription || // Use invoice desc if it was set (e.g. from a matched invoice that had 0 items)
+				"Payment for services/products", // Generic fallback description
+			amount: payment.amount, // The total payment amount becomes the single item's amount
+			quantity: 1,
+			courseId: "GENERIC_SUMMARY_ITEM", // Placeholder courseId
+		});
+		// Ensure invoiceDescription has a value if it's still undefined
+		if (!receiptData.invoiceDescription) {
+			receiptData.invoiceDescription = "Payment for services/products";
+		}
+	}
+
+	// If invoiceDescription is still not set (e.g. invoice was matched but had no description)
+	// and items were populated from payment.receiptItems or payment.description,
+	// ensure invoiceDescription reflects the most relevant summary.
+	// This is slightly redundant with the above but ensures invoiceDescription is sensible.
+	if (!receiptData.invoiceDescription && receiptData.items.length > 0) {
+		receiptData.invoiceDescription = receiptData.items[0].description;
+	}
+
+	return receiptData;
+};
 // Invoice selectors
 export const selectCurrentInvoice = (
 	state: RootState // This now serves for created or fetched invoice

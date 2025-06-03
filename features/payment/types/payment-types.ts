@@ -241,3 +241,30 @@ export interface PaymentHistoryState {
 	invoiceFetchStatus: "idle" | "loading" | "succeeded" | "failed";
 	invoiceFetchError: string | null;
 }
+
+export interface UnifiedReceiptData {
+	paymentId: string;
+	paymentDate: string;
+	paymentStatus: PaymentRecord["status"]; // Use PaymentRecord's status type
+	paymentAmount: number;
+	paymentCurrency: string;
+	paymentMethod?: string;
+	paymentProviderReference?: string; // Renamed for clarity from paymentReference
+
+	invoiceId?: string | null;
+	invoiceDescription?: string;
+	invoiceDueDate?: string;
+	invoiceStatus?: Invoice["status"]; // Use Invoice's status type
+
+	studentName?: string;
+	studentEmail?: string;
+	// Add billing details if you want to pull them from PaymentRecord and display
+	billingDetails?: BillingDetails | null; // From PaymentRecord
+
+	// This should come from the invoice's items
+	items: InvoiceItem[]; // Or your defined InvoiceItem type
+
+	// Original PaymentRecord fields if needed for specific fallbacks or direct access
+	originalPaymentRecord?: PaymentRecord | null;
+	originalInvoice?: Invoice | null; // If you want to pass the raw invoice too
+}

@@ -292,7 +292,8 @@ function ProgressCard({
         <Progress
           value={value}
           className="h-2"
-          indicatorClassName={colorClasses.progress}
+          // @ts-ignore
+          indicatorclassname={colorClasses.progress}
         />
       </CardContent>
 
