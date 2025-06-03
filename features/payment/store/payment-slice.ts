@@ -10,7 +10,10 @@ import type {
 	CreateInvoiceResponse, // Assumed to be 'Invoice' type
 	CreateInvoicePayload,
 	Invoice,
-	UnifiedReceiptData, // Assuming Invoice type is imported or defined
+	UnifiedReceiptData,
+	PaginatedPaymentItemFromApi,
+	PaginatedPaymentsApiResponse,
+	FetchMyHistoryThunkResponse, // Assuming Invoice type is imported or defined
 	// InvoiceItem, // If needed separately
 } from "../types/payment-types"; // Make sure Invoice is exported from here
 import { get, post } from "@/lib/api-client";
@@ -32,8 +35,10 @@ interface FetchMyHistoryParams {
 	page?: number;
 	limit?: number;
 }
+
+// fetchMyPaymentHistory thunk now resolves with FetchMyHistoryThunkResponse (transformed data)
 export const fetchMyPaymentHistory = createAsyncThunk<
-	PaginatedPaymentsData,
+	FetchMyHistoryThunkResponse, // << Resolves with transformed data
 	FetchMyHistoryParams,
 	{ rejectValue: string }
 >(
@@ -41,8 +46,13 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 	async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
 			const query = `userId=${userId}&page=${page}&limit=${limit}`;
-			const responseData = await get<PaginatedPaymentsData>(
+			// Expect the raw API structure from the 'get' call
+			const responseData = await get<PaginatedPaymentsApiResponse>(
 				`/payments/user/history?${query}`
+			);
+			console.log(
+				"fetchMyPaymentHistory THUNK: Raw API response:",
+				responseData
 			);
 
 			if (
@@ -50,10 +60,55 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 				Array.isArray(responseData.payments) &&
 				responseData.pagination
 			) {
-				return responseData;
+				// Transform PaginatedPaymentItemFromApi to PaymentRecord[] HERE
+				const transformedPayments: PaymentRecord[] = responseData.payments.map(
+					(apiPayment: PaginatedPaymentItemFromApi): PaymentRecord => ({
+						id: apiPayment.id,
+						userId: apiPayment.userId,
+						userName: apiPayment.userName,
+						amount: parseFloat(apiPayment.amount), // Convert string to number
+						currency: apiPayment.currency,
+						status: apiPayment.status,
+						provider: apiPayment.provider,
+						providerReference: apiPayment.provider_reference || "", // Handle null & snake_case
+						// Use invoice_description as primary, fallback to payment's own description
+						description:
+							apiPayment.invoice_description || apiPayment.description || "N/A",
+						createdAt: apiPayment.created_at, // Handle snake_case
+						// updatedAt: apiPayment.updated_at, // Handle snake_case
+						invoiceId: apiPayment.invoice_id || null, // Handle snake_case
+						// invoiceAmount: apiPayment.invoice_amount
+						// 	? parseFloat(apiPayment.invoice_amount)
+						// 	: null,
+						// invoiceDescription: apiPayment.invoice_description || null,
+						// invoiceStatus: apiPayment.invoice_status || null,
+						// Ensure all other PaymentRecord fields are mapped or defaulted
+						gatewayRef: undefined, // Example: if not in PaginatedPaymentItemFromApi
+						transactionId: undefined,
+						reconciliationStatus: undefined,
+						relatedItemIds: [],
+						cardType: undefined,
+						last4: undefined,
+						receiptNumber: undefined,
+						receiptItems: [],
+						billingDetails: undefined,
+						metadata: undefined,
+						providerMetadata: undefined,
+						transactionMetadata: undefined,
+					})
+				);
+
+				console.log(
+					"fetchMyPaymentHistory THUNK: Transformed payments:",
+					transformedPayments
+				);
+				return {
+					payments: transformedPayments,
+					pagination: responseData.pagination,
+				};
 			}
 			console.warn(
-				"fetchMyPaymentHistory: Unexpected data structure from API client. Got:",
+				"fetchMyPaymentHistory: Unexpected data structure from API. Got:",
 				responseData
 			);
 			throw new Error(
@@ -64,6 +119,7 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 				e.response?.data?.message ||
 				e.message ||
 				"Failed to fetch payment history";
+			console.error("fetchMyPaymentHistory THUNK: Error:", errorMessage, e);
 			return rejectWithValue(errorMessage);
 		}
 	}
@@ -409,10 +465,12 @@ const paymentHistorySlice = createSlice({
 			})
 			.addCase(
 				fetchMyPaymentHistory.fulfilled,
-				(state, action: PayloadAction<PaginatedPaymentsData>) => {
+				(state, action: PayloadAction<FetchMyHistoryThunkResponse>) => {
 					state.status = "succeeded";
+					// Payload now contains already transformed PaymentRecord[]
 					state.myPayments = action.payload.payments;
 					state.myPaymentsPagination = {
+						// Ensure PaginationMeta field names match
 						totalItems: action.payload.pagination.total,
 						limit: action.payload.pagination.limit,
 						currentPage: action.payload.pagination.page,

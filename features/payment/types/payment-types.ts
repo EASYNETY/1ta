@@ -95,6 +95,7 @@ export interface PaymentRecord {
 	reconciliationStatus?: "pending" | "reconciled" | "disputed" | "failed";
 	description: string;
 	createdAt: string;
+	// updatedAt: string;
 	relatedItemIds?: { type: "course" | "other"; id: string }[];
 	cardType?: string;
 	last4?: string;
@@ -106,6 +107,49 @@ export interface PaymentRecord {
 	transactionMetadata?: Record<string, any>;
 	invoiceId?: string | null;
 	invoice_id?: string | null;
+}
+
+// --- API Response Structures for Payment History ---
+// Represents a single payment item AS RETURNED BY THE /payments/user/history API
+export interface PaginatedPaymentItemFromApi {
+	id: string;
+	userId: string;
+	userName?: string; // Assuming API might send this for admin views, or it's added later
+	amount: string; // STRING from API
+	currency: string;
+	status: PaymentRecord["status"];
+	provider: PaymentRecord["provider"];
+	provider_reference: string | null; // snake_case from API
+	description: string | null; // Payment's own description, might be null
+	created_at: string; // snake_case from API
+	updated_at: string; // snake_case from API
+	invoice_id: string | null; // snake_case from API
+	invoice_amount?: string | null; // STRING from API
+	invoice_description?: string | null;
+	invoice_status?: Invoice["status"] | null;
+	// Add any other fields directly on the payment object from this API endpoint
+}
+
+export interface PaginatedPaymentsApiResponse {
+	payments: PaginatedPaymentItemFromApi[];
+	pagination: {
+		total: number;
+		page: number;
+		limit: number;
+		totalPages: number; // API response has totalPages
+	};
+	// };
+}
+
+// Just to be explicit for the thunk's fulfilled action:
+export interface FetchMyHistoryThunkResponse {
+	payments: PaymentRecord[]; // The thunk will resolve with already transformed payments
+	pagination: {
+		total: number;
+		page: number;
+		limit: number;
+		totalPages: number;
+	};
 }
 // --- Payment Flow Types ---
 export interface InitiatePaymentPayload {
