@@ -25,7 +25,7 @@ import { ScheduleTab } from "@/components/dashboard/schedule-tab";
 import { ProgressOverview } from "@/components/dashboard/progress-overview";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
-import { isStudent } from "@/types/user.types";
+import { isAccounting, isStudent } from "@/types/user.types";
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -74,6 +74,10 @@ export default function DashboardPage() {
         if (isInitialized && user && isStudent(user) && user.isCorporateManager) {
             console.log("Dashboard: Redirecting Corporate Manager to /corporate-management");
             router.replace("/corporate-management");
+        }
+        if (isInitialized && user && isAccounting(user)) {
+            console.log("Dashboard: Redirecting Accountant to /accounting/dashboard");
+            router.replace("/accounting/dashboard");
         }
     }, [user, isInitialized, router]);
 
