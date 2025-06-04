@@ -1,5 +1,3 @@
-// features/payment/components/AccountingQuickActions.tsx
-
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -38,6 +36,33 @@ export function AccountingQuickActions() {
         exportComprehensiveAccountingReport(courseRevenues, paymentMethods, monthlyRevenue)
     }
 
+    const actions = [
+        {
+            icon: BarChart3,
+            title: "Course Revenue",
+            description: "Export course data",
+            onClick: handleExportCourseRevenue,
+        },
+        {
+            icon: CreditCard,
+            title: "Payment Methods",
+            description: "Export payment data",
+            onClick: handleExportPaymentMethods,
+        },
+        {
+            icon: Calculator,
+            title: "Monthly Trends",
+            description: "Export trend data",
+            onClick: handleExportMonthlyRevenue,
+        },
+        {
+            icon: FileText,
+            title: "Full Report",
+            description: "Export everything",
+            onClick: handleExportComprehensive,
+        },
+    ]
+
     return (
         <Card>
             <CardHeader>
@@ -45,54 +70,25 @@ export function AccountingQuickActions() {
                 <CardDescription>Common accounting tasks and reports</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Button
-                        variant="outline"
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
-                        onClick={handleExportCourseRevenue}
-                    >
-                        <BarChart3 className="h-8 w-8" />
-                        <div className="text-center">
-                            <p className="font-medium">Course Revenue</p>
-                            <p className="text-sm text-muted-foreground">Export course data</p>
-                        </div>
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
-                        onClick={handleExportPaymentMethods}
-                    >
-                        <CreditCard className="h-8 w-8" />
-                        <div className="text-center">
-                            <p className="font-medium">Payment Methods</p>
-                            <p className="text-sm text-muted-foreground">Export payment data</p>
-                        </div>
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
-                        onClick={handleExportMonthlyRevenue}
-                    >
-                        <Calculator className="h-8 w-8" />
-                        <div className="text-center">
-                            <p className="font-medium">Monthly Trends</p>
-                            <p className="text-sm text-muted-foreground">Export trend data</p>
-                        </div>
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
-                        onClick={handleExportComprehensive}
-                    >
-                        <FileText className="h-8 w-8" />
-                        <div className="text-center">
-                            <p className="font-medium">Full Report</p>
-                            <p className="text-sm text-muted-foreground">Export everything</p>
-                        </div>
-                    </Button>
+                {/* Mobile: Stack vertically, Tablet: 2 columns, Desktop: 4 columns */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+                    {actions.map((action, index) => {
+                        const IconComponent = action.icon
+                        return (
+                            <Button
+                                key={index}
+                                variant="outline"
+                                className="h-auto min-h-[100px] p-4 flex flex-col items-center justify-center space-y-3 hover:bg-accent/50 transition-colors"
+                                onClick={action.onClick}
+                            >
+                                <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                                <div className="text-center space-y-1">
+                                    <p className="font-medium text-sm sm:text-base leading-tight">{action.title}</p>
+                                    <p className="text-xs sm:text-sm text-muted-foreground leading-tight">{action.description}</p>
+                                </div>
+                            </Button>
+                        )
+                    })}
                 </div>
             </CardContent>
         </Card>
