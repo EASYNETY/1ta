@@ -56,7 +56,9 @@ export interface NavItem {
 // --- Define Navigation Items based on 1Tech Academy Docs ---
 // Primary Student/Teacher Items
 export const primaryNavItems: NavItem[] = [
-    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "teacher", "student",'customer_care','accounting'] },
+    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "teacher", "student",] },
+    { title: "Dashboard", href: "/accounting/dashboard", icon: LayoutDashboard, roles: ['accounting'] },
+    { title: "Dashboard", href: "/customer-care/dashboard", icon: LayoutDashboard, roles: ['customer_care'] },
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", "super_admin", "admin"] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
@@ -81,7 +83,7 @@ export const adminNavItems: NavItem[] = [
 // Accounting Specific Items
 export const accountingNavItems: NavItem[] = [
     { title: "Payment History", href: "/payments", icon: Money, roles: ["accounting"] },
-    { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["accounting"] }, // Only super admin
+    { title: "Analytics", href: "/accounting/analytics", icon: BarChart3, roles: ["accounting"] }, // Only super admin
     // { title: "Reconciliation", href: "/accounting/reconciliation", icon: CheckCircle, roles: ["accounting"] },
 ];
 

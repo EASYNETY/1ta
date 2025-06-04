@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Download, Filter, Search } from "lucide-react";
+import { Building, Download, Filter, Search } from "lucide-react";
 import { fetchStudentBiodataReports } from "@/features/analytics/store/report-thunks";
 import { selectStudentBiodataReports } from "@/features/analytics/store/reports-slice";
 import { exportStudentBiodataReports } from "@/features/analytics/utils/export-utils";

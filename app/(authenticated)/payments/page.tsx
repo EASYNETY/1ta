@@ -1,10 +1,12 @@
+// app/(authenticated)/payments/page.tsx
+
 "use client"
 
 import { useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangle, CreditCard, LifeBuoy } from "lucide-react"
+import { AlertTriangle, BarChart3, CreditCard, LifeBuoy } from "lucide-react"
 import {
     fetchMyPaymentHistory,
     selectMyPayments,
@@ -14,6 +16,8 @@ import {
 } from "@/features/payment/store/payment-slice"
 import { PaymentListItem } from "@/features/payment/components/payment-list-item"
 import AdminPaymentsTable from "@/features/payment/components/admin-payments-table"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function PaymentHistoryPage() {
     const dispatch = useAppDispatch()
@@ -50,14 +54,30 @@ export default function PaymentHistoryPage() {
         // Role-based rendering
         switch (user.role) {
             case "admin":
-                // Admin table handles its own loading/error/empty states internally
-                return <AdminPaymentsTable />
             case "super_admin":
-                // Admin table handles its own loading/error/empty states internally
-                return <AdminPaymentsTable />
             case "accounting":
-                // Admin table handles its own loading/error/empty states internally
-                return <AdminPaymentsTable />
+                return (
+                    <>
+                        {/* Analytics Link for Admin/Accounting Users */}
+                        <div className="mb-4 flex justify-between items-center flex-wrap gap-4">
+                            <div className="flex gap-2">
+                                <Link href="/accounting/dashboard">
+                                    <Button variant="outline">
+                                        <BarChart3 className="mr-2 h-4 w-4" />
+                                        Accounting Dashboard
+                                    </Button>
+                                </Link>
+                                <Link href="/accounting/analytics">
+                                    <Button variant="outline">
+                                        <BarChart3 className="mr-2 h-4 w-4" />
+                                        Financial Analytics
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                        <AdminPaymentsTable />
+                    </>
+                )
             case "student":
                 if (isLoading) {
                     return (
@@ -81,14 +101,12 @@ export default function PaymentHistoryPage() {
                             {myPayments.map((payment) => (
                                 <PaymentListItem key={payment.id} payment={payment} />
                             ))}
-                            {/* TODO: Add Student Pagination controls if needed */}
                         </div>
                     )
                 }
-                return null // Should be covered by loading/error/empty
+                return null
 
             case "teacher":
-            // case "receptionist":
             default:
                 return (
                     <div className="text-center py-10 border rounded-lg bg-card">
@@ -98,6 +116,7 @@ export default function PaymentHistoryPage() {
                 )
         }
     }
+
 
     return (
         <div className="space-y-6">
