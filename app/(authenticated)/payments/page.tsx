@@ -55,6 +55,9 @@ export default function PaymentHistoryPage() {
             case "super_admin":
                 // Admin table handles its own loading/error/empty states internally
                 return <AdminPaymentsTable />
+            case "accounting":
+                // Admin table handles its own loading/error/empty states internally
+                return <AdminPaymentsTable />
             case "student":
                 if (isLoading) {
                     return (
