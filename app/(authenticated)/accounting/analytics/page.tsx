@@ -97,11 +97,22 @@ export default function AccountingAnalytics() {
                 {/* Detailed Course Revenue Analysis */}
                 <CourseRevenueTable data={courseRevenues} isLoading={isLoading} />
 
-                {/* Detailed Charts */}
-                <div className="grid gap-6">
+                {/* Detailed Charts Section */}
+                <div className="
+                    grid
+                    gap-6
+                    grid-cols-1        // Mobile: 1 column (charts stack)
+                    md:grid-cols-2      // Medium screens: 2 columns
+                    xl:grid-cols-3      // Extra Large screens: 3 columns
+                ">
+                    {/*
+                        Each chart component should be designed to be responsive within its grid cell.
+                        The grid provides the column structure.
+                    */}
                     <RevenueTrendsChart data={monthlyRevenue} isLoading={isLoading} />
                     <PaymentMethodsChart data={paymentMethods} isLoading={isLoading} />
                     <CourseRevenueChart data={courseRevenues} isLoading={isLoading} />
+                    {/* If you had more charts, they would flow into this grid structure */}
                 </div>
 
                 {/* Export Actions */}
