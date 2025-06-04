@@ -16,6 +16,7 @@ import {
     GraduationCap,
     CheckCircle,
     UsersThree,
+    Money,
     // FAB Icons are now sourced from fab-config.ts via the hook
 } from "phosphor-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -27,7 +28,7 @@ import { selectChatUnreadCount } from "@/features/chat/store/chatSlice"; // Exam
 // --- Import FAB Hook & Config ---
 import { useFabAction } from "@/hooks/useFabAction"; // Adjusted path
 import { isStudent, User } from "@/types/user.types";
-import { Building, LayoutDashboard } from "lucide-react";
+import { BarChart3, Building, LayoutDashboard } from "lucide-react";
 
 // Interface definitions (MobileNavItems) - Keep as is
 export interface MobileNavItem {
@@ -79,9 +80,11 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
             title: "Discussions",
             href: "/chat",
             icon: UsersThree,
-            roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
+            roles: ["super_admin", "admin", "customer_care", "teacher", "student"],
             hidden: isCorpManager as boolean,
-        }
+        },
+        { title: "Payment History", href: "/payments", icon: Money, roles: ["accounting"] },
+        { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["accounting"] },
     ];
 
     // Filter items

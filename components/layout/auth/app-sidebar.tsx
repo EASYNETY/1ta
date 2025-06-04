@@ -56,7 +56,7 @@ export interface NavItem {
 // --- Define Navigation Items based on 1Tech Academy Docs ---
 // Primary Student/Teacher Items
 export const primaryNavItems: NavItem[] = [
-    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "teacher", "student"] },
+    { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "teacher", "student",'customer_care','accounting'] },
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", "super_admin", "admin"] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
@@ -67,7 +67,7 @@ export const primaryNavItems: NavItem[] = [
 // Admin Specific Items
 export const adminNavItems: NavItem[] = [
     { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["super_admin", "admin"] },
-    { title: "Payments", href: "/payments", icon: Money, roles: ["super_admin", "admin", "accounting"] },
+    { title: "Payments", href: "/payments", icon: Money, roles: ["super_admin", "admin",] },
     { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["super_admin"] }, // Only super admin
     { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin", "customer_care"] },
     {
@@ -80,10 +80,9 @@ export const adminNavItems: NavItem[] = [
 
 // Accounting Specific Items
 export const accountingNavItems: NavItem[] = [
-    { title: "Payment Dashboard", href: "/accounting/dashboard", icon: BarChart3, roles: ["accounting"] },
-    { title: "Payment History", href: "/accounting/payments", icon: Money, roles: ["accounting"] },
-    { title: "Reports", href: "/accounting/reports", icon: FileText, roles: ["accounting"] },
-    { title: "Reconciliation", href: "/accounting/reconciliation", icon: CheckCircle, roles: ["accounting"] },
+    { title: "Payment History", href: "/payments", icon: Money, roles: ["accounting"] },
+    { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["accounting"] }, // Only super admin
+    // { title: "Reconciliation", href: "/accounting/reconciliation", icon: CheckCircle, roles: ["accounting"] },
 ];
 
 // Customer Care Specific Items

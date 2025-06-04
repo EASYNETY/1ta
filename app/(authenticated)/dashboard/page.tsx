@@ -69,21 +69,52 @@ export default function DashboardPage() {
         }
     }, [searchParams, toast, router]); // Add router to dependencies if using router.replace
 
-    // --- Redirect Corporate Manager ---
+    // --- Role-based Redirects ---
     useEffect(() => {
-        if (isInitialized && user && isStudent(user) && user.isCorporateManager) {
-            console.log("Dashboard: Redirecting Corporate Manager to /corporate-management");
-            router.replace("/corporate-management");
+        // Enhanced Debugging Log:
+        // This log will show the state of `isInitialized`, `user`, and relevant role checks
+        // each time this effect runs (e.g., on component mount or when `user`/`isInitialized` changes).
+        console.log(
+            "DashboardPage Role Redirect Effect Check:",
+            {
+                isInitialized,
+                userExists: !!user,
+                userId: user?.id,
+                userRole: user?.role,
+                isUserStudent: user ? isStudent(user) : 'N/A (user null)',
+                isUserCorporateManager: isStudent(user) ? user.isCorporateManager : false,
+                isUserAccounting: user ? isAccounting(user) : 'N/A (user null)',
+                isUserCustomerCare: user ? isCustomerCare(user) : 'N/A (user null)',
+            }
+        );
+
+        if (isInitialized && user) {
+            // Corporate Manager (who is also a student)
+            // This check should be specific. If `isCorporateManager` implies a non-student role, adjust accordingly.
+            if (isStudent(user) && user.isCorporateManager) {
+                console.log("Dashboard: User is Student Corporate Manager. Redirecting to /corporate-management.");
+                router.replace("/corporate-management");
+                return; // Exit after redirect
+            }
+
+            // Accounting
+            if (isAccounting(user)) {
+                console.log("Dashboard: User is Accountant. Redirecting to /accounting/dashboard.");
+                router.replace("/accounting/dashboard");
+                return; // Exit after redirect
+            }
+
+            // Customer Care
+            if (isCustomerCare(user)) {
+                console.log("Dashboard: User is Customer Care. Redirecting to /customer-care/dashboard.");
+                router.replace("/customer-care/dashboard");
+                return; // Exit after redirect
+            }
+
+            // If no role-specific redirect matches, the user stays on the generic dashboard.
+            // This is intended for roles like 'student' (default), 'teacher', 'admin', 'super_admin'.
         }
-        if (isInitialized && user && isAccounting(user)) {
-            console.log("Dashboard: Redirecting Accountant to /accounting/dashboard");
-            router.replace("/accounting/dashboard");
-        }
-        if (isInitialized && user && isCustomerCare(user)) {
-            console.log("Dashboard: Redirecting Customer Care to /customer-care/dashboard");
-            router.replace("/customer-care/dashboard");
-        }
-    }, [user, isInitialized, router]);
+    }, [user, isInitialized, router]); // Dependencies: effect re-runs if these change
 
     // Loading state while checking auth
     if (!isInitialized) {

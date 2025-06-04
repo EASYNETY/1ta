@@ -39,7 +39,7 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				// Dynamically set href based on manager status
 				href: isCorpManager ? "/corporate-management" : "/dashboard",
 				icon: LayoutDashboard,
-				roles: ["super_admin", "admin", "teacher", "student"],
+				roles: ["super_admin", "admin", "teacher", "student", 'accounting'],
 			},
 			{
 				title: "Courses",
