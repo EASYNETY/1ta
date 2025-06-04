@@ -16,7 +16,14 @@ export interface NavItem {
 	title: string;
 	href: string;
 	icon: React.ElementType; // Keep generic React ElementType
-	roles: Array<"super_admin" | "admin" | "accounting" | "customer_care" | "teacher" | "student">;
+	roles: Array<
+		| "super_admin"
+		| "admin"
+		| "accounting"
+		| "customer_care"
+		| "teacher"
+		| "student"
+	>;
 	badgeCount?: number;
 	hidden?: boolean; // Flag to explicitly hide
 	requiredFlags?: Array<"isCorporateManager">; // Flag requirement
@@ -39,7 +46,19 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				// Dynamically set href based on manager status
 				href: isCorpManager ? "/corporate-management" : "/dashboard",
 				icon: LayoutDashboard,
-				roles: ["super_admin", "admin", "teacher", "student", 'accounting'],
+				roles: ["super_admin", "admin", "teacher", "student"],
+			},
+			{
+				title: "Dashboard",
+				href: "/accounting/dashboard",
+				icon: LayoutDashboard,
+				roles: ["accounting"],
+			},
+			{
+				title: "Dashboard",
+				href: "/customer-care/dashboard",
+				icon: LayoutDashboard,
+				roles: ["customer_care"],
 			},
 			{
 				title: "Courses",

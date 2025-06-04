@@ -54,8 +54,10 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
             title: "Dashboard",
             href: isCorpManager ? "/corporate-management" : "/dashboard",
             icon: LayoutDashboard,
-            roles: ["super_admin", "admin", "accounting", "customer_care", "teacher", "student"],
+            roles: ["super_admin", "admin", "teacher", "student"],
         },
+        { title: "Dashboard", href: "/accounting/dashboard", icon: LayoutDashboard, roles: ['accounting'] },
+        { title: "Dashboard", href: "/customer-care/dashboard", icon: LayoutDashboard, roles: ['customer_care'] },
         {
             title: "Courses",
             href: "/courses",
