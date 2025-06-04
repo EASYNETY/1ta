@@ -28,6 +28,7 @@ import {
 } from "@/features/payment/store/accounting-slice"
 
 import { exportComprehensiveAccountingReport } from "@/features/payment/utils/export-utils"
+import { CourseRevenueChart } from "@/features/payment/components/CourseRevenueChart"
 
 export default function AccountingAnalytics() {
     const dispatch = useAppDispatch()
@@ -100,6 +101,7 @@ export default function AccountingAnalytics() {
                 <div className="grid gap-6">
                     <RevenueTrendsChart data={monthlyRevenue} isLoading={isLoading} />
                     <PaymentMethodsChart data={paymentMethods} isLoading={isLoading} />
+                    <CourseRevenueChart data={courseRevenues} isLoading={isLoading} />
                 </div>
 
                 {/* Export Actions */}
