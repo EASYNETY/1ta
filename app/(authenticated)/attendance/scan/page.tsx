@@ -66,7 +66,12 @@ export default function ScanPage() {
     // Effect: User validation
     useEffect(() => {
         if (loggedInUser === undefined) return;
-        if (!loggedInUser || (loggedInUser.role !== "admin" && loggedInUser.role !== "teacher")) {
+        if (!loggedInUser || (
+            loggedInUser.role !== "admin"
+            && loggedInUser.role !== "super_admin"
+            && loggedInUser.role !== "teacher"
+            && loggedInUser.role !== "customer_care"
+        )) {
             toast({ variant: "destructive", title: "Unauthorized", description: "Access denied." });
             router.replace("/dashboard");
             return;
