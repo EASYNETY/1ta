@@ -1,5 +1,3 @@
-// features/payment/components/CourseRevenueTable.tsx
-
 "use client"
 
 import { useState } from "react"
@@ -63,7 +61,7 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
 
     if (isLoading) {
         return (
-            <Card>
+            <Card className="bg-slate-50 dark:bg-slate-950/5">
                 <CardHeader>
                     <CardTitle>Course Revenue</CardTitle>
                     <CardDescription>Revenue breakdown by course</CardDescription>
@@ -79,7 +77,7 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
     }
 
     return (
-        <Card>
+        <Card className="bg-slate-50 dark:bg-slate-950/5">
             <CardHeader>
                 <CardTitle>Course Revenue</CardTitle>
                 <CardDescription>Revenue breakdown by course</CardDescription>

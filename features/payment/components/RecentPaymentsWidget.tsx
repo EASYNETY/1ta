@@ -1,27 +1,29 @@
-// features/payment/components/RecentPaymentsWidget.tsx
-
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAppSelector } from "@/store/hooks"
-import { selectMyPayments, selectPaymentHistoryStatus } from "@/features/payment/store/payment-slice"
+import { selectAllAdminPayments, selectPaymentHistoryStatus } from "@/features/payment/store/payment-slice"
 
 export function RecentPaymentsWidget() {
-    const payments = useAppSelector(selectMyPayments)
+    const payments = useAppSelector(selectAllAdminPayments)
     const status = useAppSelector(selectPaymentHistoryStatus)
     const isLoading = status === "loading"
 
     const getStatusBadge = (status: string) => {
         switch (status) {
             case "succeeded":
-                return <Badge className="bg-green-100 text-green-800">Successful</Badge>
+                return (
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">Successful</Badge>
+                )
             case "pending":
-                return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                return (
+                    <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">Pending</Badge>
+                )
             case "failed":
-                return <Badge className="bg-red-100 text-red-800">Failed</Badge>
+                return <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">Failed</Badge>
             default:
-                return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>
+                return <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400">{status}</Badge>
         }
     }
 
@@ -34,7 +36,7 @@ export function RecentPaymentsWidget() {
     }
 
     return (
-        <Card>
+        <Card className="bg-blue-50 dark:bg-blue-950/5">
             <CardHeader>
                 <CardTitle>Recent Payments</CardTitle>
                 <CardDescription>Latest payment transactions</CardDescription>

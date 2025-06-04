@@ -1,5 +1,3 @@
-// features/payment/components/RevenueTrencChart.tsx
-
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +15,10 @@ interface RevenueTrendsChartProps {
 const chartConfig = {
     revenue: {
         label: "Revenue",
-        color: "oklch(0.7 0.15 77.5)",
+        theme: {
+            light: "oklch(0.646 0.14 77.5)", // Primary color from globals.css
+            dark: "oklch(0.7 0.15 77.5)",
+        },
     },
 }
 
@@ -48,7 +49,7 @@ export function RevenueTrendsChart({ data, isLoading }: RevenueTrendsChartProps)
                 <CardTitle>Revenue Trends</CardTitle>
                 <CardDescription>Monthly revenue overview</CardDescription>
             </CardHeader>
-            <CardContent className="min-h-80 h-auto">
+            <CardContent>
                 {data.length > 0 ? (
                     <ChartContainer config={chartConfig}>
                         <BarChart data={chartData}>

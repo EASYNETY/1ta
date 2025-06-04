@@ -1,5 +1,3 @@
-// features/payment/components/PaymentMethodsChart.tsx
-
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,27 +18,42 @@ interface PaymentMethodsChartProps {
     isLoading: boolean
 }
 
-// Define colors for different payment methods
+// Define colors for different payment methods using the design system
 const chartConfig = {
     paystack: {
         label: "Paystack",
-        color: "oklch(0.7 0.15 77.5)",
+        theme: {
+            light: "oklch(0.646 0.14 77.5)", // Primary
+            dark: "oklch(0.7 0.15 77.5)",
+        },
     },
     stripe: {
         label: "Stripe",
-        color: "hsl(var(--chart-2))",
+        theme: {
+            light: "oklch(0.857 0.188 90)", // Secondary
+            dark: "oklch(0.8 0.16 90)",
+        },
     },
     "bank transfer": {
         label: "Bank Transfer",
-        color: "hsl(var(--chart-3))",
+        theme: {
+            light: "#10B981", // Green
+            dark: "#34D399",
+        },
     },
     corporate: {
         label: "Corporate",
-        color: "hsl(var(--chart-4))",
+        theme: {
+            light: "#8B5CF6", // Purple
+            dark: "#A78BFA",
+        },
     },
     mock: {
         label: "Mock",
-        color: "hsl(var(--chart-5))",
+        theme: {
+            light: "#6B7280", // Gray
+            dark: "#9CA3AF",
+        },
     },
 }
 
@@ -66,8 +79,8 @@ export function PaymentMethodsChart({ data, isLoading }: PaymentMethodsChartProp
         percentage: item.percentage,
         count: item.count,
         fill:
-            chartConfig[item.method.toLowerCase().replace(/\s+/g, "") as keyof typeof chartConfig]?.color ||
-            "hsl(var(--chart-1))",
+            chartConfig[item.method.toLowerCase().replace(/\s+/g, "") as keyof typeof chartConfig]?.theme?.light ||
+            "oklch(0.646 0.14 77.5)",
     }))
 
     return (
@@ -76,7 +89,7 @@ export function PaymentMethodsChart({ data, isLoading }: PaymentMethodsChartProp
                 <CardTitle>Payment Methods</CardTitle>
                 <CardDescription>Distribution of payment methods used</CardDescription>
             </CardHeader>
-            <CardContent className="min-h-80 h-auto">
+            <CardContent>
                 {data.length > 0 ? (
                     <ChartContainer config={chartConfig}>
                         <PieChart>

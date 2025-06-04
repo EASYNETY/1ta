@@ -1,5 +1,3 @@
-// features/payment/components/AccountingDashboardStats.tsx
-
 "use client"
 
 import type React from "react"
@@ -59,8 +57,17 @@ function PaymentStatsCard({
         return val
     }
 
+    // Get background color based on title
+    const getCardClassName = (title: string) => {
+        if (title.includes("Revenue")) return "bg-green-50 dark:bg-green-950/5"
+        if (title.includes("Pending")) return "bg-yellow-50 dark:bg-yellow-950/5"
+        if (title.includes("Reconciled")) return "bg-blue-50 dark:bg-blue-950/5"
+        if (title.includes("Failed")) return "bg-red-50 dark:bg-red-950/5"
+        return ""
+    }
+
     return (
-        <Card>
+        <Card className={getCardClassName(title)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
