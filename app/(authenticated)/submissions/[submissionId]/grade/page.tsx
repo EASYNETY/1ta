@@ -44,7 +44,7 @@ export default function GradeSubmissionPage() {
 
     // Fetch submission data
     useEffect(() => {
-        if (user?.id && user?.role && (user.role === "teacher" || user.role === "admin")) {
+        if (user?.id && user?.role && (user.role === "teacher" || user.role === "admin" || user?.role === 'super_admin')) {
             // First, we need to find which assignment this submission belongs to
             // This is a workaround since we don't have a direct API to fetch a submission by ID
             // In a real app, you'd have an API endpoint like GET /submissions/:id
@@ -103,7 +103,7 @@ export default function GradeSubmissionPage() {
     }
 
     // Check if user has permission to grade
-    if (user.role !== "teacher" && user.role !== "admin") {
+    if (user?.role !== "teacher" && user?.role !== "admin" && user?.role !== 'super_admin') {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />

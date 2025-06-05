@@ -91,7 +91,7 @@ export const fetchTicketById = createAsyncThunk<
 			// API call using the API client
 			// The endpoint depends on the user's role
 			const endpoint =
-				role === "admin"
+				role !== "student"
 					? `/admin/support-tickets/${ticketId}`
 					: `/support/my-tickets/${ticketId}`;
 			return await get<SupportTicket | null>(endpoint);

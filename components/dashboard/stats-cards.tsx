@@ -66,6 +66,34 @@ export function StatsCards() {
                     />
                 </div>
             )
+        case "super_admin":
+            return (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StatsCard
+                        title="Total Students"
+                        value="256"
+                        subtitle="+24 this month"
+                        icon={<Users className="h-4 w-4" />}
+                    />
+                    <StatsCard
+                        title="Total Facilitators"
+                        value="18"
+                        subtitle="+3 this month"
+                        icon={<GraduationCap className="h-4 w-4" />}
+                    />
+                    <StatsCard title="Total Courses" value="32" subtitle="+5 this month" icon={<School className="h-4 w-4" />} />
+                    <StatsCard
+                        title="Revenue"
+                        value="₦1.2M"
+                        subtitle="+₦250K this month"
+                        icon={
+                            <div className="h-4 w-4 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold">
+                                ₦
+                            </div>
+                        }
+                    />
+                </div>
+            )
         case "teacher":
             return (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

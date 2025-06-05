@@ -31,7 +31,7 @@ import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems"
 import { getMobileNavItems } from "./mobile-nav"
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
-import { hasAdminAccess, isStudent } from "@/types/user.types"
+import { hasAdminAccess, isStudent, UserRole } from "@/types/user.types"
 import { getProxiedImageUrl } from "@/utils/imageProxy"
 
 
@@ -92,7 +92,7 @@ export function Header() {
     // --- Filtered Nav Items for Mobile Sheet ---
     // Exclude items present in the bottom mobile bar
     const excludeHrefs = new Set(mobileNavItems.map(item => item.href));
-    const userRole = user?.role as ("admin" | "teacher" | "student") | undefined; // Get user role safely
+    const userRole = user?.role as UserRole | undefined; // Get user role safely
 
     const visiblePrimaryItems = useFilteredPrimaryNavItems();
     const sheetNavItems = userRole ? visiblePrimaryItems.filter(item =>

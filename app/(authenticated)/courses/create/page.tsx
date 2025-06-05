@@ -30,7 +30,7 @@ import { ArrowLeft } from "phosphor-react";
 // Define a placeholder User type - replace with your actual User type
 interface User {
   id: string;
-  role: "admin" | "teacher" | "student" | string;
+  role: 'super_admin' | "admin" | "teacher" | "student" | string;
 }
 
 // Helper Component for Access Denied Message
@@ -65,7 +65,7 @@ export default function CreateCoursePage() {
   });
 
   // Check user authorization
-  if (!user || (user.role !== "admin" && user.role !== "teacher")) {
+  if (!user || (user.role !== "admin" && user.role !== "super_admin" && user.role !== "teacher")) {
     return <AccessDeniedMessage />;
   }
 

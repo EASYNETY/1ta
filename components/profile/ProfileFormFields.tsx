@@ -51,6 +51,23 @@ export function ProfileFormFields({
                         )}
                     />
                 )
+            case "super_admin":
+                return (
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Phone Number (Optional)</FormLabel>
+                                <FormControl>
+                                    <Input {...field} value={field.value ?? ""} placeholder="e.g., +234..." />
+                                </FormControl>
+                                <FormDescription>For emergency contact purposes</FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )
             case "teacher":
                 return (
                     <>

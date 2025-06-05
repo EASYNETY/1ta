@@ -94,6 +94,12 @@ export function RoleContent({
             {adminContent}
           </TabsContent>
         )}
+
+        {adminContent && (
+          <TabsContent value="super_admin" className="p-4 border rounded-md mt-4">
+            {adminContent}
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

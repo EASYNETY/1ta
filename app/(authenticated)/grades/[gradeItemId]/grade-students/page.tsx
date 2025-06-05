@@ -43,7 +43,7 @@ export default function GradeStudentsPage() {
     }, [dispatch, gradeItemId, user?.id, user?.role])
 
     // Check if user has permission to grade
-    if (user?.role !== "teacher" && user?.role !== "admin") {
+    if (user?.role !== "teacher" && user?.role !== "admin" && user?.role !== 'super_admin') {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />

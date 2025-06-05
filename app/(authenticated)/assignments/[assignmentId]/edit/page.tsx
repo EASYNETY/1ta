@@ -65,7 +65,7 @@ export default function EditAssignmentPage() {
     }
 
     // Check if user has permission to edit
-    if (user.role !== "teacher" && user.role !== "admin") {
+    if (user.role !== "teacher" && user.role !== "admin" && user.role !== 'super_admin') {
         return (
             <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />

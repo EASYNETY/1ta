@@ -28,6 +28,14 @@ export function CourseTabsList({ user }: CourseTabsListProps) {
                         {/* <TabsTrigger value="course-analytics">Analytics</TabsTrigger> */}
                     </>
                 )
+            case "super_admin":
+                return (
+                    <>
+                        {allCoursesTab}
+                        <TabsTrigger value="manage-courses">Manage Courses</TabsTrigger>
+                        {/* <TabsTrigger value="course-analytics">Analytics</TabsTrigger> */}
+                    </>
+                )
             case "teacher":
                 return (
                     <>

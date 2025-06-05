@@ -24,6 +24,15 @@ export function CoursesPageHeader({ user }: CoursesPageHeaderProps) {
                         </Link>
                     </DyraneButton>
                 );
+            case "super_admin":
+                return (
+                    <DyraneButton asChild>
+                        <Link href="/courses/create">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create Course
+                        </Link>
+                    </DyraneButton>
+                );
             case "teacher":
                 return (
                     <DyraneButton asChild>

@@ -215,7 +215,7 @@ export default function EditCoursePage() {
                     setCourseData(null);
                 } else {
                     // Basic permission check (Example: only admin or teacher can edit, adjust if needed)
-                    if (user.role !== "admin" && user.role !== "teacher") { // Adjust permission check if needed (e.g., only the specific instructor)
+                    if (user.role !== "admin" && user.role !== 'super_admin' && user.role !== "teacher") { // Adjust permission check if needed (e.g., only the specific instructor)
                         setError("You do not have permission to edit this course.");
                         setCourseData(null);
                     } else {
@@ -245,7 +245,7 @@ export default function EditCoursePage() {
         return <AccessDeniedMessage message="Please log in to edit courses." />;
     }
     // Check basic role permission (Admin or Teacher can access edit pages in general)
-    if (user.role !== "admin" && user.role !== "teacher") {
+    if (user.role !== "admin" && user.role !== "super_admin" && user.role !== "teacher") {
         return <AccessDeniedMessage />;
     }
     // More specific permission check is done after data fetch inside useEffect

@@ -43,6 +43,9 @@ export function UserFilters({
                         <SelectItem value="student">Student</SelectItem>
                         <SelectItem value="teacher">Facilitator</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="super_admin">Admin</SelectItem>
+                        <SelectItem value="customer_care">Admin</SelectItem>
+                        <SelectItem value="accounting">Admin</SelectItem>
                     </SelectContent>
                 </Select>
 
