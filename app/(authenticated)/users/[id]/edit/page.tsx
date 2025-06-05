@@ -126,7 +126,7 @@ export default function EditUserPage() {
     }
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}>
+        <AuthorizationGuard allowedRoles={['admin', 'super_admin']}>
             <div className="mx-auto">
                 <PageHeader
                     heading={`Edit User: ${initialUserData.name}`}
