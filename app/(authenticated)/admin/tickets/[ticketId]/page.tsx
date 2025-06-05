@@ -31,7 +31,7 @@ import {
 import type { TicketResponse, TicketStatus } from "@/features/support/types/support-types"
 import { Label } from "@/components/ui/label"
 import { getPriorityStyles, getStatusVariant } from "@/features/support/components/TicketListItem"
-import { hasAdminAccess } from "@/types/user.types"
+import { hasAdminAccess, isCustomerCare } from "@/types/user.types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PageHeader } from "@/components/layout/auth/page-header"
 
@@ -62,13 +62,13 @@ export default function AdminTicketDetailPage() {
 
     // Redirect non-admin users
     useEffect(() => {
-        if (user && !isAdmin(user)) {
+        if (user && (!hasAdminAccess(user) && !isCustomerCare(user))) {
             router.push("/dashboard")
         }
     }, [user, router])
 
     useEffect(() => {
-        if (ticketId && user?.id && isAdmin(user)) {
+        if (ticketId && user?.id && (hasAdminAccess(user) || isCustomerCare(user))) {
             dispatch(fetchTicketById({ ticketId, userId: user.id, role: user.role }))
         }
 
@@ -113,7 +113,7 @@ export default function AdminTicketDetailPage() {
         // For now, we'll just update the local state
     }
 
-    if (!user || !hasAdminAccess(user)) {
+    if (!user || (!hasAdminAccess(user) && !isCustomerCare(user))) {
         return (
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -150,7 +150,7 @@ export default function AdminTicketDetailPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto">
+        <div className="mx-auto">
             {/* Header */}
             <PageHeader
                 heading="Ticket Management"

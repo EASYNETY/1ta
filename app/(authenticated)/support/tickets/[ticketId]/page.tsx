@@ -111,7 +111,7 @@ export default function TicketDetailPage() {
 
     if (status === 'failed' || !ticket) {
         return (
-            <div className="max-w-3xl mx-auto p-4">
+            <div className="mx-auto">
                 <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Tickets
                 </DyraneButton>

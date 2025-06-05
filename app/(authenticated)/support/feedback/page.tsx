@@ -18,7 +18,7 @@ import {
 import type { FeedbackRecord, FeedbackType } from "@/features/support/types/support-types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { hasAdminAccess } from "@/types/user.types"
+import { hasAdminAccess, isCustomerCare } from "@/types/user.types"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -42,13 +42,13 @@ export default function AdminFeedbackPage() {
 
     // Redirect non-admin users
     useEffect(() => {
-        if (user && !hasAdminAccess(user)) {
+        if (user && (!hasAdminAccess(user) && !isCustomerCare(user))) {
             router.push("/dashboard")
         }
     }, [user, router])
 
     useEffect(() => {
-        if (user && hasAdminAccess(user)) {
+        if (user && (hasAdminAccess(user) || isCustomerCare(user))) {
             // Fetch all feedback for admin and super_admin
             dispatch(
                 fetchAllFeedback({
@@ -108,7 +108,7 @@ export default function AdminFeedbackPage() {
         }
     }
 
-    if (!user || !hasAdminAccess(user)) {
+    if (!user || (!hasAdminAccess(user) && !isCustomerCare(user))) {
         return (
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />

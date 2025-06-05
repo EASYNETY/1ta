@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import type { SupportTicket, TicketStatus, TicketPriority } from '../types/support-types';
 import { Tag, MessageSquare, Clock } from 'lucide-react'; // Icons
 import { useAppSelector } from '@/store/hooks';
-import { isAdmin } from '@/types/user.types';
+import { hasAdminAccess, isAdmin, isCustomerCare } from '@/types/user.types';
 
 interface TicketListItemProps {
     ticket: SupportTicket;
@@ -49,7 +49,7 @@ export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
     };
 
     // Determine the link based on user role
-    const ticketLink = user && isAdmin(user)
+    const ticketLink = user && (hasAdminAccess(user) || isCustomerCare(user))
         ? `/admin/tickets/${ticket.id}`
         : `/support/tickets/${ticket.id}`;
 

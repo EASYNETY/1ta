@@ -18,7 +18,7 @@ import { TicketListItem } from "@/features/support/components/TicketListItem"
 import type { SupportTicket, TicketStatus } from "@/features/support/types/support-types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { hasAdminAccess } from "@/types/user.types"
+import { hasAdminAccess, isCustomerCare } from "@/types/user.types"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -40,13 +40,13 @@ export default function AdminTicketsPage() {
 
     // Redirect non-admin users
     useEffect(() => {
-        if (user && !hasAdminAccess(user)) {
+        if (user && (!hasAdminAccess(user) && !isCustomerCare(user))) {
             router.push("/dashboard")
         }
     }, [user, router])
 
     useEffect(() => {
-        if (user && hasAdminAccess(user)) {
+        if (user && (hasAdminAccess(user) || isCustomerCare(user))) {
             // Fetch all tickets for admin and super_admin
             dispatch(
                 fetchAllTickets({
@@ -82,7 +82,7 @@ export default function AdminTicketsPage() {
         closed: safeTickets.filter((t) => t.status === "closed").length,
     }
 
-    if (!user || !hasAdminAccess(user)) {
+    if (!user || (!hasAdminAccess(user) && !isCustomerCare(user))) {
         return (
             <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
