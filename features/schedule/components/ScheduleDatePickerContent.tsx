@@ -63,7 +63,7 @@ export const ScheduleDatePickerContent: React.FC<ScheduleDatePickerContentProps>
                 toDate={toDate}
                 fromDate={fromDate}
                 initialFocus
-                numberOfMonths={isMdUp ? 2 : 1}
+                numberOfMonths={1}
                 classNames={{ caption: "hidden", caption_dropdowns: "hidden" }} // Hide internal nav
             // Modifiers can be passed if needed for attendance view, but not needed for basic date selection
             />

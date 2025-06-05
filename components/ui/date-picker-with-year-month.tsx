@@ -140,7 +140,7 @@ export function DatePickerWithYearMonth({
                     toDate={toDate}
                     disabled={disabled}
                     initialFocus
-                    numberOfMonths={isMdUp ? 2 : 1}
+                    numberOfMonths={1}
                     classNames={{
                         caption: "hidden",
                         caption_dropdowns: "hidden",

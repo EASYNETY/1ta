@@ -419,7 +419,7 @@ export function FacilitatorAttendanceView() {
                     toDate={new Date()} // Can't select future dates for attendance tracking
                     disabled={isWeekend} // Example: disable weekends
                     initialFocus
-                    numberOfMonths={isMdUp ? 2 : 1}
+                    numberOfMonths={1}
                     modifiers={attendanceModifiers}
                     modifiersClassNames={modifierClassNames}
                     classNames={{ caption: "hidden", caption_dropdowns: "hidden" }} // Hiding default nav as we have custom
