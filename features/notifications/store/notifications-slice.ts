@@ -1,12 +1,12 @@
 // features/notifications/store/notifications-slice.ts
 
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { get, post } from "@/lib/api-client";
+// import { get, post } from "@/lib/api-client"; // Keep this commented out if not used for mocking
 import type { RootState } from "@/store";
-import type { 
-  Notification, 
-  NotificationsState, 
-  NotificationResponse,
+import type {
+  Notification,
+  NotificationsState,
+  NotificationResponse, // We won't use this if we mock fully
   MarkAsReadPayload,
   MarkAllAsReadPayload
 } from "../types/notification-types";
@@ -22,6 +22,11 @@ const initialState: NotificationsState = {
   markAsReadError: null
 };
 
+// --- MOCKING CONFIGURATION ---
+const USE_MOCKED_API = true; // Set to false to use real API calls
+// --- END MOCKING CONFIGURATION ---
+
+
 // Async thunks
 export const fetchNotifications = createAsyncThunk<
   { notifications: Notification[]; total: number; unreadCount: number },
@@ -30,7 +35,21 @@ export const fetchNotifications = createAsyncThunk<
 >(
   "notifications/fetchNotifications",
   async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
+    if (USE_MOCKED_API) {
+      console.log("[MOCK] fetchNotifications called. Returning empty state.", { page, limit });
+      // Simulate a delay if needed
+      // await new Promise(resolve => setTimeout(resolve, 500));
+      return {
+        notifications: [],
+        total: 0,
+        unreadCount: 0,
+      };
+    }
+
+    // Original API call (kept for reference, active if USE_MOCKED_API is false)
     try {
+      // Ensure 'get' is imported if USE_MOCKED_API can be false
+      const { get } = await import("@/lib/api-client");
       const response = await get<NotificationResponse>(
         `/notifications?page=${page}&limit=${limit}`
       );
@@ -39,7 +58,6 @@ export const fetchNotifications = createAsyncThunk<
         throw new Error(response.message || "Failed to fetch notifications");
       }
 
-      // Calculate unread count
       const unreadCount = response.data.notifications.filter(
         notification => !notification.read
       ).length;
@@ -62,7 +80,17 @@ export const markNotificationAsRead = createAsyncThunk<
 >(
   "notifications/markAsRead",
   async ({ notificationId }, { rejectWithValue }) => {
+    if (USE_MOCKED_API) {
+      console.log("[MOCK] markNotificationAsRead called. Simulating success.", { notificationId });
+      // Simulate a delay if needed
+      // await new Promise(resolve => setTimeout(resolve, 300));
+      // We need to return the notificationId for the reducer to work correctly
+      return { notificationId };
+    }
+
+    // Original API call
     try {
+      const { post } = await import("@/lib/api-client");
       const response = await post<{ success: boolean; message?: string }>(
         `/notifications/${notificationId}/read`,
         {}
@@ -86,7 +114,16 @@ export const markAllNotificationsAsRead = createAsyncThunk<
 >(
   "notifications/markAllAsRead",
   async ({ userId }, { rejectWithValue }) => {
+    if (USE_MOCKED_API) {
+      console.log("[MOCK] markAllNotificationsAsRead called. Simulating success.", { userId });
+      // Simulate a delay if needed
+      // await new Promise(resolve => setTimeout(resolve, 300));
+      return { success: true };
+    }
+
+    // Original API call
     try {
+      const { post } = await import("@/lib/api-client");
       const response = await post<{ success: boolean; message?: string }>(
         `/notifications/mark-all-read`,
         { userId }
@@ -139,7 +176,7 @@ const notificationsSlice = createSlice({
         state.status = "failed";
         state.error = action.payload || "Failed to fetch notifications";
       })
-      
+
       // Mark notification as read
       .addCase(markNotificationAsRead.pending, (state) => {
         state.markAsReadStatus = "loading";
@@ -147,25 +184,29 @@ const notificationsSlice = createSlice({
       })
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
         state.markAsReadStatus = "succeeded";
-        
-        // Update the notification in the state
+
         const index = state.notifications.findIndex(
           notification => notification.id === action.payload.notificationId
         );
-        
+
         if (index !== -1) {
-          state.notifications[index].read = true;
-          // Decrement unread count if it was previously unread
-          if (state.unreadCount > 0) {
+          // To ensure we don't mutate the existing notification object directly from payload
+          // if it's a mock and we reuse objects. Create a new one or spread it.
+          state.notifications[index] = { ...state.notifications[index], read: true };
+          if (state.unreadCount > 0 && !state.notifications[index].read /* check previous state if complex */) {
             state.unreadCount -= 1;
           }
+        } else if (USE_MOCKED_API) {
+          // If using mocks and the notification wasn't found (e.g., fetch returned empty)
+          // this is expected. If not using mocks, this could indicate an issue.
+          console.warn(`[MOCK] markNotificationAsRead.fulfilled: Notification with ID ${action.payload.notificationId} not found in state. This might be okay if fetchNotifications returned empty.`);
         }
       })
       .addCase(markNotificationAsRead.rejected, (state, action) => {
         state.markAsReadStatus = "failed";
         state.markAsReadError = action.payload || "Failed to mark notification as read";
       })
-      
+
       // Mark all notifications as read
       .addCase(markAllNotificationsAsRead.pending, (state) => {
         state.markAsReadStatus = "loading";
@@ -173,13 +214,12 @@ const notificationsSlice = createSlice({
       })
       .addCase(markAllNotificationsAsRead.fulfilled, (state) => {
         state.markAsReadStatus = "succeeded";
-        
-        // Mark all notifications as read
-        state.notifications.forEach(notification => {
-          notification.read = true;
-        });
-        
-        // Reset unread count
+
+        state.notifications = state.notifications.map(notification => ({
+          ...notification,
+          read: true,
+        }));
+
         state.unreadCount = 0;
       })
       .addCase(markAllNotificationsAsRead.rejected, (state, action) => {
@@ -190,10 +230,10 @@ const notificationsSlice = createSlice({
 });
 
 // Actions
-export const { 
-  clearNotifications, 
-  resetNotificationStatus, 
-  resetMarkAsReadStatus 
+export const {
+  clearNotifications,
+  resetNotificationStatus,
+  resetMarkAsReadStatus
 } = notificationsSlice.actions;
 
 // Selectors

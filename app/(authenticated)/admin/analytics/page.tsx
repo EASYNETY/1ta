@@ -1,3 +1,5 @@
+// app(authenticated)/admin/analytics/page.tsx
+
 "use client";
 
 import { useEffect } from "react";
