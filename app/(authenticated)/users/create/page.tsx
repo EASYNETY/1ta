@@ -95,7 +95,7 @@ export default function CreateUserPage() {
             const newUser = response.data.user as UserType;
 
             toast.success(`User "${newUser.name}" (role: ${newUser.role}) created successfully via signup!`);
-            router.push('/admin/users'); // Or your desired users list page
+            router.push('/users'); // Or your desired users list page
 
         } catch (error: any) {
             console.error("Failed to create user via signupThunk:", error);

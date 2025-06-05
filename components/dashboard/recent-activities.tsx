@@ -146,11 +146,11 @@ export function RecentActivities() {
                             timestamp: new Date().toISOString(),
                             type: "system",
                             icon: <UserPlus className="h-4 w-4" />,
-                            href: "/admin/students",
+                            href: "/users",
                         })
                     }
 
-                    if (paymentStats?.revenueThisMonth) {
+                    if (paymentStats?.revenueThisMonth && user.role === 'super_admin') {
                         roleSpecificActivities.push({
                             id: "analytics-revenue",
                             title: "Monthly Revenue Update",
@@ -158,7 +158,7 @@ export function RecentActivities() {
                             timestamp: new Date().toISOString(),
                             type: "payment",
                             icon: <CreditCard className="h-4 w-4" />,
-                            href: "/admin/finance",
+                            href: "/accounting/analytics/",
                         })
                     }
                 }
