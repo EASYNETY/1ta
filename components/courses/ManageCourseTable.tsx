@@ -56,7 +56,7 @@ export function ManageCourseTable({ courses, onDeleteCourse }: ManageCourseTable
                                         key={`manage-course-${course.id}-${index}`}
                                         course={course}
                                         onDelete={onDeleteCourse}
-                                        showDollarPricing={user?.role === 'admin' || user?.role === 'teacher' ? showDollarPricing : false}
+                                        showDollarPricing={user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'super_admin' ? showDollarPricing : false}
                                         userRole={user?.role || 'student'}
                                     />
                                 ))

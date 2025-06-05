@@ -9,9 +9,9 @@ import { ScheduleEventForm } from '@/features/schedule/components/forms/Schedule
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import type { CreateScheduleEventPayload } from '@/features/schedule/store/schedule-slice'; // Import payload type
 import { AuthorizationGuard } from '@/components/auth/AuthenticationGuard';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
+import { CreateScheduleEventPayload } from '@/features/schedule/types/schedule-types';
 
 export default function CreateScheduleEventPage() {
     const dispatch = useAppDispatch();
@@ -32,7 +32,7 @@ export default function CreateScheduleEventPage() {
     };
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles */}
+        <AuthorizationGuard allowedRoles={['admin','super_admin']}> {/* Adjust roles */}
             <div className="mx-auto">
                 <DyraneButton variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back to Manage Schedule

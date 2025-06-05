@@ -31,7 +31,7 @@ import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems"
 import { getMobileNavItems } from "./mobile-nav"
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems"
-import { isStudent } from "@/types/user.types"
+import { hasAdminAccess, isStudent } from "@/types/user.types"
 import { getProxiedImageUrl } from "@/utils/imageProxy"
 
 
@@ -99,7 +99,7 @@ export function Header() {
         !excludeHrefs.has(item.href) && item.roles.includes(userRole)
     ) : [];
 
-    const sheetAdminItems = userRole === 'admin' ? adminNavItems.filter(item =>
+    const sheetAdminItems = hasAdminAccess(user) ? adminNavItems.filter(item =>
         !excludeHrefs.has(item.href) // No need to check role again
     ) : [];
 

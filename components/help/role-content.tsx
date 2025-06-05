@@ -11,7 +11,7 @@ interface RoleContentProps {
   studentContent?: React.ReactNode;
   teacherContent?: React.ReactNode;
   adminContent?: React.ReactNode;
-  defaultTab?: 'student' | 'teacher' | 'admin';
+  defaultTab?: 'student' | 'teacher' | 'admin' | 'super_admin';
   className?: string;
 }
 
@@ -33,6 +33,10 @@ export function RoleContent({
       if (adminContent) return 'admin';
     }
     if (defaultTab === 'admin' && !adminContent) {
+      if (studentContent) return 'student';
+      if (teacherContent) return 'teacher';
+    }
+    if (defaultTab === 'super_admin' && !adminContent) {
       if (studentContent) return 'student';
       if (teacherContent) return 'teacher';
     }

@@ -26,6 +26,8 @@ export default function TimetablePage() {
         switch (role) {
             // Define default tabs for each role if 'schedule' isn't always the default
             case 'admin': return 'schedule'; // Or 'all-classes' if preferred
+            case 'super_admin': return 'schedule'; // Or 'all-classes' if preferred
+            case 'customer_care': return 'schedule'; // Or 'all-classes' if preferred
             case 'teacher': return 'schedule'; // Or 'my-classes-teacher'
             case 'student': return 'schedule'; // Or 'my-classes-student'
             default: return 'schedule';

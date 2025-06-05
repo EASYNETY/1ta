@@ -45,7 +45,7 @@ export default function CreateClassPage() {
     };
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}>
+        <AuthorizationGuard allowedRoles={['admin','super_admin']}>
             <div className="mx-auto">
                 <PageHeader
                     heading={`Create Class`}

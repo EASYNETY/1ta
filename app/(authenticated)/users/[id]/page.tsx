@@ -21,7 +21,7 @@ import { fetchUserById } from '@/features/auth/store/user-thunks';
 import { safeString, safeFormatDate, safeBoolean } from '@/lib/utils/safe-data';
 
 // Import the User type from the types directory
-import type { User } from '@/types/user.types';
+import { hasAdminAccess, type User } from '@/types/user.types';
 import { AdminGuard } from '@/components/auth/PermissionGuard';
 
 
@@ -348,7 +348,7 @@ export default function ViewUserPage() {
                             </Card>
                         )}
 
-                        {currentUser.role === 'admin' && (
+                        {hasAdminAccess(currentUser) && (
                             <Card>
                                 <CardHeader className="pb-3">
                                     <CardTitle className="text-lg flex items-center gap-2">

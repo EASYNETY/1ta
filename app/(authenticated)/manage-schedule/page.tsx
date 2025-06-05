@@ -121,7 +121,7 @@ export default function ManageSchedulePage() {
     const isDeleting = operationStatus === 'loading';
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}> {/* Adjust roles if needed */}
+        <AuthorizationGuard allowedRoles={['admin','super_admin']}> {/* Adjust roles if needed */}
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center mb-4">

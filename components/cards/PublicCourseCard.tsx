@@ -23,6 +23,7 @@ import { PublicCourse } from "@/features/public-course/types/public-course-inter
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
 import { getCourseIcon } from "@/utils/course-icon-mapping"
 import { Tag } from "phosphor-react"
+import { hasAdminAccess } from "@/types/user.types"
 
 interface PublicCourseCardProps {
     course: PublicCourse | AuthCourse
@@ -80,7 +81,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
     }
 
     const { user } = useAppSelector((state) => state.auth);
-    const isAdmin = user?.role === 'admin';
+    const isAdmin = hasAdminAccess(user);
     const isTeacher = user?.role === 'teacher';
     const isAdminOrTeacher = isAdmin || isTeacher;
 
