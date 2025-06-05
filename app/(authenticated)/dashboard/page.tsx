@@ -1,122 +1,97 @@
 // app/(authenticated)/dashboard/page.tsx
 
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { resetSkipOnboarding } from "@/features/auth/store/auth-slice";
-// import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice"; // Assuming this is called elsewhere or on specific tab
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
-import { CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, AlertCircle, GraduationCap, CheckCircle } from "lucide-react"; // Added CheckCircle
-import Link from "next/link";
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
-import { motion } from "framer-motion";
-import { isProfileComplete } from "@/features/auth/utils/profile-completeness";
-import { OnboardingStatusCard } from "@/components/onboarding/onboarding-status";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { useState, useEffect } from "react"
+import { useAppSelector, useAppDispatch } from "@/store/hooks"
+import { resetSkipOnboarding } from "@/features/auth/store/auth-slice"
+import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
+import { CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Sparkles, AlertCircle, GraduationCap } from "lucide-react"
+import Link from "next/link"
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
+import { motion } from "framer-motion"
+import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
+import { OnboardingStatusCard } from "@/components/onboarding/onboarding-status"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useToast } from "@/hooks/use-toast"
 
-// Import our new modular components
-import { DashboardStats } from "@/components/dashboard/dashboard-stats";
-import { CourseCard } from "@/components/dashboard/course-card";
-import { GradesTab } from "@/components/dashboard/grades-tab";
-import { AssignmentsTab } from "@/components/dashboard/assignments-tab";
-import { ScheduleTab } from "@/components/dashboard/schedule-tab";
-import { ProgressOverview } from "@/components/dashboard/progress-overview";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { useRouter, useSearchParams } from "next/navigation"; // Import useSearchParams
-import { isAccounting, isCustomerCare, isStudent } from "@/types/user.types";
-import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
-import { Skeleton } from "@/components/ui/skeleton";
+// Import our modular components
+import { DashboardStats } from "@/components/dashboard/dashboard-stats"
+import { CourseCard } from "@/components/dashboard/course-card"
+import { GradesTab } from "@/components/dashboard/grades-tab"
+import { AssignmentsTab } from "@/components/dashboard/assignments-tab"
+import { ScheduleTab } from "@/components/dashboard/schedule-tab"
+import { ProgressOverview } from "@/components/dashboard/progress-overview"
+import { RecentActivities } from "@/components/dashboard/recent-activities"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { useRouter, useSearchParams } from "next/navigation"
+import { isAccounting, isCustomerCare, isStudent } from "@/types/user.types"
+import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function DashboardPage() {
-    const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth);
-    const { courses, status } = useAppSelector((state) => state.auth_courses);
-    const [activeTab, setActiveTab] = useState("overview");
-    const dispatch = useAppDispatch();
-    const router = useRouter();
-    const searchParams = useSearchParams(); // Hook to read query parameters
-    const { toast } = useToast(); // Hook for toasts
+    const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
+    const { courses, status } = useAppSelector((state) => state.auth_courses)
+    const [activeTab, setActiveTab] = useState("overview")
+    const dispatch = useAppDispatch()
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const { toast } = useToast()
 
     // --- Handle Payment Success Query Parameter ---
     useEffect(() => {
-        const paymentSuccess = searchParams.get('payment_success');
-        const paymentRef = searchParams.get('ref');
-        const enrolmentIssue = searchParams.get('status') === 'enrolment_data_missing';
+        const paymentSuccess = searchParams.get("payment_success")
+        const paymentRef = searchParams.get("ref")
+        const enrolmentIssue = searchParams.get("status") === "enrolment_data_missing"
 
-        if (paymentSuccess === 'true') {
+        if (paymentSuccess === "true") {
             toast({
                 title: "Payment Successful!",
-                description: `Your transaction (Ref: ${paymentRef || 'N/A'}) was completed and you should now be enroled.`,
+                description: `Your transaction (Ref: ${paymentRef || "N/A"}) was completed and you should now be enroled.`,
                 variant: "success",
-            });
+            })
             // Clean the URL to remove query params after showing the toast
-            // router.replace('/dashboard', { shallow: true }); // Keep history clean, or just router.replace('/dashboard')
-            // Using window.history.replaceState to avoid full page reload and keep scroll position
             if (window.history.replaceState) {
-                const cleanUrl = window.location.pathname; // Just the path, no query
-                window.history.replaceState({ ...window.history.state, as: cleanUrl, url: cleanUrl }, '', cleanUrl);
+                const cleanUrl = window.location.pathname // Just the path, no query
+                window.history.replaceState({ ...window.history.state, as: cleanUrl, url: cleanUrl }, "", cleanUrl)
             }
         } else if (enrolmentIssue) {
             toast({
                 title: "Payment Successful, Action Required",
-                description: `Your payment (Ref: ${paymentRef || 'N/A'}) was successful, but there was an issue with automatic enrolment. Please contact support.`,
-            });
+                description: `Your payment (Ref: ${paymentRef || "N/A"
+                    }) was successful, but there was an issue with automatic enrolment. Please contact support.`,
+            })
             if (window.history.replaceState) {
-                const cleanUrl = window.location.pathname;
-                window.history.replaceState({ ...window.history.state, as: cleanUrl, url: cleanUrl }, '', cleanUrl);
+                const cleanUrl = window.location.pathname
+                window.history.replaceState({ ...window.history.state, as: cleanUrl, url: cleanUrl }, "", cleanUrl)
             }
         }
-    }, [searchParams, toast, router]); // Add router to dependencies if using router.replace
+    }, [searchParams, toast])
 
     // --- Role-based Redirects ---
     useEffect(() => {
-        // Enhanced Debugging Log:
-        // This log will show the state of `isInitialized`, `user`, and relevant role checks
-        // each time this effect runs (e.g., on component mount or when `user`/`isInitialized` changes).
-        console.log(
-            "DashboardPage Role Redirect Effect Check:",
-            {
-                isInitialized,
-                userExists: !!user,
-                userId: user?.id,
-                userRole: user?.role,
-                isUserStudent: user ? isStudent(user) : 'N/A (user null)',
-                isUserCorporateManager: isStudent(user) ? user.isCorporateManager : false,
-                isUserAccounting: user ? isAccounting(user) : 'N/A (user null)',
-                isUserCustomerCare: user ? isCustomerCare(user) : 'N/A (user null)',
-            }
-        );
-
         if (isInitialized && user) {
             // Corporate Manager (who is also a student)
-            // This check should be specific. If `isCorporateManager` implies a non-student role, adjust accordingly.
             if (isStudent(user) && user.isCorporateManager) {
-                console.log("Dashboard: User is Student Corporate Manager. Redirecting to /corporate-management.");
-                router.replace("/corporate-management");
-                return; // Exit after redirect
+                router.replace("/corporate-management")
+                return
             }
 
             // Accounting
             if (isAccounting(user)) {
-                console.log("Dashboard: User is Accountant. Redirecting to /accounting/dashboard.");
-                router.replace("/accounting/dashboard");
-                return; // Exit after redirect
+                router.replace("/accounting/dashboard")
+                return
             }
 
             // Customer Care
             if (isCustomerCare(user)) {
-                console.log("Dashboard: User is Customer Care. Redirecting to /customer-care/dashboard.");
-                router.replace("/customer-care/dashboard");
-                return; // Exit after redirect
+                router.replace("/customer-care/dashboard")
+                return
             }
-
-            // If no role-specific redirect matches, the user stays on the generic dashboard.
-            // This is intended for roles like 'student' (default), 'teacher', 'admin', 'super_admin'.
         }
-    }, [user, isInitialized, router]); // Dependencies: effect re-runs if these change
+    }, [user, isInitialized, router])
 
     // Loading state while checking auth
     if (!isInitialized) {
@@ -127,7 +102,7 @@ export default function DashboardPage() {
                     <p className="mt-2 text-sm text-muted-foreground">Loading dashboard...</p>
                 </div>
             </div>
-        );
+        )
     }
 
     if (!user) {
@@ -141,7 +116,7 @@ export default function DashboardPage() {
                     </DyraneButton>
                 </div>
             </div>
-        );
+        )
     }
 
     const container = {
@@ -152,13 +127,13 @@ export default function DashboardPage() {
                 staggerChildren: 0.1,
             },
         },
-    };
+    }
 
-    const profileComplete = isProfileComplete(user);
+    const profileComplete = isProfileComplete(user)
 
     const handleCompleteProfile = () => {
-        dispatch(resetSkipOnboarding());
-    };
+        dispatch(resetSkipOnboarding())
+    }
 
     const getRoleTabs = () => {
         const commonTabs = (
@@ -167,10 +142,9 @@ export default function DashboardPage() {
                 <TabsTrigger value="courses">Courses</TabsTrigger>
                 <TabsTrigger value="schedule">Schedule</TabsTrigger>
             </>
-        );
+        )
 
         switch (user.role) {
-            // ... (role tabs logic remains the same)
             case "super_admin":
                 return (
                     <>
@@ -179,11 +153,7 @@ export default function DashboardPage() {
                     </>
                 )
             case "admin":
-                return (
-                    <>
-                        {commonTabs}
-                    </>
-                )
+                return <>{commonTabs}</>
             case "accounting":
                 return (
                     <>
@@ -217,11 +187,10 @@ export default function DashboardPage() {
                     </>
                 )
         }
-    };
+    }
 
     const getRoleActions = () => {
         switch (user.role) {
-            // ... (role actions logic remains the same)
             case "super_admin":
             case "admin":
                 return (
@@ -286,7 +255,7 @@ export default function DashboardPage() {
                     </div>
                 )
         }
-    };
+    }
 
     return (
         <motion.div className="space-y-6" variants={container} initial="hidden" animate="show">
@@ -333,11 +302,15 @@ export default function DashboardPage() {
                                 </p>
                                 <ul className="space-y-2 mb-4 text-sm">
                                     <li className="flex items-center gap-2">
-                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            1
+                                        </div>
                                         <span>Complete your profile information.</span>
                                     </li>
                                     <li className="flex items-center gap-2">
-                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+                                        <div className="h-5 w-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            2
+                                        </div>
                                         <span>Explore available courses and enrol to start learning.</span>
                                     </li>
                                 </ul>
@@ -369,61 +342,69 @@ export default function DashboardPage() {
 
                 <TabsContent value="overview">
                     <DashboardStats />
-                    {user.role === "student" && (
-                        <div className="mt-8">
-                            <ProgressOverview />
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                        {/* Recent Activities - Takes 2/3 of the space */}
+                        <div className="lg:col-span-2">
+                            <RecentActivities />
                         </div>
-                    )}
-                    <h2 className="text-2xl font-bold mt-8">
-                        {user.role === "student" || user.role === "teacher" ? "My Courses" : "Recent Activity"}
-                    </h2>
-                    <motion.div
-                        className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4"
-                        variants={container}
-                        initial="hidden"
-                        animate="show"
-                    >
-                        {status === "loading" ? (
-                            Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
-                        ) : courses.length > 0 ? (
-                            courses.slice(0, 4).map((course, index) => (
-                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-8">
-                                <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
-                                <DyraneButton asChild>
-                                    <Link href="/courses" className="flex items-center gap-2">
-                                        <GraduationCap className="h-4 w-4" />
-                                        Browse Courses
-                                    </Link>
-                                </DyraneButton>
-                            </div>
-                        )}
-                    </motion.div>
+
+                        {/* Role-specific content - Takes 1/3 of the space */}
+                        <div className="lg:col-span-1">
+                            {user.role === "student" ? (
+                                <ProgressOverview />
+                            ) : (
+                                <div className="grid gap-6">
+                                    <h2 className="text-2xl font-bold">{user.role === "teacher" ? "My Courses" : "Quick Links"}</h2>
+                                    {status === "loading" ? (
+                                        <Skeleton className="h-[300px] rounded-xl bg-muted" />
+                                    ) : courses.length > 0 ? (
+                                        <CourseCard course={courses[0]} index={0} />
+                                    ) : (
+                                        <DyraneCard>
+                                            <CardContent className="p-6 text-center">
+                                                <p className="text-muted-foreground mb-4">No courses available.</p>
+                                                <DyraneButton asChild>
+                                                    <Link href="/courses">Browse Courses</Link>
+                                                </DyraneButton>
+                                            </CardContent>
+                                        </DyraneCard>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="courses">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {status === "loading" ? (
-                            Array(8).fill(0).map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
+                            Array(8)
+                                .fill(0)
+                                .map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
                         ) : courses.length > 0 ? (
-                            courses.map((course, index) => (
-                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
-                            ))
+                            courses.map((course, index) => <CourseCard key={`${course.id}-${index}`} course={course} index={index} />)
                         ) : (
                             <div className="col-span-full text-center py-8">
-                                {/* ... no courses message ... */}
+                                <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
+                                <DyraneButton asChild>
+                                    <Link href="/courses">Browse Courses</Link>
+                                </DyraneButton>
                             </div>
                         )}
                     </div>
                 </TabsContent>
 
-                <TabsContent value="schedule"><ScheduleTab /></TabsContent>
-                <TabsContent value="assignments"><AssignmentsTab /></TabsContent>
-                <TabsContent value="grades"><GradesTab /></TabsContent>
-                {/* Other tabs content would go here */}
+                <TabsContent value="schedule">
+                    <ScheduleTab />
+                </TabsContent>
+                <TabsContent value="assignments">
+                    <AssignmentsTab />
+                </TabsContent>
+                <TabsContent value="grades">
+                    <GradesTab />
+                </TabsContent>
             </Tabs>
         </motion.div>
-    );
+    )
 }

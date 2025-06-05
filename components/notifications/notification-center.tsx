@@ -49,6 +49,7 @@ import {
 } from '@/features/notifications/store/notifications-slice'
 import { selectAuthCourses } from '@/features/auth-course/store/auth-course-slice'
 import { selectMyClasses } from '@/features/classes/store/classes-slice'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 export function NotificationCenter() {
   const dispatch = useAppDispatch()
@@ -373,7 +374,9 @@ export function NotificationCenter() {
       <SheetContent side='right' className="w-[400px] flex flex-col gap-0 rounded-l-3xl border-0 bg-background/65 backdrop-blur-md h-full border-none">
         <SheetHeader className="p-4">
           <div className="flex items-center justify-between">
-            <SheetTitle>Notifications</SheetTitle>
+            <VisuallyHidden>
+              <SheetTitle>Notifications</SheetTitle>
+            </VisuallyHidden>
             <div className="flex items-center gap-2">
               {unreadCount > 0 && (
                 <Button
