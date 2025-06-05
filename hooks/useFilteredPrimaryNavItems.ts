@@ -72,7 +72,7 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				title: "Attendance",
 				href: "/attendance",
 				icon: CheckCircle,
-				roles: ["student", "teacher", "super_admin", "admin"],
+				roles: ["student", "teacher", "super_admin", "admin", "customer_care"],
 				// Hide for corporate managers (they manage student attendance via their dashboard)
 				hidden: isCorpManager,
 			},

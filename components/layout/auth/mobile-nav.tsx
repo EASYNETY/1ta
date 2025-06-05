@@ -69,7 +69,7 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
             title: "Attendance",
             href: "/attendance",
             icon: CheckCircle,
-            roles: ["super_admin", "admin", "teacher", "student"],
+            roles: ["super_admin", "admin", "teacher", "student", 'customer_care'],
             hidden: isCorpManager as boolean,
         },
         {
