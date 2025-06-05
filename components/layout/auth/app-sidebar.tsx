@@ -61,6 +61,12 @@ export const primaryNavItems: NavItem[] = [
     { title: "Dashboard", href: "/customer-care/dashboard", icon: LayoutDashboard, roles: ['customer_care'] },
     { title: "Courses", href: "/courses", icon: GraduationCap, roles: ["student", "teacher", "super_admin", "admin"] },
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
+    {
+        title: "Scan Student",
+        href: "/customer-care/scan",
+        icon: QrCode,
+        roles: ["customer_care"],
+    },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
     { title: "Analytics", href: "/analytics", icon: BarChart3, roles: ["student", "teacher"] }, // Removed admin per CEO requirements
     { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", "super_admin", "admin", "customer_care"], badgeCount: 5 }, // Example badge
@@ -71,12 +77,12 @@ export const adminNavItems: NavItem[] = [
     { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["super_admin", "admin"] },
     { title: "Payments", href: "/payments", icon: Money, roles: ["super_admin", "admin",] },
     { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["super_admin"] }, // Only super admin
-    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin", "customer_care"] },
+    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin",] },
     {
         title: "Feedbacks",
         href: "/support/feedback",
         icon: Chat,
-        roles: ["super_admin", "admin", "customer_care"],
+        roles: ["super_admin", "admin"],
     }
 ];
 
@@ -89,7 +95,6 @@ export const accountingNavItems: NavItem[] = [
 
 // Customer Care Specific Items
 export const customerCareNavItems: NavItem[] = [
-    { title: "Scan Student", href: "/customer-care/scan", icon: QrCode, roles: ["customer_care"] },
     { title: "Student Info", href: "/customer-care/students", icon: AdminUsersIcon, roles: ["customer_care"] },
     { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["customer_care"] },
     { title: "Feedback", href: "/support/feedback", icon: LucideMessageSquare, roles: ["customer_care"] },

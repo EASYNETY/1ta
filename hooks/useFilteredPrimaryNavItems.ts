@@ -7,7 +7,8 @@ import {
 	LayoutDashboard,
 	GraduationCap,
 	CheckCircle,
-	Calendar, // Use Lucide Calendar
+	Calendar,
+	QrCode, // Use Lucide Calendar
 } from "lucide-react"; // Using Lucide consistently
 import { UsersThree } from "phosphor-react";
 
@@ -71,9 +72,15 @@ export function useFilteredPrimaryNavItems(): NavItem[] {
 				title: "Attendance",
 				href: "/attendance",
 				icon: CheckCircle,
-				roles: ["student", "teacher", "super_admin", "admin", "customer_care"],
+				roles: ["student", "teacher", "super_admin", "admin"],
 				// Hide for corporate managers (they manage student attendance via their dashboard)
 				hidden: isCorpManager,
+			},
+			{
+				title: "Scan Student",
+				href: "/customer-care/scan",
+				icon: QrCode,
+				roles: ["customer_care"],
 			},
 			{
 				title: "Timetable",

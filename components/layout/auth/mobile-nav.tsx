@@ -17,6 +17,7 @@ import {
     CheckCircle,
     UsersThree,
     Money,
+    QrCode,
     // FAB Icons are now sourced from fab-config.ts via the hook
 } from "phosphor-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -68,8 +69,14 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
             title: "Attendance",
             href: "/attendance",
             icon: CheckCircle,
-            roles: ["super_admin", "admin", "customer_care", "teacher", "student"],
+            roles: ["super_admin", "admin", "teacher", "student"],
             hidden: isCorpManager as boolean,
+        },
+        {
+            title: "Scan Student",
+            href: "/customer-care/scan",
+            icon: QrCode,
+            roles: ["customer_care"],
         },
         {
             title: "Timetable",

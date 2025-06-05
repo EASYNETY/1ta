@@ -9,7 +9,7 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { usePathname, useRouter } from "next/navigation"
 import { LogOut, Loader2, Search } from "lucide-react"
 import { NotificationCenter } from "@/components/notifications/notification-center"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarTrigger } from "@/components/ui/sidebar"
 import { Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { useMobile } from "@/hooks/use-mobile"
@@ -21,7 +21,7 @@ import { useTheme } from "next-themes"
 import Image from "next/image"
 import { AvatarFallback, AvatarImage, AvatarWithVerification } from "@/components/ui/avatar"
 import { useScrollDirection } from "@/hooks/use-scroll-direction"
-import { adminNavItems, NavItem, primaryNavItems } from "./app-sidebar"
+import { accountingNavItems, adminNavItems, customerCareNavItems, NavItem, primaryNavItems } from "./app-sidebar"
 
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -104,6 +104,13 @@ export function Header() {
     ) : [];
 
     const secondaryNavItems = useFilteredSecondaryNavItems(user);
+    const filterItems = (items: NavItem[]) => items.filter(item => user && item.roles.includes(user.role as any));
+
+    // Filter accounting items
+    const visibleAccountingItems = filterItems(accountingNavItems);
+
+    // Filter customer care items
+    const visibleCustomerCareItems = filterItems(customerCareNavItems);
 
     const sheetSecondaryItems = userRole ? secondaryNavItems.filter(item =>
         !excludeHrefs.has(item.href) && item.roles.includes(userRole)
@@ -149,7 +156,7 @@ export function Header() {
                                             onClick={() => setMobileUserSheetOpen(true)}
                                         >
                                             <AvatarImage
-                                                src={getProxiedImageUrl(user?.avatarUrl as string)  || undefined}
+                                                src={getProxiedImageUrl(user?.avatarUrl as string) || undefined}
                                                 alt="User Avatar"
                                                 className="h-7 w-7 rounded-full"
                                             />
@@ -210,6 +217,26 @@ export function Header() {
                                         </nav>
                                     )}
 
+                                    {/* Accounting Navigation */}
+                                    {visibleAccountingItems.length > 0 && (
+                                        <SidebarGroup>
+                                            <SidebarGroupLabel>Accounting</SidebarGroupLabel>
+                                            <SidebarGroupContent>
+                                                <MobileNavItemsList items={visibleAccountingItems} closeSheet={closeMobileSheet} />
+                                            </SidebarGroupContent>
+                                        </SidebarGroup>
+                                    )}
+
+                                    {/* Customer Care Navigation */}
+                                    {visibleCustomerCareItems.length > 0 && (
+                                        <SidebarGroup>
+                                            <SidebarGroupLabel>Customer Care</SidebarGroupLabel>
+                                            <SidebarGroupContent>
+                                                <MobileNavItemsList items={visibleCustomerCareItems} closeSheet={closeMobileSheet} />
+                                            </SidebarGroupContent>
+                                        </SidebarGroup>
+                                    )}
+
                                     {/* Footer Actions Section */}
                                     <div className="py-2 border-border/30 space-y-1 px-0">
                                         <p className="px-0 text-xs capitalized text-muted-foreground tracking-wider mb-2">Account & Help</p>
@@ -242,7 +269,7 @@ export function Header() {
                                                                 className="size-10"
                                                                 verificationSize="sm"
                                                             >
-                                                                <AvatarImage src={getProxiedImageUrl(user.avatarUrl as string)  || undefined} alt={user.name} />
+                                                                <AvatarImage src={getProxiedImageUrl(user.avatarUrl as string) || undefined} alt={user.name} />
                                                                 <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/25 backdrop-blur-sm border border-primary/50 text-primary font-medium">{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                                                             </AvatarWithVerification>
                                                             <div className="overflow-hidden">

@@ -14,6 +14,7 @@ import StudentClassesTab from '@/features/classes/components/StudentClassesTab';
 import TeacherClassesTab from '@/features/classes/components/TeacherClassesTab';
 import AdminClassesTab from '@/features/classes/components/AdminClassesTab';
 import { DyraneButton } from '@/components/dyrane-ui/dyrane-button'; // Import DyraneButton
+import { hasAdminAccess } from '@/types/user.types';
 
 export default function TimetablePage() {
     const { user } = useAppSelector((state) => state.auth);
@@ -47,6 +48,9 @@ export default function TimetablePage() {
         let classesTab = null;
 
         switch (user.role) {
+            case "super_admin":
+                classesTab = <TabsTrigger key="all-classes" value="all-classes">All Classes</TabsTrigger>;
+                break;
             case "admin":
                 classesTab = <TabsTrigger key="all-classes" value="all-classes">All Classes</TabsTrigger>;
                 break;
@@ -72,7 +76,9 @@ export default function TimetablePage() {
             case "schedule":
                 return <ScheduleView role={user.role} userId={user.id} />;
             case "all-classes":
-                return user.role === 'admin' ? <AdminClassesTab /> : null; // Only admin sees this content
+                return (user.role === 'super_admin') ? <AdminClassesTab /> : null; // Only admin sees this content
+            case "all-classes":
+                return (user.role === 'admin') ? <AdminClassesTab /> : null; // Only admin sees this content
             case myClassesTabValue: // Handle dynamic tab value
                 if (user.role === 'teacher') return <TeacherClassesTab />;
                 if (user.role === 'student') return <StudentClassesTab />;
@@ -100,9 +106,13 @@ export default function TimetablePage() {
         <div className="space-y-6"> {/* Reduced padding for page */}
             {/* Header with Manage Button */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 md:px-6">
-                <h1 className="text-3xl font-bold">Timetable & Classes</h1>
+                <h1 className="text-3xl font-bold">Timetable
+                    {user.role !== 'customer_care' && <span>
+                        &  Classes
+                    </span>}
+                </h1>
                 {/* Conditionally render Manage button for Admin */}
-                {user.role === 'admin' && (
+                {hasAdminAccess(user) && (
                     <DyraneButton size="sm" variant="outline" asChild>
                         <Link href={activeTab === "all-classes" ? "/classes" : "/manage-schedule"}>
                             <Settings className="mr-2 h-4 w-4" />
