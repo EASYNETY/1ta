@@ -402,7 +402,7 @@ export function RecentActivities() {
                 </Button>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-[400px] pr-4">
+                <ScrollArea className="h-auto pr-4">
                     {isLoading ? (
                         <div className="space-y-4">
                             {Array(5)
@@ -418,7 +418,7 @@ export function RecentActivities() {
                                 ))}
                         </div>
                     ) : activities.length > 0 ? (
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <div className="grid grid-cols-1 gap-4">
                             {activities.map((activity, index) => (
                                 <motion.div
                                     key={activity.id}
