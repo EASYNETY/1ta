@@ -30,6 +30,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { isAccounting, isCustomerCare, isStudent } from "@/types/user.types"
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { Skeleton } from "@/components/ui/skeleton"
+import { RoleSpecificContent } from "@/components/dashboard/role-specific-content"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
@@ -351,27 +352,7 @@ export default function DashboardPage() {
 
                         {/* Role-specific content - Takes 1/3 of the space */}
                         <div className="lg:col-span-1">
-                            {user.role === "student" ? (
-                                <ProgressOverview />
-                            ) : (
-                                <div className="grid gap-6">
-                                    <h2 className="text-2xl font-bold">{user.role === "teacher" ? "My Courses" : "Quick Links"}</h2>
-                                    {status === "loading" ? (
-                                        <Skeleton className="h-[300px] rounded-xl bg-muted" />
-                                    ) : courses.length > 0 ? (
-                                        <CourseCard course={courses[0]} index={0} />
-                                    ) : (
-                                        <DyraneCard>
-                                            <CardContent className="p-6 text-center">
-                                                <p className="text-muted-foreground mb-4">No courses available.</p>
-                                                <DyraneButton asChild>
-                                                    <Link href="/courses">Browse Courses</Link>
-                                                </DyraneButton>
-                                            </CardContent>
-                                        </DyraneCard>
-                                    )}
-                                </div>
-                            )}
+                            {user.role === "student" ? <ProgressOverview /> : <RoleSpecificContent />}
                         </div>
                     </div>
                 </TabsContent>
