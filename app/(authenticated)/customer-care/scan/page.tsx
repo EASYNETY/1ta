@@ -108,7 +108,8 @@ export default function CustomerCareScanPage() {
     const dispatch = useAppDispatch();
 
     const loggedInUser = useAppSelector((state) => state.auth.user);
-    const allUsersFromStore = useAppSelector(selectSafeUsers); // Use safe selector
+    const allUsersFromStore = useAppSelector((state) => state.auth.users);
+
 
     const [isScannerActive, setIsScannerActive] = useState(true); // Start active
     const [lastScannedBarcodeId, setLastScannedBarcodeId] = useState<string | null>(null);
@@ -132,6 +133,7 @@ export default function CustomerCareScanPage() {
     useEffect(() => {
         if (loggedInUser && !initialUsersFetchAttempted.current) {
             dispatch(fetchAllUsersComplete()); // This thunk should fetch all users without pagination
+            console.log("list of users", allUsersFromStore);
             initialUsersFetchAttempted.current = true;
         }
     }, [dispatch, loggedInUser]);
@@ -142,14 +144,32 @@ export default function CustomerCareScanPage() {
             // Consider fetching users again if list is empty and fetch was attempted
             if (!initialUsersFetchAttempted.current) {
                 dispatch(fetchAllUsersComplete());
+                console.log("list of users", allUsersFromStore);
                 initialUsersFetchAttempted.current = true;
             }
             return null;
         }
-        // Assuming your User type from auth slice has a 'barcodeId' or similar field
-        const foundUser = allUsersFromStore.find(
-            user => (isStudent(user) && user.barcodeId?.toLocaleLowerCase()) === barcodeId.toLocaleUpperCase()
-        );
+
+        // Find student by barcode ID with improved matching
+        const foundUser = allUsersFromStore.find((user: any) => {
+            // Normalize both the scanned ID and the stored IDs for comparison
+            const normalizedScannedId = barcodeId?.trim().toLowerCase();
+            const normalizedBarcodeId = user.barcodeId?.trim().toLowerCase();
+            const normalizedUserId = user.id?.trim().toLowerCase();
+
+            // Log for debugging
+            console.log(`Comparing scanned ID: "${normalizedScannedId}" with user:`, {
+                name: user.name,
+                barcodeId: normalizedBarcodeId,
+                userId: normalizedUserId
+            });
+
+            // Check for matches with both barcodeId and id
+            return (
+                (normalizedBarcodeId && normalizedBarcodeId === normalizedScannedId) ||
+                (normalizedUserId && normalizedUserId === normalizedScannedId)
+            );
+        });
 
         if (foundUser) {
             return {
