@@ -337,7 +337,7 @@ export default function CustomerCareScanPage() {
                                 <Button
                                     variant="link"
                                     className="mt-2 justify-start px-0"
-                                    onClick={() => router.push(`/admin/users/${scannedStudentInfo.id}`)} // Or appropriate student profile page
+                                    onClick={() => router.push(`/users/${scannedStudentInfo.id}`)} // Or appropriate student profile page
                                 >
                                     View Full Profile →
                                 </Button>
