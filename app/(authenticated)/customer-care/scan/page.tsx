@@ -326,7 +326,7 @@ export default function CustomerCareScanPage() {
                                     <p><strong className="text-muted-foreground">Role:</strong> <Badge variant="outline">{scannedStudentInfo.role}</Badge></p>
                                     <p><strong className="text-muted-foreground">Status:</strong>
                                         <Badge variant={scannedStudentInfo.isActive ? "secondary" : "destructive"}>
-                                            {scannedStudentInfo.isActive ? "Active" : "Inactive"}
+                                            {scannedStudentInfo.isActive ? "Has Paid" : "Yet to Pay"}
                                         </Badge>
                                     </p>
                                     {scannedStudentInfo.phone && <p><strong className="text-muted-foreground">Phone:</strong> {scannedStudentInfo.phone}</p>}
