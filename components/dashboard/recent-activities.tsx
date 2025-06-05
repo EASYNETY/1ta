@@ -418,11 +418,11 @@ export function RecentActivities() {
                                 ))}
                         </div>
                     ) : activities.length > 0 ? (
-                       <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             {activities.map((activity, index) => (
                                 <motion.div
                                     key={activity.id}
-                                    className="flex items-start gap-3 border border-primary/15 rounded-2xl p-2"
+                                    className="flex items-start gap-3 border border-primary/15 rounded-2xl p-2 relative"
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.2, delay: index * 0.05 }}
@@ -440,7 +440,6 @@ export function RecentActivities() {
                                             <p className="text-xs text-muted-foreground">
                                                 {formatDistanceToNow(parseISO(activity.timestamp), { addSuffix: true })}
                                             </p>
-                                            {getActivityBadge(activity)}
                                         </div>
                                         {activity.href && (
                                             <div className="mt-2">
@@ -449,6 +448,9 @@ export function RecentActivities() {
                                                 </DyraneButton>
                                             </div>
                                         )}
+                                    </div>
+                                    <div className="absolute top-2 right-2">
+                                        {getActivityBadge(activity)}
                                     </div>
                                 </motion.div>
                             ))}
