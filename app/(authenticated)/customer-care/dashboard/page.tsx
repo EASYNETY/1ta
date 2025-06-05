@@ -237,7 +237,7 @@ export default function CustomerCareDashboard() {
 
   return (
     <CustomerCareGuard>
-      <div className="space-y-6 p-4 md:p-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Customer Care Dashboard</h1>
           <p className="text-muted-foreground">

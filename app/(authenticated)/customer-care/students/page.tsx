@@ -77,7 +77,7 @@ export default function CustomerCareStudentsPage() {
 
     return (
         <CustomerCareGuard>
-            <div className="space-y-6 p-4 md:p-6">
+            <div className="space-y-6">
                 <PageHeader
                     heading="Student Directory"
                     subheading="View and search student information."

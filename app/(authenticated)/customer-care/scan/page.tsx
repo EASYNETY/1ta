@@ -226,7 +226,7 @@ export default function CustomerCareScanPage() {
 
     return (
         <CustomerCareGuard>
-            <div className="w-full mx-auto p-4 md:p-6 space-y-6">
+            <div className="w-full mx-auto space-y-6">
                 <PageHeader
                     heading='Scan Student ID'
                     subheading='Scan a student ID card to view their information.'

@@ -22,6 +22,7 @@ import { safeString, safeFormatDate, safeBoolean } from '@/lib/utils/safe-data';
 
 // Import the User type from the types directory
 import type { User } from '@/types/user.types';
+import { AdminGuard } from '@/components/auth/PermissionGuard';
 
 
 // Helper to format date using safe utilities
@@ -153,18 +154,20 @@ export default function ViewUserPage() {
 
 
     return (
-        <AuthorizationGuard allowedRoles={['admin']}>
+        <AuthorizationGuard allowedRoles={['admin', 'super_admin', 'customer_care']}>
             <div className="mx-auto">
                 <PageHeader
                     heading={`User Profile`}
                     subheading={`Viewing details for ${safeString(currentUser.name, 'Unknown User')}`}
                     actions={
-                        <Button asChild variant="outline" className="gap-2">
-                            <Link href={`/users/${userId}/edit`}>
-                                <Pencil className="h-4 w-4" />
-                                Edit Profile
-                            </Link>
-                        </Button>
+                        <AdminGuard>
+                            <Button asChild variant="outline" className="gap-2">
+                                <Link href={`/users/${userId}/edit`}>
+                                    <Pencil className="h-4 w-4" />
+                                    Edit Profile
+                                </Link>
+                            </Button>
+                        </AdminGuard>
                     }
                 />
 
@@ -232,7 +235,7 @@ export default function ViewUserPage() {
                                     <span className="text-sm font-medium">Onboarding</span>
                                     <Badge variant={safeString(currentUser.onboardingStatus) === 'complete' ? 'outline' : 'secondary'}>
                                         {safeString(currentUser.onboardingStatus, 'incomplete').charAt(0).toUpperCase() +
-                                        safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
+                                            safeString(currentUser.onboardingStatus, 'incomplete').slice(1)}
                                     </Badge>
                                 </div>
                             </div>
