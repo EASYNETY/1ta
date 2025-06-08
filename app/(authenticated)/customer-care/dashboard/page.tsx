@@ -1,9 +1,9 @@
 // app/(authenticated)/customer-care/dashboard/page.tsx
-
 "use client";
 
 import React, { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { CustomerCareGuard } from '@/components/auth/PermissionGuard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +12,11 @@ import {
   QrCode,
   Users,
   MessageSquare,
-  LifeBuoy,
-  Clock,
   CheckCircle,
   AlertCircle,
   Search,
-  Ticket
+  Ticket,
+  RefreshCw
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import {
@@ -25,30 +24,28 @@ import {
   selectAllTickets,
   selectSupportStatus,
   selectSupportError,
+  clearSupportError
 } from '@/features/support/store/supportSlice';
-import type { SupportTicket, TicketStatus } from '@/features/support/types/support-types';
+import type { SupportTicket, TicketStatus, TicketPriority } from '@/features/support/types/support-types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertTitle } from '@/components/ui/alert'; // Removed AlertDescription as CardDescription is used in error
 import { isToday, parseISO, formatDistanceToNowStrict } from 'date-fns';
-import Link from 'next/link';
+import { PageHeader } from '@/components/layout/auth/page-header';
 
-// StatsCard component (remains mostly the same, but trend logic might change)
-function StatsCard({
-  title,
-  value,
-  subValue, // Optional sub-value like "from last week"
-  icon: Icon,
-  isLoading // Added isLoading prop
-}: {
+// --- StatsCard Component ---
+interface StatsCardProps {
   title: string;
   value: string;
   subValue?: string;
   icon: React.ElementType;
   isLoading?: boolean;
-}) {
+  className?: string;
+}
+
+function StatsCard({ title, value, subValue, icon: Icon, isLoading, className }: StatsCardProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className={className}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <Skeleton className="h-5 w-3/4" />
           <Skeleton className="h-4 w-4 rounded-full" />
@@ -62,7 +59,7 @@ function StatsCard({
   }
 
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -79,9 +76,13 @@ function StatsCard({
   );
 }
 
-
-function RecentTicketsTable({ tickets, isLoading }: { tickets: SupportTicket[], isLoading: boolean }) {
-  if (isLoading && tickets.length === 0) {
+// --- RecentTicketsTable Component ---
+interface RecentTicketsTableProps {
+  tickets: SupportTicket[];
+  isLoading: boolean;
+}
+function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
+  if (isLoading && (!tickets || tickets.length === 0)) {
     return (
       <Card>
         <CardHeader>
@@ -110,52 +111,78 @@ function RecentTicketsTable({ tickets, isLoading }: { tickets: SupportTicket[], 
     );
   }
 
+  const getPriorityVariant = (priority: TicketPriority): "destructive" | "default" | "secondary" => {
+    switch (priority) {
+      case 'high':
+      case 'urgent':
+        return 'destructive';
+      case 'medium':
+        return 'default';
+      case 'low':
+      default:
+        return 'secondary';
+    }
+  };
+
+  // Inside RecentTicketsTable component, within the getStatusVariant function:
+
+  const getStatusVariant = (status: TicketStatus): "destructive" | "default" | "secondary" | "outline" => { // Adjusted return type
+    switch (status) {
+      case 'open':
+        return 'destructive';
+      case 'in_progress':
+        return 'default'; // Or 'secondary' if 'default' isn't visually distinct enough for "in progress"
+      case 'resolved':
+        return 'secondary'; // Changed "success" to "secondary" or "outline" or "default"
+      // Choose one that exists in your Badge variants and looks appropriate for "resolved"
+      case 'closed':
+        return 'outline'; // Or 'secondary'
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Recent Tickets</CardTitle>
-        <CardDescription>Latest support requests (showing up to 5)</CardDescription>
+        <CardDescription>Latest support requests (showing up to 5 most recently updated)</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {tickets.slice(0, 5).map((ticket) => (
-            <div key={ticket.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="flex-grow mb-2 sm:mb-0">
-                {/* Link to individual ticket detail page */}
-                <Link href={`/support/tickets/${ticket.id}`} className="hover:underline">
-                  <p className="font-medium text-sm leading-tight truncate max-w-xs sm:max-w-sm md:max-w-md">{ticket.subject}</p>
-                </Link>
-                <p className="text-xs text-muted-foreground">
-                  By: {ticket.studentName || 'N/A'} ({ticket.studentId})
-                </p>
+          {tickets
+            .slice()
+            .sort((a, b) => parseISO(b.updatedAt).getTime() - parseISO(a.updatedAt).getTime())
+            .slice(0, 5)
+            .map((ticket) => (
+              <div key={ticket.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors dark:border-gray-700">
+                <div className="flex-grow mb-2 sm:mb-0 pr-2">
+                  <Link href={`/support/tickets/${ticket.id}`} className="hover:underline block">
+                    <p className="font-medium text-sm leading-tight truncate max-w-xs sm:max-w-sm md:max-w-md dark:text-gray-100">{ticket.subject}</p>
+                  </Link>
+                  <p className="text-xs text-muted-foreground">
+                    By: {ticket.studentName || 'N/A'} (ID: {ticket.studentId.substring(0, 8)}...)
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                  <Badge
+                    variant={getPriorityVariant(ticket.priority)}
+                    className="text-xs px-1.5 py-0.5 capitalize"
+                  >
+                    {ticket.priority}
+                  </Badge>
+                  <Badge
+                    variant={getStatusVariant(ticket.status)}
+                    className="text-xs px-1.5 py-0.5 capitalize"
+                  >
+                    {ticket.status.replace('_', ' ')}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(ticket.createdAt).toLocaleString()}>
+                    {formatDistanceToNowStrict(parseISO(ticket.createdAt), { addSuffix: true })}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 flex-shrink-0">
-                <Badge
-                  variant={
-                    ticket.priority === 'high' || ticket.priority === 'urgent' ? 'destructive' :
-                      ticket.priority === 'medium' ? 'default' : 'secondary'
-                  }
-                  className="text-xs px-1.5 py-0.5"
-                >
-                  {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)}
-                </Badge>
-                <Badge
-                  variant={
-                    ticket.status === 'open' ? 'destructive' :
-                      ticket.status === 'in_progress' ? 'default' :
-                        ticket.status === 'resolved' ? 'secondary' : // Added success variant for resolved
-                          'secondary'
-                  }
-                  className="text-xs px-1.5 py-0.5"
-                >
-                  {ticket.status.replace('_', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </Badge>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  {formatDistanceToNowStrict(parseISO(ticket.createdAt), { addSuffix: true })}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
         {tickets.length > 5 && (
           <div className="mt-4 text-center">
@@ -169,82 +196,149 @@ function RecentTicketsTable({ tickets, isLoading }: { tickets: SupportTicket[], 
   );
 }
 
+// --- Main Dashboard Component ---
 export default function CustomerCareDashboard() {
   const dispatch = useAppDispatch();
-  const router = useRouter(); // << Initialize router
-  const allTickets = useAppSelector(selectAllTickets);
+  const router = useRouter();
+  const { user: loggedInUser } = useAppSelector((state) => state.auth);
+  const allTickets = useAppSelector(selectAllTickets); // This is SupportTicket[]
   const supportStatus = useAppSelector(selectSupportStatus);
   const supportError = useAppSelector(selectSupportError);
 
-  const isLoading = supportStatus === 'loading' || supportStatus === 'idle';
+  // isLoading considers initial idle state before first fetch attempt as loading too
+  const isLoading = supportStatus === 'loading' || (supportStatus === 'idle' && (!allTickets || allTickets.length === 0));
 
   useEffect(() => {
-    if (supportStatus === 'idle') {
-      dispatch(fetchAllTickets({ limit: 1000 }));
+    // Fetch tickets if user is loaded and either status is idle or no tickets are present (e.g., after a clear or initial load)
+    if (loggedInUser && (supportStatus === 'idle' || (!allTickets || allTickets.length === 0))) {
+      dispatch(clearSupportError());
+      dispatch(fetchAllTickets({ limit: 10000, page: 1 })); // Fetch a large number for client-side stats
     }
-  }, [dispatch]);
+  }, [dispatch, loggedInUser, supportStatus, allTickets]); // allTickets in dep array to refetch if it becomes empty
 
+  // --- Global Stats Calculation ---
   const customerCareStats = useMemo(() => {
     if (!allTickets || allTickets.length === 0) {
       return {
-        totalTickets: { value: "0", subValue: "" },
-        openTickets: { value: "0", subValue: "" },
-        resolvedToday: { value: "0", subValue: "" },
-        newTicketsToday: { value: "0", subValue: "" }
+        totalTickets: { value: "0", subValue: "All time" },
+        openTickets: { value: "0", subValue: "Currently active" },
+        resolvedToday: { value: "0", subValue: "Updated today" },
+        newTicketsToday: { value: "0", subValue: "Created today" }
       };
     }
     const openStatuses: TicketStatus[] = ['open', 'in_progress'];
     const resolvedStatuses: TicketStatus[] = ['resolved', 'closed'];
+
     const totalTicketsCount = allTickets.length;
     const openTicketsCount = allTickets.filter(ticket => openStatuses.includes(ticket.status)).length;
+
     const resolvedTodayCount = allTickets.filter(ticket =>
-      resolvedStatuses.includes(ticket.status) && ticket.updatedAt && isToday(parseISO(ticket.updatedAt))
+      resolvedStatuses.includes(ticket.status) &&
+      ticket.updatedAt && // Ensure updatedAt exists
+      isToday(parseISO(ticket.updatedAt))
     ).length;
+
     const newTicketsTodayCount = allTickets.filter(ticket =>
-      ticket.createdAt && isToday(parseISO(ticket.createdAt))
+      ticket.createdAt && // Ensure createdAt exists
+      isToday(parseISO(ticket.createdAt))
     ).length;
+
     return {
       totalTickets: { value: totalTicketsCount.toString(), subValue: "All time" },
-      openTickets: { value: openTicketsCount.toString(), subValue: `Currently active` },
-      resolvedToday: { value: resolvedTodayCount.toString(), subValue: "Updated today" },
-      newTicketsToday: { value: newTicketsTodayCount.toString(), subValue: "Created today" }
+      openTickets: { value: openTicketsCount.toString(), subValue: `${openTicketsCount} currently active` },
+      resolvedToday: { value: resolvedTodayCount.toString(), subValue: "Resolved or closed today" },
+      newTicketsToday: { value: newTicketsTodayCount.toString(), subValue: "Received today" }
     };
   }, [allTickets]);
 
+  // --- "My Activity Today" Stats Calculation ---
+  const myActivityStats = useMemo(() => {
+    if (!loggedInUser || !allTickets || allTickets.length === 0) {
+      return {
+        ticketsHandledByMeToday: 0, // Renamed for clarity
+      };
+    }
+
+    const resolvedStatuses: TicketStatus[] = ['resolved', 'closed'];
+    let ticketsHandledByMeToday = 0;
+
+    allTickets.forEach(ticket => {
+      const ticketResolvedOrClosedToday =
+        resolvedStatuses.includes(ticket.status) &&
+        ticket.updatedAt &&
+        isToday(parseISO(ticket.updatedAt));
+
+      if (ticketResolvedOrClosedToday) {
+        // Check if the logged-in user was the one who likely resolved it
+        // by checking the last response if `responses` array is available and populated.
+        if (ticket.responses && ticket.responses.length > 0) {
+          // Sort responses by date to be sure, though usually they are appended.
+          const sortedResponses = [...ticket.responses].sort((a, b) => parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime());
+          const lastResponse = sortedResponses[0];
+
+          if (lastResponse && lastResponse.userId === loggedInUser.id) {
+            // Check if this last response by the user was also today,
+            // or if the ticket's updatedAt (resolution time) is today.
+            // The ticket.updatedAt check is already covered by ticketResolvedOrClosedToday.
+            ticketsHandledByMeToday++;
+            return; // Move to the next ticket
+          }
+        }
+        // Fallback or alternative: if your ticket has an `assignedToUserId` and that matches,
+        // and the ticket was resolved today, you might count it.
+        // else if (ticket.assignedToUserId === loggedInUser.id) {
+        //   ticketsCount++;
+        //   return;
+        // }
+      }
+    });
+
+    return {
+      ticketsResolvedOrLastHandledByMeToday: ticketsHandledByMeToday,
+    };
+  }, [loggedInUser, allTickets]);
+
+  // --- Error Display ---
   if (supportError && !isLoading) {
     return (
       <CustomerCareGuard>
         <div className="flex items-center justify-center h-screen p-4">
           <Alert variant="destructive" className="w-full max-w-md">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error Loading Data</AlertTitle>
-            <CardDescription>{supportError}</CardDescription>
-            <Button onClick={() => dispatch(fetchAllTickets({ limit: 1000 }))} className="mt-4">Retry</Button>
+            <AlertTitle>Error Loading Support Data</AlertTitle>
+            <CardDescription>{supportError}</CardDescription> {/* Used CardDescription for consistency */}
+            <Button
+              onClick={() => {
+                dispatch(clearSupportError());
+                dispatch(fetchAllTickets({ limit: 10000, page: 1 }));
+              }}
+              className="mt-4"
+            >
+              Retry
+            </Button>
           </Alert>
         </div>
       </CustomerCareGuard>
-    )
+    );
   }
 
-  // Define actions with navigation
+  // --- Quick Actions Definition ---
   const quickActions = [
-    { icon: QrCode, label: "Scan Student", href: "/customer-care/scan" },
-    { icon: Search, label: "Search Student", href: "/customer-care/students" },
-    { icon: MessageSquare, label: "New Ticket", href: "/support/create" },
-    { icon: Users, label: "Student Directory", href: "/customer-care/students" },
+    { icon: QrCode, label: "Scan Student ID", href: "/customer-care/scan" },
+    { icon: Search, label: "Student Directory", href: "/customer-care/students" },
+    { icon: MessageSquare, label: "Create New Ticket", href: "/support/tickets/new" },
+    { icon: Ticket, label: "View All Tickets", href: "/support/tickets" },
   ];
-
 
   return (
     <CustomerCareGuard>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Customer Care Dashboard</h1>
-          <p className="text-muted-foreground">
-            Support overview and student assistance tools
-          </p>
-        </div>
+      <div className="space-y-6 p-4 md:p-6">
+        <PageHeader
+          heading="Customer Care Dashboard"
+          subheading="Support overview and student assistance tools"
+        />
 
+        {/* Stats Cards Section */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Tickets"
@@ -261,7 +355,7 @@ export default function CustomerCareDashboard() {
             isLoading={isLoading}
           />
           <StatsCard
-            title="Resolved Today"
+            title="Tickets Resolved Today" // Globally resolved
             value={customerCareStats.resolvedToday.value}
             subValue={customerCareStats.resolvedToday.subValue}
             icon={CheckCircle}
@@ -276,8 +370,9 @@ export default function CustomerCareDashboard() {
           />
         </div>
 
+        {/* Quick Actions & My Activity Section */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card> {/* Quick Actions */}
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
               <CardDescription>Common customer care tasks</CardDescription>
@@ -288,53 +383,56 @@ export default function CustomerCareDashboard() {
                   <Button
                     key={idx}
                     variant="outline"
-                    className="h-auto p-3 flex-grow basis-[calc(50%-0.375rem)] md:basis-auto md:flex-grow-0 flex flex-col items-center justify-center space-y-1 min-w-[120px]"
-                    onClick={() => router.push(item.href)} // << USE router.push
+                    className="h-auto p-3 flex-grow basis-[calc(50%-0.375rem)] md:basis-auto md:flex-grow-0 flex flex-col items-center justify-center space-y-1 min-w-[120px] hover:bg-accent transition-colors dark:hover:bg-accent/70"
+                    onClick={() => router.push(item.href)}
                   >
-                    <item.icon className="h-5 w-5 mb-1" />
-                    <span className="text-xs text-center">{item.label}</span>
+                    <item.icon className="h-5 w-5 mb-1 text-primary" />
+                    <span className="text-xs text-center font-medium">{item.label}</span>
                   </Button>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card> {/* My Activity Today */}
             <CardHeader>
               <CardTitle>My Activity Today</CardTitle>
-              <CardDescription>Your personal performance summary (Mock Data)</CardDescription>
+              <CardDescription>Your key interactions and resolutions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span>Tickets I Resolved:</span>
-                  <span className="font-medium">{isLoading ? <Skeleton className="h-4 w-8 inline-block" /> : "8"}</span>
+              {(isLoading && (!myActivityStats || myActivityStats.ticketsHandledByMeToday === undefined)) ? (
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between"><span>My Handled Tickets:</span><Skeleton className="h-4 w-10 inline-block" /></div>
+                  <div className="flex items-center justify-between"><span>My Avg. Response:</span><Skeleton className="h-4 w-24 inline-block" /></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>My Avg. Response:</span>
-                  <span className="font-medium">{isLoading ? <Skeleton className="h-4 w-20 inline-block" /> : "1.2 hours"}</span>
+              ) : (
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>Tickets Handled by Me Today:</span>
+                    <span className="font-semibold text-lg">{myActivityStats.ticketsHandledByMeToday}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>My Avg. First Response Time:</span>
+                    <span className="font-medium text-muted-foreground italic">N/A (Requires Backend Logic)</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Students I Assisted:</span>
-                  <span className="font-medium">{isLoading ? <Skeleton className="h-4 w-8 inline-block" /> : "15"}</span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
         <RecentTicketsTable tickets={allTickets || []} isLoading={isLoading} />
 
-        <Card>
+        <Card> {/* Student Information Lookup Card */}
           <CardHeader>
             <CardTitle>Student Information Lookup</CardTitle>
-            <CardDescription>Quickly access student profiles</CardDescription>
+            <CardDescription>Quickly access student profiles using ID card scan</CardDescription>
           </CardHeader>
           <CardContent className="text-center py-8">
-            <QrCode className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+            <QrCode className="h-12 w-12 mx-auto mb-3 text-primary" />
             <h3 className="text-md font-medium mb-1">Scan Student ID Card</h3>
             <p className="text-sm text-muted-foreground mb-3 max-w-md mx-auto">
-              Use a barcode scanner or manually enter ID to view student details, attendance, and timetables.
+              Use a barcode scanner or navigate to the scan page to look up student details.
             </p>
             <Button onClick={() => router.push('/customer-care/scan')}>
               <QrCode className="mr-2 h-4 w-4" />
