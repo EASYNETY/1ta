@@ -32,7 +32,7 @@ import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice
 import { fetchNotifications } from "@/features/notifications/store/notifications-slice"
 import { fetchAnalyticsDashboard } from "@/features/analytics/store/analytics-slice"
 import { fetchAccountingData, selectAccountingStats, selectAccountingStatus, selectCourseRevenues, selectMonthlyRevenueTrend, selectPaymentMethodDistribution } from "@/features/payment/store/accounting-slice"
-import { fetchAllUsers } from "@/features/auth"
+import { fetchAllUsersComplete } from "@/features/auth"
 
 interface StatCardProps {
   title: string
@@ -133,10 +133,10 @@ export function DashboardStats() {
     switch (userRole) {
       case "super_admin":
       case "admin":
-        if (analytics.status === "idle") {
+        if (analytics.status === "loading") {
           dispatch(fetchAnalyticsDashboard())
           dispatch(fetchAuthCourses())
-          dispatch(fetchAllUsers())
+          dispatch(fetchAllUsersComplete())
           dispatch(fetchAccountingData({}))
         }
         break
