@@ -182,7 +182,7 @@ export default function CustomerCareDashboard() {
     if (supportStatus === 'idle') {
       dispatch(fetchAllTickets({ limit: 1000 }));
     }
-  }, [dispatch, supportStatus]);
+  }, [dispatch]);
 
   const customerCareStats = useMemo(() => {
     if (!allTickets || allTickets.length === 0) {
