@@ -133,7 +133,7 @@ export function DashboardStats() {
     switch (userRole) {
       case "super_admin":
       case "admin":
-        if (analytics.status === "loading") {
+        if (analytics.status === "idle") {
           dispatch(fetchAnalyticsDashboard())
           dispatch(fetchAuthCourses())
           dispatch(fetchAllUsersComplete())
@@ -184,14 +184,14 @@ export function DashboardStats() {
     dispatch,
     userId,
     userRole,
-    assignmentsStatus,
-    gradesStatus,
-    scheduleStatus,
-    paymentsStatus,
-    classesStatus,
-    coursesStatus,
-    notificationsStatus,
-    analytics.status,
+    // assignmentsStatus,
+    // gradesStatus,
+    // scheduleStatus,
+    // paymentsStatus,
+    // classesStatus,
+    // coursesStatus,
+    // notificationsStatus,
+    // analytics.status,
     stats,
   ])
 
