@@ -67,12 +67,12 @@ export default function PaymentHistoryPage() {
                                         Accounting Dashboard
                                     </Button>
                                 </Link>
-                                <Link href="/accounting/analytics">
+                                {user.role !== 'admin' && <Link href="/accounting/analytics">
                                     <Button variant="outline">
                                         <BarChart3 className="mr-2 h-4 w-4" />
                                         Financial Analytics
                                     </Button>
-                                </Link>
+                                </Link>}
                             </div>
                         </div>
                         <AdminPaymentsTable />
