@@ -81,19 +81,30 @@ export const sendChatMessage = createAsyncThunk<
 );
 
 export const createChatRoom = createAsyncThunk<
-	void, // No return value
+	ChatRoom,
 	CreateRoomPayload,
 	{ rejectValue: string }
 >("chat/createRoom", async (payload, { rejectWithValue }) => {
 	try {
-		const response = await post<CreateRoomResponse>("/chat/rooms", payload);
-		if (!response.success) {
-			return rejectWithValue("Failed to create chat room: No success flag.");
+		// apiClient.post will return the content of the 'data' field from the backend response,
+		// which is the ChatRoom object.
+		const newChatRoom = await post<ChatRoom>("/chat/rooms", payload);
+
+		if (!newChatRoom || !newChatRoom.id) {
+			console.error(
+				"Failed to create chat room: API response did not contain a valid room object.",
+				newChatRoom
+			);
+			return rejectWithValue(
+				"Failed to create chat room: Invalid response from server."
+			);
 		}
-		// Don't return anything
+		console.log("Chat room created successfully in thunk:", newChatRoom);
+		return newChatRoom;
 	} catch (e: any) {
 		const errorMessage =
 			e.response?.data?.message || e.message || "Failed to create chat room";
+		console.error("Error creating chat room in thunk:", errorMessage, e);
 		return rejectWithValue(errorMessage);
 	}
 });
