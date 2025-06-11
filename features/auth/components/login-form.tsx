@@ -78,7 +78,7 @@ export function LoginForm() {
     <Card className="w-full max-w-md mx-auto bg-transparent backdrop-blur-xs border-none">
       <CardHeader className="text-center space-y-1">
         <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-        <CardDescription>Sign in to your SmartEdu dashboard</CardDescription>
+        <CardDescription>Sign in to your 1TechAcademy dashboard</CardDescription>
       </CardHeader>
 
       <CardContent>

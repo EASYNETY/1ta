@@ -12,6 +12,7 @@ import { getCourseIcon } from "@/utils/course-icon-mapping"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { selectAllCourses, fetchCourses } from "@/features/public-course/store/public-course-slice"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
+import { getProxiedImageUrl } from "@/utils/imageProxy"
 
 // Types
 export interface CourseListing {
@@ -360,7 +361,7 @@ export function CourseCards() {
                     <motion.div layoutId={`card-icon-${selectedCourse.id}`} className="w-12 h-12 relative mr-4 shrink-0">
                       {selectedCourse.iconUrl ? (
                         <Image
-                          src={selectedCourse.iconUrl}
+                          src={getProxiedImageUrl(selectedCourse.iconUrl)}
                           alt={selectedCourse.name}
                           fill
                           className="object-contain rounded-md"
@@ -548,7 +549,7 @@ function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
         <motion.div layoutId={`card-icon-${course.id}`} className="w-10 h-10 relative mr-3 shrink-0">
           {course.iconUrl ? (
             <Image
-              src={course.iconUrl}
+              src={getProxiedImageUrl(course.iconUrl)}
               alt={course.name}
               fill
               className="object-contain rounded-sm"
