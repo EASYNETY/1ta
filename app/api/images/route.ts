@@ -42,6 +42,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 		// This is the correct and intended way to customize fetch behavior.
 		const response = await fetch(targetUrl.toString(), {
 			dispatcher: insecureDispatcher,
+			cache: "no-store",
 		});
 
 		if (!response.ok) {
