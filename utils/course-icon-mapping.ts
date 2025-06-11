@@ -79,28 +79,34 @@ export const courseIconMapping: CourseIconMapping = {
   "Digital Marketing Certification": "/images/icons/Digital Marketing Certification-01-01.png",
 
   // AI/ML courses
-  "ai": "/images/icons/AI  Machine Learning Mastery.png",
-  "ai-ml": "/images/icons/AI  Machine Learning Mastery.png",
-  "machine-learning": "/images/icons/AI  Machine Learning Mastery.png",
-  "AI & Machine Learning Mastery": "/images/icons/AI  Machine Learning Mastery.png",
-  "AI Machine Learning Mastery": "/images/icons/AI  Machine Learning Mastery.png",
+  "ai": "/images/future/AI_ MACHINE LEARNING.jpeg",
+  "ai-ml": "/images/future/AI_ MACHINE LEARNING.jpeg",
+  "machine-learning": "/images/future/AI_ MACHINE LEARNING.jpeg",
+  "AI & Machine Learning": "/images/future/AI_ MACHINE LEARNING.jpeg",
+  "AI & Machine Learning Mastery": "/images/future/AI_ MACHINE LEARNING.jpeg",
+  "AI Machine Learning Mastery": "/images/future/AI_ MACHINE LEARNING.jpeg",
+
+  // Data Science courses
+  "data-science": "/images/future/DATA SCIENCE.jpeg",
+  "Data Science": "/images/future/DATA SCIENCE.jpeg",
+  "Data Science & Big Data Analytics": "/images/future/DATA SCIENCE.jpeg",
 
   // Cybersecurity courses
-  "cybersecurity": "/images/icons/Advanced Cybersecurity Defense.png",
-  "security": "/images/icons/Advanced Cybersecurity Defense.png",
-  "Advanced Cybersecurity Defense": "/images/icons/Advanced Cybersecurity Defense.png",
+  "cybersecurity": "/images/future/ADVANCED CYBERSECURITY.jpeg",
+  "security": "/images/future/ADVANCED CYBERSECURITY.jpeg",
+  "Advanced Cybersecurity Defense": "/images/future/ADVANCED CYBERSECURITY.jpeg",
 
   // DevOps courses
-  "devops": "/images/icons/DevOps Engineering  Automation.png",
-  "DevOps Engineering & Automation": "/images/icons/DevOps Engineering  Automation.png",
-  "DevOps Engineering Automation": "/images/icons/DevOps Engineering  Automation.png",
+  "devops": "/images/future/DEVOPS ENGINEERING.jpeg",
+  "DevOps Engineering & Automation": "/images/future/DEVOPS ENGINEERING.jpeg",
+  "DevOps Engineering Automation": "/images/future/DEVOPS ENGINEERING.jpeg",
 
   // ISO courses
-  "iso": "/images/icons/ISO 27001 Information Security.png",
-  "iso-27001": "/images/icons/ISO 27001 Information Security.png",
-  "iso-9001": "/images/icons/ISO 9001 Quality Management.png",
-  "ISO 27001 Information Security": "/images/icons/ISO 27001 Information Security.png",
-  "ISO 9001 Quality Management": "/images/icons/ISO 9001 Quality Management.png",
+  "iso": "/images/future/ISO 27001.jpeg",
+  "iso-27001": "/images/future/ISO 27001.jpeg",
+  "ISO 27001 Information Security": "/images/future/ISO 27001.jpeg",
+  "iso-9001": "/images/future/ISO 9001.jpeg",
+  "ISO 9001 Quality Management": "/images/future/ISO 9001.jpeg",
 };
 
 /**

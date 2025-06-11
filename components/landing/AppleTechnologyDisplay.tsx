@@ -90,6 +90,8 @@ const fallbackListings: CourseListing[] = [
     category: "future",
     isIsoCertification: true,
     waitlistCount: 0,
+    imageUrl: "/images/future/ISO 9001.jpeg",
+    iconUrl: "/images/future/ISO 9001.jpeg",
     gradientColors: {
       to: "to-gray-600",
       from: "from-slate-500"
@@ -102,21 +104,50 @@ const fallbackListings: CourseListing[] = [
     category: "future",
     isIsoCertification: true,
     waitlistCount: 0,
+    imageUrl: "/images/future/ISO 27001.jpeg",
+    iconUrl: "/images/future/ISO 27001.jpeg",
     gradientColors: {
       to: "to-gray-600",
       from: "from-slate-500"
     }
   },
   {
-    id: "iso-20000",
-    name: "ISO 20000 IT Service Management",
-    description: "Establish and improve IT service management systems following international best practices.",
+    id: "data-science",
+    name: "Data Science",
+    description: "Master data analysis, visualization, and machine learning techniques to extract valuable insights from complex datasets.",
     category: "future",
-    isIsoCertification: true,
     waitlistCount: 0,
+    imageUrl: "/images/future/DATA SCIENCE.jpeg",
+    iconUrl: "/images/future/DATA SCIENCE.jpeg",
     gradientColors: {
-      to: "to-gray-600",
-      from: "from-slate-500"
+      to: "to-blue-600",
+      from: "from-cyan-500"
+    }
+  },
+  {
+    id: "devops",
+    name: "DevOps Engineering",
+    description: "Learn to streamline development and operations with automation, CI/CD pipelines, and infrastructure as code.",
+    category: "future",
+    waitlistCount: 0,
+    imageUrl: "/images/future/DEVOPS ENGINEERING.jpeg",
+    iconUrl: "/images/future/DEVOPS ENGINEERING.jpeg",
+    gradientColors: {
+      to: "to-orange-600",
+      from: "from-amber-500"
+    }
+  },
+  {
+    id: "cybersecurity",
+    name: "Advanced Cybersecurity",
+    description: "Develop expertise in protecting systems and networks from digital attacks with advanced security techniques.",
+    category: "future",
+    waitlistCount: 0,
+    imageUrl: "/images/future/ADVANCED CYBERSECURITY.jpeg",
+    iconUrl: "/images/future/ADVANCED CYBERSECURITY.jpeg",
+    gradientColors: {
+      to: "to-red-600",
+      from: "from-rose-500"
     }
   },
   {
@@ -125,6 +156,8 @@ const fallbackListings: CourseListing[] = [
     description: "Explore the frontiers of Artificial Intelligence. Build intelligent systems with advanced ML algorithms and neural networks.",
     category: "future",
     waitlistCount: 0,
+    imageUrl: "/images/future/AI_ MACHINE LEARNING.jpeg",
+    iconUrl: "/images/future/AI_ MACHINE LEARNING.jpeg",
     gradientColors: {
       to: "to-violet-600",
       from: "from-purple-500"
@@ -1387,7 +1420,7 @@ const TechnologyCard = React.memo(function TechnologyCard({ course, onClick }: T
               <div className="w-12 h-12 flex items-center justify-center">
                 {course.iconUrl ? (
                   <img
-                    src={getProxiedImageUrl(course.iconUrl)}
+                    src={course.iconUrl.includes('/images/future/') ? course.iconUrl : getProxiedImageUrl(course.iconUrl)}
                     alt={`${course.name} technology icon`}
                     className="w-12 h-12 object-contain rounded-md"
                     crossOrigin="anonymous"

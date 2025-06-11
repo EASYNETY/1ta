@@ -27,6 +27,12 @@ export function getProxiedImageUrl(
 		return "/images/placeholder.svg"; // Adjust path to your placeholder image
 	}
 
+	// Check if the image is from the local /images/future directory
+	if (imageUrl.startsWith("/images/future/")) {
+		// Return the local path directly without proxying
+		return imageUrl;
+	}
+
 	// Check if the URL is already absolute (starts with http:// or https://)
 	const isAbsolute = /^https?:\/\//i.test(imageUrl);
 
