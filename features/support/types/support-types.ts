@@ -11,9 +11,11 @@ export type FeedbackStatus = "new" | "reviewed" | "actioned";
 
 // Information needed for creating a ticket
 export interface CreateTicketPayload {
-	subject: string;
+	title: string;
+	subject?: string; // Keeping for backward compatibility
 	description: string;
 	priority: TicketPriority;
+	category: string;
 	// studentId is usually added by the backend based on auth token
 }
 
@@ -40,9 +42,11 @@ export interface SupportTicket {
 	id: string;
 	studentId: string; // ID of the student who created it
 	studentName?: string; // Optional: Name for display
-	subject: string;
+	title: string;
+	subject?: string; // Keeping for backward compatibility
 	description: string;
 	priority: TicketPriority;
+	category: string;
 	status: TicketStatus;
 	createdAt: string; // ISO Date string
 	updatedAt: string; // ISO Date string
