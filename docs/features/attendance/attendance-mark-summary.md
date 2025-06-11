@@ -18,7 +18,7 @@ We have created the following documentation to guide the implementation of the a
 
 ### Endpoint Details
 
-- **URL**: `http://34.249.241.206:5000/api/attendance/mark`
+- **URL**: `https://api.onetechacademy.com/api/attendance/mark`
 - **Method**: `POST`
 - **Authentication**: Required (Bearer Token)
 

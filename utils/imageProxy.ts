@@ -1,4 +1,4 @@
-const BASE_URL = "http://34.249.241.206:5000";
+const BASE_URL = "https://api.onetechacademy.com";
 
 /**
  * Generates a proxied image URL via the `/api/images` route.

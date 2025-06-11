@@ -29,7 +29,7 @@ export interface CourseListing {
 // API endpoint for course listings
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_BASE_URL
   ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/publiclistings`
-  : "http://34.249.241.206:5000/api/publiclistings"
+  : "https://api.onetechacademy.com/api/publiclistings"
 
 // Animation Variants
 const containerVariants = {

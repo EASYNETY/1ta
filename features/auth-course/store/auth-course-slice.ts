@@ -224,7 +224,7 @@ export const fetchAuthCourses = createAsyncThunk<
 		const coursesWithIcons = courses.map((course) => ({
 			...course,
 			iconUrl:
-				course.image !== "http://34.249.241.206:5000/placeholder.svg"
+				course.image !== "https://api.onetechacademy.com/placeholder.svg"
 					? getProxiedImageUrl(course.image)
 					: getCourseIcon(course.title, course.id),
 		}));
@@ -314,7 +314,7 @@ export const fetchCourseBySlug = createAsyncThunk<
 		const courseWithIcon = {
 			...course,
 			iconUrl:
-				course.image !== "http://34.249.241.206:5000/placeholder.svg"
+				course.image !== "https://api.onetechacademy.com/placeholder.svg"
 					? getProxiedImageUrl(course.image)
 					: getCourseIcon(course.title, course.id),
 		};
@@ -391,7 +391,7 @@ export const fetchAuthCourseBySlug = createAsyncThunk<
 		const courseWithIcon = {
 			...course,
 			iconUrl:
-				course.image !== "http://34.249.241.206:5000/placeholder.svg"
+				course.image !== "https://api.onetechacademy.com/placeholder.svg"
 					? getProxiedImageUrl(course.image)
 					: getCourseIcon(course.title, course.id),
 		};

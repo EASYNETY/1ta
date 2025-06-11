@@ -4,7 +4,7 @@ This document provides detailed specifications for the `/api/attendance/mark` en
 
 ## Endpoint Overview
 
-- **URL**: `http://34.249.241.206:5000/api/attendance/mark`
+- **URL**: `https://api.onetechacademy.com/api/attendance/mark`
 - **Method**: `POST`
 - **Authentication**: Required (Bearer Token)
 - **Content-Type**: `application/json`

@@ -206,11 +206,11 @@ const fallbackPublicCourses: PublicCourse[] = [
 // API endpoints
 const LISTINGS_ENDPOINT = process.env.NEXT_PUBLIC_API_BASE_URL
   ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/publiclistings`
-  : "http://34.249.241.206:5000/api/publiclistings"
+  : "https://api.onetechacademy.com/api/publiclistings"
 
 const COURSES_ENDPOINT = process.env.NEXT_PUBLIC_API_BASE_URL
   ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/public_courses`
-  : "http://34.249.241.206:5000/api/public_courses"
+  : "https://api.onetechacademy.com/api/public_courses"
 
 // Animation Variants
 const containerVariants = {

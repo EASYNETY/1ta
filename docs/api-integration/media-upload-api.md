@@ -9,7 +9,7 @@ The Media Upload API allows users to upload various types of media files to the 
 ## Base URL
 
 ```
-http://34.249.241.206:5000/api/v1
+https://api.onetechacademy.com/api/v1
 ```
 
 ## Authentication

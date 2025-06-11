@@ -35,7 +35,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
         return (
           <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-300 dark:bg-green-700/20 dark:text-green-300 dark:border-green-700/30">
             <CheckCircle className="mr-1 h-3 w-3" />
-            Succeeded
+            Successful
           </Badge>
         )
       case "pending":
@@ -77,7 +77,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
           <div className="flex items-center">
             <div className="relative h-12 w-12 mr-3 sm:h-16 sm:w-16 flex-shrink-0">
               <Image
-                src="http://onetechacademy.com/icon.png"
+                src="https://onetechacademy.com/icon.png"
                 alt="1Tech Academy Logo"
                 fill
                 className="object-contain"
