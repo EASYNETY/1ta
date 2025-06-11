@@ -55,13 +55,17 @@ const CourseMediaPreview = ({ course }: { course: PublicCourse | AuthCourse }) =
 
     // Fallback to course icon or placeholder image
     const imageSource = course.iconUrl || course.image || getCourseIcon(course.title, course.id);
+    
+    // Check if the image is from the future directory
+    const isFutureImage = typeof imageSource === 'string' && imageSource.includes('/images/future/');
+    
     return (
         <Image
             src={imageSource}
             alt={course.title}
             fill
             sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className={`transition-transform duration-300 group-hover:scale-105 ${isFutureImage ? 'object-contain' : 'object-cover'}`}
             priority={!course.previewVideoUrl} // Prioritize if it's the only thing showing
         />
     );

@@ -16,11 +16,13 @@ import { createTicket, selectSupportCreateStatus, resetCreateStatus } from '../s
 import type { TicketPriority, CreateTicketPayload } from '../types/support-types';
 
 const priorities: TicketPriority[] = ['low', 'medium', 'high', 'urgent'];
+const categories = ['technical', 'billing', 'course', 'general'];
 
 const ticketFormSchema = z.object({
-    subject: z.string().min(5, "Subject must be at least 5 characters").max(100),
+    title: z.string().min(5, "Title must be at least 5 characters").max(100),
     description: z.string().min(20, "Description must be at least 20 characters").max(1000),
     priority: z.enum(['low', 'medium', 'high', 'urgent'], { required_error: "Please select a priority" }),
+    category: z.enum(['technical', 'billing', 'course', 'general'], { required_error: "Please select a category" }),
 });
 
 type TicketFormValues = z.infer<typeof ticketFormSchema>;
@@ -39,9 +41,10 @@ export const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onSuccess 
     const form = useForm<TicketFormValues>({
         resolver: zodResolver(ticketFormSchema),
         defaultValues: {
-            subject: "",
+            title: "",
             description: "",
             priority: "medium",
+            category: "general",
         },
     });
 
@@ -51,7 +54,14 @@ export const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onSuccess 
             return;
         }
 
-        const payload: CreateTicketPayload = data;
+        // Map form fields to API expected fields
+        const payload = {
+            title: data.title,
+            subject: data.title, // Keep subject for backward compatibility
+            description: data.description,
+            priority: data.priority,
+            category: data.category
+        };
 
         try {
             await dispatch(createTicket({ userId: user.id, ...payload })).unwrap();
@@ -70,10 +80,10 @@ export const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onSuccess 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                     control={form.control}
-                    name="subject"
+                    name="title"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Subject</FormLabel>
+                            <FormLabel>Title</FormLabel>
                             <FormControl>
                                 <Input placeholder="e.g., Issue with course video" {...field} />
                             </FormControl>
@@ -81,28 +91,52 @@ export const SupportTicketForm: React.FC<SupportTicketFormProps> = ({ onSuccess 
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="priority"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Priority</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select priority level" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {priorities.map(p => (
-                                        <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select issue category" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {categories.map(c => (
+                                            <SelectItem key={c} value={c} className="capitalize">{c}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="priority"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Priority</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select priority level" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {priorities.map(p => (
+                                            <SelectItem key={p} value={p} className="capitalize">{p}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
                 <FormField
                     control={form.control}
                     name="description"
