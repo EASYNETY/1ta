@@ -17,11 +17,18 @@ const BASE_URL = "https://api.onetechacademy.com";
  * // returns "/api/images?imageUrl=http%3A%2F%2Fexample.com%2Fimage.jpg"
  */
 export function getProxiedImageUrl(imageUrl: string): string {
+	if (!imageUrl) return "/placeholder.svg";
 	// Check if the URL is absolute (starts with http:// or https://)
 	const isAbsolute = /^https?:\/\//i.test(imageUrl);
 
-	// If it's relative, prepend the BASE_URL
-	const fullUrl = isAbsolute ? imageUrl : `${BASE_URL}${imageUrl}`;
+	let fullUrl: string;
+	if (isAbsolute) {
+		// Force upgrade http to https for absolute URLs
+		fullUrl = imageUrl.replace(/^http:\/\//i, "https://");
+	} else {
+		// If it's relative, prepend the BASE_URL (which is already https)
+		fullUrl = `${BASE_URL}${imageUrl}`;
+	}
 
 	// Return the proxy URL with the full image URL safely encoded
 	return `/api/images?imageUrl=${encodeURIComponent(fullUrl)}`;
