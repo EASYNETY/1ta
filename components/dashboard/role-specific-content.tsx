@@ -42,20 +42,31 @@ const QuickAction = ({ title, description, icon, href, disabled = false }: Quick
     "
     >
         {disabled ? (
-            <div className="flex flex-col items-center justify-center space-y-2">
+            <div className="flex h-full w-full flex-col items-center justify-center space-y-2 p-4">
                 <div className="text-primary/50">{icon}</div>
-                <div className="text-center space-y-0.5">
-                    <p className="font-semibold text-sm sm:text-base leading-tight text-muted-foreground">{title}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-tight">{description}</p>
+                {/* Add w-full to the text container */}
+                <div className="w-full text-center space-y-0.5">
+                    <p className="truncate font-semibold text-sm sm:text-base leading-tight text-muted-foreground">
+                        {title}
+                    </p>
+                    {/* Add truncate and remove flex flex-wrap */}
+                    <p className="truncate text-xs sm:text-sm text-muted-foreground leading-tight">
+                        {description}
+                    </p>
                 </div>
                 <span className="mt-1 text-xs text-destructive/70">(Coming Soon)</span>
             </div>
         ) : (
-            <Link href={href} className="flex flex-col items-center justify-center space-y-2 w-full h-full">
+            <Link href={href} className="flex flex-col items-center justify-center space-y-2 w-full h-full p-4">
                 <div className="text-primary">{icon}</div>
-                <div className="text-center space-y-0.5">
-                    <p className="font-semibold text-sm sm:text-base leading-tight">{title}</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-tight">{description}</p>
+                {/* Add w-full to the text container */}
+                <div className="w-full text-center space-y-0.5">
+                    <p className="truncate font-semibold text-sm sm:text-base leading-tight">
+                        {title}
+                    </p>
+                    <p className="truncate text-xs sm:text-sm text-muted-foreground leading-tight">
+                        {description}
+                    </p>
                 </div>
             </Link>
         )}
