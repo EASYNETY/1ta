@@ -18,6 +18,10 @@ const BASE_URL = "https://api.onetechacademy.com";
  */
 export function getProxiedImageUrl(imageUrl: string): string {
 	if (!imageUrl) return "/placeholder.svg";
+	// If already a direct link to our own API, do not proxy
+	if (imageUrl.startsWith("https://api.onetechacademy.com")) {
+		return imageUrl;
+	}
 	// Check if the URL is absolute (starts with http:// or https://)
 	const isAbsolute = /^https?:\/\//i.test(imageUrl);
 
