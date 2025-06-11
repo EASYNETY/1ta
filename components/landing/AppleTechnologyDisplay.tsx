@@ -9,6 +9,9 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { getCourseIcon } from "@/utils/course-icon-mapping"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { selectAllCourses, fetchCourses } from "@/features/public-course/store/public-course-slice"
+import { getProxiedImageUrl } from "@/utils/imageProxy"
+import { PublicCourseCard } from "@/components/cards/PublicCourseCard"
+import { SectionHeader } from "@/components/layout/section-header"
 
 // Types
 export interface CourseListing {
@@ -1230,22 +1233,71 @@ export function AppleTechnologyDisplay() {
             ))}
           </motion.div> */}
         {/* ) : ( */}
-          <motion.div
-            key="future-grid"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 justify-center items-center"
-          >
-            {futureCourses.map((course, index) => (
-              <TechnologyCard
-                key={`${course.id}-${index}`}
-                course={course}
-                onClick={() => handleIconClick(course)}
-              />
-            ))}
-          </motion.div>
+          <div>
+            <SectionHeader
+              title="Future Courses"
+              description="Upcoming courses that will be available soon"
+            />
+            {/* Mobile label for clarity */}
+            <div className="block md:hidden text-center text-primary font-semibold mb-2 text-base">Tap a course to view details</div>
+            <motion.div
+              key="future-grid"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 md:gap-6 pb-4"
+            >
+              {futureCourses.map((course, index) => {
+                // Convert CourseListing to PublicCourse format for PublicCourseCard
+                const publicCourseFormat = {
+                  id: course.id,
+                  slug: course.id.toLowerCase().replace(/\s+/g, '-'),
+                  title: course.name,
+                  description: course.description || "",
+                  category: course.category,
+                  image: course.imageUrl || "",
+                  iconUrl: course.iconUrl,
+                  instructor: {
+                    name: "Expert Instructor",
+                    title: ""
+                  },
+                  level: "All Levels" as const,
+                  tags: course.tags,
+                  priceUSD: 0,
+                  lessonCount: 0,
+                  moduleCount: 0,
+                  available_for_enrolment: course.available_for_enrolment
+                };
+                
+                return (
+                  <motion.div
+                    key={`future-${course.id}-${index}`}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: {
+                        opacity: 1,
+                        y: 0,
+                        transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+                      }
+                    }}
+                    className="pb-2 cursor-pointer rounded-xl shadow-md border border-primary/10 bg-white dark:bg-slate-900 transition-transform duration-200 hover:scale-[1.03] active:scale-95 focus-within:ring-2 focus-within:ring-primary/40"
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => handleIconClick(course)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`View details for ${course.name}`}
+                  >
+                    <PublicCourseCard 
+                      course={publicCourseFormat} 
+                      onClick={() => handleIconClick(course)} 
+                      onClose={handleCloseModal} 
+                    />
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
         {/* )} */}
       </AnimatePresence>
 
@@ -1335,7 +1387,7 @@ const TechnologyCard = React.memo(function TechnologyCard({ course, onClick }: T
               <div className="w-12 h-12 flex items-center justify-center">
                 {course.iconUrl ? (
                   <img
-                    src={course.iconUrl}
+                    src={getProxiedImageUrl(course.iconUrl)}
                     alt={`${course.name} technology icon`}
                     className="w-12 h-12 object-contain rounded-md"
                     crossOrigin="anonymous"
