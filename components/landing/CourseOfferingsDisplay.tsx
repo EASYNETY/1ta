@@ -364,6 +364,7 @@ export function CourseCards() {
                           alt={selectedCourse.name}
                           fill
                           className="object-contain rounded-md"
+                          crossOrigin="anonymous"
                         />
                       ) : (
                         <div className="w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center">
@@ -397,6 +398,7 @@ export function CourseCards() {
                           alt={selectedCourse.name}
                           fill
                           className="object-cover"
+                          crossOrigin="anonymous"
                         />
                       </motion.div>
                     )}
@@ -551,6 +553,7 @@ function CourseCard({ course, onClick, isIso = false }: CourseCardProps) {
               fill
               className="object-contain rounded-sm"
               title={course.name} // Add tooltip on hover
+              crossOrigin="anonymous"
             />
           ) : (
             <div className="w-10 h-10 bg-primary/10 rounded-md flex items-center justify-center">

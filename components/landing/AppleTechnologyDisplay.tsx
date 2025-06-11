@@ -1338,6 +1338,7 @@ const TechnologyCard = React.memo(function TechnologyCard({ course, onClick }: T
                     src={course.iconUrl}
                     alt={`${course.name} technology icon`}
                     className="w-12 h-12 object-contain rounded-md"
+                    crossOrigin="anonymous"
                     onError={(e) => {
                       // Fallback to the old system if PNG fails
                       e.currentTarget.src = getTechnologyIcon(course.name);
@@ -1348,6 +1349,7 @@ const TechnologyCard = React.memo(function TechnologyCard({ course, onClick }: T
                     src={getTechnologyIcon(course.name)}
                     alt={`${course.name} technology icon`}
                     className="w-12 h-12 object-contain rounded-md"
+                    crossOrigin="anonymous"
                     onError={(e) => {
                       // Fallback to a diverse icon if image fails to load
                       const fallbackIcons = [
