@@ -174,8 +174,9 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
   const cartItems = useAppSelector((state) => state.cart.items);
   const { toast } = useToast();
 
-  // State for waitlist email
+  // State for waitlist form
   const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistName, setWaitlistName] = useState("");
   const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
@@ -253,29 +254,65 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
   };
 
   // Handle waitlist submission
-  const handleWaitlistSubmit = (e: React.FormEvent) => {
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!waitlistEmail) return;
+    // Validate inputs
+    if (!waitlistEmail || !waitlistName) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both your name and email to join the waitlist.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsSubmittingWaitlist(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmittingWaitlist(false);
-      setWaitlistSubmitted(true);
-
-      toast({
-        title: "Waitlist Joined",
-        description: `You'll be notified when ${mergedCourse.title} becomes available.`,
-        variant: "success"
+    try {
+      // Send email via the contact API
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: waitlistName || 'Waitlist Request',
+          email: waitlistEmail,
+          inquiryType: '1TA Future Waitlist',
+          message: `A user (${waitlistName || 'Unnamed'}) has requested to join the waitlist for the following course: ${mergedCourse.title}. Please notify them when this course becomes available.`,
+        }),
       });
 
-      // Reset after showing success for a moment
-      setTimeout(() => {
-        onClose();
-      }, 2000);
-    }, 1000);
+      const data = await response.json();
+
+      if (data.success) {
+        setWaitlistSubmitted(true);
+        
+        toast({
+          title: "Waitlist Joined",
+          description: `You'll be notified when ${mergedCourse.title} becomes available.`,
+          variant: "success"
+        });
+
+        // Reset after showing success for a moment
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+        throw new Error(data.error || 'Failed to join waitlist');
+      }
+    } catch (error) {
+      console.error('Waitlist submission error:', error);
+      
+      toast({
+        title: "Error",
+        description: "Failed to join waitlist. Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingWaitlist(false);
+    }
   };
 
   return (
@@ -568,42 +605,66 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-2 text-green-500"
+                            className="flex flex-col items-center gap-3 py-4 text-center"
                           >
-                            <CheckCircle className="h-5 w-5" />
-                            <span>Waitlist Joined!</span>
+                            <div className="flex items-center gap-2 text-green-500">
+                              <CheckCircle className="h-5 w-5" />
+                              <span className="font-medium">Waitlist Joined Successfully!</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground max-w-md">
+                              Thank you for your interest in <span className="font-medium">{mergedCourse.title}</span>. 
+                              We'll notify you at <span className="font-medium">{waitlistEmail}</span> when this course becomes available.
+                            </p>
                           </motion.div>
                         ) : (
-                          <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
+                          <form onSubmit={handleWaitlistSubmit} className="flex flex-col gap-3 w-full max-w-md">
+                            <p className="text-sm text-muted-foreground">
+                              Join the waitlist to be notified when this course becomes available.
+                            </p>
+                            
                             {isSubmittingWaitlist ? (
                               <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="flex items-center gap-2"
+                                className="flex items-center justify-center gap-2 py-2"
                               >
                                 <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-                                <span>Joining...</span>
+                                <span>Processing your request...</span>
                               </motion.div>
                             ) : (
-                              <>
-                                <Input
-                                  type="email"
-                                  placeholder="Your email"
-                                  className="h-9 w-48 text-sm"
-                                  value={waitlistEmail}
-                                  onChange={(e) => setWaitlistEmail(e.target.value)}
-                                  required
-                                />
+                              <div className="flex flex-col gap-3 w-full">
+                                <div className="grid grid-cols-1 gap-3">
+                                  <div>
+                                    <Input
+                                      type="text"
+                                      placeholder="Your name"
+                                      className="h-10 text-sm"
+                                      value={waitlistName}
+                                      onChange={(e) => setWaitlistName(e.target.value)}
+                                      required
+                                    />
+                                  </div>
+                                  <div>
+                                    <Input
+                                      type="email"
+                                      placeholder="Your email"
+                                      className="h-10 text-sm"
+                                      value={waitlistEmail}
+                                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                                      required
+                                    />
+                                  </div>
+                                </div>
                                 <DyraneButton
                                   type="submit"
                                   variant="outline"
-                                  size="sm"
-                                  className="gap-1.5"
+                                  size="default"
+                                  className="gap-1.5 w-full"
                                 >
                                   <Mail className="h-4 w-4" />
-                                  Join Waitlist
+                                  Join Waitlist for {mergedCourse.title}
                                 </DyraneButton>
-                              </>
+                              </div>
                             )}
                           </form>
                         )}
