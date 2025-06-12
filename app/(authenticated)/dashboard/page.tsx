@@ -119,22 +119,40 @@ export default function DashboardPage() {
                     const courses = await fetchEnrolledCourses(token)
                     console.log(`Received ${courses.length} enrolled courses:`, courses)
                     
-                    if (courses.length > 0) {
-                        setEnrolledCourses(courses)
+                    // Check if the API returned courses with enrollment status
+                    const apiEnrolledCourses = courses.filter(course => 
+                        course.enrolmentStatus === 'enroled' || 
+                        course.enrollmentStatus === true
+                    );
+                    
+                    console.log("Filtered enrolled courses from API:", apiEnrolledCourses);
+                    
+                    if (apiEnrolledCourses.length > 0) {
+                        console.log("Setting enrolled courses from API filtered results");
+                        setEnrolledCourses(apiEnrolledCourses);
+                    } else if (courses.length > 0) {
+                        // If API returned courses but none are marked as enrolled,
+                        // we'll use them directly (assuming the API already filtered them)
+                        console.log("Using all courses returned by enrolled API endpoint");
+                        setEnrolledCourses(courses);
                     } else {
                         // If no enrolled courses returned, check if we have courses in Redux store
                         // that might be enrolled courses
-                        console.log("No enrolled courses returned from API, checking Redux store")
-                        const reduxCourses = courses.filter(course => 
-                            course.enrolmentStatus === 'enroled' || 
-                            course.enrollmentStatus === true
-                        )
-                        
-                        if (reduxCourses.length > 0) {
-                            console.log("Found enrolled courses in Redux store:", reduxCourses)
-                            setEnrolledCourses(reduxCourses)
+                        console.log("No enrolled courses returned from API, checking Redux store");
+                        if (courses && courses.length > 0) {
+                            const reduxCourses = courses.filter(course => 
+                                course.enrolmentStatus === 'enroled' || 
+                                course.enrollmentStatus === true
+                            );
+                            
+                            if (reduxCourses.length > 0) {
+                                console.log("Found enrolled courses in Redux store:", reduxCourses);
+                                setEnrolledCourses(reduxCourses);
+                            } else {
+                                setEnrolledCourses([]);
+                            }
                         } else {
-                            setEnrolledCourses([])
+                            setEnrolledCourses([]);
                         }
                     }
                 } catch (error) {
@@ -491,14 +509,17 @@ export default function DashboardPage() {
                                 </Alert>
                             </div>
                         ) : enrolledCourses.length > 0 ? (
+                            // Only show enrolled courses
                             enrolledCourses.map((course, index) => (
                                 <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
                             ))
-                        ) : courses.length > 0 ? (
-                            // Fallback to using courses from Redux store if API fails
-                            courses.map((course, index) => (
-                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
-                            ))
+                        ) : courses && courses.length > 0 ? (
+                            // Fallback to using only enrolled courses from Redux store
+                            courses
+                                .filter(course => course.enrolmentStatus === 'enroled' || course.enrollmentStatus === true)
+                                .map((course, index) => (
+                                    <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                                ))
                         ) : (
                             <div className="col-span-full text-center py-8">
                                 <p className="text-muted-foreground mb-4">You haven't enrolled in any courses yet.</p>
@@ -530,9 +551,25 @@ export default function DashboardPage() {
                                 </div>
                             </div>
                         ) : availableCourses.length > 0 ? (
-                            availableCourses.map((course, index) => (
-                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
-                            ))
+                            // Only show available courses (not enrolled)
+                            availableCourses
+                                .filter(course => 
+                                    course.enrolmentStatus === 'not_enroled' || 
+                                    course.enrollmentStatus === false
+                                )
+                                .map((course, index) => (
+                                    <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                                ))
+                        ) : courses && courses.length > 0 ? (
+                            // Fallback to using only non-enrolled courses from Redux store
+                            courses
+                                .filter(course => 
+                                    course.enrolmentStatus !== 'enroled' && 
+                                    course.enrollmentStatus !== true
+                                )
+                                .map((course, index) => (
+                                    <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                                ))
                         ) : (
                             <div className="col-span-full text-center py-8">
                                 <p className="text-muted-foreground mb-4">No additional courses available at the moment.</p>

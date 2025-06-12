@@ -57,9 +57,16 @@ export const fetchEnrolledCourses = async (token: string): Promise<AuthCourse[]>
       }
     }
 
+    // Make sure all courses have the correct enrollment status
+    const coursesWithStatus = courses.map(course => ({
+      ...course,
+      enrolmentStatus: 'enroled',
+      enrollmentStatus: true
+    }));
+    
     // Log the courses we're returning
-    console.log("Returning enrolled courses:", courses);
-    return courses;
+    console.log("Returning enrolled courses with status:", coursesWithStatus);
+    return coursesWithStatus;
   } catch (error) {
     console.error("Error fetching enrolled courses:", error);
     return [];
@@ -120,9 +127,16 @@ export const fetchAvailableCourses = async (token: string): Promise<PublicCourse
       }
     }
 
+    // Make sure all courses have the correct enrollment status
+    const coursesWithStatus = courses.map(course => ({
+      ...course,
+      enrolmentStatus: 'not_enroled',
+      enrollmentStatus: false
+    }));
+    
     // Log the courses we're returning
-    console.log("Returning available courses:", courses);
-    return courses;
+    console.log("Returning available courses with status:", coursesWithStatus);
+    return coursesWithStatus;
   } catch (error) {
     console.error("Error fetching available courses:", error);
     return [];
@@ -139,9 +153,22 @@ export const filterOutEnrolledCourses = (
   allCourses: PublicCourse[],
   enrolledCourses: AuthCourse[]
 ): PublicCourse[] => {
+  console.log("Filtering courses - All courses:", allCourses.length, "Enrolled courses:", enrolledCourses.length);
+  
   // Create a Set of enrolled course IDs for efficient lookup
   const enrolledCourseIds = new Set(enrolledCourses.map(course => course.id));
+  console.log("Enrolled course IDs:", Array.from(enrolledCourseIds));
   
   // Filter out courses that are in the enrolled set
-  return allCourses.filter(course => !enrolledCourseIds.has(course.id));
+  const filteredCourses = allCourses.filter(course => !enrolledCourseIds.has(course.id));
+  
+  // Make sure all filtered courses have the correct enrollment status
+  const coursesWithStatus = filteredCourses.map(course => ({
+    ...course,
+    enrolmentStatus: 'not_enroled',
+    enrollmentStatus: false
+  }));
+  
+  console.log("Filtered courses count:", coursesWithStatus.length);
+  return coursesWithStatus;
 };
