@@ -108,16 +108,26 @@ export default function DashboardPage() {
     // --- Fetch Enrolled and Available Courses ---
     useEffect(() => {
         if (isInitialized && user && token) {
+            console.log("Fetching courses for user:", user.id)
+            
             // Fetch enrolled courses
             const getEnrolledCourses = async () => {
                 setIsLoadingEnrolled(true)
                 setEnrolledError(null)
                 try {
+                    console.log("Fetching enrolled courses with token:", token.substring(0, 10) + "...")
                     const courses = await fetchEnrolledCourses(token)
+                    console.log(`Received ${courses.length} enrolled courses`)
                     setEnrolledCourses(courses)
                 } catch (error) {
                     console.error("Error fetching enrolled courses:", error)
                     setEnrolledError("Failed to load your enrolled courses")
+                    
+                    // Fallback to using the courses from the Redux store
+                    if (courses && courses.length > 0) {
+                        console.log("Using fallback courses from Redux store")
+                        setEnrolledCourses(courses)
+                    }
                 } finally {
                     setIsLoadingEnrolled(false)
                 }
@@ -128,11 +138,14 @@ export default function DashboardPage() {
                 setIsLoadingAvailable(true)
                 setAvailableError(null)
                 try {
+                    console.log("Fetching available courses with token:", token.substring(0, 10) + "...")
                     // First try to fetch available courses from the API
                     const allCourses = await fetchAvailableCourses(token)
+                    console.log(`Received ${allCourses.length} available courses`)
                     
                     // If the API doesn't return filtered courses, filter them manually
                     if (allCourses.length > 0 && enrolledCourses.length > 0) {
+                        console.log("Filtering out enrolled courses manually")
                         const filteredCourses = filterOutEnrolledCourses(allCourses, enrolledCourses)
                         setAvailableCourses(filteredCourses)
                     } else {
@@ -149,7 +162,7 @@ export default function DashboardPage() {
             getEnrolledCourses()
             getAvailableCourses()
         }
-    }, [isInitialized, user, token])
+    }, [isInitialized, user, token, courses])
 
     // Loading state while checking auth
     if (!isInitialized) {
@@ -421,7 +434,7 @@ export default function DashboardPage() {
                             Array(8)
                                 .fill(0)
                                 .map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
-                        ) : enrolledError ? (
+                        ) : enrolledError && enrolledCourses.length === 0 ? (
                             <div className="col-span-full">
                                 <Alert variant="destructive">
                                     <AlertCircle className="h-4 w-4" />
@@ -431,6 +444,11 @@ export default function DashboardPage() {
                             </div>
                         ) : enrolledCourses.length > 0 ? (
                             enrolledCourses.map((course, index) => (
+                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                            ))
+                        ) : courses.length > 0 ? (
+                            // Fallback to using courses from Redux store if API fails
+                            courses.map((course, index) => (
                                 <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
                             ))
                         ) : (
@@ -450,13 +468,18 @@ export default function DashboardPage() {
                             Array(8)
                                 .fill(0)
                                 .map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
-                        ) : availableError ? (
+                        ) : availableError && availableCourses.length === 0 ? (
                             <div className="col-span-full">
                                 <Alert variant="destructive">
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertTitle>Error</AlertTitle>
                                     <AlertDescription>{availableError}</AlertDescription>
                                 </Alert>
+                                <div className="mt-4 text-center">
+                                    <DyraneButton asChild>
+                                        <Link href="/courses">Browse All Courses</Link>
+                                    </DyraneButton>
+                                </div>
                             </div>
                         ) : availableCourses.length > 0 ? (
                             availableCourses.map((course, index) => (

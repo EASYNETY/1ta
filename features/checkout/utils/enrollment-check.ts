@@ -21,8 +21,14 @@ export const checkExistingEnrollments = async (
 ): Promise<{ alreadyEnrolled: string[]; canProceed: boolean }> => {
   try {
     if (!userId || !courseIds.length || !token) {
-      throw new Error("Missing required parameters");
+      console.warn("Missing required parameters for enrollment check", { userId, courseIdsLength: courseIds.length, hasToken: !!token });
+      return {
+        alreadyEnrolled: [],
+        canProceed: true
+      };
     }
+
+    console.log("Checking enrollment status for courses:", courseIds);
 
     const queryParams = new URLSearchParams();
     queryParams.append("userId", userId);
@@ -35,14 +41,23 @@ export const checkExistingEnrollments = async (
       }
     );
 
-    if (!response.success) {
-      throw new Error(response.message || "Failed to check enrollment status");
+    console.log("Enrollment check response:", response);
+
+    if (!response || !response.success) {
+      console.warn("Enrollment check failed:", response?.message || "Unknown error");
+      // In case of API error, we'll assume the user can proceed
+      return {
+        alreadyEnrolled: [],
+        canProceed: true
+      };
     }
 
     // Get the list of courses that the user is already enrolled in
-    const alreadyEnrolled = Object.entries(response.enrollmentStatus)
+    const alreadyEnrolled = Object.entries(response.enrollmentStatus || {})
       .filter(([_, isEnrolled]) => isEnrolled)
       .map(([courseId]) => courseId);
+
+    console.log("Already enrolled courses:", alreadyEnrolled);
 
     return {
       alreadyEnrolled,
