@@ -31,15 +31,26 @@ import { isAccounting, isCustomerCare, isStudent } from "@/types/user.types"
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleSpecificContent } from "@/components/dashboard/role-specific-content"
+import { fetchEnrolledCourses, fetchAvailableCourses, filterOutEnrolledCourses } from "@/features/auth-course/utils/course-utils"
+import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
+import { PublicCourse } from "@/features/public-course/types/public-course-interface"
 
 export default function DashboardPage() {
-    const { user, isInitialized, skipOnboarding } = useAppSelector((state) => state.auth)
+    const { user, isInitialized, skipOnboarding, token } = useAppSelector((state) => state.auth)
     const { courses, status } = useAppSelector((state) => state.auth_courses)
     const [activeTab, setActiveTab] = useState("overview")
     const dispatch = useAppDispatch()
     const router = useRouter()
     const searchParams = useSearchParams()
     const { toast } = useToast()
+    
+    // State for enrolled and available courses
+    const [enrolledCourses, setEnrolledCourses] = useState<AuthCourse[]>([])
+    const [availableCourses, setAvailableCourses] = useState<PublicCourse[]>([])
+    const [isLoadingEnrolled, setIsLoadingEnrolled] = useState(false)
+    const [isLoadingAvailable, setIsLoadingAvailable] = useState(false)
+    const [enrolledError, setEnrolledError] = useState<string | null>(null)
+    const [availableError, setAvailableError] = useState<string | null>(null)
 
     // --- Handle Payment Success Query Parameter ---
     useEffect(() => {
@@ -93,6 +104,52 @@ export default function DashboardPage() {
             }
         }
     }, [user, isInitialized, router])
+    
+    // --- Fetch Enrolled and Available Courses ---
+    useEffect(() => {
+        if (isInitialized && user && token) {
+            // Fetch enrolled courses
+            const getEnrolledCourses = async () => {
+                setIsLoadingEnrolled(true)
+                setEnrolledError(null)
+                try {
+                    const courses = await fetchEnrolledCourses(token)
+                    setEnrolledCourses(courses)
+                } catch (error) {
+                    console.error("Error fetching enrolled courses:", error)
+                    setEnrolledError("Failed to load your enrolled courses")
+                } finally {
+                    setIsLoadingEnrolled(false)
+                }
+            }
+            
+            // Fetch all available courses
+            const getAvailableCourses = async () => {
+                setIsLoadingAvailable(true)
+                setAvailableError(null)
+                try {
+                    // First try to fetch available courses from the API
+                    const allCourses = await fetchAvailableCourses(token)
+                    
+                    // If the API doesn't return filtered courses, filter them manually
+                    if (allCourses.length > 0 && enrolledCourses.length > 0) {
+                        const filteredCourses = filterOutEnrolledCourses(allCourses, enrolledCourses)
+                        setAvailableCourses(filteredCourses)
+                    } else {
+                        setAvailableCourses(allCourses)
+                    }
+                } catch (error) {
+                    console.error("Error fetching available courses:", error)
+                    setAvailableError("Failed to load available courses")
+                } finally {
+                    setIsLoadingAvailable(false)
+                }
+            }
+            
+            getEnrolledCourses()
+            getAvailableCourses()
+        }
+    }, [isInitialized, user, token])
 
     // Loading state while checking auth
     if (!isInitialized) {
@@ -140,7 +197,8 @@ export default function DashboardPage() {
         const commonTabs = (
             <>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="courses">Courses</TabsTrigger>
+                <TabsTrigger value="my-courses">My Courses</TabsTrigger>
+                <TabsTrigger value="courses">All Courses</TabsTrigger>
                 <TabsTrigger value="schedule">Schedule</TabsTrigger>
             </>
         )
@@ -357,19 +415,58 @@ export default function DashboardPage() {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="courses">
+                <TabsContent value="my-courses">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {status === "loading" ? (
+                        {isLoadingEnrolled ? (
                             Array(8)
                                 .fill(0)
                                 .map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
-                        ) : courses.length > 0 ? (
-                            courses.map((course, index) => <CourseCard key={`${course.id}-${index}`} course={course} index={index} />)
+                        ) : enrolledError ? (
+                            <div className="col-span-full">
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Error</AlertTitle>
+                                    <AlertDescription>{enrolledError}</AlertDescription>
+                                </Alert>
+                            </div>
+                        ) : enrolledCourses.length > 0 ? (
+                            enrolledCourses.map((course, index) => (
+                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                            ))
                         ) : (
                             <div className="col-span-full text-center py-8">
-                                <p className="text-muted-foreground mb-4">You haven't enroled in any courses yet.</p>
+                                <p className="text-muted-foreground mb-4">You haven't enrolled in any courses yet.</p>
                                 <DyraneButton asChild>
                                     <Link href="/courses">Browse Courses</Link>
+                                </DyraneButton>
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
+                
+                <TabsContent value="courses">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {isLoadingAvailable ? (
+                            Array(8)
+                                .fill(0)
+                                .map((_, i) => <Skeleton key={i} className="h-[300px] rounded-xl bg-muted" />)
+                        ) : availableError ? (
+                            <div className="col-span-full">
+                                <Alert variant="destructive">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Error</AlertTitle>
+                                    <AlertDescription>{availableError}</AlertDescription>
+                                </Alert>
+                            </div>
+                        ) : availableCourses.length > 0 ? (
+                            availableCourses.map((course, index) => (
+                                <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-8">
+                                <p className="text-muted-foreground mb-4">No additional courses available at the moment.</p>
+                                <DyraneButton asChild>
+                                    <Link href="/my-courses">View My Courses</Link>
                                 </DyraneButton>
                             </div>
                         )}

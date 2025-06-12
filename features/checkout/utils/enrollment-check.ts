@@ -29,7 +29,7 @@ export const checkExistingEnrollments = async (
     courseIds.forEach(id => queryParams.append("courseIds", id));
 
     const response = await get<EnrollmentCheckResponse>(
-      `/enrolments/check?${queryParams.toString()}`,
+      `/enrollment/check?${queryParams.toString()}`,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
