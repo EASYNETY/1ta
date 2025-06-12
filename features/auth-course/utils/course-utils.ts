@@ -15,25 +15,34 @@ export const fetchEnrolledCourses = async (token: string): Promise<AuthCourse[]>
       return [];
     }
 
+    console.log("Fetching enrolled courses from API");
     const response = await get<{
       success?: boolean;
       data?: AuthCourse[];
       message?: string;
+      _error?: string;
     } | AuthCourse[]>("/enrollment/enrolled", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
+    console.log("Enrolled courses API response:", response);
+
     // Handle different response formats
     let courses: AuthCourse[] = [];
 
-    if (response && typeof response === "object" && "success" in response && "data" in response) {
-      if (!response.success) {
-        console.error("API Error:", response.message || "Unknown error");
-        return [];
+    if (response && typeof response === "object" && "success" in response) {
+      // Check if there's an error but the API still returned success=true as a fallback
+      if ("_error" in response) {
+        console.warn("API returned success with error:", response._error);
       }
-      courses = response.data || [];
+      
+      if ("data" in response) {
+        courses = response.data || [];
+        console.log(`Extracted ${courses.length} courses from response.data`);
+      }
     } else if (Array.isArray(response)) {
       courses = response;
+      console.log(`Extracted ${courses.length} courses from array response`);
     } else if (response && typeof response === "object") {
       // Try to extract data from any object structure
       const responseObj = response as Record<string, any>;
@@ -41,11 +50,15 @@ export const fetchEnrolledCourses = async (token: string): Promise<AuthCourse[]>
       
       if (Array.isArray(possibleData)) {
         courses = possibleData;
+        console.log(`Extracted ${courses.length} courses from possibleData array`);
       } else if (possibleData && typeof possibleData === "object") {
         courses = Object.values(possibleData);
+        console.log(`Extracted ${courses.length} courses from possibleData object`);
       }
     }
 
+    // Log the courses we're returning
+    console.log("Returning enrolled courses:", courses);
     return courses;
   } catch (error) {
     console.error("Error fetching enrolled courses:", error);
@@ -65,25 +78,34 @@ export const fetchAvailableCourses = async (token: string): Promise<PublicCourse
       return [];
     }
 
+    console.log("Fetching available courses from API");
     const response = await get<{
       success?: boolean;
       data?: PublicCourse[];
       message?: string;
+      _error?: string;
     } | PublicCourse[]>("/enrollment/available", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
+    console.log("Available courses API response:", response);
+
     // Handle different response formats
     let courses: PublicCourse[] = [];
 
-    if (response && typeof response === "object" && "success" in response && "data" in response) {
-      if (!response.success) {
-        console.error("API Error:", response.message || "Unknown error");
-        return [];
+    if (response && typeof response === "object" && "success" in response) {
+      // Check if there's an error but the API still returned success=true as a fallback
+      if ("_error" in response) {
+        console.warn("API returned success with error:", response._error);
       }
-      courses = response.data || [];
+      
+      if ("data" in response) {
+        courses = response.data || [];
+        console.log(`Extracted ${courses.length} courses from response.data`);
+      }
     } else if (Array.isArray(response)) {
       courses = response;
+      console.log(`Extracted ${courses.length} courses from array response`);
     } else if (response && typeof response === "object") {
       // Try to extract data from any object structure
       const responseObj = response as Record<string, any>;
@@ -91,11 +113,15 @@ export const fetchAvailableCourses = async (token: string): Promise<PublicCourse
       
       if (Array.isArray(possibleData)) {
         courses = possibleData;
+        console.log(`Extracted ${courses.length} courses from possibleData array`);
       } else if (possibleData && typeof possibleData === "object") {
         courses = Object.values(possibleData);
+        console.log(`Extracted ${courses.length} courses from possibleData object`);
       }
     }
 
+    // Log the courses we're returning
+    console.log("Returning available courses:", courses);
     return courses;
   } catch (error) {
     console.error("Error fetching available courses:", error);

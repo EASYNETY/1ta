@@ -30,12 +30,22 @@ export const checkExistingEnrollments = async (
 
     console.log("Checking enrollment status for courses:", courseIds);
 
-    const queryParams = new URLSearchParams();
-    queryParams.append("userId", userId);
-    courseIds.forEach(id => queryParams.append("courseIds", id));
+    // For a single course ID, use a simpler query format
+    let url: string;
+    if (courseIds.length === 1) {
+      url = `/enrollment/check?userId=${encodeURIComponent(userId)}&courseIds=${encodeURIComponent(courseIds[0])}`;
+    } else {
+      // For multiple course IDs, build the query string manually
+      const queryParams = new URLSearchParams();
+      queryParams.append("userId", userId);
+      courseIds.forEach(id => queryParams.append("courseIds", id));
+      url = `/enrollment/check?${queryParams.toString()}`;
+    }
+
+    console.log("Enrollment check URL:", url);
 
     const response = await get<EnrollmentCheckResponse>(
-      `/enrollment/check?${queryParams.toString()}`,
+      url,
       {
         headers: { Authorization: `Bearer ${token}` }
       }
@@ -43,9 +53,26 @@ export const checkExistingEnrollments = async (
 
     console.log("Enrollment check response:", response);
 
-    if (!response || !response.success) {
-      console.warn("Enrollment check failed:", response?.message || "Unknown error");
-      // In case of API error, we'll assume the user can proceed
+    if (!response) {
+      console.warn("No response from enrollment check API");
+      return {
+        alreadyEnrolled: [],
+        canProceed: true
+      };
+    }
+
+    // Check for success flag
+    if (!response.success) {
+      console.warn("Enrollment check failed:", response.message || "Unknown error");
+      return {
+        alreadyEnrolled: [],
+        canProceed: true
+      };
+    }
+
+    // Check if enrollmentStatus exists
+    if (!response.enrollmentStatus) {
+      console.warn("No enrollment status in response");
       return {
         alreadyEnrolled: [],
         canProceed: true
@@ -53,11 +80,12 @@ export const checkExistingEnrollments = async (
     }
 
     // Get the list of courses that the user is already enrolled in
-    const alreadyEnrolled = Object.entries(response.enrollmentStatus || {})
-      .filter(([_, isEnrolled]) => isEnrolled)
+    const alreadyEnrolled = Object.entries(response.enrollmentStatus)
+      .filter(([_, isEnrolled]) => isEnrolled === true)
       .map(([courseId]) => courseId);
 
     console.log("Already enrolled courses:", alreadyEnrolled);
+    console.log("Can proceed with checkout:", alreadyEnrolled.length === 0);
 
     return {
       alreadyEnrolled,
