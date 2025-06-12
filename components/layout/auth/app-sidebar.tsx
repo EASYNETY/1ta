@@ -41,6 +41,7 @@ import { RootState } from "@/store";
 import { BarcodeDialog } from "@/components/tools/BarcodeDialog";
 import { useFilteredSecondaryNavItems } from "@/hooks/useFilteredSecondaryNavItems";
 import { useFilteredPrimaryNavItems } from "@/hooks/useFilteredPrimaryNavItems";
+import { useEnrolledCourses } from "@/hooks/use-enrolled-courses";
 import { isStudent } from "@/types/user.types";
 import { getProxiedImageUrl } from "@/utils/imageProxy";
 
@@ -110,6 +111,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
     const cart = useAppSelector((state) => state.cart);
     const hasItems = cart.items.length > 0;
     const dispatch = useAppDispatch();
+    const { enrolledCourses, hasEnrolledCourses } = useEnrolledCourses();
 
     const { state: sidebarState } = useSidebar();
     const isSidebarOpen = sidebarState === 'expanded'; // Derived state, true if expanded
@@ -130,7 +132,17 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         return secondary.filter(item => !primaryHrefs.has(item.href));
     }
 
-    const visiblePrimaryItems = useFilteredPrimaryNavItems();
+    // Get primary navigation items and add enrolled courses count
+    const visiblePrimaryItems = useFilteredPrimaryNavItems().map(item => {
+        // Add badge count for enrolled courses
+        if (item.title === "Courses" && hasEnrolledCourses) {
+            return {
+                ...item,
+                badgeCount: enrolledCourses.length
+            };
+        }
+        return item;
+    });
 
     // Filter admin items and remove duplicates
     const visibleAdminItems = removeDuplicateNavItems(
@@ -347,7 +359,10 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
                                 </span>
                                 {/* Badge Logic - Conditionally render based on isSidebarOpen */}
                                 {item.badgeCount && item.badgeCount > 0 && isSidebarOpen && (
-                                    <Badge variant="default" className="ml-auto h-5 px-1.5 text-[10px] leading-none">
+                                    <Badge 
+                                        variant={item.title === "Courses" ? "success" : "default"} 
+                                        className="ml-auto h-5 px-1.5 text-[10px] leading-none"
+                                    >
                                         {item.badgeCount > 9 ? "9+" : item.badgeCount}
                                     </Badge>
                                 )}
