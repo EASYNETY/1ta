@@ -48,7 +48,7 @@ export default function CheckoutPage() {
     const searchParams = useSearchParams();
 
     // --- Selectors ---
-    const { user, isAuthenticated, isInitialized: authIsInitialized } = useAppSelector((state) => state.auth)
+    const { user, isAuthenticated, isInitialized: authIsInitialized, token } = useAppSelector((state) => state.auth)
     const cartItemsFromStore = useAppSelector(selectCartItems) // Get cart items for initial check
     const totalAmountFromCartStore = useAppSelector(selectCartTotalWithTax); // Get invoiced amount
 
@@ -141,16 +141,69 @@ export default function CheckoutPage() {
             return;
         }
 
-        // If all checks pass, page is ready
-        setIsPageLoading(false);
+        // Check if user is already enrolled in any of the courses in checkout
+        const checkEnrollmentStatus = async () => {
+            try {
+                // Import the enrollment check utility
+                const { checkExistingEnrollments } = await import("@/features/checkout/utils/enrollment-check");
+                
+                // Get the course IDs from checkout items
+                const courseIds = checkoutItems.map(item => item.courseId);
+                
+                if (courseIds.length === 0) {
+                    console.warn("CheckoutPage: No course IDs found in checkout items");
+                    return true; // Allow to proceed if no courses (though this shouldn't happen)
+                }
+                
+                // Check if user is already enrolled in any of these courses
+                const { alreadyEnrolled, canProceed } = await checkExistingEnrollments(
+                    user.id,
+                    courseIds,
+                    token || ""
+                );
+                
+                if (!canProceed) {
+                    // User is already enrolled in one or more courses
+                    const alreadyEnrolledTitles = checkoutItems
+                        .filter(item => alreadyEnrolled.includes(item.courseId))
+                        .map(item => item.title);
+                    
+                    toast({ 
+                        title: "Already Enrolled", 
+                        description: `You are already enrolled in: ${alreadyEnrolledTitles.join(", ")}`, 
+                        variant: "destructive" 
+                    });
+                    
+                    // Reset checkout and redirect to cart
+                    dispatch(resetCheckout());
+                    router.push("/cart");
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error("Error checking enrollment status:", error);
+                // Continue with checkout even if enrollment check fails
+                return true;
+            }
+        };
+
+        // Check enrollment status and then set page as ready if all checks pass
+        checkEnrollmentStatus().then(canProceed => {
+            if (canProceed) {
+                setIsPageLoading(false);
+            }
+        });
 
     }, [
         authIsInitialized, // CRITICAL: wait for this
         isAuthenticated,
         user, // CRITICAL: ensure user object is present
+        token, // Needed for enrollment check
         isCorporateStudent, // This depends on 'user'
         invoiceIdFromCheckoutState,
         cartItemsFromStore, // For the "no invoice" check
+        checkoutItems, // Needed for enrollment check
         router,
         toast,
         searchParams,

@@ -85,7 +85,7 @@ export default function CartPage() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const { user, skipOnboarding } = useAppSelector((state) => state.auth);
+    const { user, skipOnboarding, token } = useAppSelector((state) => state.auth);
     const cart = useAppSelector((state) => state.cart);
     const totalWithTax = useAppSelector((state) => state.cart.totalWithTax); // This is the current cart's total
 
@@ -179,6 +179,41 @@ export default function CartPage() {
             toast({ title: "Cart Empty", description: "Your cart is empty.", variant: "default" });
             setIsInitiatingCheckout(false);
             return;
+        }
+        
+        // Check if user is already enrolled in any of the courses in the cart
+        try {
+            // Import the enrollment check utility
+            const { checkExistingEnrollments } = await import("@/features/checkout/utils/enrollment-check");
+            
+            // Get the course IDs from the cart
+            const courseIds = cart.items.map(item => item.courseId);
+            
+            // Check if user is already enrolled in any of these courses
+            const { alreadyEnrolled, canProceed } = await checkExistingEnrollments(
+                user.id,
+                courseIds,
+                token || ""
+            );
+            
+            if (!canProceed) {
+                // User is already enrolled in one or more courses
+                const alreadyEnrolledTitles = cart.items
+                    .filter(item => alreadyEnrolled.includes(item.courseId))
+                    .map(item => item.title);
+                
+                toast({ 
+                    title: "Already Enrolled", 
+                    description: `You are already enrolled in: ${alreadyEnrolledTitles.join(", ")}`, 
+                    variant: "destructive" 
+                });
+                setIsInitiatingCheckout(false);
+                return;
+            }
+        } catch (error) {
+            console.error("Error checking enrollment status:", error);
+            // Continue with checkout even if enrollment check fails
+            // The backend will still perform the check
         }
 
         // --- Conditional Reset and Reuse Logic ---
