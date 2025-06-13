@@ -189,7 +189,7 @@ export const accountingNavItems: NavItem[] = [
 ];
 
 export const customerCareNavItems: NavItem[] = [
-  { title: "Scan Student", href: "/customer-care/scan", icon: QrCode, roles: ["customer_care"] },
+  { title: "Scan Student", href: "/attendance/scan", icon: QrCode, roles: ["customer_care"] },
   { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["customer_care"] },
   { title: "Feedback", href: "/support/feedback", icon: MessageSquare, roles: ["customer_care"] },
 ];

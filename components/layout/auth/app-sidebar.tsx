@@ -64,7 +64,7 @@ export const primaryNavItems: NavItem[] = [
     { title: "Attendance", href: "/attendance", icon: CheckCircle, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
     {
         title: "Scan Student",
-        href: "/customer-care/scan",
+        href: "/attendance/scan",
         icon: QrCode,
         roles: ["customer_care"],
     },

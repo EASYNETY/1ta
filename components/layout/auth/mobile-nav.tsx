@@ -74,7 +74,7 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
         },
         {
             title: "Scan Student",
-            href: "/customer-care/scan",
+            href: "/attendance/scan",
             icon: QrCode,
             roles: ["customer_care"],
         },
