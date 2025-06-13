@@ -34,9 +34,6 @@ export function useEnrolledCourses() {
           if (apiEnrolledCourses.length > 0) {
             console.log("Sidebar: Setting enrolled courses from API", apiEnrolledCourses.length);
             setEnrolledCourses(apiEnrolledCourses);
-          } else if (fetchedCourses.length > 0) {
-            console.log("Sidebar: Using all courses returned by enrolled API endpoint");
-            setEnrolledCourses(fetchedCourses);
           } else {
             // If no enrolled courses returned, check if we have courses in Redux store
             console.log("Sidebar: No enrolled courses returned from API, checking Redux store");

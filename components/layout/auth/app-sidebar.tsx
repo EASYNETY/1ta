@@ -132,17 +132,8 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         return secondary.filter(item => !primaryHrefs.has(item.href));
     }
 
-    // Get primary navigation items and add enrolled courses count
-    const visiblePrimaryItems = useFilteredPrimaryNavItems().map(item => {
-        // Add badge count for enrolled courses
-        if (item.title === "Courses" && hasEnrolledCourses) {
-            return {
-                ...item,
-                badgeCount: enrolledCourses.length
-            };
-        }
-        return item;
-    });
+    // Get primary navigation items
+    const visiblePrimaryItems = useFilteredPrimaryNavItems();
 
     // Filter admin items and remove duplicates
     const visibleAdminItems = removeDuplicateNavItems(

@@ -57,8 +57,14 @@ export const fetchEnrolledCourses = async (token: string): Promise<AuthCourse[]>
       }
     }
 
+    // Filter to only include truly enrolled courses
+    const enrolledCourses = courses.filter(course => 
+      course.enrolmentStatus === 'enroled' || 
+      course.enrollmentStatus === true
+    );
+    
     // Make sure all courses have the correct enrollment status
-    const coursesWithStatus = courses.map(course => ({
+    const coursesWithStatus = enrolledCourses.map(course => ({
       ...course,
       enrolmentStatus: 'enroled',
       enrollmentStatus: true
