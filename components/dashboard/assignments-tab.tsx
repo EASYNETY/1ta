@@ -165,9 +165,52 @@ export function AssignmentsTab() {
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Error Loading Assignments</AlertTitle>
                 <AlertDescription>{error || 'Could not load assignments. Please try again later.'}</AlertDescription>
-                {/* Optionally add a retry button */}
-                {/* <Button variant="destructive" size="sm" onClick={() => dispatch(...)}>Retry</Button> */}
+                <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => {
+                        if (user?.id && user.role) {
+                            dispatch(clearAssignmentError());
+                            dispatch(fetchAssignments({ role: user.role, userId: user.id }));
+                        }
+                    }}
+                >
+                    Retry
+                </Button>
             </Alert>
+        );
+    }
+    
+    // If no assignments are available, show a message
+    if (assignmentsList.length === 0 && status === 'succeeded') {
+        return (
+            <Card className="shadow-sm">
+                <CardHeader>
+                    <CardTitle>
+                        {user.role === "student" ? "My Assignments" : "Class Assignments"}
+                    </CardTitle>
+                    <CardDescription>View upcoming and past assignments.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="p-6 text-center">
+                        <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                        <h3 className="text-lg font-medium">No Assignments Available</h3>
+                        <p className="text-muted-foreground mt-2">
+                            {user.role === "student" 
+                                ? "You don't have any assignments yet. Check back later." 
+                                : "No assignments have been created yet."}
+                        </p>
+                        {(user.role === "admin" || user.role === "super_admin" || user.role === "teacher") && (
+                            <DyraneButton asChild className="mt-4">
+                                <Link href="/assignments/create">
+                                    Create Assignment
+                                </Link>
+                            </DyraneButton>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
         );
     }
 
