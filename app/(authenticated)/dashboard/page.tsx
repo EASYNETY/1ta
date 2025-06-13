@@ -274,6 +274,7 @@ export default function DashboardPage() {
                 <TabsTrigger value="schedule">Schedule</TabsTrigger>
             </>
         )
+        
 
         switch (user.role) {
             case "super_admin":

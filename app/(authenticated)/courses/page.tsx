@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice"
+import { getEnrolledCourses as fetchEnrolledCoursesApi } from "@/features/auth-course/utils/course-api-client"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { AuthenticationGuard } from "@/components/courses/AuthenticationGuard"
 import { CoursesPageHeader } from "@/components/courses/CoursesPageHeader"
@@ -18,12 +19,17 @@ import { CorporateStudentNotice } from "@/components/courses/CorporateStudentNot
 // Import other potential tab content components: Recommended, Completed, Analytics
 
 export default function CoursesPage() {
-  const { user } = useAppSelector((state) => state.auth) as { user: User | null }
+  const { user, token } = useAppSelector((state) => state.auth) as { user: User | null, token: string | null }
   const { courses, categories, status } = useAppSelector((state) => state.auth_courses)
   const dispatch = useAppDispatch()
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<string | "all">("all")
   const [levelFilter, setLevelFilter] = useState<string | "all">("all")
+  
+  // State for enrolled courses
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
+  const [isLoadingEnrolled, setIsLoadingEnrolled] = useState(false)
+  const [enrolledError, setEnrolledError] = useState<string | null>(null)
 
   // Check if user is a corporate student
   const isCorporateStudent = isStudent(user) && user.corporateId !== undefined && user.corporateId !== null && !user.isCorporateManager;
@@ -37,6 +43,70 @@ export default function CoursesPage() {
       dispatch(fetchAuthCourses())
     }
   }, [dispatch, user])
+  
+  // Fetch enrolled courses using our API client
+  useEffect(() => {
+    if (user && token) {
+      const getEnrolledCourses = async () => {
+        setIsLoadingEnrolled(true)
+        setEnrolledError(null)
+        try {
+          console.log("Courses Page: Fetching enrolled courses with token:", token.substring(0, 10) + "...")
+          
+          // Use our API client that properly filters enrolled courses
+          const fetchedCourses = await fetchEnrolledCoursesApi(token)
+          console.log(`Courses Page: Received ${fetchedCourses.length} enrolled courses:`, fetchedCourses)
+          
+          if (fetchedCourses.length > 0) {
+            console.log("Courses Page: Setting enrolled courses from API");
+            setEnrolledCourses(fetchedCourses);
+          } else {
+            // If no enrolled courses returned, check if we have courses in Redux store
+            console.log("Courses Page: No enrolled courses returned from API, checking Redux store");
+            if (courses && courses.length > 0) {
+              const reduxCourses = courses.filter(course => 
+                course.enrolmentStatus === 'enroled' || 
+                course.enrollmentStatus === true
+              );
+              
+              if (reduxCourses.length > 0) {
+                console.log("Courses Page: Found enrolled courses in Redux store:", reduxCourses);
+                setEnrolledCourses(reduxCourses);
+              } else {
+                setEnrolledCourses([]);
+              }
+            } else {
+              setEnrolledCourses([]);
+            }
+          }
+        } catch (error) {
+          console.error("Courses Page: Error fetching enrolled courses:", error)
+          setEnrolledError("Failed to load your enrolled courses")
+          
+          // Fallback to using the courses from the Redux store
+          if (courses && courses.length > 0) {
+            const reduxCourses = courses.filter(course => 
+              course.enrolmentStatus === 'enroled' || 
+              course.enrollmentStatus === true
+            )
+            
+            if (reduxCourses.length > 0) {
+              console.log("Courses Page: Using fallback enrolled courses from Redux store:", reduxCourses)
+              setEnrolledCourses(reduxCourses)
+            } else {
+              setEnrolledCourses([])
+            }
+          } else {
+            setEnrolledCourses([])
+          }
+        } finally {
+          setIsLoadingEnrolled(false)
+        }
+      }
+      
+      getEnrolledCourses()
+    }
+  }, [user, token, courses])
 
   // If user is a corporate student and somehow tries to access all-courses tab, redirect to my-courses
   useEffect(() => {
@@ -48,15 +118,22 @@ export default function CoursesPage() {
   // Filter courses based on search query and filters
   const filteredCourses = useMemo(() => {
     return courses.filter((course) => {
-      const matchesSearch =
-        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (course.tags && course.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+      try {
+        const matchesSearch =
+          (course?.title && course.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (course?.description && course.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (course?.tags && Array.isArray(course.tags) && course.tags.some((tag) => 
+            tag && typeof tag === 'string' && tag.toLowerCase().includes(searchQuery.toLowerCase())
+          ))
 
-      const matchesCategory = categoryFilter === "all" || course.category === categoryFilter
-      const matchesLevel = levelFilter === "all" || course.level === levelFilter
+        const matchesCategory = categoryFilter === "all" || course?.category === categoryFilter
+        const matchesLevel = levelFilter === "all" || course?.level === levelFilter
 
-      return matchesSearch && matchesCategory && matchesLevel
+        return matchesSearch && matchesCategory && matchesLevel
+      } catch (error) {
+        console.error("Error filtering course:", error, course);
+        return false;
+      }
     })
   }, [courses, searchQuery, categoryFilter, levelFilter])
 
@@ -110,10 +187,32 @@ export default function CoursesPage() {
 
           <TabsContent value="my-courses">
             <MyCoursesTabContent
-              status={status}
-              courses={filteredCourses} // Assuming 'my-courses' should be filterable
+              status={isLoadingEnrolled ? "loading" : status}
+              courses={enrolledCourses.filter((course) => {
+                try {
+                  const matchesSearch =
+                    (course?.title && course.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (course?.description && course.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (course?.tags && Array.isArray(course.tags) && course.tags.some((tag) => 
+                      tag && typeof tag === 'string' && tag.toLowerCase().includes(searchQuery.toLowerCase())
+                    ))
+                  
+                  const matchesCategory = categoryFilter === "all" || course?.category === categoryFilter
+                  const matchesLevel = levelFilter === "all" || course?.level === levelFilter
+                  
+                  return matchesSearch && matchesCategory && matchesLevel
+                } catch (error) {
+                  console.error("Error filtering enrolled course:", error, course);
+                  return false;
+                }
+              })}
               onClearFilters={clearFilters}
             />
+            {enrolledError && (
+              <div className="mt-4 p-4 border rounded-md bg-destructive/10 text-destructive">
+                <p>{enrolledError}</p>
+              </div>
+            )}
           </TabsContent>
 
           {/* Role-specific Tab Content */}

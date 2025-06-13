@@ -57,6 +57,7 @@ export function CourseTabsList({ user }: CourseTabsListProps) {
         }
     }
 
+    
     return (
         <ScrollArea className="w-full whitespace-nowrap pb-0">
             <TabsList className="mb-4 overflow-x-auto">{getRoleTabs()}</TabsList>

@@ -38,7 +38,7 @@ export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCours
         );
     }
 
-    if (courses.length > 0) {
+    if (courses && courses.length > 0) {
         return (
             <motion.div
                 className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -47,7 +47,7 @@ export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCours
                 animate="show"
             >
                 {courses.map((course, index) => (
-                    <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
+                    <CourseCard key={`${course?.id || index}-${index}`} course={course} index={index} />
                 ))}
             </motion.div>
         );
