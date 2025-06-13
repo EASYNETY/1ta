@@ -177,6 +177,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
   // State for waitlist form
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistName, setWaitlistName] = useState("");
+  const [waitlistPhone, setWaitlistPhone] = useState("");
   const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
@@ -266,21 +267,32 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
       });
       return;
     }
+    
+    // Validate phone number format if provided
+    if (waitlistPhone && !/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/im.test(waitlistPhone)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: "Please provide a valid phone number or leave it empty.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsSubmittingWaitlist(true);
 
     try {
-      // Send email via the contact API
-      const response = await fetch('/api/contact', {
+      // Send to our frontend API route that will proxy to the backend
+      const response = await fetch('/api/waitlist', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: waitlistName || 'Waitlist Request',
+          name: waitlistName,
           email: waitlistEmail,
-          inquiryType: '1TA Future Waitlist',
-          message: `A user (${waitlistName || 'Unnamed'}) has requested to join the waitlist for the following course: ${mergedCourse.title}. Please notify them when this course becomes available.`,
+          phone: waitlistPhone || undefined,
+          courseId: mergedCourse.id,
+          courseTitle: mergedCourse.title,
         }),
       });
 
@@ -613,7 +625,8 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                             </div>
                             <p className="text-sm text-muted-foreground max-w-md">
                               Thank you for your interest in <span className="font-medium">{mergedCourse.title}</span>. 
-                              We'll notify you at <span className="font-medium">{waitlistEmail}</span> when this course becomes available.
+                              We'll notify you at <span className="font-medium">{waitlistEmail}</span>
+                              {waitlistPhone && <> and <span className="font-medium">{waitlistPhone}</span></>} when this course becomes available.
                             </p>
                           </motion.div>
                         ) : (
@@ -652,6 +665,15 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                                       value={waitlistEmail}
                                       onChange={(e) => setWaitlistEmail(e.target.value)}
                                       required
+                                    />
+                                  </div>
+                                  <div>
+                                    <Input
+                                      type="tel"
+                                      placeholder="Your phone number (optional)"
+                                      className="h-10 text-sm"
+                                      value={waitlistPhone}
+                                      onChange={(e) => setWaitlistPhone(e.target.value)}
                                     />
                                   </div>
                                 </div>

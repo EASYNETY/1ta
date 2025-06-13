@@ -1233,7 +1233,7 @@ export function AppleTechnologyDisplay() {
               }`}
             onClick={() => setActiveTab('future')}
           >
-            Future Courses
+            {/* Future Courses */}
           </button>
         </div>
       </div>
@@ -1268,8 +1268,10 @@ export function AppleTechnologyDisplay() {
         {/* ) : ( */}
           <div>
             <SectionHeader
-              title="Future Courses"
-              description="Upcoming courses that will be available soon"
+              title=""
+              description=""
+              //               title="Future Courses"
+              // description="Upcoming courses that will be available soon"
             />
             {/* Mobile label for clarity */}
             <div className="block md:hidden text-center text-primary font-semibold mb-2 text-base">Tap a course to view details</div>
