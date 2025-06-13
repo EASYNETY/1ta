@@ -61,7 +61,7 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
         data?: any;
         message?: string;
         _error?: string;
-      }>("/user/profile", {
+      }>("/users/me", {
         headers: { Authorization: `Bearer ${token}` }
       });
       

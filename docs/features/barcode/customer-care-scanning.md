@@ -22,7 +22,7 @@ The Customer Care Barcode Scanning System provides instant access to student inf
 
 ### 1. Access Scanner
 1. Customer care staff log into the system
-2. Navigate to `/customer-care/scan`
+2. Navigate to `/attendance/scan`
 3. Click "Start Scanner" to activate barcode scanning
 
 ### 2. Scan Student Barcode
@@ -45,7 +45,7 @@ The Customer Care Barcode Scanning System provides instant access to student inf
 
 ### Component Structure
 ```
-app/(authenticated)/customer-care/scan/page.tsx
+app/(authenticated)/attendance/scan/page.tsx
 ├── BarcodeScanner (from lib/barcode-scanner)
 ├── Student Information Display
 ├── Payment Status Component

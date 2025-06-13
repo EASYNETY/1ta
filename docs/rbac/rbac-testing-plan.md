@@ -135,7 +135,7 @@ describe('Accounting Role Access', () => {
 
 #### ✅ **Should Have Access To:**
 - [ ] Customer care dashboard
-- [ ] Student barcode scanning (`/customer-care/scan`)
+- [ ] Student barcode scanning (`/attendance/scan`)
 - [ ] Read-only student information
 - [ ] Read-only attendance and timetable
 - [ ] Support tickets and feedback management
@@ -152,7 +152,7 @@ describe('Accounting Role Access', () => {
 ```typescript
 describe('Customer Care Access', () => {
   test('Can scan student barcodes', async () => {
-    // Navigate to /customer-care/scan
+    // Navigate to /attendance/scan
     // Verify scanner interface loads
     // Test barcode scanning functionality
   });

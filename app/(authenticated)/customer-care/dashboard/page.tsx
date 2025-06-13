@@ -324,7 +324,7 @@ export default function CustomerCareDashboard() {
 
   // --- Quick Actions Definition ---
   const quickActions = [
-    { icon: QrCode, label: "Scan Student ID", href: "/customer-care/scan" },
+    { icon: QrCode, label: "Scan Student ID", href: "/attendance/scan" },
     { icon: Search, label: "Student Directory", href: "/customer-care/students" },
     { icon: MessageSquare, label: "Create New Ticket", href: "/support/tickets/new" },
     { icon: Ticket, label: "View All Tickets", href: "/support/tickets" },
@@ -434,7 +434,7 @@ export default function CustomerCareDashboard() {
             <p className="text-sm text-muted-foreground mb-3 max-w-md mx-auto">
               Use a barcode scanner or navigate to the scan page to look up student details.
             </p>
-            <Button onClick={() => router.push('/customer-care/scan')}>
+            <Button onClick={() => router.push('/attendance/scan')}>
               <QrCode className="mr-2 h-4 w-4" />
               Open Scanner Page
             </Button>

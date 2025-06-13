@@ -78,7 +78,7 @@ We have successfully implemented the frontend components of the 4-tier RBAC syst
   - Barcode scanner integration
   - CustomerCareGuard protection
 
-- [x] **Customer Care Scanner** (existing at `app/(authenticated)/customer-care/scan/page.tsx`)
+- [x] **Customer Care Scanner** (existing at `app/(authenticated)/attendance/scan/page.tsx`)
   - Already implemented with comprehensive functionality
   - Student information display
   - Payment status integration
