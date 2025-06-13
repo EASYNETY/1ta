@@ -32,6 +32,7 @@ import { BarcodeDialog } from "@/components/tools/BarcodeDialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { RoleSpecificContent } from "@/components/dashboard/role-specific-content"
 import { fetchEnrolledCourses, fetchAvailableCourses, filterOutEnrolledCourses } from "@/features/auth-course/utils/course-utils"
+import { getEnrolledCourses as fetchEnrolledCoursesApi, getAvailableCourses as fetchAvailableCoursesApi } from "@/features/auth-course/utils/course-api-client"
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
 
@@ -115,25 +116,18 @@ export default function DashboardPage() {
                 setIsLoadingEnrolled(true)
                 setEnrolledError(null)
                 try {
-                    console.log("Fetching enrolled courses with token:", token.substring(0, 10) + "...")
-                    const fetchedCourses = await fetchEnrolledCourses(token)
-                    console.log(`Received ${fetchedCourses.length} enrolled courses:`, fetchedCourses)
+                    console.log("Dashboard: Fetching enrolled courses with token:", token.substring(0, 10) + "...")
                     
-                    // Check if the API returned courses with enrollment status
-                    const apiEnrolledCourses = fetchedCourses.filter(course => 
-                        course.enrolmentStatus === 'enroled' || 
-                        course.enrollmentStatus === true
-                    );
+                    // Use our new API client that properly filters enrolled courses
+                    const fetchedCourses = await fetchEnrolledCoursesApi(token)
+                    console.log(`Dashboard: Received ${fetchedCourses.length} enrolled courses:`, fetchedCourses)
                     
-                    console.log("Filtered enrolled courses from API:", apiEnrolledCourses);
-                    
-                    if (apiEnrolledCourses.length > 0) {
-                        console.log("Setting enrolled courses from API filtered results");
-                        setEnrolledCourses(apiEnrolledCourses);
+                    if (fetchedCourses.length > 0) {
+                        console.log("Dashboard: Setting enrolled courses from API");
+                        setEnrolledCourses(fetchedCourses);
                     } else {
                         // If no enrolled courses returned, check if we have courses in Redux store
-                        // that might be enrolled courses
-                        console.log("No enrolled courses returned from API, checking Redux store");
+                        console.log("Dashboard: No enrolled courses returned from API, checking Redux store");
                         if (courses && courses.length > 0) {
                             const reduxCourses = courses.filter(course => 
                                 course.enrolmentStatus === 'enroled' || 
@@ -141,7 +135,7 @@ export default function DashboardPage() {
                             );
                             
                             if (reduxCourses.length > 0) {
-                                console.log("Found enrolled courses in Redux store:", reduxCourses);
+                                console.log("Dashboard: Found enrolled courses in Redux store:", reduxCourses);
                                 setEnrolledCourses(reduxCourses);
                             } else {
                                 setEnrolledCourses([]);
@@ -180,30 +174,30 @@ export default function DashboardPage() {
                 setIsLoadingAvailable(true)
                 setAvailableError(null)
                 try {
-                    console.log("Fetching available courses with token:", token.substring(0, 10) + "...")
-                    // First try to fetch available courses from the API
-                    const allCourses = await fetchAvailableCourses(token)
-                    console.log(`Received ${allCourses.length} available courses:`, allCourses)
+                    console.log("Dashboard: Fetching available courses with token:", token.substring(0, 10) + "...")
                     
-                    if (allCourses.length > 0) {
-                        // If the API doesn't return filtered courses, filter them manually
-                        if (enrolledCourses.length > 0) {
-                            console.log("Filtering out enrolled courses manually")
-                            const filteredCourses = filterOutEnrolledCourses(allCourses, enrolledCourses)
-                            setAvailableCourses(filteredCourses)
-                        } else {
-                            setAvailableCourses(allCourses)
-                        }
+                    // Use our new API client that properly filters available courses
+                    const availableCoursesList = await fetchAvailableCoursesApi(token)
+                    console.log(`Dashboard: Received ${availableCoursesList.length} available courses:`, availableCoursesList)
+                    
+                    if (availableCoursesList.length > 0) {
+                        console.log("Dashboard: Setting available courses from API");
+                        setAvailableCourses(availableCoursesList);
                     } else {
                         // If no available courses returned, use courses from Redux store
                         // that are not enrolled
-                        console.log("No available courses returned from API, using Redux store")
+                        console.log("Dashboard: No available courses returned from API, using Redux store")
                         if (courses && courses.length > 0 && enrolledCourses.length > 0) {
                             const filteredCourses = filterOutEnrolledCourses(courses, enrolledCourses)
-                            console.log("Using filtered courses from Redux store:", filteredCourses)
+                            console.log("Dashboard: Using filtered courses from Redux store:", filteredCourses)
                             setAvailableCourses(filteredCourses)
                         } else if (courses && courses.length > 0) {
-                            setAvailableCourses(courses)
+                            // Filter out enrolled courses from Redux store
+                            const filteredCourses = courses.filter(course => 
+                                course.enrolmentStatus !== 'enroled' && 
+                                course.enrollmentStatus !== true
+                            );
+                            setAvailableCourses(filteredCourses)
                         }
                     }
                 } catch (error) {

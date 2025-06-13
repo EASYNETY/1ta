@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAppSelector } from "@/store/hooks";
-import { fetchEnrolledCourses } from "@/features/auth-course/utils/course-utils";
+import { getEnrolledCourses as fetchEnrolledCoursesApi } from "@/features/auth-course/utils/course-api-client";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 
 /**
@@ -23,17 +23,12 @@ export function useEnrolledCourses() {
         setError(null);
         try {
           console.log("Sidebar: Fetching enrolled courses");
-          const fetchedCourses = await fetchEnrolledCourses(token);
+          // Use our new API client that properly filters enrolled courses
+          const fetchedCourses = await fetchEnrolledCoursesApi(token);
           
-          // Check if the API returned courses with enrollment status
-          const apiEnrolledCourses = fetchedCourses.filter(course => 
-            course.enrolmentStatus === 'enroled' || 
-            course.enrollmentStatus === true
-          );
-          
-          if (apiEnrolledCourses.length > 0) {
-            console.log("Sidebar: Setting enrolled courses from API", apiEnrolledCourses.length);
-            setEnrolledCourses(apiEnrolledCourses);
+          if (fetchedCourses.length > 0) {
+            console.log("Sidebar: Setting enrolled courses from API", fetchedCourses.length);
+            setEnrolledCourses(fetchedCourses);
           } else {
             // If no enrolled courses returned, check if we have courses in Redux store
             console.log("Sidebar: No enrolled courses returned from API, checking Redux store");
