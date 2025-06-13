@@ -33,17 +33,71 @@ export function useEnrolledCourses() {
             // If no enrolled courses returned, check if we have courses in Redux store
             console.log("Sidebar: No enrolled courses returned from API, checking Redux store");
             if (courses && courses.length > 0) {
-              const reduxCourses = courses.filter(course => 
+              // Try multiple approaches to identify enrolled courses
+              
+              // Approach 1: Check for courses with enrollment status
+              const enrolledByStatus = courses.filter(course => 
                 course.enrolmentStatus === 'enroled' || 
                 course.enrollmentStatus === true
               );
               
-              if (reduxCourses.length > 0) {
-                console.log("Sidebar: Found enrolled courses in Redux store", reduxCourses.length);
-                setEnrolledCourses(reduxCourses);
-              } else {
-                setEnrolledCourses([]);
+              if (enrolledByStatus.length > 0) {
+                console.log("Sidebar: Found enrolled courses by status in Redux store", enrolledByStatus.length);
+                setEnrolledCourses(enrolledByStatus);
+                return;
               }
+              
+              // Approach 2: Check for courses with progress
+              const coursesWithProgress = courses.filter(course => 
+                course.progress !== undefined && 
+                course.progress !== null && 
+                course.progress > 0
+              );
+              
+              if (coursesWithProgress.length > 0) {
+                console.log("Sidebar: Found courses with progress in Redux store", coursesWithProgress.length);
+                setEnrolledCourses(coursesWithProgress.map(course => ({
+                  ...course,
+                  enrolmentStatus: 'enroled',
+                  enrollmentStatus: true
+                })));
+                return;
+              }
+              
+              // Approach 3: Check for courses with completed lessons
+              const coursesWithCompletedLessons = courses.filter(course => 
+                course.completedLessons && 
+                Array.isArray(course.completedLessons) && 
+                course.completedLessons.length > 0
+              );
+              
+              if (coursesWithCompletedLessons.length > 0) {
+                console.log("Sidebar: Found courses with completed lessons in Redux store", coursesWithCompletedLessons.length);
+                setEnrolledCourses(coursesWithCompletedLessons.map(course => ({
+                  ...course,
+                  enrolmentStatus: 'enroled',
+                  enrollmentStatus: true
+                })));
+                return;
+              }
+              
+              // Approach 4: Check for courses with last accessed date
+              const coursesWithLastAccessed = courses.filter(course => 
+                course.lastAccessedDate || course.lastAccessedAt
+              );
+              
+              if (coursesWithLastAccessed.length > 0) {
+                console.log("Sidebar: Found courses with last accessed date in Redux store", coursesWithLastAccessed.length);
+                setEnrolledCourses(coursesWithLastAccessed.map(course => ({
+                  ...course,
+                  enrolmentStatus: 'enroled',
+                  enrollmentStatus: true
+                })));
+                return;
+              }
+              
+              // If no enrolled courses found, set empty array
+              setEnrolledCourses([]);
             } else {
               setEnrolledCourses([]);
             }
