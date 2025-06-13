@@ -82,14 +82,15 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
         if (enrollments.length > 0) {
           // Create a set of enrolled course IDs
           const enrolledCourseIds = new Set(
-            enrollments.map((enrollment: any) => enrollment.courseId || enrollment.course_id)
+            enrollments.map((enrollment: any) => enrollment?.courseId || enrollment?.course_id || '')
+              .filter(id => id) // Filter out empty or undefined IDs
           );
           
           console.log("API Client: Enrolled course IDs from profile:", Array.from(enrolledCourseIds));
           
           // Filter courses to only include those in the enrolled set
           const profileEnrolledCourses = allCourses.filter(course => 
-            enrolledCourseIds.has(course.id)
+            course?.id && enrolledCourseIds.has(course.id)
           );
           
           if (profileEnrolledCourses.length > 0) {
@@ -109,8 +110,8 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
     
     // Fallback to filtering based on enrollment status in the course object
     const enrolledCourses = allCourses.filter(course => 
-      course.enrolmentStatus === 'enroled' || 
-      course.enrollmentStatus === true
+      course?.enrolmentStatus === 'enroled' || 
+      course?.enrollmentStatus === true
     );
     
     console.log(`API Client: Filtered to ${enrolledCourses.length} enrolled courses based on status`);
@@ -141,14 +142,15 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
           if (Array.isArray(enrollmentData) && enrollmentData.length > 0) {
             // Create a set of enrolled course IDs
             const enrolledCourseIds = new Set(
-              enrollmentData.map((item: any) => item.courseId || item.course_id)
+              enrollmentData.map((item: any) => item?.courseId || item?.course_id || '')
+                .filter(id => id) // Filter out empty or undefined IDs
             );
             
             console.log("API Client: Enrolled course IDs from status:", Array.from(enrolledCourseIds));
             
             // Filter courses to only include those in the enrolled set
             const statusEnrolledCourses = allCourses.filter(course => 
-              enrolledCourseIds.has(course.id)
+              course?.id && enrolledCourseIds.has(course.id)
             );
             
             if (statusEnrolledCourses.length > 0) {
@@ -172,9 +174,9 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
       // Approach 1: Check for courses with progress
       try {
         const coursesWithProgress = allCourses.filter(course => 
-          course.progress !== undefined && 
-          course.progress !== null && 
-          course.progress > 0
+          course?.progress !== undefined && 
+          course?.progress !== null && 
+          course?.progress > 0
         );
         
         if (coursesWithProgress.length > 0) {
@@ -192,9 +194,9 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
       // Approach 2: Check for courses with completed lessons
       try {
         const coursesWithCompletedLessons = allCourses.filter(course => 
-          course.completedLessons && 
-          Array.isArray(course.completedLessons) && 
-          course.completedLessons.length > 0
+          course?.completedLessons && 
+          Array.isArray(course?.completedLessons) && 
+          course?.completedLessons.length > 0
         );
         
         if (coursesWithCompletedLessons.length > 0) {
@@ -212,7 +214,7 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
       // Approach 3: Check for courses with last accessed date
       try {
         const coursesWithLastAccessed = allCourses.filter(course => 
-          course.lastAccessedDate || course.lastAccessedAt
+          course?.lastAccessedDate || course?.lastAccessedAt
         );
         
         if (coursesWithLastAccessed.length > 0) {
@@ -230,10 +232,10 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
       // Approach 4: Check for courses with payment status
       try {
         const paidCourses = allCourses.filter(course => 
-          course.isPaid === true || 
-          course.paid === true || 
-          course.paymentStatus === 'paid' || 
-          course.payment_status === 'paid'
+          course?.isPaid === true || 
+          course?.paid === true || 
+          course?.paymentStatus === 'paid' || 
+          course?.payment_status === 'paid'
         );
         
         if (paidCourses.length > 0) {
@@ -272,14 +274,15 @@ export const getEnrolledCourses = async (token: string): Promise<AuthCourse[]> =
           if (Array.isArray(userCourses) && userCourses.length > 0) {
             // Create a set of enrolled course IDs
             const userCourseIds = new Set(
-              userCourses.map((course: any) => course.id || course.courseId || course.course_id)
+              userCourses.map((course: any) => course?.id || course?.courseId || course?.course_id || '')
+                .filter(id => id) // Filter out empty or undefined IDs
             );
             
             console.log("API Client: User course IDs:", Array.from(userCourseIds));
             
             // Filter courses to only include those in the user courses set
             const userEnrolledCourses = allCourses.filter(course => 
-              userCourseIds.has(course.id)
+              course?.id && userCourseIds.has(course.id)
             );
             
             if (userEnrolledCourses.length > 0) {
@@ -369,9 +372,9 @@ export const getAvailableCourses = async (token: string): Promise<PublicCourse[]
     
     // Filter out enrolled courses
     const availableCourses = allCourses.filter(course => 
-      !enrolledCourseIds.has(course.id) &&
-      course.enrolmentStatus !== 'enroled' && 
-      course.enrollmentStatus !== true
+      course?.id && !enrolledCourseIds.has(course.id) &&
+      course?.enrolmentStatus !== 'enroled' && 
+      course?.enrollmentStatus !== true
     );
     
     console.log(`API Client: Filtered to ${availableCourses.length} available courses`);

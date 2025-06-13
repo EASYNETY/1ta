@@ -115,37 +115,78 @@ export const courseIconMapping: CourseIconMapping = {
  * @param courseId - Optional course ID for fallback matching
  * @returns The path to the PNG icon or a default icon
  */
-export function getCourseIcon(courseName: string, courseId?: string): string {
-  // First try exact match with course name
-  if (courseIconMapping[courseName]) {
-    return courseIconMapping[courseName];
-  }
-
-  // Try exact match with course ID if provided
-  if (courseId && courseIconMapping[courseId]) {
-    return courseIconMapping[courseId];
-  }
-
-  // Try partial matching with course name (case insensitive)
-  const lowerCourseName = courseName.toLowerCase();
-  for (const [key, iconPath] of Object.entries(courseIconMapping)) {
-    if (lowerCourseName.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerCourseName)) {
-      return iconPath;
+export function getCourseIcon(courseName?: string, courseId?: string): string {
+  try {
+    // Handle undefined or null course name
+    if (!courseName) {
+      // If we have a course ID, try to use that instead
+      if (courseId) {
+        // Try exact match with course ID
+        if (courseIconMapping[courseId]) {
+          return courseIconMapping[courseId];
+        }
+        
+        // Try partial matching with course ID
+        try {
+          const lowerCourseId = String(courseId).toLowerCase();
+          for (const [key, iconPath] of Object.entries(courseIconMapping)) {
+            if (lowerCourseId.includes(String(key).toLowerCase()) || 
+                String(key).toLowerCase().includes(lowerCourseId)) {
+              return iconPath;
+            }
+          }
+        } catch (error) {
+          console.error("Error in getCourseIcon with courseId:", error);
+        }
+      }
+      
+      // If no course name or ID match, return default
+      return "/course-placeholder.png";
     }
-  }
 
-  // Try partial matching with course ID if provided
-  if (courseId) {
-    const lowerCourseId = courseId.toLowerCase();
-    for (const [key, iconPath] of Object.entries(courseIconMapping)) {
-      if (lowerCourseId.includes(key.toLowerCase()) || key.toLowerCase().includes(lowerCourseId)) {
-        return iconPath;
+    // First try exact match with course name
+    if (courseIconMapping[courseName]) {
+      return courseIconMapping[courseName];
+    }
+
+    // Try exact match with course ID if provided
+    if (courseId && courseIconMapping[courseId]) {
+      return courseIconMapping[courseId];
+    }
+
+    // Try partial matching with course name (case insensitive)
+    try {
+      const lowerCourseName = String(courseName).toLowerCase();
+      for (const [key, iconPath] of Object.entries(courseIconMapping)) {
+        if (lowerCourseName.includes(String(key).toLowerCase()) || 
+            String(key).toLowerCase().includes(lowerCourseName)) {
+          return iconPath;
+        }
+      }
+    } catch (error) {
+      console.error("Error in getCourseIcon with courseName:", error);
+    }
+
+    // Try partial matching with course ID if provided
+    if (courseId) {
+      try {
+        const lowerCourseId = String(courseId).toLowerCase();
+        for (const [key, iconPath] of Object.entries(courseIconMapping)) {
+          if (lowerCourseId.includes(String(key).toLowerCase()) || 
+              String(key).toLowerCase().includes(lowerCourseId)) {
+            return iconPath;
+          }
+        }
+      } catch (error) {
+        console.error("Error in getCourseIcon with courseId:", error);
       }
     }
+  } catch (error) {
+    console.error("Unexpected error in getCourseIcon:", error);
   }
 
   // Default fallback icon
-  return "/images/icons/Python for Beginners Certification-01-01.png";
+  return "/course-placeholder.png";
 }
 
 /**

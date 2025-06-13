@@ -30,12 +30,16 @@ export function CourseCard({ course, index }: CourseCardProps) {
                 <div className="aspect-video bg-muted relative overflow-hidden">
                     <img
                         src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
-                        alt={course.title}
+                        alt={course.title || "Course"}
                         className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                        onError={(e) => {
+                            // Fallback to a default image if the image fails to load
+                            e.currentTarget.src = "/course-placeholder.png";
+                        }}
                     />
                 </div>
                 <CardHeader>
-                    <CardTitle className="line-clamp-1">{course.title}</CardTitle>
+                    <CardTitle className="line-clamp-1">{course.title || "Untitled Course"}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex-grow">
                     <div className="flex items-center text-sm text-muted-foreground">
