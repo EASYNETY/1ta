@@ -35,6 +35,7 @@ import { fetchEnrolledCourses, fetchAvailableCourses, filterOutEnrolledCourses }
 import { getEnrolledCourses as fetchEnrolledCoursesApi, getAvailableCourses as fetchAvailableCoursesApi } from "@/features/auth-course/utils/course-api-client"
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
+import { AnalyticsTab } from "@/components/dashboard/analytics-tab"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding, token } = useAppSelector((state) => state.auth)
@@ -584,6 +585,9 @@ export default function DashboardPage() {
                 </TabsContent>
                 <TabsContent value="grades">
                     <GradesTab />
+                </TabsContent>
+                <TabsContent value="analytics">
+                    <AnalyticsTab />
                 </TabsContent>
             </Tabs>
         </motion.div>
