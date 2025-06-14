@@ -16,24 +16,48 @@ export async function POST(request: NextRequest) {
 
     // Validate the request body
     const validatedData = waitlistFormSchema.parse(body);
-
-    // Forward the request to the backend API
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com';
-    const response = await fetch(`${apiUrl}/api/waitlist`, {
+    const { name, email, phone, courseId, courseTitle } = validatedData;
+    
+    // Use the existing contact API to send the waitlist notification
+    // This is a workaround until the backend waitlist API is fixed
+    const contactResponse = await fetch('/api/contact', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(validatedData),
+      body: JSON.stringify({
+        name: name,
+        email: email,
+        phone: phone || 'Not provided',
+        inquiryType: 'Course Waitlist',
+        message: `A user has requested to join the waitlist for the following course:
+        
+Course: ${courseTitle}
+Course ID: ${courseId}
+Name: ${name}
+Email: ${email}
+Phone: ${phone || 'Not provided'}
+
+Please add them to the waitlist and notify them when this course becomes available.`,
+      }),
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to add to waitlist');
+    
+    if (!contactResponse.ok) {
+      const errorData = await contactResponse.json();
+      throw new Error(errorData.error || 'Failed to send waitlist notification');
     }
-
-    return NextResponse.json(data);
+    
+    // Return success response
+    return NextResponse.json({
+      success: true,
+      message: 'Successfully added to the waitlist',
+      data: {
+        name,
+        email,
+        courseTitle
+      }
+    });
+    
   } catch (error) {
     console.error('Waitlist API error:', error);
 

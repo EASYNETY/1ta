@@ -46,18 +46,18 @@ const CourseMediaPreview = ({ course }: { course: PublicCourse }) => {
   // Fallback to placeholder image
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-      <div className="w-20 h-20 flex items-center justify-center">
-        {course.iconUrl || course.image && course.image !== "/placeholder.svg" && !imageError ? (
-          <img
-            src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
-            alt={course.title}
-            className="max-w-full max-h-full object-contain"
-            onError={() => setImageError(true)}
-          />
-        ) : (
+      {course.iconUrl || course.image && course.image !== "/placeholder.svg" && !imageError ? (
+        <img
+          src={course.iconUrl || course.image || getCourseIcon(course.title, course.id)}
+          alt={course.title}
+          className="w-full h-full object-cover"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        <div className="w-20 h-20 flex items-center justify-center">
           <Layers className="w-16 h-16 text-primary/40" />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -360,11 +360,11 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
 
               <div className="relative z-10 max-h-[90vh] overflow-y-auto bg-background/85 backdrop-blur-sm rounded-xl scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {/* Media Preview */}
-                <div className="relative w-full aspect-video bg-muted">
+                <div className="relative w-full aspect-[16/9] bg-muted overflow-hidden">
                   <CourseMediaPreview course={mergedCourse} />
                   {mergedCourse.level && (
                     <Badge
-                      className="absolute top-4 left-4 bg-primary/10 backdrop-blur-md border border-primary/20"
+                      className="absolute top-4 left-4 bg-primary/10 backdrop-blur-md border border-primary/20 z-10"
                       variant="outline"
                     >
                       {mergedCourse.level}
