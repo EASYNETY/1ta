@@ -281,8 +281,8 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
     setIsSubmittingWaitlist(true);
 
     try {
-      // Send to our frontend API route that will proxy to the backend
-      const response = await fetch('/api/waitlist', {
+      // First validate the data with our waitlist API
+      const waitlistResponse = await fetch('/api/waitlist', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -296,24 +296,66 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
         }),
       });
 
-      const data = await response.json();
+      const waitlistData = await waitlistResponse.json();
 
-      if (data.success) {
-        setWaitlistSubmitted(true);
-        
-        toast({
-          title: "Waitlist Joined",
-          description: `You'll be notified when ${mergedCourse.title} becomes available.`,
-          variant: "success"
-        });
-
-        // Reset after showing success for a moment
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      } else {
-        throw new Error(data.error || 'Failed to join waitlist');
+      if (!waitlistData.success) {
+        throw new Error(waitlistData.error || 'Failed to validate waitlist data');
       }
+      
+      // Now send the notification via the contact API which is known to work
+      const contactResponse = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: waitlistName,
+          email: waitlistEmail,
+          phone: waitlistPhone || 'Not provided',
+          inquiryType: 'Course Waitlist',
+          message: `A user has requested to join the waitlist for the following course:
+          
+Course: ${mergedCourse.title}
+Course ID: ${mergedCourse.id}
+Name: ${waitlistName}
+Email: ${waitlistEmail}
+Phone: ${waitlistPhone || 'Not provided'}
+
+Please add them to the waitlist and notify them when this course becomes available.`,
+        }),
+      });
+      
+      const contactData = await contactResponse.json();
+      
+      if (!contactData.success) {
+        throw new Error(contactData.error || 'Failed to send waitlist notification');
+      }
+
+      // If we get here, both requests succeeded
+      setWaitlistSubmitted(true);
+      
+      toast({
+        title: "Waitlist Joined",
+        description: `You'll be notified when ${mergedCourse.title} becomes available.`,
+        variant: "success"
+      });
+
+      // Reset after showing success for a moment
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Waitlist submission error:', error);
+      
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to join waitlist. Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingWaitlist(false);
+    }
     } catch (error) {
       console.error('Waitlist submission error:', error);
       
