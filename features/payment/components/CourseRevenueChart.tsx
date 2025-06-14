@@ -91,7 +91,11 @@ export function CourseRevenueChart({ data, isLoading }: CourseRevenueChartProps)
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tickFormatter={(value) => `₦${value}k`}
+                            tickFormatter={(value) => {
+                                // Convert to number to remove any leading zeros
+                                const cleanValue = Number(value);
+                                return `₦${cleanValue}k`;
+                            }}
                         />
                         <YAxis dataKey="course" type="category" tickLine={false} tickMargin={10} axisLine={false} width={120} />
                         <ChartTooltip
@@ -99,7 +103,9 @@ export function CourseRevenueChart({ data, isLoading }: CourseRevenueChartProps)
                             content={<ChartTooltipContent />}
                             formatter={(value, name) => {
                                 if (name === "revenue") {
-                                    return [`₦${(Number(value) * 1000).toLocaleString()}`, "Revenue"]
+                                    // Convert to number to remove any leading zeros
+                                    const cleanAmount = Number(value) * 1000;
+                                    return [`₦${cleanAmount.toLocaleString('en-NG')}`, "Revenue"];
                                 }
                                 return [value, name]
                             }}

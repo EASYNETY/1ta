@@ -44,11 +44,11 @@ function PaymentStatsCard({
     const formatValue = (val: number | string, title: string): string => {
         if (typeof val === "number") {
             if (title.includes("Revenue") || title.includes("Payments")) {
-                return new Intl.NumberFormat("en-NG", {
-                    style: "currency",
-                    currency: "NGN",
-                    maximumFractionDigits: 0,
-                }).format(val)
+                // Convert to number to remove any leading zeros
+                const cleanAmount = Number(val);
+                
+                // For NGN, use the ₦ symbol directly to ensure consistent display
+                return `₦${cleanAmount.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`;
             } else if (title === "Reconciled") {
                 return `${val}%`
             }

@@ -38,11 +38,11 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
     }
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat("en-NG", {
-            style: "currency",
-            currency: "NGN",
-            maximumFractionDigits: 0,
-        }).format(amount)
+        // Convert to number to remove any leading zeros
+        const cleanAmount = Number(amount);
+        
+        // For NGN, use the ₦ symbol directly to ensure consistent display
+        return `₦${cleanAmount.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`;
     }
 
     const filteredAndSortedData = [...data]

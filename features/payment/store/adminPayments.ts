@@ -44,16 +44,27 @@ export const fetchAdminPayments = createAsyncThunk<
       const query = queryParams.toString();
       const url = `/admin/payments${query ? `?${query}` : ''}`;
       
+      console.log("Fetching admin payments from:", url);
       const response = await get(url);
+      console.log("Admin payments response:", response);
 
       // Handle different response formats
       let payments: PaymentRecord[] = [];
       let paginationData: any = null;
 
       // Case 1: New API format with success, data, and pagination fields
-      if (response && response.success === true && response.data) {
-        payments = Array.isArray(response.data) ? response.data : [];
-        paginationData = response.pagination;
+      if (response && response.success === true) {
+        // Check if data is directly in the response or nested
+        if (Array.isArray(response.data)) {
+          payments = response.data;
+        } else if (response.data && Array.isArray(response.data.payments)) {
+          payments = response.data.payments;
+        } else if (response.payments && Array.isArray(response.payments)) {
+          payments = response.payments;
+        }
+        
+        // Get pagination data
+        paginationData = response.pagination || (response.data && response.data.pagination);
       } 
       // Case 2: Direct data array with pagination object
       else if (response && Array.isArray(response)) {
@@ -69,21 +80,32 @@ export const fetchAdminPayments = createAsyncThunk<
       // Case 3: Object with data array and pagination
       else if (response && typeof response === 'object') {
         // Try to find an array property that might contain the payments
-        const possibleDataFields = ['data', 'payments', 'items', 'results'];
-        for (const field of possibleDataFields) {
-          if (Array.isArray(response[field])) {
-            payments = response[field];
-            break;
+        if (Array.isArray(response.payments)) {
+          payments = response.payments;
+        } else if (response.data && Array.isArray(response.data)) {
+          payments = response.data;
+        } else if (response.data && Array.isArray(response.data.payments)) {
+          payments = response.data.payments;
+        } else {
+          // Try other common field names
+          const possibleDataFields = ['items', 'results', 'records', 'list'];
+          for (const field of possibleDataFields) {
+            if (Array.isArray(response[field])) {
+              payments = response[field];
+              break;
+            } else if (response.data && Array.isArray(response.data[field])) {
+              payments = response.data[field];
+              break;
+            }
           }
         }
 
         // Try to find pagination information
-        const possiblePaginationFields = ['pagination', 'meta', 'page', 'paging'];
-        for (const field of possiblePaginationFields) {
-          if (response[field] && typeof response[field] === 'object') {
-            paginationData = response[field];
-            break;
-          }
+        paginationData = response.pagination || response.meta || response.page || response.paging;
+        
+        // If pagination is nested in data
+        if (!paginationData && response.data) {
+          paginationData = response.data.pagination || response.data.meta || response.data.page || response.data.paging;
         }
 
         // If we still don't have pagination data but have a total property
@@ -97,10 +119,20 @@ export const fetchAdminPayments = createAsyncThunk<
         }
       }
 
+      // Log what we found
+      console.log("Extracted payments:", payments);
+      console.log("Extracted pagination:", paginationData);
+
       // If we couldn't extract payments data, throw an error
-      if (!payments || !Array.isArray(payments)) {
+      if (!payments) {
         console.error("API Response:", response);
         throw new Error("Could not extract payments data from API response");
+      }
+
+      // Ensure payments is an array
+      if (!Array.isArray(payments)) {
+        console.warn("Payments is not an array, converting to array:", payments);
+        payments = payments ? [payments] : [];
       }
 
       // If we couldn't extract pagination data, use defaults

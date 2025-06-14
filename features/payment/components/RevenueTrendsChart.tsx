@@ -61,11 +61,24 @@ export function RevenueTrendsChart({ data, isLoading }: RevenueTrendsChartProps)
                                 axisLine={false}
                                 tickFormatter={(value) => value.slice(0, 3)}
                             />
-                            <YAxis tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => `₦${value}k`} />
+                            <YAxis 
+                                tickLine={false} 
+                                axisLine={false} 
+                                tickMargin={8} 
+                                tickFormatter={(value) => {
+                                    // Convert to number to remove any leading zeros
+                                    const cleanValue = Number(value);
+                                    return `₦${cleanValue}k`;
+                                }} 
+                            />
                             <ChartTooltip
                                 cursor={false}
                                 content={<ChartTooltipContent hideLabel />}
-                                formatter={(value) => [`₦${(Number(value) * 1000).toLocaleString()}`, "Revenue"]}
+                                formatter={(value) => {
+                                    // Convert to number to remove any leading zeros
+                                    const cleanAmount = Number(value) * 1000;
+                                    return [`₦${cleanAmount.toLocaleString('en-NG')}`, "Revenue"];
+                                }}
                             />
                             <Bar dataKey="revenue" fill="var(--color-revenue)" radius={8} />
                         </BarChart>
