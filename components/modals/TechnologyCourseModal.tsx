@@ -281,8 +281,8 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
     setIsSubmittingWaitlist(true);
 
     try {
-      // Use our proxy API route to avoid CORS issues
-      const waitlistResponse = await fetch('/api/waitlist', {
+      // Use the backend API URL directly to avoid frontend proxy issues
+      const waitlistResponse = await fetch('https://api.onetechacademy.com/api/waitlist', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
