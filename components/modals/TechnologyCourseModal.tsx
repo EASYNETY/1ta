@@ -281,7 +281,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
     setIsSubmittingWaitlist(true);
 
     try {
-      // First validate the data with our waitlist API
+      // Use our proxy API route to avoid CORS issues
       const waitlistResponse = await fetch('/api/waitlist', {
         method: 'POST',
         headers: {
@@ -299,11 +299,11 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
       const waitlistData = await waitlistResponse.json();
 
       if (!waitlistData.success) {
-        throw new Error(waitlistData.error || 'Failed to validate waitlist data');
+        throw new Error(waitlistData.error || 'Failed to join waitlist');
       }
       
-      // Log the waitlist request for debugging
-      console.log('Waitlist request:', {
+      // Log the successful waitlist request
+      console.log('Waitlist request successful:', {
         name: waitlistName,
         email: waitlistEmail,
         phone: waitlistPhone || 'Not provided',

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Resend } from 'resend';
 
 // Waitlist form schema validation
 const waitlistFormSchema = z.object({
@@ -11,94 +10,87 @@ const waitlistFormSchema = z.object({
   courseTitle: z.string().min(1, 'Course title is required'),
 });
 
-// Initialize Resend if API key is available
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
+/**
+ * This is a proxy API route that forwards requests to the backend API
+ * It helps avoid CORS issues when making direct requests from the frontend
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     // Validate the request body
     const validatedData = waitlistFormSchema.parse(body);
-    const { name, email, phone, courseId, courseTitle } = validatedData;
     
-    // Create email content
-    const emailSubject = `Waitlist Request: ${courseTitle}`;
+    // Get the API URL from environment or use default
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com';
     
-    const emailText = `
-New Waitlist Request
-
-Course: ${courseTitle}
-Course ID: ${courseId}
-Name: ${name}
-Email: ${email}
-Phone: ${phone || 'Not provided'}
-
-Please add them to the waitlist and notify them when this course becomes available.
-
----
-Sent from 1Tech Academy Waitlist Form
-Time: ${new Date().toLocaleString()}
-    `;
-
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #C99700; border-bottom: 2px solid #C99700; padding-bottom: 10px;">
-          New Waitlist Request
-        </h2>
-
-        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #333;">Course Information</h3>
-          <p><strong>Course:</strong> ${courseTitle}</p>
-          <p><strong>Course ID:</strong> ${courseId}</p>
-        </div>
-
-        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #333;">User Information</h3>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
-          <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-          <p style="color: #666; font-size: 12px;">
-            Sent from 1Tech Academy Waitlist Form<br>
-            ${new Date().toLocaleString()}
-          </p>
-        </div>
-      </div>
-    `;
-    
-    // Try to send email if Resend is configured
-    if (resend) {
+    try {
+      // Forward the request to the backend API
+      const response = await fetch(`${apiUrl}/api/waitlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(validatedData),
+      });
+      
+      // Get the response from the backend
+      const data = await response.json();
+      
+      // Return the response to the frontend
+      return NextResponse.json(data, {
+        status: response.status,
+      });
+      
+    } catch (fetchError) {
+      console.error('Error forwarding request to backend:', fetchError);
+      
+      // If we can't reach the backend, use the contact API as fallback
       try {
-        await resend.emails.send({
-          from: 'noreply@1techacademy.com',
-          to: 'info@1techacademy.com',
-          subject: emailSubject,
-          text: emailText,
-          html: emailHtml,
+        const contactResponse = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: validatedData.name,
+            email: validatedData.email,
+            phone: validatedData.phone || 'Not provided',
+            inquiryType: 'Course Waitlist',
+            message: `A user has requested to join the waitlist for the following course:
+            
+Course: ${validatedData.courseTitle}
+Course ID: ${validatedData.courseId}
+Name: ${validatedData.name}
+Email: ${validatedData.email}
+Phone: ${validatedData.phone || 'Not provided'}
+
+Please add them to the waitlist and notify them when this course becomes available.`,
+          }),
         });
         
-        console.log('Waitlist notification email sent successfully');
-      } catch (emailError) {
-        // Log the error but don't fail the request
-        console.error('Failed to send waitlist notification email:', emailError);
+        const contactData = await contactResponse.json();
+        
+        if (!contactData.success) {
+          throw new Error('Failed to send waitlist notification via contact API');
+        }
+        
+        // Return success response
+        return NextResponse.json({
+          success: true,
+          message: 'Successfully added to the waitlist (via contact form)',
+          data: {
+            name: validatedData.name,
+            email: validatedData.email,
+            courseTitle: validatedData.courseTitle
+          }
+        });
+        
+      } catch (contactError) {
+        console.error('Error using contact API as fallback:', contactError);
+        throw new Error('Failed to process waitlist request. Please try again later.');
       }
-    } else {
-      console.log('Resend API key not configured, skipping email notification');
     }
-    
-    // Always return success to the frontend
-    return NextResponse.json({
-      success: true,
-      message: 'Successfully added to the waitlist',
-      data: {
-        name,
-        email,
-        courseTitle
-      }
-    });
     
   } catch (error) {
     console.error('Waitlist API error:', error);
