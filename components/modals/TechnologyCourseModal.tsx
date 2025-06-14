@@ -299,7 +299,7 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
       const waitlistData = await waitlistResponse.json();
 
       if (!waitlistData.success) {
-        throw new Error(waitlistData.error || 'Failed to join waitlist');
+        throw new Error(waitlistData.error || 'Failed to join waitlist. Please try again later.');
       }
       
       // Log the successful waitlist request
@@ -329,8 +329,10 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
       console.error('Waitlist submission error:', error);
       
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to join waitlist. Please try again later.",
+        title: "Unable to Join Waitlist",
+        description: error instanceof Error 
+          ? error.message 
+          : "We couldn't process your request. Please try again or contact us directly at info@1techacademy.com.",
         variant: "destructive"
       });
     } finally {

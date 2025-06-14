@@ -11,8 +11,8 @@ const waitlistFormSchema = z.object({
 });
 
 /**
- * This is a proxy API route that forwards requests to the backend API
- * It helps avoid CORS issues when making direct requests from the frontend
+ * Direct implementation of waitlist functionality in the frontend API route
+ * This avoids the need to connect to a separate backend API
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,76 +20,69 @@ export async function POST(request: NextRequest) {
 
     // Validate the request body
     const validatedData = waitlistFormSchema.parse(body);
+    const { name, email, phone, courseId, courseTitle } = validatedData;
     
-    // Get the API URL from environment or use default
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com';
+    // Use the contact API directly (absolute URL to avoid recursion)
+    const origin = request.headers.get('origin') || 'https://onetechacademy.com';
+    const contactApiUrl = `${origin}/api/contact`;
     
     try {
-      // Forward the request to the backend API
-      const response = await fetch(`${apiUrl}/api/waitlist`, {
+      const contactResponse = await fetch(contactApiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(validatedData),
-      });
-      
-      // Get the response from the backend
-      const data = await response.json();
-      
-      // Return the response to the frontend
-      return NextResponse.json(data, {
-        status: response.status,
-      });
-      
-    } catch (fetchError) {
-      console.error('Error forwarding request to backend:', fetchError);
-      
-      // If we can't reach the backend, use the contact API as fallback
-      try {
-        const contactResponse = await fetch('/api/contact', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: validatedData.name,
-            email: validatedData.email,
-            phone: validatedData.phone || 'Not provided',
-            inquiryType: 'Course Waitlist',
-            message: `A user has requested to join the waitlist for the following course:
-            
-Course: ${validatedData.courseTitle}
-Course ID: ${validatedData.courseId}
-Name: ${validatedData.name}
-Email: ${validatedData.email}
-Phone: ${validatedData.phone || 'Not provided'}
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          phone: phone || 'Not provided',
+          interest: 'Course Waitlist',
+          message: `A user has requested to join the waitlist for the following course:
+          
+Course: ${courseTitle}
+Course ID: ${courseId}
+Name: ${name}
+Email: ${email}
+Phone: ${phone || 'Not provided'}
 
 Please add them to the waitlist and notify them when this course becomes available.`,
-          }),
-        });
-        
-        const contactData = await contactResponse.json();
-        
-        if (!contactData.success) {
-          throw new Error('Failed to send waitlist notification via contact API');
-        }
-        
-        // Return success response
-        return NextResponse.json({
-          success: true,
-          message: 'Successfully added to the waitlist (via contact form)',
-          data: {
-            name: validatedData.name,
-            email: validatedData.email,
-            courseTitle: validatedData.courseTitle
-          }
-        });
-        
-      } catch (contactError) {
-        console.error('Error using contact API as fallback:', contactError);
-        throw new Error('Failed to process waitlist request. Please try again later.');
+        }),
+      });
+      
+      const contactData = await contactResponse.json();
+      
+      if (!contactData.success) {
+        throw new Error(contactData.message || 'Failed to send waitlist notification');
       }
+      
+      // Log the successful waitlist request
+      console.log('Waitlist request processed via contact API:', {
+        name,
+        email,
+        phone: phone || 'Not provided',
+        courseTitle,
+        courseId
+      });
+      
+      // Return success response
+      return NextResponse.json({
+        success: true,
+        message: 'Successfully added to the waitlist',
+        data: {
+          name,
+          email,
+          courseTitle
+        }
+      });
+      
+    } catch (contactError) {
+      console.error('Error using contact API:', contactError);
+      
+      // Return a more specific error message
+      return NextResponse.json({
+        success: false,
+        error: 'Unable to process your waitlist request at this time. Please try again later or contact us directly at info@1techacademy.com.'
+      }, { status: 500 });
     }
     
   } catch (error) {
