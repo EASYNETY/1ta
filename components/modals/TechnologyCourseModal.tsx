@@ -302,12 +302,6 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
         throw new Error(waitlistData.error || 'Failed to validate waitlist data');
       }
       
-      // Skip the contact API call and just show success
-      // This is a temporary solution until we can fix the API issues
-      
-      // Simulate a successful response
-      const contactData = { success: true };
-      
       // Log the waitlist request for debugging
       console.log('Waitlist request:', {
         name: waitlistName,
@@ -316,11 +310,8 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
         courseTitle: mergedCourse.title,
         courseId: mergedCourse.id
       });
-      
-      // We're using the simulated contactData from above
-      // No need to check for success since we're simulating it
 
-      // If we get here, both requests succeeded
+      // If we get here, the request succeeded
       setWaitlistSubmitted(true);
       
       toast({
@@ -340,17 +331,6 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to join waitlist. Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmittingWaitlist(false);
-    }
-    } catch (error) {
-      console.error('Waitlist submission error:', error);
-      
-      toast({
-        title: "Error",
-        description: "Failed to join waitlist. Please try again later.",
         variant: "destructive"
       });
     } finally {
