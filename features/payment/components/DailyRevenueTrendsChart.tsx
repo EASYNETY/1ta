@@ -32,11 +32,21 @@ export function DailyRevenueTrendsChart({ data, isLoading }: DailyRevenueTrendsC
   }
 
   // Transform data for the chart
-  const chartData = data.map((item) => ({
-    date: item.date,
-    revenue: Number(item.total),
-    formattedDate: format(parseISO(item.date), "MMM dd"),
-  }))
+  const chartData = data.length > 0 
+    ? data.map((item) => ({
+        date: item.date,
+        revenue: Number(item.total),
+        formattedDate: format(parseISO(item.date), "MMM dd"),
+      }))
+    : Array.from({ length: 7 }).map((_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return {
+          date: format(date, "yyyy-MM-dd"),
+          revenue: 0,
+          formattedDate: format(date, "MMM dd"),
+        };
+      })
 
   // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {

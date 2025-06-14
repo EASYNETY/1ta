@@ -14,7 +14,12 @@ export function PaymentMethodsDistribution() {
   // Transform provider counts to payment method distribution format
   const transformToPaymentMethodDistribution = (): PaymentMethodDistribution[] => {
     if (!stats || !stats.providerCounts || stats.providerCounts.length === 0) {
-      return []
+      // Return default data if no stats available
+      return [
+        { method: "Paystack", count: 0, percentage: 0 },
+        { method: "Bank Transfer", count: 0, percentage: 0 },
+        { method: "Corporate", count: 0, percentage: 0 }
+      ]
     }
 
     // Calculate total count
@@ -22,7 +27,7 @@ export function PaymentMethodsDistribution() {
     
     // Transform to PaymentMethodDistribution format
     return stats.providerCounts.map(item => ({
-      method: item.provider,
+      method: item.provider || "Unknown",
       count: item.count,
       percentage: totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0
     }))

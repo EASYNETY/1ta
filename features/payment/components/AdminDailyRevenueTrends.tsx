@@ -13,11 +13,18 @@ export function AdminDailyRevenueTrends() {
   // Get daily revenue data directly from the stats
   const getDailyRevenueData = () => {
     if (!stats || !stats.dailyRevenue || stats.dailyRevenue.length === 0) {
+      // Return empty array - the chart component will handle this case
       return []
     }
 
     // Sort by date
-    return [...stats.dailyRevenue].sort((a, b) => a.date.localeCompare(b.date))
+    return [...stats.dailyRevenue]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      // Ensure we have the currency field
+      .map(item => ({
+        ...item,
+        currency: item.currency || "NGN"
+      }))
   }
 
   const dailyRevenueData = getDailyRevenueData()

@@ -15,7 +15,7 @@ import {
   selectDateRange,
   setDateRange,
 } from "../store/adminPayments"
-import { DateRangePicker } from "@/components/ui/date-picker-with-year-month"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
 
 export function AdminPaymentStats() {
   const dispatch = useAppDispatch()
