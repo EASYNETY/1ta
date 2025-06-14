@@ -46,36 +46,88 @@ export const fetchAdminPayments = createAsyncThunk<
       
       const response = await get(url);
 
-      // Handle the new API response format
-      if (!response || !response.success) {
-        throw new Error("Invalid response format from API");
+      // Handle different response formats
+      let payments: PaymentRecord[] = [];
+      let paginationData: any = null;
+
+      // Case 1: New API format with success, data, and pagination fields
+      if (response && response.success === true && response.data) {
+        payments = Array.isArray(response.data) ? response.data : [];
+        paginationData = response.pagination;
+      } 
+      // Case 2: Direct data array with pagination object
+      else if (response && Array.isArray(response)) {
+        payments = response;
+        // Look for pagination in a different property or use defaults
+        paginationData = {
+          total: payments.length,
+          page: params.page || 1,
+          limit: params.limit || 10,
+          totalPages: 1
+        };
+      }
+      // Case 3: Object with data array and pagination
+      else if (response && typeof response === 'object') {
+        // Try to find an array property that might contain the payments
+        const possibleDataFields = ['data', 'payments', 'items', 'results'];
+        for (const field of possibleDataFields) {
+          if (Array.isArray(response[field])) {
+            payments = response[field];
+            break;
+          }
+        }
+
+        // Try to find pagination information
+        const possiblePaginationFields = ['pagination', 'meta', 'page', 'paging'];
+        for (const field of possiblePaginationFields) {
+          if (response[field] && typeof response[field] === 'object') {
+            paginationData = response[field];
+            break;
+          }
+        }
+
+        // If we still don't have pagination data but have a total property
+        if (!paginationData && 'total' in response) {
+          paginationData = {
+            total: response.total,
+            page: params.page || 1,
+            limit: params.limit || 10,
+            totalPages: Math.ceil(response.total / (params.limit || 10))
+          };
+        }
       }
 
-      // Extract data and pagination from the response
-      const data = response.data;
-      const pagination = response.pagination;
-
-      if (!Array.isArray(data)) {
-        throw new Error("Invalid response format from API: data is not an array");
+      // If we couldn't extract payments data, throw an error
+      if (!payments || !Array.isArray(payments)) {
+        console.error("API Response:", response);
+        throw new Error("Could not extract payments data from API response");
       }
 
-      if (!pagination) {
-        throw new Error("Invalid response format from API: missing pagination");
+      // If we couldn't extract pagination data, use defaults
+      if (!paginationData) {
+        paginationData = {
+          total: payments.length,
+          page: params.page || 1,
+          limit: params.limit || 10,
+          totalPages: 1
+        };
       }
 
       // Transform pagination to match our frontend format
       const paginationMeta: PaginationMeta = {
-        totalItems: pagination.total,
-        currentPage: pagination.page,
-        limit: pagination.limit,
-        totalPages: pagination.totalPages || Math.ceil(pagination.total / pagination.limit)
+        totalItems: paginationData.total || paginationData.totalItems || payments.length,
+        currentPage: paginationData.page || paginationData.currentPage || params.page || 1,
+        limit: paginationData.limit || paginationData.perPage || params.limit || 10,
+        totalPages: paginationData.totalPages || paginationData.pages || 
+                   Math.ceil((paginationData.total || payments.length) / (paginationData.limit || params.limit || 10))
       };
 
       return {
-        payments: data,
+        payments,
         pagination: paginationMeta
       };
     } catch (error: any) {
+      console.error("Error fetching admin payments:", error);
       return rejectWithValue(
         error.response?.data?.message || 
         error.message || 
@@ -101,31 +153,50 @@ export const fetchPaymentStats = createAsyncThunk<
       const query = queryParams.toString();
       const url = `/admin/payments/stats${query ? `?${query}` : ''}`;
       
+      console.log("Fetching payment stats from:", url);
       const response = await get(url);
+      console.log("Payment stats response:", response);
 
-      // Handle the new API response format
-      if (!response || !response.success) {
-        throw new Error("Invalid response format from API");
+      // Handle different response formats
+      let statsData: AdminPaymentStats;
+
+      // Case 1: New API format with success and data fields
+      if (response && response.success === true && response.data) {
+        const data = response.data;
+        statsData = {
+          totalRevenue: data.totalRevenue || [],
+          statusCounts: data.statusCounts || [],
+          providerCounts: data.providerCounts || [],
+          dailyRevenue: data.dailyRevenue || [],
+          dateRange: data.dateRange || { start: startDate || '', end: endDate || '' }
+        };
+      }
+      // Case 2: Direct stats object
+      else if (response && typeof response === 'object') {
+        // Try to extract stats data from the response
+        statsData = {
+          totalRevenue: response.totalRevenue || [],
+          statusCounts: response.statusCounts || [],
+          providerCounts: response.providerCounts || [],
+          dailyRevenue: response.dailyRevenue || [],
+          dateRange: response.dateRange || { start: startDate || '', end: endDate || '' }
+        };
+      }
+      else {
+        console.error("Invalid payment stats response:", response);
+        throw new Error("Invalid response format from API: missing stats data");
       }
 
-      // Extract data from the response
-      const data = response.data;
-
-      if (!data) {
-        throw new Error("Invalid response format from API: missing data");
-      }
-
-      // Ensure the data has the expected structure
-      const statsData: AdminPaymentStats = {
-        totalRevenue: data.totalRevenue || [],
-        statusCounts: data.statusCounts || [],
-        providerCounts: data.providerCounts || [],
-        dailyRevenue: data.dailyRevenue || [],
-        dateRange: data.dateRange || { start: startDate || '', end: endDate || '' }
-      };
+      // Ensure all properties have default values if missing
+      statsData.totalRevenue = statsData.totalRevenue || [];
+      statsData.statusCounts = statsData.statusCounts || [];
+      statsData.providerCounts = statsData.providerCounts || [];
+      statsData.dailyRevenue = statsData.dailyRevenue || [];
+      statsData.dateRange = statsData.dateRange || { start: startDate || '', end: endDate || '' };
 
       return statsData;
     } catch (error: any) {
+      console.error("Error fetching payment stats:", error);
       return rejectWithValue(
         error.response?.data?.message || 
         error.message || 
@@ -144,25 +215,39 @@ export const updatePayment = createAsyncThunk<
   "adminPayments/update",
   async ({ id, status, description, metadata }, { rejectWithValue }) => {
     try {
+      console.log(`Updating payment ${id} with status: ${status}, description: ${description}`);
+      
+      // Make sure we're using the correct API endpoint format
       const response = await put(
         `/admin/payments/${id}`,
         { status, description, metadata }
       );
 
-      // Handle the new API response format
-      if (!response || !response.success) {
-        throw new Error("Invalid response format from API");
+      console.log("Update payment response:", response);
+
+      // Handle different response formats
+      let updatedPayment: PaymentRecord;
+
+      // Case 1: New API format with success and data fields
+      if (response && response.success === true && response.data) {
+        updatedPayment = response.data;
       }
-
-      // Extract data from the response
-      const payment = response.data;
-
-      if (!payment) {
+      // Case 2: Direct payment object
+      else if (response && typeof response === 'object' && 'id' in response) {
+        updatedPayment = response as PaymentRecord;
+      }
+      // Case 3: Object with payment property
+      else if (response && typeof response === 'object' && response.payment) {
+        updatedPayment = response.payment;
+      }
+      else {
+        console.error("Invalid update payment response:", response);
         throw new Error("Invalid response format from API: missing payment data");
       }
 
-      return payment;
+      return updatedPayment;
     } catch (error: any) {
+      console.error("Error updating payment:", error);
       return rejectWithValue(
         error.response?.data?.message || 
         error.message || 
