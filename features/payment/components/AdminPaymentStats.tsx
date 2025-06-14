@@ -63,35 +63,54 @@ export function AdminPaymentStats() {
       return { amount: 0, currency: "NGN" }
     }
 
-    // Group by currency and sum
-    const revenueByCurrency = stats.totalRevenue.reduce((acc, item) => {
-      const currency = item.currency || "NGN"
-      if (!acc[currency]) {
-        acc[currency] = 0
-      }
-      acc[currency] += item.total
-      return acc
-    }, {} as Record<string, number>)
+    try {
+      // Group by currency and sum
+      const revenueByCurrency = stats.totalRevenue.reduce((acc, item) => {
+        const currency = item.currency || "NGN"
+        if (!acc[currency]) {
+          acc[currency] = 0
+        }
+        acc[currency] += item.total
+        return acc
+      }, {} as Record<string, number>)
 
-    // Return the first currency (usually there's just one)
-    const currencies = Object.keys(revenueByCurrency)
-    return {
-      amount: revenueByCurrency[currencies[0]],
-      currency: currencies[0],
+      // Return the first currency (usually there's just one)
+      const currencies = Object.keys(revenueByCurrency)
+      if (currencies.length === 0) {
+        return { amount: 0, currency: "NGN" }
+      }
+      
+      return {
+        amount: revenueByCurrency[currencies[0]],
+        currency: currencies[0],
+      }
+    } catch (error) {
+      console.error("Error calculating total revenue:", error)
+      return { amount: 0, currency: "NGN" }
     }
   }
 
   // Calculate status counts
   const getStatusCount = (status: string) => {
-    if (!stats || !stats.statusCounts) return 0
-    const statusItem = stats.statusCounts.find(item => item.status === status)
-    return statusItem ? statusItem.count : 0
+    if (!stats || !stats.statusCounts || !Array.isArray(stats.statusCounts)) return 0
+    try {
+      const statusItem = stats.statusCounts.find(item => item.status === status)
+      return statusItem ? statusItem.count : 0
+    } catch (error) {
+      console.error(`Error getting count for status ${status}:`, error)
+      return 0
+    }
   }
 
   // Get total transaction count
   const getTotalTransactionCount = () => {
-    if (!stats || !stats.statusCounts) return 0
-    return stats.statusCounts.reduce((total, item) => total + item.count, 0)
+    if (!stats || !stats.statusCounts || !Array.isArray(stats.statusCounts)) return 0
+    try {
+      return stats.statusCounts.reduce((total, item) => total + item.count, 0)
+    } catch (error) {
+      console.error("Error calculating total transaction count:", error)
+      return 0
+    }
   }
 
   const totalRevenue = calculateTotalRevenue()
@@ -151,7 +170,7 @@ export function AdminPaymentStats() {
                   {formatCurrency(totalRevenue.amount, totalRevenue.currency)}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  For period {stats?.dateRange.start} to {stats?.dateRange.end}
+                  For period {stats?.dateRange?.start || 'N/A'} to {stats?.dateRange?.end || 'N/A'}
                 </div>
               </CardContent>
             </>

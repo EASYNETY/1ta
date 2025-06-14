@@ -13,24 +13,31 @@ export function PaymentMethodsDistribution() {
 
   // Transform provider counts to payment method distribution format
   const transformToPaymentMethodDistribution = (): PaymentMethodDistribution[] => {
-    if (!stats || !stats.providerCounts || stats.providerCounts.length === 0) {
-      // Return default data if no stats available
-      return [
-        { method: "Paystack", count: 0, percentage: 0 },
-        { method: "Bank Transfer", count: 0, percentage: 0 },
-        { method: "Corporate", count: 0, percentage: 0 }
-      ]
+    // Default data to return if no stats available
+    const defaultData = [
+      { method: "Paystack", count: 0, percentage: 0 },
+      { method: "Bank Transfer", count: 0, percentage: 0 },
+      { method: "Corporate", count: 0, percentage: 0 }
+    ];
+
+    if (!stats || !stats.providerCounts || !Array.isArray(stats.providerCounts) || stats.providerCounts.length === 0) {
+      return defaultData;
     }
 
-    // Calculate total count
-    const totalCount = stats.providerCounts.reduce((sum, item) => sum + item.count, 0)
-    
-    // Transform to PaymentMethodDistribution format
-    return stats.providerCounts.map(item => ({
-      method: item.provider || "Unknown",
-      count: item.count,
-      percentage: totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0
-    }))
+    try {
+      // Calculate total count
+      const totalCount = stats.providerCounts.reduce((sum, item) => sum + item.count, 0)
+      
+      // Transform to PaymentMethodDistribution format
+      return stats.providerCounts.map(item => ({
+        method: item.provider || "Unknown",
+        count: item.count,
+        percentage: totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0
+      }))
+    } catch (error) {
+      console.error("Error transforming payment method data:", error)
+      return defaultData
+    }
   }
 
   const paymentMethodData = transformToPaymentMethodDistribution()

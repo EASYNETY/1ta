@@ -29,6 +29,7 @@ import settingsReducer from "@/features/settings/store/settingsSlice";
 import supportReducer from "@/features/support/store/supportSlice";
 import checkoutReducer from "@/features/checkout/store/checkoutSlice";
 import paymentHistoryReducer from "@/features/payment/store/payment-slice";
+import adminPaymentsReducer from "@/features/payment/store/adminPayments";
 import corporateReducer from "@/features/corporate/store/corporate-slice";
 import assignmentsReducer from "@/features/assignments/store/assignment-slice";
 import gradesReducer from "@/features/grades/store/grade-slice";
@@ -80,6 +81,7 @@ const persistConfig = {
 		"attendanceMarking",
 		"classSession",
 		"paymentHistory",
+		"adminPayments",
 		"schedule",
 		"classes",
 		"chat",
@@ -109,6 +111,7 @@ const rootReducer = combineReducers({
 	attendanceMarking: attendanceMarkingReducer,
 	classSession: classSessionReducer,
 	paymentHistory: paymentHistoryReducer,
+	adminPayments: adminPaymentsReducer,
 	schedule: scheduleReducer,
 	classes: classesReducer,
 	chat: chatReducer,
