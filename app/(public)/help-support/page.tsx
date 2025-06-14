@@ -287,8 +287,8 @@ export default function SupportPage() {
                 <DyraneCardTitle className="text-lg mb-2">Email Support</DyraneCardTitle>
                 <DyraneCardDescription className="mb-4">Send us an email anytime</DyraneCardDescription>
                 <DyraneButton variant="outline" asChild className="mt-auto group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <a href="mailto:support@1techacademy.com">
-                    support@1techacademy.com
+                  <a href="mailto:info@1techacademy.com">
+                    info@1techacademy.com
                   </a>
                 </DyraneButton>
               </div>
@@ -301,16 +301,16 @@ export default function SupportPage() {
                   <Phone className="h-6 w-6 text-primary" />
                 </div>
                 <DyraneCardTitle className="text-lg mb-2">Phone Support</DyraneCardTitle>
-                <DyraneCardDescription className="mb-4">Available Mon-Fri, 9am-5pm</DyraneCardDescription>
+                <DyraneCardDescription className="mb-4">Available Mon-Sat, 9am-5pm</DyraneCardDescription>
                 <DyraneButton variant="outline" asChild className="mt-auto group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                  <a href="tel:+2348012345678">
-                    +234 801 234 5678
+                  <a href="tel:+2347074693513">
+                    +234 707 469 3513
                   </a>
                 </DyraneButton>
               </div>
             </DyraneCard>
 
-            <DyraneCard className="overflow-hidden group border-primary/10 hover:border-primary/30 transition-colors">
+            {/* <DyraneCard className="overflow-hidden group border-primary/10 hover:border-primary/30 transition-colors">
               <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-6 flex flex-col items-center text-center h-full relative">
                 <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,rgba(0,0,0,0.6))]" />
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -322,10 +322,10 @@ export default function SupportPage() {
                   Start Chat
                 </DyraneButton>
               </div>
-            </DyraneCard>
+            </DyraneCard> */}
           </div>
 
-          <DyraneCard className="overflow-hidden border-primary/10">
+          {/* <DyraneCard className="overflow-hidden border-primary/10">
             <div className="relative">
               <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,rgba(0,0,0,0.6))]" />
               <DyraneCardHeader className="relative">
@@ -423,7 +423,7 @@ export default function SupportPage() {
                 </form>
               </Form>
             </DyraneCardContent>
-          </DyraneCard>
+          </DyraneCard> */}
         </TabsContent>
       </Tabs>
     </div>

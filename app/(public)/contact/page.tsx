@@ -254,8 +254,8 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <p className="font-medium mb-1">Phone</p>
-                  <a href="tel:+2348012345678" className="text-primary hover:underline">
-                    +234 801 234 5678
+                  <a href="tel:+2347074693513" className="text-primary hover:underline">
+                    +234 707 469 3513
                   </a>
                 </div>
               </div>
@@ -275,7 +275,7 @@ export default function ContactPage() {
           </DyraneCard>
 
           <DyraneCard className="overflow-hidden border-primary/10">
-            <div className="relative">
+            {/* <div className="relative">
               <div className="absolute inset-0 bg-grid-primary/5 [mask-image:linear-gradient(0deg,transparent,rgba(0,0,0,0.6))]" />
               <DyraneCardHeader className="relative">
                 <div className="flex items-center gap-2 mb-2">
@@ -285,16 +285,15 @@ export default function ContactPage() {
                   <DyraneCardTitle>Our Location</DyraneCardTitle>
                 </div>
               </DyraneCardHeader>
-            </div>
-            <DyraneCardContent className="relative">
+            </div> */}
+            {/* <DyraneCardContent className="relative">
               <div className="aspect-video bg-muted rounded-md overflow-hidden relative">
-                {/* This would be replaced with an actual map component */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <p className="text-muted-foreground">Interactive Map</p>
                 </div>
               </div>
-            </DyraneCardContent>
-            <DyraneCardFooter className="relative">
+            </DyraneCardContent> */}
+            {/* <DyraneCardFooter className="relative">
               <DyraneButton className="w-full" asChild>
                 <a href="https://maps.google.com/?q=17+Aje+Street+Sabo+Yaba+Lagos+Nigeria" target="_blank" rel="noopener noreferrer">
                   <MapPin className="mr-2 h-4 w-4" />
@@ -302,7 +301,7 @@ export default function ContactPage() {
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </a>
               </DyraneButton>
-            </DyraneCardFooter>
+            </DyraneCardFooter> */}
           </DyraneCard>
         </div>
       </div>
