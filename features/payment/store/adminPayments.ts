@@ -44,31 +44,36 @@ export const fetchAdminPayments = createAsyncThunk<
       const query = queryParams.toString();
       const url = `/admin/payments${query ? `?${query}` : ''}`;
       
-      const response = await get<{ 
-        payments: PaymentRecord[]; 
-        pagination: { 
-          total: number; 
-          page: number; 
-          limit: number; 
-          pages: number;
-        } 
-      }>(url);
+      const response = await get(url);
 
-      if (!response || !Array.isArray(response.payments)) {
+      // Handle the new API response format
+      if (!response || !response.success) {
         throw new Error("Invalid response format from API");
       }
 
+      // Extract data and pagination from the response
+      const data = response.data;
+      const pagination = response.pagination;
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid response format from API: data is not an array");
+      }
+
+      if (!pagination) {
+        throw new Error("Invalid response format from API: missing pagination");
+      }
+
       // Transform pagination to match our frontend format
-      const pagination: PaginationMeta = {
-        totalItems: response.pagination.total,
-        currentPage: response.pagination.page,
-        limit: response.pagination.limit,
-        totalPages: response.pagination.pages
+      const paginationMeta: PaginationMeta = {
+        totalItems: pagination.total,
+        currentPage: pagination.page,
+        limit: pagination.limit,
+        totalPages: pagination.totalPages || Math.ceil(pagination.total / pagination.limit)
       };
 
       return {
-        payments: response.payments,
-        pagination
+        payments: data,
+        pagination: paginationMeta
       };
     } catch (error: any) {
       return rejectWithValue(
@@ -96,19 +101,30 @@ export const fetchPaymentStats = createAsyncThunk<
       const query = queryParams.toString();
       const url = `/admin/payments/stats${query ? `?${query}` : ''}`;
       
-      const response = await get<{ 
-        totalRevenue: { total: number; currency: string }[];
-        statusCounts: { status: string; count: number }[];
-        providerCounts: { provider: string; count: number }[];
-        dailyRevenue: { date: string; total: number; currency: string }[];
-        dateRange: { start: string; end: string };
-      }>(url);
+      const response = await get(url);
 
-      if (!response) {
+      // Handle the new API response format
+      if (!response || !response.success) {
         throw new Error("Invalid response format from API");
       }
 
-      return response;
+      // Extract data from the response
+      const data = response.data;
+
+      if (!data) {
+        throw new Error("Invalid response format from API: missing data");
+      }
+
+      // Ensure the data has the expected structure
+      const statsData: AdminPaymentStats = {
+        totalRevenue: data.totalRevenue || [],
+        statusCounts: data.statusCounts || [],
+        providerCounts: data.providerCounts || [],
+        dailyRevenue: data.dailyRevenue || [],
+        dateRange: data.dateRange || { start: startDate || '', end: endDate || '' }
+      };
+
+      return statsData;
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || 
@@ -128,16 +144,24 @@ export const updatePayment = createAsyncThunk<
   "adminPayments/update",
   async ({ id, status, description, metadata }, { rejectWithValue }) => {
     try {
-      const response = await put<{ payment: PaymentRecord }>(
+      const response = await put(
         `/admin/payments/${id}`,
         { status, description, metadata }
       );
 
-      if (!response || !response.payment) {
+      // Handle the new API response format
+      if (!response || !response.success) {
         throw new Error("Invalid response format from API");
       }
 
-      return response.payment;
+      // Extract data from the response
+      const payment = response.data;
+
+      if (!payment) {
+        throw new Error("Invalid response format from API: missing payment data");
+      }
+
+      return payment;
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || 
@@ -157,10 +181,11 @@ export const deletePayment = createAsyncThunk<
   "adminPayments/delete",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await del<{ success: boolean }>(
+      const response = await del(
         `/admin/payments/${id}`
       );
 
+      // Handle the new API response format
       if (!response || response.success !== true) {
         throw new Error("Failed to delete payment");
       }
