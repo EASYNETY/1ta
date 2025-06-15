@@ -409,10 +409,15 @@ const adminPaymentsSlice = createSlice({
       })
       .addCase(fetchAdminPayments.fulfilled, (state, action) => {
         state.status = "succeeded";
-        // Handle both array and object formats
-        state.payments = Array.isArray(action.payload.payments) 
-          ? action.payload.payments 
+        // Defensive: always set payments to a valid array, fallback to previous if new is empty
+        let newPayments = Array.isArray(action.payload.payments)
+          ? action.payload.payments
           : (Array.isArray(action.payload) ? action.payload : []);
+        if ((!newPayments || newPayments.length === 0) && state.payments && state.payments.length > 0) {
+          // Do not update payments, keep previous
+        } else {
+          state.payments = newPayments;
+        }
         state.pagination = action.payload.pagination;
       })
       .addCase(fetchAdminPayments.rejected, (state, action) => {
