@@ -403,11 +403,11 @@ const AdminPaymentTable: React.FC = () => {
                 <TableHead>Student ID</TableHead>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Fee Type</TableHead>
-                <TableHead>Event/Course</TableHead>
-                <TableHead>Payment Date/Time</TableHead>
+                <TableHead>Course</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead className="text-right">Amount Billed</TableHead>
                 <TableHead className="text-right">Amount Paid</TableHead>
-                <TableHead>Payment Method</TableHead>
+                <TableHead>Method</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Reconciled</TableHead>
                 <TableHead>Notes</TableHead>
