@@ -405,6 +405,7 @@ const adminPaymentsSlice = createSlice({
       .addCase(fetchAdminPayments.pending, (state) => {
         state.status = "loading";
         state.error = null;
+        // Do NOT reset state.payments here! This prevents flicker/disappearance.
       })
       .addCase(fetchAdminPayments.fulfilled, (state, action) => {
         state.status = "succeeded";
