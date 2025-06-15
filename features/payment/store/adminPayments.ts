@@ -167,6 +167,7 @@ export const fetchAdminPayments = createAsyncThunk<
         let currency = typeof p.currency === 'string' ? p.currency : (p.currency?.toString() || '');
         // Invoice id fallback
         let invoiceId = p.invoiceId || p.invoice_id || (p.invoice && p.invoice.id) || null;
+        // Defensive: ensure all required fields for the table are present
         return {
           ...p,
           amount,
@@ -176,8 +177,14 @@ export const fetchAdminPayments = createAsyncThunk<
           status,
           currency,
           invoiceId,
+          // Defensive: ensure metadata and relatedItemIds are always objects/arrays
+          metadata: p.metadata || {},
+          relatedItemIds: Array.isArray(p.relatedItemIds) ? p.relatedItemIds : [],
         };
       });
+
+      // Defensive: if payments is still not an array, set to empty array
+      if (!Array.isArray(payments)) payments = [];
 
       console.log("Final payments data:", payments);
       console.log("Final pagination data:", paginationMeta);
