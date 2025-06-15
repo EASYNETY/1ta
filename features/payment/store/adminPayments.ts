@@ -53,23 +53,21 @@ export const fetchAdminPayments = createAsyncThunk<
       let paginationData: any = null;
 
       // Case 1: New API format with success, data, and pagination fields
-      if (response && response.success === true) {
+      if ((response as any) && (response as any).success === true) {
         // Check if data is directly in the response or nested
-        if (Array.isArray(response.data)) {
-          payments = response.data;
-        } else if (response.data && Array.isArray(response.data.payments)) {
-          payments = response.data.payments;
-        } else if (response.payments && Array.isArray(response.payments)) {
-          payments = response.payments;
+        if (Array.isArray((response as any).data)) {
+          payments = (response as any).data;
+        } else if ((response as any).data && Array.isArray((response as any).data.payments)) {
+          payments = (response as any).data.payments;
+        } else if ((response as any).payments && Array.isArray((response as any).payments)) {
+          payments = (response as any).payments;
         }
-        
         // Get pagination data
-        paginationData = response.pagination || (response.data && response.data.pagination);
+        paginationData = (response as any).pagination || ((response as any).data && (response as any).data.pagination);
       } 
       // Case 2: Direct data array with pagination object
-      else if (response && Array.isArray(response)) {
-        payments = response;
-        // Look for pagination in a different property or use defaults
+      else if (Array.isArray(response)) {
+        payments = response as any;
         paginationData = {
           total: payments.length,
           page: params.page || 1,
@@ -79,42 +77,34 @@ export const fetchAdminPayments = createAsyncThunk<
       }
       // Case 3: Object with data array and pagination
       else if (response && typeof response === 'object') {
-        // Try to find an array property that might contain the payments
-        if (Array.isArray(response.payments)) {
-          payments = response.payments;
-        } else if (response.data && Array.isArray(response.data)) {
-          payments = response.data;
-        } else if (response.data && Array.isArray(response.data.payments)) {
-          payments = response.data.payments;
+        if (Array.isArray((response as any).payments)) {
+          payments = (response as any).payments;
+        } else if ((response as any).data && Array.isArray((response as any).data)) {
+          payments = (response as any).data;
+        } else if ((response as any).data && Array.isArray((response as any).data.payments)) {
+          payments = (response as any).data.payments;
         } else {
-          // Try other common field names
           const possibleDataFields = ['items', 'results', 'records', 'list'];
           for (const field of possibleDataFields) {
-            if (Array.isArray(response[field])) {
-              payments = response[field];
+            if (Array.isArray((response as any)[field])) {
+              payments = (response as any)[field];
               break;
-            } else if (response.data && Array.isArray(response.data[field])) {
-              payments = response.data[field];
+            } else if ((response as any).data && Array.isArray((response as any).data[field])) {
+              payments = (response as any).data[field];
               break;
             }
           }
         }
-
-        // Try to find pagination information
-        paginationData = response.pagination || response.meta || response.page || response.paging;
-        
-        // If pagination is nested in data
-        if (!paginationData && response.data) {
-          paginationData = response.data.pagination || response.data.meta || response.data.page || response.data.paging;
+        paginationData = (response as any).pagination || (response as any).meta || (response as any).page || (response as any).paging;
+        if (!paginationData && (response as any).data) {
+          paginationData = (response as any).data.pagination || (response as any).data.meta || (response as any).data.page || (response as any).data.paging;
         }
-
-        // If we still don't have pagination data but have a total property
-        if (!paginationData && 'total' in response) {
+        if (!paginationData && 'total' in (response as any)) {
           paginationData = {
-            total: response.total,
+            total: (response as any).total,
             page: params.page || 1,
             limit: params.limit || 10,
-            totalPages: Math.ceil(response.total / (params.limit || 10))
+            totalPages: Math.ceil(((response as any).total || 0) / (params.limit || 10))
           };
         }
       }
@@ -146,7 +136,7 @@ export const fetchAdminPayments = createAsyncThunk<
       }
 
       // Transform pagination to match our frontend format
-      const paginationMeta: PaginationMeta = {
+      let paginationMeta: PaginationMeta = {
         totalItems: paginationData.total || paginationData.totalItems || payments.length,
         currentPage: paginationData.page || paginationData.currentPage || params.page || 1,
         limit: paginationData.limit || paginationData.perPage || params.limit || 10,
@@ -154,15 +144,40 @@ export const fetchAdminPayments = createAsyncThunk<
                    Math.ceil((paginationData.total || payments.length) / (paginationData.limit || params.limit || 10))
       };
 
-      // If we have payments data but no pagination, create a simple pagination object
-      if (payments && !paginationMeta) {
-        paginationMeta = {
-          totalItems: payments.length,
-          currentPage: params.page || 1,
-          limit: params.limit || 10,
-          totalPages: Math.ceil(payments.length / (params.limit || 10))
+      // --- Normalize payments for frontend table ---
+      payments = payments.map((p: any) => {
+        // Fallback for description
+        let description = p.description;
+        if (description == null && p.invoice && typeof p.invoice.description === 'string') {
+          description = p.invoice.description;
+        }
+        // Ensure amount is a number
+        let amount = p.amount;
+        if (typeof amount === 'string') {
+          const parsed = parseFloat(amount);
+          amount = isNaN(parsed) ? 0 : parsed;
+        }
+        // Ensure providerReference (snake/camel)
+        let providerReference = p.providerReference || p.provider_reference || '';
+        // Ensure createdAt (snake/camel)
+        let createdAt = p.createdAt || p.created_at || '';
+        // Ensure status is a string
+        let status = typeof p.status === 'string' ? p.status : String(p.status);
+        // Ensure currency is a string
+        let currency = typeof p.currency === 'string' ? p.currency : (p.currency?.toString() || '');
+        // Invoice id fallback
+        let invoiceId = p.invoiceId || p.invoice_id || (p.invoice && p.invoice.id) || null;
+        return {
+          ...p,
+          amount,
+          description: description || '',
+          providerReference,
+          createdAt,
+          status,
+          currency,
+          invoiceId,
         };
-      }
+      });
 
       console.log("Final payments data:", payments);
       console.log("Final pagination data:", paginationMeta);
@@ -202,12 +217,9 @@ export const fetchPaymentStats = createAsyncThunk<
       const response = await get(url);
       console.log("Payment stats response:", response);
 
-      // Handle different response formats
       let statsData: AdminPaymentStats;
-
-      // Case 1: New API format with success and data fields
-      if (response && response.success === true && response.data) {
-        const data = response.data;
+      if ((response as any) && (response as any).success === true && (response as any).data) {
+        const data = (response as any).data;
         statsData = {
           totalRevenue: data.totalRevenue || [],
           statusCounts: data.statusCounts || [],
@@ -216,29 +228,24 @@ export const fetchPaymentStats = createAsyncThunk<
           dateRange: data.dateRange || { start: startDate || '', end: endDate || '' }
         };
       }
-      // Case 2: Direct stats object
       else if (response && typeof response === 'object') {
-        // Try to extract stats data from the response
         statsData = {
-          totalRevenue: response.totalRevenue || [],
-          statusCounts: response.statusCounts || [],
-          providerCounts: response.providerCounts || [],
-          dailyRevenue: response.dailyRevenue || [],
-          dateRange: response.dateRange || { start: startDate || '', end: endDate || '' }
+          totalRevenue: (response as any).totalRevenue || [],
+          statusCounts: (response as any).statusCounts || [],
+          providerCounts: (response as any).providerCounts || [],
+          dailyRevenue: (response as any).dailyRevenue || [],
+          dateRange: (response as any).dateRange || { start: startDate || '', end: endDate || '' }
         };
       }
       else {
         console.error("Invalid payment stats response:", response);
         throw new Error("Invalid response format from API: missing stats data");
       }
-
-      // Ensure all properties have default values if missing
       statsData.totalRevenue = statsData.totalRevenue || [];
       statsData.statusCounts = statsData.statusCounts || [];
       statsData.providerCounts = statsData.providerCounts || [];
       statsData.dailyRevenue = statsData.dailyRevenue || [];
       statsData.dateRange = statsData.dateRange || { start: startDate || '', end: endDate || '' };
-
       return statsData;
     } catch (error: any) {
       console.error("Error fetching payment stats:", error);
@@ -261,35 +268,25 @@ export const updatePayment = createAsyncThunk<
   async ({ id, status, description, metadata }, { rejectWithValue }) => {
     try {
       console.log(`Updating payment ${id} with status: ${status}, description: ${description}`);
-      
-      // Make sure we're using the correct API endpoint format
       const response = await put(
         `/admin/payments/${id}`,
         { status, description, metadata }
       );
-
       console.log("Update payment response:", response);
-
-      // Handle different response formats
       let updatedPayment: PaymentRecord;
-
-      // Case 1: New API format with success and data fields
-      if (response && response.success === true && response.data) {
-        updatedPayment = response.data;
+      if ((response as any) && (response as any).success === true && (response as any).data) {
+        updatedPayment = (response as any).data;
       }
-      // Case 2: Direct payment object
-      else if (response && typeof response === 'object' && 'id' in response) {
+      else if (response && typeof response === 'object' && 'id' in (response as any)) {
         updatedPayment = response as PaymentRecord;
       }
-      // Case 3: Object with payment property
-      else if (response && typeof response === 'object' && response.payment) {
-        updatedPayment = response.payment;
+      else if (response && typeof response === 'object' && (response as any).payment) {
+        updatedPayment = (response as any).payment;
       }
       else {
         console.error("Invalid update payment response:", response);
         throw new Error("Invalid response format from API: missing payment data");
       }
-
       return updatedPayment;
     } catch (error: any) {
       console.error("Error updating payment:", error);
@@ -314,12 +311,9 @@ export const deletePayment = createAsyncThunk<
       const response = await del(
         `/admin/payments/${id}`
       );
-
-      // Handle the new API response format
-      if (!response || response.success !== true) {
+      if (!response || (response as any).success !== true) {
         throw new Error("Failed to delete payment");
       }
-
       return { id, success: true };
     } catch (error: any) {
       return rejectWithValue(
