@@ -187,9 +187,16 @@ const AdminPaymentTable: React.FC = () => {
   }, [statusFilter, providerFilter, sortBy, sortOrder, debouncedSearchTerm])
 
   const handlePageChange = (newPage: number) => {
+    // If we have pagination data, use it to validate the page number
     if (pagination) {
-      if (newPage >= 1 && newPage <= pagination.totalPages) {
-        setCurrentPage(newPage)
+      const totalPages = pagination.totalPages || Math.ceil((pagination.totalItems || 0) / itemsPerPage);
+      if (newPage >= 1 && newPage <= totalPages) {
+        setCurrentPage(newPage);
+      }
+    } else {
+      // If we don't have pagination data, just set the page if it's valid
+      if (newPage >= 1) {
+        setCurrentPage(newPage);
       }
     }
   }
@@ -408,14 +415,14 @@ const AdminPaymentTable: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payments.length === 0 && (
+              {(!payments || payments.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={13} className="h-24 text-center">
                     No payments found matching criteria.
                   </TableCell>
                 </TableRow>
               )}
-              {payments.map((payment) => (
+              {payments && payments.map((payment) => (
                 <TableRow key={payment.id}>
                   {/* Student Name */}
                   <TableCell>
@@ -538,17 +545,17 @@ const AdminPaymentTable: React.FC = () => {
       )}
 
       {/* Pagination Controls */}
-      {status === "succeeded" && !isLoading && pagination && pagination.totalPages > 1 && (
+      {status === "succeeded" && !isLoading && payments && payments.length > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 w-full border border-border/25 bg-card/5 backdrop-blur-sm p-2 rounded-md">
           <PaginationInfo
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            totalItems={pagination.totalItems}
-            itemsPerPage={pagination.limit}
+            currentPage={pagination?.currentPage || currentPage}
+            totalPages={pagination?.totalPages || 1}
+            totalItems={pagination?.totalItems || payments.length}
+            itemsPerPage={pagination?.limit || itemsPerPage}
           />
           <PaginationControls
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
+            currentPage={pagination?.currentPage || currentPage}
+            totalPages={pagination?.totalPages || 1}
             className="w-full flex-1 justify-end"
             onPageChange={handlePageChange}
           />

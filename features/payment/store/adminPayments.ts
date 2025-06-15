@@ -154,6 +154,19 @@ export const fetchAdminPayments = createAsyncThunk<
                    Math.ceil((paginationData.total || payments.length) / (paginationData.limit || params.limit || 10))
       };
 
+      // If we have payments data but no pagination, create a simple pagination object
+      if (payments && !paginationMeta) {
+        paginationMeta = {
+          totalItems: payments.length,
+          currentPage: params.page || 1,
+          limit: params.limit || 10,
+          totalPages: Math.ceil(payments.length / (params.limit || 10))
+        };
+      }
+
+      console.log("Final payments data:", payments);
+      console.log("Final pagination data:", paginationMeta);
+
       return {
         payments,
         pagination: paginationMeta
@@ -394,7 +407,10 @@ const adminPaymentsSlice = createSlice({
       })
       .addCase(fetchAdminPayments.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.payments = action.payload.payments;
+        // Handle both array and object formats
+        state.payments = Array.isArray(action.payload.payments) 
+          ? action.payload.payments 
+          : (Array.isArray(action.payload) ? action.payload : []);
         state.pagination = action.payload.pagination;
       })
       .addCase(fetchAdminPayments.rejected, (state, action) => {
