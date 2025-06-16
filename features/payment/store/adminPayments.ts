@@ -42,7 +42,7 @@ export const fetchAdminPayments = createAsyncThunk<
       if (params.search) queryParams.append("search", params.search);
 
       const query = queryParams.toString();
-      const url = `/api/admin/payments${query ? `?${query}` : ''}`;
+      const url = `/admin/payments${query ? `?${query}` : ''}`;
       
       console.log("Fetching admin payments from:", url);
       const response = await get(url);
@@ -218,7 +218,7 @@ export const fetchPaymentStats = createAsyncThunk<
       if (endDate) queryParams.append("endDate", endDate);
 
       const query = queryParams.toString();
-      const url = `/api/admin/payments/stats${query ? `?${query}` : ''}`;
+      const url = `/admin/payments/stats${query ? `?${query}` : ''}`;
       
       console.log("Fetching payment stats from:", url);
       const response = await get(url);
@@ -276,7 +276,7 @@ export const updatePayment = createAsyncThunk<
     try {
       console.log(`Updating payment ${id} with status: ${status}, description: ${description}`);
       const response = await put(
-        `/api/admin/payments/${id}`,
+        `/admin/payments/${id}`,
         { status, description, metadata }
       );
       console.log("Update payment response:", response);
@@ -316,7 +316,7 @@ export const deletePayment = createAsyncThunk<
   async (id, { rejectWithValue }) => {
     try {
       const response = await del(
-        `/api/admin/payments/${id}`
+        `/admin/payments/${id}`
       );
       if (!response || (response as any).success !== true) {
         throw new Error("Failed to delete payment");
@@ -344,7 +344,7 @@ export const generateReceipt = createAsyncThunk<
       // This will trigger a file download, so we don't expect a JSON response
       // Instead, we'll open a new window/tab with the receipt URL
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.onetechacademy.com";
-      const receiptUrl = `${API_BASE_URL}/api/admin/payments/${id}/receipt`;
+      const receiptUrl = `${API_BASE_URL}/admin/payments/${id}/receipt`;
       window.open(receiptUrl, '_blank');
       
       return;
