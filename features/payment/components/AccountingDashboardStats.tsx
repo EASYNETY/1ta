@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, CheckCircle, AlertCircle } from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, CheckCircle, AlertCircle, XCircle, RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { AccountingStats } from "../types/accounting-types"
 
@@ -18,6 +18,7 @@ function PaymentStatsCard({
     trend,
     icon: Icon,
     isLoading,
+    subtitle,
 }: {
     title: string
     value: number | string
@@ -25,6 +26,7 @@ function PaymentStatsCard({
     trend?: "up" | "down"
     icon: React.ElementType
     isLoading: boolean
+    subtitle?: string
 }) {
     if (isLoading) {
         return (
@@ -49,7 +51,7 @@ function PaymentStatsCard({
                 
                 // For NGN, use the ₦ symbol directly to ensure consistent display
                 return `₦${cleanAmount.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`;
-            } else if (title === "Reconciled") {
+            } else if (title === "Success Rate") {
                 return `${val}%`
             }
             return val.toString()
@@ -60,8 +62,8 @@ function PaymentStatsCard({
     // Get background color based on title
     const getCardClassName = (title: string) => {
         if (title.includes("Revenue")) return "bg-green-50 dark:bg-green-950/5"
+        if (title.includes("Success")) return "bg-blue-50 dark:bg-blue-950/5"
         if (title.includes("Pending")) return "bg-yellow-50 dark:bg-yellow-950/5"
-        if (title.includes("Reconciled")) return "bg-blue-50 dark:bg-blue-950/5"
         if (title.includes("Failed")) return "bg-red-50 dark:bg-red-950/5"
         return ""
     }
@@ -74,17 +76,19 @@ function PaymentStatsCard({
             </CardHeader>
             <CardContent>
                 <div className="text-2xl font-bold">{formatValue(value, title)}</div>
-                {change && trend && (
-                    <div className="flex items-center text-xs text-muted-foreground">
-                        {trend === "up" ? (
-                            <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
-                        ) : (
-                            <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
-                        )}
-                        <span className={trend === "up" ? "text-green-500" : "text-red-500"}>{change}</span>
-                        <span className="ml-1">from last period</span>
-                    </div>
-                )}
+                <div className="text-xs text-muted-foreground">
+                    {subtitle || (change && trend && (
+                        <div className="flex items-center">
+                            {trend === "up" ? (
+                                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
+                            ) : (
+                                <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
+                            )}
+                            <span className={trend === "up" ? "text-green-500" : "text-red-500"}>{change}</span>
+                            <span className="ml-1">from last period</span>
+                        </div>
+                    ))}
+                </div>
             </CardContent>
         </Card>
     )
@@ -101,9 +105,16 @@ export function AccountingDashboardStats({ stats, isLoading }: AccountingDashboa
         revenueTrend = changePercent >= 0 ? "up" : "down"
     }
 
-    const reconciledPercentage =
+    // Calculate success rate
+    const successRate =
         stats.totalTransactionCount > 0
-            ? Math.round((stats.reconciledTransactionCount / stats.totalTransactionCount) * 100)
+            ? Math.round(((stats.totalTransactionCount - stats.failedTransactionCount) / stats.totalTransactionCount) * 100)
+            : 0
+
+    // Calculate pending percentage
+    const pendingPercentage =
+        stats.totalTransactionCount > 0
+            ? Math.round((stats.pendingPaymentsAmount / stats.totalRevenue) * 100)
             : 0
 
     return (
@@ -111,22 +122,29 @@ export function AccountingDashboardStats({ stats, isLoading }: AccountingDashboa
             <PaymentStatsCard
                 title="Total Revenue"
                 value={stats.totalRevenue}
-                change={revenueChange}
-                trend={revenueTrend}
+                subtitle={`For current period`}
                 icon={DollarSign}
                 isLoading={isLoading}
             />
             <PaymentStatsCard
-                title="Pending Payments"
-                value={stats.pendingPaymentsAmount}
-                icon={CreditCard}
+                title="Success Rate"
+                value={successRate}
+                subtitle={`${stats.totalTransactionCount - stats.failedTransactionCount} of ${stats.totalTransactionCount} transactions`}
+                icon={CheckCircle}
                 isLoading={isLoading}
             />
-            <PaymentStatsCard title="Reconciled" value={reconciledPercentage} icon={CheckCircle} isLoading={isLoading} />
+            <PaymentStatsCard 
+                title="Pending Transactions" 
+                value={Math.round(stats.pendingPaymentsAmount / 1000)}
+                subtitle={`${pendingPercentage}% of all transactions`}
+                icon={RefreshCw} 
+                isLoading={isLoading} 
+            />
             <PaymentStatsCard
                 title="Failed Transactions"
                 value={stats.failedTransactionCount}
-                icon={AlertCircle}
+                subtitle={`${stats.totalTransactionCount > 0 ? Math.round((stats.failedTransactionCount / stats.totalTransactionCount) * 100) : 0}% of all transactions`}
+                icon={XCircle}
                 isLoading={isLoading}
             />
         </div>

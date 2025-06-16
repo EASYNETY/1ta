@@ -89,6 +89,9 @@ export default function AccountingDashboard() {
         {/* Stats Cards */}
         <AccountingDashboardStats stats={stats} isLoading={isLoading} />
 
+        {/* Payment History Table */}
+        <RecentPaymentsWidget />
+
         {/* Charts Section */}
         <div className="grid gap-6 lg:grid-cols-2">
           <RevenueTrendsChart data={monthlyRevenue} isLoading={isLoading} />
@@ -103,9 +106,8 @@ export default function AccountingDashboard() {
           </div>
         </div>
 
-        {/* Recent Payments and Quick Actions */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <RecentPaymentsWidget />
+        {/* Quick Actions */}
+        <div className="grid gap-6">
           <AccountingQuickActions />
         </div>
       </div>
