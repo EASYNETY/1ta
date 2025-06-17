@@ -1,7 +1,7 @@
 // src/app/payments/[id]/receipt/page.tsx
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import {
@@ -17,7 +17,6 @@ import {
   resetPaymentState,          // << To clear invoice state too
   getReceiptData,            // << IMPORT for receipt data
   selectReceiptData,         // << SELECTOR for receipt data
-  selectReceiptStatus,       // << SELECTOR for receipt status
 } from "@/features/payment/store/payment-slice"
 import type { PaymentRecord, UnifiedReceiptData as UnifiedReceiptDataType } from "@/features/payment/types/payment-types"; // Import UnifiedReceiptData type
 import { PaymentReceipt } from "@/features/payment/components/payment-receipt" // This will now take UnifiedReceiptData
@@ -51,7 +50,9 @@ export default function PaymentReceiptPage() {
 
   // Receipt data and status
   const receiptData = useAppSelector(selectReceiptData);
-  const receiptStatus = useAppSelector(selectReceiptStatus);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const isLoadingPayment = paymentStatus === "loading" || paymentStatus === "idle";
   // Invoice is loading if payment is successful, invoiceId exists, and invoice isn't yet fetched/failed
@@ -90,7 +91,11 @@ export default function PaymentReceiptPage() {
   // Effect to fetch receipt data on mount and when paymentId changes
   useEffect(() => {
     if (paymentId) {
-      dispatch(getReceiptData(paymentId));
+      setLoading(true);
+      dispatch(getReceiptData(paymentId))
+        .unwrap()
+        .catch(() => setError("Failed to load receipt. Please try again later."))
+        .finally(() => setLoading(false));
     }
   }, [dispatch, paymentId]);
 
