@@ -64,35 +64,19 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 				const transformedPayments: PaymentRecord[] = responseData.payments.map(
 					(apiPayment: PaginatedPaymentItemFromApi): PaymentRecord => ({
 						id: apiPayment.id,
-						amount: apiPayment.amount,
+						userId: apiPayment.userId,
+						userName: apiPayment.userName,
+						amount: Number(apiPayment.amount), // Convert string to number
 						currency: apiPayment.currency || "NGN",
 						status: apiPayment.status,
 						provider: apiPayment.provider || "unknown",
-						providerReference: apiPayment.providerReference || "",
+						providerReference: apiPayment.provider_reference || "",
 						description: apiPayment.description || "",
-						metadata: apiPayment.metadata || {},
-						createdAt: apiPayment.createdAt,
-						updatedAt: apiPayment.updatedAt,
-						userId: apiPayment.userId,
-						invoiceId: apiPayment.invoiceId,
-						relatedItemIds: apiPayment.relatedItemIds || [],
-						reconciliationStatus: apiPayment.reconciliationStatus || "pending",
-						// Include the invoice if it exists
-						invoice: apiPayment.invoice
-							? {
-									id: apiPayment.invoice.id,
-									amount: apiPayment.invoice.amount,
-									currency: apiPayment.invoice.currency || "NGN",
-									status: apiPayment.invoice.status,
-									description: apiPayment.invoice.description || "",
-									dueDate: apiPayment.invoice.dueDate,
-									items: apiPayment.invoice.items || [],
-									metadata: apiPayment.invoice.metadata || {},
-									createdAt: apiPayment.invoice.createdAt,
-									updatedAt: apiPayment.invoice.updatedAt,
-									userId: apiPayment.invoice.userId,
-							  }
-							: undefined,
+						createdAt: apiPayment.created_at,
+						// Only map updatedAt if PaymentRecord expects it
+						// updatedAt: apiPayment.updated_at,
+						invoiceId: apiPayment.invoice_id,
+						// Add more mappings if you add more fields to PaginatedPaymentItemFromApi
 					})
 				);
 
