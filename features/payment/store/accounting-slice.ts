@@ -31,11 +31,22 @@ export const fetchAccountingData = createAsyncThunk<
 				fetchAllPaymentsAdmin({ limit: 10000, page: 1 })
 			).unwrap();
 
-			return result.payments;
+			// Ensure we have payments data
+			if (!result || !result.payments || !Array.isArray(result.payments)) {
+				console.warn("No payments data returned from API:", result);
+				return []; // Return empty array instead of throwing error
+			}
+
+			// Filter out any null or undefined payments
+			const validPayments = result.payments.filter(payment => payment !== null && payment !== undefined);
+			
+			console.log(`Fetched ${validPayments.length} valid payments for accounting calculations`);
+			
+			return validPayments;
 		} catch (error: any) {
-			return rejectWithValue(
-				error.message || "Failed to fetch payment data for accounting"
-			);
+			console.error("Error fetching accounting data:", error);
+			// Return empty array instead of rejecting
+			return [];
 		}
 	}
 );

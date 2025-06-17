@@ -109,21 +109,43 @@ export const calculateCourseRevenues = (
 	payments: PaymentRecord[],
 	dateRange?: { startDate: Date | null; endDate: Date | null }
 ): CourseRevenue[] => {
+	// Handle empty payments array
+	if (!payments || !Array.isArray(payments) || payments.length === 0) {
+		return [];
+	}
+
 	// Filter payments by date range if provided
 	let filteredPayments = payments;
 	if (dateRange?.startDate && dateRange?.endDate) {
-		filteredPayments = payments.filter((payment) => {
-			const paymentDate = new Date(payment.createdAt);
-			return isWithinInterval(paymentDate, {
-				start: dateRange.startDate as number | Date,
-				end: dateRange.endDate as number | Date,
+		try {
+			filteredPayments = payments.filter((payment) => {
+				if (!payment.createdAt) return false;
+				
+				try {
+					const paymentDate = new Date(payment.createdAt);
+					return isWithinInterval(paymentDate, {
+						start: dateRange.startDate as number | Date,
+						end: dateRange.endDate as number | Date,
+					});
+				} catch (error) {
+					console.error("Error parsing payment date:", payment.createdAt, error);
+					return false;
+				}
 			});
-		});
+		} catch (error) {
+			console.error("Error filtering payments by date range:", error);
+			filteredPayments = payments;
+		}
 	}
 
 	const succeededPayments = filteredPayments.filter(
-		(p) => p.status === "succeeded"
+		(p) => p && p.status === "succeeded"
 	);
+
+	// If no successful payments, return empty array
+	if (succeededPayments.length === 0) {
+		return [];
+	}
 
 	const revenueByCourse: Record<
 		string,
@@ -135,19 +157,42 @@ export const calculateCourseRevenues = (
 	> = {};
 
 	succeededPayments.forEach((p) => {
-		const courseId = getCourseIdFromPayment(p);
-		const courseName = getCourseNameFromPayment(p);
+		try {
+			const courseId = getCourseIdFromPayment(p);
+			const courseName = getCourseNameFromPayment(p);
 
-		if (!revenueByCourse[courseId]) {
-			revenueByCourse[courseId] = {
-				totalRevenue: 0,
-				enrolledStudents: new Set(),
-				courseName,
-			};
+			if (!revenueByCourse[courseId]) {
+				revenueByCourse[courseId] = {
+					totalRevenue: 0,
+					enrolledStudents: new Set(),
+					courseName,
+				};
+			}
+			
+			// Ensure amount is a number
+			let amount = 0;
+			if (typeof p.amount === 'number') {
+				amount = p.amount;
+			} else if (typeof p.amount === 'string') {
+				amount = parseFloat(p.amount);
+				if (isNaN(amount)) amount = 0;
+			}
+			
+			revenueByCourse[courseId].totalRevenue += amount;
+			
+			// Only add userId if it exists
+			if (p.userId) {
+				revenueByCourse[courseId].enrolledStudents.add(p.userId);
+			}
+		} catch (error) {
+			console.error("Error processing payment for course revenue:", error, p);
 		}
-		revenueByCourse[courseId].totalRevenue += p.amount;
-		revenueByCourse[courseId].enrolledStudents.add(p.userId);
 	});
+
+	// If no course revenue data, return empty array
+	if (Object.keys(revenueByCourse).length === 0) {
+		return [];
+	}
 
 	return Object.entries(revenueByCourse).map(([courseId, data]) => ({
 		courseId,

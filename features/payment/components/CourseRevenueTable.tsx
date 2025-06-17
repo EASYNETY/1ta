@@ -131,7 +131,7 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
                             {filteredAndSortedData.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
-                                        No courses found matching your search.
+                                        {searchTerm ? "No courses found matching your search." : "No course revenue data available yet."}
                                     </TableCell>
                                 </TableRow>
                             ) : (

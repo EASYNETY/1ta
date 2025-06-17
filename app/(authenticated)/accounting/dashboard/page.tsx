@@ -74,8 +74,8 @@ export default function AccountingDashboard() {
           </Button>
         </div>
 
-        {/* Error Alert */}
-        {error && (
+        {/* Error Alert - Only show if there's an error and we're not loading */}
+        {error && !isLoading && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
