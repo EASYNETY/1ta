@@ -119,27 +119,39 @@ function calculateStatsFromPaymentHistory(payments: PaymentRecord[]): Accounting
 
     // Process each payment
     payments.forEach(payment => {
-        const paymentDate = new Date(payment.createdAt)
-        const paymentAmount = typeof payment.amount === 'number' ? payment.amount : parseFloat(payment.amount.toString())
+        try {
+            const paymentDate = new Date(payment.createdAt)
+            
+            // Ensure amount is a number
+            let paymentAmount = 0
+            if (typeof payment.amount === 'number') {
+                paymentAmount = payment.amount
+            } else if (typeof payment.amount === 'string') {
+                paymentAmount = parseFloat(payment.amount)
+                if (isNaN(paymentAmount)) paymentAmount = 0
+            }
 
-        // Count total transactions
-        if (paymentDate >= thirtyDaysAgo) {
-            // Current period (last 30 days)
-            if (payment.status === 'succeeded') {
-                stats.totalRevenue += paymentAmount
-                if (payment.reconciliationStatus === 'reconciled') {
-                    stats.reconciledTransactionCount++
+            // Count total transactions
+            if (paymentDate >= thirtyDaysAgo) {
+                // Current period (last 30 days)
+                if (payment.status === 'succeeded') {
+                    stats.totalRevenue += paymentAmount
+                    if (payment.reconciliationStatus === 'reconciled') {
+                        stats.reconciledTransactionCount++
+                    }
+                } else if (payment.status === 'pending' || payment.status === 'processing' || payment.status === 'requires_action') {
+                    stats.pendingPaymentsAmount += paymentAmount
+                } else if (payment.status === 'failed') {
+                    stats.failedTransactionCount++
                 }
-            } else if (payment.status === 'pending' || payment.status === 'processing' || payment.status === 'requires_action') {
-                stats.pendingPaymentsAmount += paymentAmount
-            } else if (payment.status === 'failed') {
-                stats.failedTransactionCount++
+            } else if (paymentDate >= sixtyDaysAgo && paymentDate < thirtyDaysAgo) {
+                // Last period (30-60 days ago)
+                if (payment.status === 'succeeded') {
+                    lastPeriodRevenue += paymentAmount
+                }
             }
-        } else if (paymentDate >= sixtyDaysAgo && paymentDate < thirtyDaysAgo) {
-            // Last period (30-60 days ago)
-            if (payment.status === 'succeeded') {
-                lastPeriodRevenue += paymentAmount
-            }
+        } catch (error) {
+            console.error("Error processing payment:", error, payment)
         }
     })
 
