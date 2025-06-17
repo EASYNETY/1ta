@@ -572,6 +572,15 @@ export const {
 	setSelectedInvoice,
 } = paymentHistorySlice.actions;
 
+// Alias exports for backward compatibility
+export const clearPaymentHistoryError = clearPaymentError;
+export const resetPaymentState = () => (dispatch: any) => {
+	dispatch(clearPaymentHistory());
+	dispatch(clearPaymentError());
+	dispatch(clearPaymentInitiation());
+	dispatch(clearPaymentVerification());
+};
+
 // --- Selectors ---
 export const selectMyPayments = (state: RootState) =>
 	state.paymentHistory.myPayments;
@@ -601,6 +610,23 @@ export const selectPaymentVerificationError = (state: RootState) =>
 	state.paymentHistory.paymentVerification.error;
 export const selectPaymentVerificationData = (state: RootState) =>
 	state.paymentHistory.paymentVerification.data;
+
+// Alias selectors for backward compatibility
+export const selectVerificationStatus = selectPaymentVerificationStatus;
+export const selectCurrentPayment = selectSelectedPayment;
+export const selectCurrentInvoice = selectSelectedInvoice;
+export const selectInvoiceFetchStatus = (state: RootState) => state.paymentHistory.status;
+export const selectInvoiceFetchError = (state: RootState) => state.paymentHistory.error;
+
+// Additional selectors
+export const selectCourseIdsFromCurrentInvoice = (state: RootState) => {
+	const invoice = selectCurrentInvoice(state);
+	if (!invoice || !invoice.items) return [];
+	
+	return invoice.items
+		.filter(item => item.courseId)
+		.map(item => item.courseId);
+};
 
 // --- Reducer ---
 export default paymentHistorySlice.reducer;
