@@ -264,7 +264,7 @@ export const initiatePayment = createAsyncThunk<
 			payloadForBackend
 		);
 
-		if (responseData && responseData.authorization_url) {
+		if (responseData && responseData.authorizationUrl) {
 			return responseData;
 		}
 
