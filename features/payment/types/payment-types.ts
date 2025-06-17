@@ -264,26 +264,42 @@ export interface PaginationMeta {
 }
 
 export interface PaymentHistoryState {
-	myPayments: PaymentRecord[];
-	allPayments: PaymentRecord[];
-	status: "idle" | "loading" | "succeeded" | "failed";
-	error: string | null;
-	adminPagination: PaginationMeta | null;
-	myPaymentsPagination: PaginationMeta | null;
-	currentPayment: PaymentRecord | null;
-	paymentInitialization: {
-		authorizationUrl: string;
-	} | null;
-	verificationStatus: "idle" | "loading" | "succeeded" | "failed";
-	selectedPayment: PaymentRecord | null;
-	selectedPaymentStatus: "idle" | "loading" | "succeeded" | "failed";
+    myPayments: PaymentRecord[];
+    allPayments: PaymentRecord[];
+    pagination?: PaginationMeta | null;
+    status: "idle" | "loading" | "succeeded" | "failed";
+    error: string | null;
 
-	// Invoice related state
-	currentInvoice: Invoice | null; // Holds the frontend-transformed Invoice object
-	invoiceCreationStatus: "idle" | "loading" | "succeeded" | "failed";
-	invoiceCreationError: string | null;
-	invoiceFetchStatus: "idle" | "loading" | "succeeded" | "failed";
-	invoiceFetchError: string | null;
+    // Payment initiation (for starting a payment)
+    paymentInitiation: {
+        status: "idle" | "loading" | "succeeded" | "failed";
+        error: string | null;
+        data: PaymentResponse | null;
+    };
+
+    // Payment verification (for verifying a payment)
+    paymentVerification: {
+        status: "idle" | "loading" | "succeeded" | "failed";
+        error: string | null;
+        data: VerifyPaymentResponse | null;
+    };
+
+    // Selected/active payment (for details, verification, etc.)
+    selectedPayment: PaymentRecord | null;
+
+    // Invoice-related state
+    selectedInvoice: Invoice | null;
+    receiptData: UnifiedReceiptData | null;
+
+    // For admin/my payments pagination
+    adminPagination?: PaginationMeta | null;
+    myPaymentsPagination?: PaginationMeta | null;
+
+    // Invoice creation/fetch status
+    invoiceCreationStatus?: "idle" | "loading" | "succeeded" | "failed";
+    invoiceCreationError?: string | null;
+    invoiceFetchStatus?: "idle" | "loading" | "succeeded" | "failed";
+    invoiceFetchError?: string | null;
 }
 
 export interface UnifiedReceiptData {

@@ -502,6 +502,8 @@ const paymentHistorySlice = createSlice({
 			.addCase(verifyPayment.fulfilled, (state, action) => {
 				state.paymentVerification.status = "succeeded";
 				state.paymentVerification.data = action.payload;
+				// Set selectedPayment for downstream selectors/UI
+				state.selectedPayment = action.payload?.payment || action.payload?.payments || action.payload || null;
 			})
 			.addCase(verifyPayment.rejected, (state, action) => {
 				state.paymentVerification.status = "failed";
