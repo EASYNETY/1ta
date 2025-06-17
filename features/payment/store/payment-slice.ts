@@ -144,7 +144,7 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 			if (search) queryParams += `&search=${search}`;
 
 			const responseData = await get<PaginatedPaymentsData>(
-				`/payments?${queryParams}`
+				`/admin/payments?${queryParams}`
 			);
 
 			if (
