@@ -322,6 +322,9 @@ export const getPaymentById = createAsyncThunk<
 	}
 });
 
+// Alias for backward compatibility
+export const fetchPaymentById = getPaymentById;
+
 export const createInvoice = createAsyncThunk<
 	CreateInvoiceResponse,
 	CreateInvoicePayload,
@@ -344,6 +347,9 @@ export const createInvoice = createAsyncThunk<
 		);
 	}
 });
+
+// Alias for backward compatibility
+export const createInvoiceThunk = createInvoice;
 
 export const getInvoiceById = createAsyncThunk<
 	Invoice,
@@ -617,6 +623,10 @@ export const selectCurrentPayment = selectSelectedPayment;
 export const selectCurrentInvoice = selectSelectedInvoice;
 export const selectInvoiceFetchStatus = (state: RootState) => state.paymentHistory.status;
 export const selectInvoiceFetchError = (state: RootState) => state.paymentHistory.error;
+export const selectSelectedPaymentStatus = (state: RootState) => state.paymentHistory.status;
+export const selectInvoiceCreationStatus = (state: RootState) => state.paymentHistory.status;
+export const selectInvoiceCreationError = (state: RootState) => state.paymentHistory.error;
+export const selectUnifiedReceiptData = (state: RootState) => state.paymentHistory.receiptData;
 
 // Additional selectors
 export const selectCourseIdsFromCurrentInvoice = (state: RootState) => {
