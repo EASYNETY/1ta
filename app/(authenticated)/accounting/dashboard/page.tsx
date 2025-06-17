@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { AlertCircle, RefreshCw } from "lucide-react"
 
 // Import accounting components
-import { AccountingDashboardStats } from "@/features/payment/components/AccountingDashboardStats"
+import AdminPaymentStats from "@/features/payment/components/AdminPaymentStats"
 import { CourseRevenueTable } from "@/features/payment/components/CourseRevenueTable"
 import { CourseRevenueChart } from "@/features/payment/components/CourseRevenueChart"
 import { RevenueTrendsChart } from "@/features/payment/components/RevenueTrendsChart"
@@ -87,7 +87,7 @@ export default function AccountingDashboard() {
         <DateRangeFilter />
 
         {/* Stats Cards */}
-        <AccountingDashboardStats stats={stats} isLoading={isLoading} />
+        <AdminPaymentStats />
 
         {/* Payment History Table */}
         <RecentPaymentsWidget />
