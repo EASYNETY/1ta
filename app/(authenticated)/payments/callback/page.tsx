@@ -116,7 +116,7 @@ function PaymentCallbackContent() {
                 dispatch(resetCheckout());          // Clear previous checkout Redux states
                 setProcessingAttemptedForCurrentPaymentRef(false); // Reset local flag for this new/fresh URL reference
                 setLastProcessedPaymentRefFromUrl(paymentReferenceFromUrl); // Mark this URL ref as being initiated
-                dispatch(verifyPayment({ reference: paymentReferenceFromUrl }));
+                dispatch(verifyPayment(paymentReferenceFromUrl));
             } else {
                 console.log("EFFECT 1: No new verification cycle needed for URL ref:", paymentReferenceFromUrl, "(already processing or completed and URL ref matches last processed).");
             }
