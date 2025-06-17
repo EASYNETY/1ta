@@ -15,6 +15,9 @@ import {
   selectPaymentHistoryError,  // General error for payment/invoice fetch
   selectInvoiceFetchError,    // Specific invoice fetch error
   resetPaymentState,          // << To clear invoice state too
+  getReceiptData,            // << IMPORT for receipt data
+  selectReceiptData,         // << SELECTOR for receipt data
+  selectReceiptStatus,       // << SELECTOR for receipt status
 } from "@/features/payment/store/payment-slice"
 import type { PaymentRecord, UnifiedReceiptData as UnifiedReceiptDataType } from "@/features/payment/types/payment-types"; // Import UnifiedReceiptData type
 import { PaymentReceipt } from "@/features/payment/components/payment-receipt" // This will now take UnifiedReceiptData
@@ -45,6 +48,10 @@ export default function PaymentReceiptPage() {
   // Error selectors
   const paymentFetchError = useAppSelector(selectPaymentHistoryError); // This selector might need renaming if it's general
   const specificInvoiceFetchError = useAppSelector(selectInvoiceFetchError);
+
+  // Receipt data and status
+  const receiptData = useAppSelector(selectReceiptData);
+  const receiptStatus = useAppSelector(selectReceiptStatus);
 
   const isLoadingPayment = paymentStatus === "loading" || paymentStatus === "idle";
   // Invoice is loading if payment is successful, invoiceId exists, and invoice isn't yet fetched/failed
@@ -78,6 +85,14 @@ export default function PaymentReceiptPage() {
       }
     }
   }, [dispatch, paymentStatus, paymentRecord, invoiceFetchStatus, invoiceRecord]);
+
+
+  // Effect to fetch receipt data on mount and when paymentId changes
+  useEffect(() => {
+    if (paymentId) {
+      dispatch(getReceiptData(paymentId));
+    }
+  }, [dispatch, paymentId]);
 
 
   return (
