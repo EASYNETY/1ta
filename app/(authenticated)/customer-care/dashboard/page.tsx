@@ -214,7 +214,7 @@ export default function CustomerCareDashboard() {
       dispatch(clearSupportError());
       dispatch(fetchAllTickets({ limit: 10000, page: 1 })); // Fetch a large number for client-side stats
     }
-  }, [dispatch, loggedInUser, supportStatus, allTickets]); // allTickets in dep array to refetch if it becomes empty
+  }, [dispatch, loggedInUser, allTickets]); // allTickets in dep array to refetch if it becomes empty
 
   // --- Global Stats Calculation ---
   const customerCareStats = useMemo(() => {
