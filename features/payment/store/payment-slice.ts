@@ -203,6 +203,11 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 				console.warn("Payments is not an array, converting to array:", payments);
 				payments = payments ? [payments] : [];
 			}
+			// Convert amount to number for all payments (regardless of branch)
+			payments = payments.map(p => ({
+				...p,
+				amount: Number(p.amount)
+			}));
 			
 			// If we couldn't extract pagination data, use defaults
 			if (!paginationData) {
