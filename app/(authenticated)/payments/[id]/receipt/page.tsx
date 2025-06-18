@@ -183,7 +183,7 @@ export default function PaymentReceiptPage() {
           <div>Amount: {receiptData.amount} {receiptData.currency}</div>
           <div>Status: {receiptData.status}</div>
           <div>Date: {receiptData.createdAt}</div>
-          {/* Render items if present and is an array */}
+          {/* Safely render items if present and is an array */}
           {Array.isArray(receiptData.items) && receiptData.items.length > 0 && (
             <div>
               <h3>Items</h3>
@@ -194,7 +194,18 @@ export default function PaymentReceiptPage() {
               </ul>
             </div>
           )}
-          {/* Render more receipt details as needed */}
+          {/* Safely render courses if present and is an array */}
+          {Array.isArray(receiptData.courses) && receiptData.courses.length > 0 && (
+            <div>
+              <h3>Courses</h3>
+              <ul>
+                {receiptData.courses.map((course, idx) => (
+                  <li key={idx}>{course.title || course.name}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {/* Add similar checks for any other array fields you render with .map */}
         </div>
       )}
     </div>
