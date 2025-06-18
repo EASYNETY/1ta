@@ -379,8 +379,6 @@ export const getInvoiceById = createAsyncThunk<
 	}
 });
 
-// features/payment/store/payment-slice.ts
-
 export const getReceiptData = createAsyncThunk<
 	UnifiedReceiptData,
 	string,
@@ -395,25 +393,7 @@ export const getReceiptData = createAsyncThunk<
 			throw new Error("Invalid or empty response from receipt data endpoint.");
 		}
 
-		// **FIX 1: Parse the `items` string into an array**
-		let invoiceItems = [];
-		if (rawPaymentData.invoice?.items) {
-			if (typeof rawPaymentData.invoice.items === "string") {
-				try {
-					// It's a string, so we need to parse it
-					invoiceItems = JSON.parse(rawPaymentData.invoice.items);
-				} catch (parseError) {
-					console.error(
-						"Failed to parse invoice items JSON string:",
-						parseError
-					);
-					invoiceItems = []; // Default to empty if parsing fails
-				}
-			} else if (Array.isArray(rawPaymentData.invoice.items)) {
-				// It's already an array, use it directly
-				invoiceItems = rawPaymentData.invoice.items;
-			}
-		}
+		// --- START: OPTIMIZED TRANSFORMATION LOGIC ---
 
 		const unifiedData: UnifiedReceiptData = {
 			// --- Map Payment Fields ---
@@ -422,19 +402,22 @@ export const getReceiptData = createAsyncThunk<
 			paymentStatus: rawPaymentData.status,
 			paymentAmount: parseFloat(rawPaymentData.amount) || 0,
 			paymentCurrency: rawPaymentData.currency,
+			// **FIX**: Look for `paymentMethod` first, then fall back to `provider`
 			paymentMethod: rawPaymentData.paymentMethod || rawPaymentData.provider,
+			// **FIX**: Look for `providerReference`, `transactionId`, or `gatewayRef`
 			paymentProviderReference:
 				rawPaymentData.providerReference ||
 				rawPaymentData.transactionId ||
 				rawPaymentData.gatewayRef,
 
-			// --- Map Invoice Fields ---
+			// --- Map Invoice Fields (if invoice exists) ---
 			invoiceId: rawPaymentData.invoice?.id || rawPaymentData.invoiceId,
 			invoiceDescription: rawPaymentData.invoice?.description,
 			invoiceDueDate: rawPaymentData.invoice?.dueDate,
 			invoiceStatus: rawPaymentData.invoice?.status,
 
 			// --- Map Student Fields ---
+			// **FIX**: Look for `userName`/`userEmail` on the payment record first, then check the nested invoice.
 			studentName:
 				rawPaymentData.userName || rawPaymentData.invoice?.student?.name,
 			studentEmail:
@@ -443,10 +426,15 @@ export const getReceiptData = createAsyncThunk<
 			// --- Map Billing Details ---
 			billingDetails: rawPaymentData.billingDetails || null,
 
-			// **FIX 2: Use the newly parsed `invoiceItems` array**
+			// --- Map Items ---
+			// **FIX**: The logic for items is now more robust.
+			// It prefers invoice items but creates a summary from the *invoice* description if available,
+			// before falling back to the payment's own description.
 			items:
-				invoiceItems.length > 0
-					? invoiceItems
+				rawPaymentData.invoice?.items &&
+				Array.isArray(rawPaymentData.invoice.items) &&
+				rawPaymentData.invoice.items.length > 0
+					? rawPaymentData.invoice.items
 					: [
 							{
 								description:
@@ -455,7 +443,7 @@ export const getReceiptData = createAsyncThunk<
 									"Payment for service/product",
 								amount: parseFloat(rawPaymentData.amount) || 0,
 								quantity: 1,
-								courseId: "SUMMARY_ITEM_NO_COURSE_ID",
+								courseId: "SUMMARY_ITEM_NO_COURSE_ID", // Special ID for a summary item
 							},
 						],
 
@@ -463,6 +451,8 @@ export const getReceiptData = createAsyncThunk<
 			originalPaymentRecord: rawPaymentData as PaymentRecord,
 			originalInvoice: rawPaymentData.invoice || null,
 		};
+		// --- END: OPTIMIZED TRANSFORMATION LOGIC ---
+
 		return unifiedData;
 	} catch (e: any) {
 		console.error("Error in getReceiptData thunk:", e);
