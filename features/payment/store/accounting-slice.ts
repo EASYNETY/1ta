@@ -1,6 +1,12 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+// features/accounting/store/accounting-slice.ts
+
+import {
+	createSlice,
+	createSelector,
+	createAsyncThunk,
+} from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import { fetchAllPaymentsAdmin } from "@/features/payment/store/payment-slice";
+import { fetchAllAdminPaymentsSequentially } from "@/features/payment/store/adminPayments";
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
 import type {
 	AccountingState,
@@ -16,42 +22,33 @@ import {
 	calculatePaymentMethodDistribution,
 } from "../utils/accounting-calculations";
 
-// Thunk to fetch all payment data for accounting
 export const fetchAccountingData = createAsyncThunk<
-	PaymentRecord[],
-	{ startDate?: string; endDate?: string },
+	PaymentRecord[], // It can still return the payments array on success
+	void, // It no longer needs to accept any arguments
 	{ state: RootState; rejectValue: string }
 >(
-	"accounting/fetchData",
-	async ({ startDate, endDate }, { dispatch, rejectWithValue }) => {
+	"accounting/fetchData", // Use the original thunk name
+	async (_, { dispatch, rejectWithValue }) => {
 		try {
-			// Use the existing fetchAllPaymentsAdmin thunk to get payment data
-			// We'll fetch a large number of payments to ensure we have enough data for calculations
-			const result = await dispatch(
-				fetchAllPaymentsAdmin({ limit: 10000, page: 1 })
-			).unwrap();
+			// Dispatch the REAL data-fetching thunk
+			const resultAction = await dispatch(
+				fetchAllAdminPaymentsSequentially({})
+			);
 
-			// Ensure we have payments data
-			if (!result || !result.payments || !Array.isArray(result.payments)) {
-				console.warn("No payments data returned from API:", result);
-				return []; // Return empty array instead of throwing error
+			// Check if the underlying thunk failed and pass the error up
+			if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
+				return rejectWithValue(resultAction.payload as string);
 			}
 
-			// Filter out any null or undefined payments
-			const validPayments = result.payments.filter(payment => payment !== null && payment !== undefined);
-			
-			console.log(`Fetched ${validPayments.length} valid payments for accounting calculations`);
-			
-			return validPayments;
+			// If it succeeded, return the payload. The adminPayments slice will store it,
+			// and this slice will just react to the status.
+			return resultAction.payload as PaymentRecord[];
 		} catch (error: any) {
-			console.error("Error fetching accounting data:", error);
-			// Return empty array instead of rejecting
-			return [];
+			return rejectWithValue(error.message || "An unknown error occurred");
 		}
 	}
 );
 
-// Initial state
 const initialState: AccountingState = {
 	dateRange: {
 		startDate: null,
@@ -61,12 +58,14 @@ const initialState: AccountingState = {
 	error: null,
 };
 
-// Create the slice
 const accountingSlice = createSlice({
 	name: "accounting",
 	initialState,
 	reducers: {
-		setDateRange: (state, action) => {
+		setDateRange: (
+			state,
+			action: { payload: { startDate: string | null; endDate: string | null } }
+		) => {
 			state.dateRange.startDate = action.payload.startDate;
 			state.dateRange.endDate = action.payload.endDate;
 		},
@@ -80,6 +79,7 @@ const accountingSlice = createSlice({
 			state.error = null;
 		},
 	},
+	// The extraReducers now listen to our local, restored fetchAccountingData thunk.
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchAccountingData.pending, (state) => {
@@ -97,92 +97,61 @@ const accountingSlice = createSlice({
 	},
 });
 
-// Export actions
 export const { setDateRange, clearAccountingError, resetAccountingState } =
 	accountingSlice.actions;
 
-// Selectors that derive data from the payment slice
+// --- SELECTORS (All original names are preserved) ---
+
 export const selectAccountingStatus = (state: RootState) =>
 	state.accounting.status;
 export const selectAccountingError = (state: RootState) =>
 	state.accounting.error;
 export const selectDateRange = (state: RootState) => state.accounting.dateRange;
 
-// Derived selectors that calculate accounting data from payment records
-export const selectAccountingStats = (state: RootState): AccountingStats => {
-	const payments = state.paymentHistory.allPayments;
-	const dateRange = state.accounting.dateRange;
+const selectAllAdminPayments = (state: RootState) =>
+	state.adminPayments.payments;
 
-	let startDate = null;
-	let endDate = null;
-
-	if (dateRange.startDate) {
-		startDate = new Date(dateRange.startDate);
+const selectFilteredPaymentsForAccounting = createSelector(
+	[selectAllAdminPayments, selectDateRange],
+	(allPayments, dateRange) => {
+		if (!dateRange.startDate && !dateRange.endDate) {
+			return allPayments;
+		}
+		return allPayments.filter((payment) => {
+			const paymentDate = new Date(payment.createdAt);
+			const start = dateRange.startDate ? new Date(dateRange.startDate) : null;
+			if (start) start.setHours(0, 0, 0, 0);
+			const end = dateRange.endDate ? new Date(dateRange.endDate) : null;
+			if (end) end.setHours(23, 59, 59, 999);
+			if (start && paymentDate < start) return false;
+			if (end && paymentDate > end) return false;
+			return true;
+		});
 	}
+);
 
-	if (dateRange.endDate) {
-		endDate = new Date(dateRange.endDate);
-	}
+export const selectAccountingStats = createSelector(
+	[selectFilteredPaymentsForAccounting],
+	(filteredPayments): AccountingStats =>
+		calculateAccountingStats(filteredPayments)
+);
 
-	return calculateAccountingStats(payments, { startDate, endDate });
-};
+export const selectCourseRevenues = createSelector(
+	[selectFilteredPaymentsForAccounting],
+	(filteredPayments): CourseRevenue[] =>
+		calculateCourseRevenues(filteredPayments)
+);
 
-export const selectCourseRevenues = (state: RootState): CourseRevenue[] => {
-	const payments = state.paymentHistory.allPayments;
-	const dateRange = state.accounting.dateRange;
+export const selectMonthlyRevenueTrend = createSelector(
+	[selectFilteredPaymentsForAccounting],
+	(filteredPayments): MonthlyRevenue[] =>
+		calculateMonthlyRevenueTrend(filteredPayments)
+);
 
-	let startDate = null;
-	let endDate = null;
-
-	if (dateRange.startDate) {
-		startDate = new Date(dateRange.startDate);
-	}
-
-	if (dateRange.endDate) {
-		endDate = new Date(dateRange.endDate);
-	}
-
-	return calculateCourseRevenues(payments, { startDate, endDate });
-};
-
-export const selectMonthlyRevenueTrend = (
-	state: RootState
-): MonthlyRevenue[] => {
-	const payments = state.paymentHistory.allPayments;
-	const dateRange = state.accounting.dateRange;
-
-	let startDate = null;
-	let endDate = null;
-
-	if (dateRange.startDate) {
-		startDate = new Date(dateRange.startDate);
-	}
-
-	if (dateRange.endDate) {
-		endDate = new Date(dateRange.endDate);
-	}
-
-	return calculateMonthlyRevenueTrend(payments, { startDate, endDate });
-};
-
-export const selectPaymentMethodDistribution = (
-	state: RootState
-): PaymentMethodDistribution[] => {
-	const payments = state.paymentHistory.allPayments;
-	const dateRange = state.accounting.dateRange;
-
-	let startDate = null;
-	let endDate = null;
-
-	if (dateRange.startDate) {
-		startDate = new Date(dateRange.startDate);
-	}
-
-	if (dateRange.endDate) {
-		endDate = new Date(dateRange.endDate);
-	}
-
-	return calculatePaymentMethodDistribution(payments, { startDate, endDate });
-};
+export const selectPaymentMethodDistribution = createSelector(
+	[selectFilteredPaymentsForAccounting],
+	(filteredPayments): PaymentMethodDistribution[] =>
+		calculatePaymentMethodDistribution(filteredPayments)
+);
 
 export default accountingSlice.reducer;
