@@ -174,6 +174,29 @@ export default function PaymentReceiptPage() {
           <p className="text-muted-foreground mt-6 text-center">Waiting for invoice details to complete receipt...</p>
         )}
       </div>
+
+      {/* Example: Safely render items if present */}
+      {receiptData && (
+        <div>
+          <h2>Payment Receipt</h2>
+          <div>Reference: {receiptData.providerReference}</div>
+          <div>Amount: {receiptData.amount} {receiptData.currency}</div>
+          <div>Status: {receiptData.status}</div>
+          <div>Date: {receiptData.createdAt}</div>
+          {/* Render items if present and is an array */}
+          {Array.isArray(receiptData.items) && receiptData.items.length > 0 && (
+            <div>
+              <h3>Items</h3>
+              <ul>
+                {receiptData.items.map((item, idx) => (
+                  <li key={idx}>{item.name} - {item.price}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {/* Render more receipt details as needed */}
+        </div>
+      )}
     </div>
   )
 }
