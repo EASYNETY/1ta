@@ -379,14 +379,15 @@ export const getInvoiceById = createAsyncThunk<
 	}
 });
 
+// features/payment/store/payment-slice.ts
+
 export const getReceiptData = createAsyncThunk<
 	UnifiedReceiptData,
 	string,
 	{ rejectValue: string }
 >("payment/getReceiptData", async (paymentId, { rejectWithValue }) => {
 	try {
-		// 1. Fetch the raw data. Let's assume it returns a PaymentRecord with a nested Invoice.
-		const rawPaymentData = await get<any>( // Use `any` for now to handle the raw structure
+		const rawPaymentData = await get<any>(
 			`/payments/${paymentId}/receipt-data`
 		);
 
@@ -394,20 +395,40 @@ export const getReceiptData = createAsyncThunk<
 			throw new Error("Invalid or empty response from receipt data endpoint.");
 		}
 
-		// 2. This is the crucial transformation step.
-		// We build the `UnifiedReceiptData` object ourselves.
+		// **FIX 1: Parse the `items` string into an array**
+		let invoiceItems = [];
+		if (rawPaymentData.invoice?.items) {
+			if (typeof rawPaymentData.invoice.items === "string") {
+				try {
+					// It's a string, so we need to parse it
+					invoiceItems = JSON.parse(rawPaymentData.invoice.items);
+				} catch (parseError) {
+					console.error(
+						"Failed to parse invoice items JSON string:",
+						parseError
+					);
+					invoiceItems = []; // Default to empty if parsing fails
+				}
+			} else if (Array.isArray(rawPaymentData.invoice.items)) {
+				// It's already an array, use it directly
+				invoiceItems = rawPaymentData.invoice.items;
+			}
+		}
+
 		const unifiedData: UnifiedReceiptData = {
 			// --- Map Payment Fields ---
 			paymentId: rawPaymentData.id,
 			paymentDate: rawPaymentData.createdAt,
 			paymentStatus: rawPaymentData.status,
-			paymentAmount: parseFloat(rawPaymentData.amount) || 0, // Ensure it's a number
+			paymentAmount: parseFloat(rawPaymentData.amount) || 0,
 			paymentCurrency: rawPaymentData.currency,
 			paymentMethod: rawPaymentData.paymentMethod || rawPaymentData.provider,
 			paymentProviderReference:
-				rawPaymentData.providerReference || rawPaymentData.gatewayRef,
+				rawPaymentData.providerReference ||
+				rawPaymentData.transactionId ||
+				rawPaymentData.gatewayRef,
 
-			// --- Map Invoice Fields (if invoice exists) ---
+			// --- Map Invoice Fields ---
 			invoiceId: rawPaymentData.invoice?.id || rawPaymentData.invoiceId,
 			invoiceDescription: rawPaymentData.invoice?.description,
 			invoiceDueDate: rawPaymentData.invoice?.dueDate,
@@ -422,30 +443,29 @@ export const getReceiptData = createAsyncThunk<
 			// --- Map Billing Details ---
 			billingDetails: rawPaymentData.billingDetails || null,
 
-			// --- Map Items ---
-			// If the invoice has items, use them. Otherwise, create a single summary item from the payment description.
+			// **FIX 2: Use the newly parsed `invoiceItems` array**
 			items:
-				rawPaymentData.invoice?.items &&
-				Array.isArray(rawPaymentData.invoice.items) &&
-				rawPaymentData.invoice.items.length > 0
-					? rawPaymentData.invoice.items
+				invoiceItems.length > 0
+					? invoiceItems
 					: [
 							{
 								description:
-									rawPaymentData.description || "Payment for unspecified items",
+									rawPaymentData.invoice?.description ||
+									rawPaymentData.description ||
+									"Payment for service/product",
 								amount: parseFloat(rawPaymentData.amount) || 0,
 								quantity: 1,
-								courseId: "SUMMARY_PAYMENT_DESC", // A special ID to indicate it's a summary
+								courseId: "SUMMARY_ITEM_NO_COURSE_ID",
 							},
 						],
 
-			// --- IMPORTANT: Include the original record ---
-			originalPaymentRecord: rawPaymentData as PaymentRecord, // Pass the whole raw object
+			// --- Include the original records for reference ---
+			originalPaymentRecord: rawPaymentData as PaymentRecord,
 			originalInvoice: rawPaymentData.invoice || null,
 		};
-
 		return unifiedData;
 	} catch (e: any) {
+		console.error("Error in getReceiptData thunk:", e);
 		return rejectWithValue(
 			e.response?.data?.message || e.message || "Failed to get receipt data"
 		);
