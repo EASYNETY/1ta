@@ -626,3 +626,8 @@ export const selectCourseIdsFromCurrentInvoice = (state: RootState) => {
 
 // --- Reducer ---
 export default paymentHistorySlice.reducer;
+
+// --- Admin payments fetch: ensure correct payments array path ---
+const payments = response.data.payments || response.data.data || [];
+
+// Use payments for mapping and table display
