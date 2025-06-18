@@ -169,6 +169,11 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
           {/* The fallback <p> for no items is no longer needed here if the selector always provides at least one item */}
         </div>
 
+        {/* Amount and Currency Display - Using toFixed for safe number formatting */}
+        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          Amount: {typeof receiptData.amount === 'number' ? receiptData.amount.toFixed(2) : (receiptData.amount || '0.00')} {receiptData.currency}
+        </div>
+
         {/* ... (Total Section and Footer remain the same) ... */}
         <div className="mt-6 pt-6 dark:border-gray-700">
           <div className="flex justify-end">
