@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle, XCircle, RefreshCw, AlertTriangle } from "lucide-react"
 import Image from "next/image"
 import type { UnifiedReceiptData, PaymentRecord, InvoiceItem } from "../types/payment-types"
-import { formatCurrency, formatDate, getReceiptNumber } from "../utils/receipt-utils"
+import { formatCurrency, formatDate, getReceiptNumber, formatAmount } from "../utils/receipt-utils"
 
 interface PaymentReceiptProps {
   receiptData: UnifiedReceiptData | null
@@ -65,12 +65,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
     }
   }
 
-  // Safe toFixed helper
-  function safeToFixed(value, digits = 2) {
-    if (typeof value === 'number' && !isNaN(value)) return value.toFixed(digits);
-    const num = Number(value);
-    return !isNaN(num) ? num.toFixed(digits) : '0.00';
-  }
+
 
   // itemsToDisplay will always have at least one item if receiptData is not null,
   // due to the updated selector logic.
@@ -176,9 +171,9 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
           {/* The fallback <p> for no items is no longer needed here if the selector always provides at least one item */}
         </div>
 
-        {/* Amount and Currency Display - Using toFixed for safe number formatting */}
+        {/* Amount and Currency Display - Using formatAmount for safe number formatting */}
         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-          Amount: {typeof receiptData.amount === 'number' ? receiptData.amount.toFixed(2) : (receiptData.amount || '0.00')} {receiptData.currency}
+          Amount: {formatAmount(receiptData.paymentAmount)} {receiptData.paymentCurrency}
         </div>
 
         {/* ... (Total Section and Footer remain the same) ... */}
