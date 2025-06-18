@@ -83,3 +83,10 @@ export const getReceiptNumber = (
 
 	return "RCPT-N/A"; // Ultimate fallback
 };
+
+// Fix for .toFixed on possibly undefined value at line 22
+export function formatAmount(amount: any, digits = 2): string {
+  if (typeof amount === 'number' && !isNaN(amount)) return amount.toFixed(digits);
+  const num = Number(amount);
+  return !isNaN(num) ? num.toFixed(digits) : '0.00';
+}
