@@ -140,6 +140,11 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 				} else if (response.payments && Array.isArray(response.payments)) {
 					payments = response.payments;
 				}
+				// Convert amount to number for all payments
+				payments = payments.map(p => ({
+					...p,
+					amount: Number(p.amount)
+				}));
 				// Get pagination data
 				paginationData = response.pagination || (response.data && response.data.pagination);
 			} 
@@ -627,7 +632,7 @@ export const selectCourseIdsFromCurrentInvoice = (state: RootState) => {
 // --- Reducer ---
 export default paymentHistorySlice.reducer;
 
-// --- Admin payments fetch: ensure correct payments array path ---
+// --- Admin payments fetch: ensure correct payments array path and amount type ---
 const payments = response.data.payments || response.data.data || [];
 
 // Use payments for mapping and table display
