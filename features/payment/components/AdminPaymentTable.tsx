@@ -10,14 +10,14 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PaginationControls, PaginationInfo } from "@/components/ui/pagination-controls"
 import { Button } from "@/components/ui/button"
-import { 
-  Search, 
-  AlertTriangle, 
-  CheckCircle, 
-  XCircle, 
-  RefreshCw, 
-  Filter, 
-  Receipt, 
+import {
+  Search,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  Filter,
+  Receipt,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -25,7 +25,7 @@ import {
 } from "lucide-react"
 import { format, parseISO, isValid } from "date-fns"
 import { useDebounce } from "@/hooks/use-debounce"
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -67,6 +67,7 @@ import {
 import type { PaymentRecord } from "../types/payment-types"
 import type { AdminPaymentParams } from "../types/admin-payment-types"
 import { Textarea } from "@/components/ui/textarea"
+import Link from "next/link"
 
 // Helper to safely format date
 const safeFormatDateTime = (dateString?: string): string => {
@@ -84,7 +85,7 @@ const getStatusBadge = (status: PaymentRecord["status"]) => {
   switch (status) {
     case "succeeded":
       return (
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant="secondary" className="text-xs bg-green-500">
           <CheckCircle className="mr-1 h-3 w-3" />
           Successful
         </Badge>
@@ -135,7 +136,7 @@ const AdminPaymentTable: React.FC = () => {
   const selectedPayment = useAppSelector(selectSelectedPayment)
   const updateStatus = useAppSelector(selectUpdatePaymentStatus)
   const deleteStatus = useAppSelector(selectDeletePaymentStatus)
-  
+
   const isLoading = status === "loading"
   const isUpdating = updateStatus === "loading"
   const isDeleting = deleteStatus === "loading"
@@ -150,12 +151,12 @@ const AdminPaymentTable: React.FC = () => {
   const [providerFilter, setProviderFilter] = useState<string>("all")
   const [sortBy, setSortBy] = useState<string>("createdAt")
   const [sortOrder, setSortOrder] = useState<string>("DESC")
-  
+
   // Edit payment dialog state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editDescription, setEditDescription] = useState("")
   const [editStatus, setEditStatus] = useState<PaymentRecord["status"]>("pending")
-  
+
   // Delete payment dialog state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
@@ -206,7 +207,7 @@ const AdminPaymentTable: React.FC = () => {
     try {
       // Remove leading zeros by converting to number first
       const cleanAmount = Number(amount)
-      
+
       if (currency === "NGN") {
         // For NGN, use the ₦ symbol directly to ensure consistent display
         return `₦${cleanAmount.toLocaleString()}`
@@ -250,14 +251,14 @@ const AdminPaymentTable: React.FC = () => {
         status: editStatus,
         description: editDescription,
       }))
-      .unwrap()
-      .then(() => {
-        setIsEditDialogOpen(false)
-        fetchData() // Refresh data after update
-      })
-      .catch((error) => {
-        console.error("Failed to update payment:", error)
-      })
+        .unwrap()
+        .then(() => {
+          setIsEditDialogOpen(false)
+          fetchData() // Refresh data after update
+        })
+        .catch((error) => {
+          console.error("Failed to update payment:", error)
+        })
     }
   }
 
@@ -265,14 +266,14 @@ const AdminPaymentTable: React.FC = () => {
   const handleConfirmDelete = () => {
     if (selectedPayment) {
       dispatch(deletePayment(selectedPayment.id))
-      .unwrap()
-      .then(() => {
-        setIsDeleteDialogOpen(false)
-        fetchData() // Refresh data after delete
-      })
-      .catch((error) => {
-        console.error("Failed to delete payment:", error)
-      })
+        .unwrap()
+        .then(() => {
+          setIsDeleteDialogOpen(false)
+          fetchData() // Refresh data after delete
+        })
+        .catch((error) => {
+          console.error("Failed to delete payment:", error)
+        })
     }
   }
 
@@ -428,67 +429,67 @@ const AdminPaymentTable: React.FC = () => {
                   <TableCell>
                     <div className="font-medium">{payment.userName || "N/A"}</div>
                   </TableCell>
-                  
+
                   {/* Student ID */}
                   <TableCell>
                     <div className="text-xs font-mono">{payment.userId}</div>
                   </TableCell>
-                  
+
                   {/* Invoice # */}
                   <TableCell>
                     <div className="text-xs font-mono">{payment.invoiceId || payment.invoice_id || "N/A"}</div>
                   </TableCell>
-                  
+
                   {/* Fee Type */}
                   <TableCell>
                     <div className="text-xs">
-                      {payment.metadata?.feeType || 
-                       (payment.description?.toLowerCase().includes("tuition") ? "Tuition" : 
-                        payment.description?.toLowerCase().includes("material") ? "Materials" : 
-                        payment.description?.toLowerCase().includes("exam") ? "Exam Fee" : "General")}
+                      {payment.metadata?.feeType ||
+                        (payment.description?.toLowerCase().includes("tuition") ? "Tuition" :
+                          payment.description?.toLowerCase().includes("material") ? "Materials" :
+                            payment.description?.toLowerCase().includes("exam") ? "Exam Fee" : "General")}
                     </div>
                   </TableCell>
-                  
+
                   {/* Event/Course */}
                   <TableCell className="max-w-[150px] truncate">
-                    {payment.metadata?.courseName || 
-                     payment.relatedItemIds?.find(item => item.type === "course")?.id || 
-                     (payment.description?.length > 30 ? 
-                      `${payment.description.substring(0, 30)}...` : 
-                      payment.description) || 
-                     "N/A"}
+                    {payment.metadata?.courseName ||
+                      payment.relatedItemIds?.find(item => item.type === "course")?.id ||
+                      (payment.description?.length > 30 ?
+                        `${payment.description.substring(0, 30)}...` :
+                        payment.description) ||
+                      "N/A"}
                   </TableCell>
-                  
+
                   {/* Payment Date/Time */}
                   <TableCell className="text-xs whitespace-nowrap">
                     {safeFormatDateTime(payment.createdAt)}
                   </TableCell>
-                  
+
                   {/* Amount Billed */}
                   <TableCell className="text-right font-mono text-xs">
                     {formatAmount(payment.metadata?.billedAmount || payment.amount, payment.currency)}
                   </TableCell>
-                  
+
                   {/* Amount Paid */}
                   <TableCell className="text-right font-mono text-xs">
                     {formatAmount(payment.amount, payment.currency)}
                   </TableCell>
-                  
+
                   {/* Payment Method */}
                   <TableCell>
                     <Badge variant="outline" className="capitalize text-xs">
                       {payment.provider}
                     </Badge>
                   </TableCell>
-                  
+
                   {/* Status */}
                   <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                  
+
                   {/* Reconciled */}
                   <TableCell>
                     {payment.reconciliationStatus ? (
-                      <Badge 
-                        variant={payment.reconciliationStatus === "reconciled" ? "secondary" : "outline"} 
+                      <Badge
+                        variant={payment.reconciliationStatus === "reconciled" ? "secondary" : "outline"}
                         className="text-xs capitalize"
                       >
                         {payment.reconciliationStatus}
@@ -497,12 +498,12 @@ const AdminPaymentTable: React.FC = () => {
                       <Badge variant="outline" className="text-xs">Pending</Badge>
                     )}
                   </TableCell>
-                  
+
                   {/* Notes */}
                   <TableCell className="max-w-[150px] truncate text-xs">
                     {payment.metadata?.notes || "No notes"}
                   </TableCell>
-                  
+
                   {/* Actions */}
                   <TableCell>
                     <TooltipProvider>
@@ -521,12 +522,20 @@ const AdminPaymentTable: React.FC = () => {
                             Edit Payment
                           </DropdownMenuItem>
                           {payment.status === "succeeded" && (
-                            <DropdownMenuItem onClick={() => handleGenerateReceipt(payment.id)}>
-                              <Receipt className="mr-2 h-4 w-4" />
-                              Generate Receipt
+                            <DropdownMenuItem
+                            // onClick={() => handleGenerateReceipt(payment.id)}
+                            >
+                              {/* <Receipt className="mr-2 h-4 w-4" />
+                              Generate Receipt */}
+                              <Link href={`/payments/${payment.id}/receipt`} passHref className="flex items-center justify-center gap-2 text-sm">
+                                <>
+                                  <Receipt className="h-3 w-3" />
+                                  <span>View Receipt</span>
+                                </>
+                              </Link>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDeleteClick(payment)}
                             className="text-destructive focus:text-destructive"
                           >

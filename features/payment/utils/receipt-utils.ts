@@ -19,7 +19,7 @@ export const formatCurrency = (amount: number, currency: string): string => {
 		}).format(majorAmount);
 	} catch {
 		// Fallback for unknown currency
-		return `${currency} ${majorAmount.toFixed(2)}`;
+		return `${currency} ${majorAmount?.toFixed(2)}`;
 	}
 };
 

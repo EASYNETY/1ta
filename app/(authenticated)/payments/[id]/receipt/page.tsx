@@ -1,213 +1,99 @@
-// src/app/payments/[id]/receipt/page.tsx
+// src/app/(authenticated)/payments/[id]/receipt/page.tsx
 "use client"
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-import { useAppDispatch, useAppSelector } from "@/store/hooks"
+import { useEffect } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
-  fetchPaymentById,
-  selectSelectedPayment,
-  selectSelectedPaymentStatus,
-  getInvoiceById,             // << IMPORT
-  selectCurrentInvoice,       // << IMPORT
-  selectInvoiceFetchStatus,   // << IMPORT
-  selectUnifiedReceiptData,   // << IMPORT NEW SELECTOR
-  selectPaymentHistoryError,  // General error for payment/invoice fetch
-  selectInvoiceFetchError,    // Specific invoice fetch error
-  resetPaymentState,          // << To clear invoice state too
-  getReceiptData,            // << IMPORT for receipt data
-  selectReceiptData,         // << SELECTOR for receipt data
-} from "@/features/payment/store/payment-slice"
-import type { PaymentRecord, UnifiedReceiptData as UnifiedReceiptDataType } from "@/features/payment/types/payment-types"; // Import UnifiedReceiptData type
-import { PaymentReceipt } from "@/features/payment/components/payment-receipt" // This will now take UnifiedReceiptData
-import { ReceiptActionsWithDom } from "@/features/payment/components/receipt-actions-with-dom" // This can still take PaymentRecord for download name
-import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { PageHeader } from "@/components/layout/auth/page-header"
-import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react"
-
+  getReceiptData,
+  selectReceiptData,
+  selectPaymentHistoryStatus as selectReceiptFetchStatus,
+  selectPaymentHistoryError as selectReceiptFetchError,
+} from "@/features/payment/store/payment-slice";
+import { PaymentReceipt } from "@/features/payment/components/payment-receipt";
+import { ReceiptActionsWithDom } from "@/features/payment/components/receipt-actions-with-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageHeader } from "@/components/layout/auth/page-header";
+import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import type { PaymentRecord } from "@/features/payment/types/payment-types";
 
 export default function PaymentReceiptPage() {
-  const params = useParams()
-  // const router = useRouter(); // Keep if needed
-  const dispatch = useAppDispatch()
+  const params = useParams();
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
 
   const paymentId = params.id as string;
 
-  // Selectors for individual data pieces and statuses
-  const paymentRecord = useAppSelector(selectSelectedPayment);
-  const paymentStatus = useAppSelector(selectSelectedPaymentStatus);
-  const invoiceRecord = useAppSelector(selectCurrentInvoice); // Not directly used for display, but triggers unified data
-  const invoiceFetchStatus = useAppSelector(selectInvoiceFetchStatus);
-
-  // Unified data for the receipt component
-  const unifiedReceiptData = useAppSelector(selectUnifiedReceiptData);
-
-  // Error selectors
-  const paymentFetchError = useAppSelector(selectPaymentHistoryError); // This selector might need renaming if it's general
-  const specificInvoiceFetchError = useAppSelector(selectInvoiceFetchError);
-
-  // Receipt data and status
+  // Use the selectors related to getReceiptData
   const receiptData = useAppSelector(selectReceiptData);
+  const status = useAppSelector(selectReceiptFetchStatus);
+  const error = useAppSelector(selectReceiptFetchError);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const isLoading = status === "loading" || status === "idle";
+  const fetchFailed = status === "failed";
 
-  const isLoadingPayment = paymentStatus === "loading" || paymentStatus === "idle";
-  // Invoice is loading if payment is successful, invoiceId exists, and invoice isn't yet fetched/failed
-  const isLoadingInvoice =
-    paymentStatus === "succeeded" &&
-    paymentRecord &&
-    paymentRecord.invoiceId &&
-    (invoiceFetchStatus === "loading" || invoiceFetchStatus === "idle") &&
-    (!invoiceRecord || invoiceRecord.id !== paymentRecord.invoiceId); // Only load if not already the correct invoice
-
-  const overallIsLoading = isLoadingPayment || isLoadingInvoice;
-  const overallFetchFailed = (paymentStatus === "failed" && paymentFetchError) || (invoiceFetchStatus === "failed" && specificInvoiceFetchError && paymentRecord?.invoiceId);
-
-
-  useEffect(() => {
-    // Clear previous states when paymentId changes or on mount
-    // to ensure fresh data for the current receipt.
-    if (paymentId) {
-      dispatch(resetPaymentState()); // Resets currentPayment, currentInvoice, and their statuses
-      dispatch(fetchPaymentById(paymentId));
-    }
-  }, [dispatch, paymentId]);
-
-
-  // Effect to fetch invoice if payment is loaded and has an invoiceId
-  useEffect(() => {
-    if (paymentStatus === "succeeded" && paymentRecord?.invoiceId) {
-      // Fetch invoice only if it's not already fetched for this ID or status is idle
-      if (invoiceFetchStatus === 'idle' || (invoiceRecord?.id !== paymentRecord.invoiceId && invoiceFetchStatus !== 'loading')) {
-        dispatch(getInvoiceById(paymentRecord.invoiceId));
-      }
-    }
-  }, [dispatch, paymentStatus, paymentRecord, invoiceFetchStatus, invoiceRecord]);
-
-
-  // Effect to fetch receipt data on mount and when paymentId changes
+  // Single effect to fetch all receipt data
   useEffect(() => {
     if (paymentId) {
-      setLoading(true);
-      dispatch(getReceiptData(paymentId))
-        .unwrap()
-        .catch(() => setError("Failed to load receipt. Please try again later."))
-        .finally(() => setLoading(false));
+      dispatch(getReceiptData(paymentId));
     }
+
+    // Optional: Cleanup function to reset state when the component unmounts
+    return () => {
+      // dispatch(resetReceiptState()); // You would create this action in your slice
+    };
   }, [dispatch, paymentId]);
 
+  const originalPaymentRecord = receiptData?.originalPaymentRecord as PaymentRecord | undefined;
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
       <PageHeader
         heading="Payment Receipt"
         subheading="View and download your payment receipt"
       />
 
-      {/* Actions still use paymentRecord for naming convention, can be adapted */}
-      {paymentRecord && !overallIsLoading && (
+      {originalPaymentRecord && !isLoading && (
         <ReceiptActionsWithDom
-          payment={paymentRecord} // Or pass unifiedReceiptData if actions need more
+          payment={originalPaymentRecord}
           receiptElementId="payment-receipt-component"
           className="flex justify-end mb-4"
         />
       )}
 
-      {overallIsLoading && (
+      {isLoading && (
         <div className="mt-6 flex flex-col items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">
-            {isLoadingPayment ? "Loading payment details..." : "Loading invoice details..."}
-          </p>
+          <p className="text-muted-foreground">Loading receipt details...</p>
           <Skeleton className="h-[600px] w-full rounded-lg mt-4" />
         </div>
       )}
 
-      {overallFetchFailed && (
+      {fetchFailed && (
         <Alert variant="destructive" className="mt-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Error Loading Receipt</AlertTitle>
           <AlertDescription>
-            {paymentStatus === "failed" && `Failed to load payment details: ${paymentFetchError || "Please try again."}`}
-            {paymentStatus === "failed" && invoiceFetchStatus === "failed" && <br />}
-            {invoiceFetchStatus === "failed" && paymentRecord?.invoiceId && `Failed to load associated invoice details: ${specificInvoiceFetchError || "Please try again."}`}
-            {!paymentRecord?.invoiceId && paymentStatus === "succeeded" && invoiceFetchStatus === "failed" && `Associated invoice details could not be loaded: ${specificInvoiceFetchError || "Please try again."}`}
+            {error || "An unexpected error occurred. Please try again or contact support."}
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Display alerts based on query params (existing logic) */}
-      {searchParams.get('status') === 'enrolment_failed' && (
-        <Alert variant="destructive" className="my-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Enrolment Issue After Payment</AlertTitle>
-          <AlertDescription>
-            Your payment was successful, but we encountered an issue enrolling you.
-            Contact support with payment ID ({paymentId}).
-          </AlertDescription>
-        </Alert>
-      )}
-      {/* ... other status alerts ... */}
-      {searchParams.get('status') === 'success' && paymentRecord && paymentRecord.status === 'succeeded' && !overallIsLoading && !overallFetchFailed && (
+      {/* Success/Status Alerts from URL params */}
+      {!isLoading && !fetchFailed && searchParams.get('status') === 'success' && (
         <Alert className="my-4">
           <CheckCircle className="h-4 w-4" />
           <AlertTitle>Payment Successful</AlertTitle>
-          <AlertDescription>
-            Your payment was successful and your receipt is below.
-          </AlertDescription>
+          <AlertDescription>Your payment was successful and your receipt is below.</AlertDescription>
         </Alert>
       )}
 
-
-      <div>
-        {/* Render PaymentReceipt only when unified data is ready and no critical errors */}
-        {!overallIsLoading && !overallFetchFailed && unifiedReceiptData && (
-          <div className="mt-6 space-y-4">
-            <PaymentReceipt receiptData={unifiedReceiptData} /> {/* Pass unified data */}
-          </div>
-        )}
-        {/* Handle case where payment is fine but invoice is needed and not loaded/failed */}
-        {!overallIsLoading && paymentStatus === "succeeded" && paymentRecord?.invoiceId && !invoiceRecord && invoiceFetchStatus !== "failed" && (
-          <p className="text-muted-foreground mt-6 text-center">Waiting for invoice details to complete receipt...</p>
+      <div className="mt-6">
+        {!isLoading && !fetchFailed && receiptData && (
+          <PaymentReceipt receiptData={receiptData} />
         )}
       </div>
-
-      {/* Example: Safely render items if present */}
-      {receiptData && (
-        <div>
-          <h2>Payment Receipt</h2>
-          <div>Reference: {receiptData.providerReference}</div>
-          <div>Amount: {receiptData.amount} {receiptData.currency}</div>
-          <div>Status: {receiptData.status}</div>
-          <div>Date: {receiptData.createdAt}</div>
-          {/* Safely render items if present and is an array */}
-          {Array.isArray(receiptData.items) && receiptData.items.length > 0 && (
-            <div>
-              <h3>Items</h3>
-              <ul>
-                {receiptData.items.map((item, idx) => (
-                  <li key={idx}>{item.name} - {item.price}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {/* Safely render courses if present and is an array */}
-          {Array.isArray(receiptData.courses) && receiptData.courses.length > 0 && (
-            <div>
-              <h3>Courses</h3>
-              <ul>
-                {receiptData.courses.map((course, idx) => (
-                  <li key={idx}>{course.title || course.name}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {/* Add similar checks for any other array fields you render with .map */}
-        </div>
-      )}
     </div>
-  )
+  );
 }

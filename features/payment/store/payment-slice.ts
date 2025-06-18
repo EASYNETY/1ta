@@ -91,7 +91,9 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 				"fetchMyPaymentHistory: Unexpected data structure from API client. Got:",
 				responseData
 			);
-			throw new Error("Failed to fetch payment history or invalid data structure");
+			throw new Error(
+				"Failed to fetch payment history or invalid data structure"
+			);
 		} catch (e: any) {
 			const errorMessage =
 				e.response?.data?.message ||
@@ -120,16 +122,14 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 			if (status) queryParams += `&status=${status}`;
 			if (search) queryParams += `&search=${search}`;
 
-			const response = await get<any>(
-				`/admin/payments?${queryParams}`
-			);
-			
+			const response = await get<any>(`/admin/payments?${queryParams}`);
+
 			console.log("Admin payments response:", response);
-			
+
 			// Handle different response formats
 			let payments: PaymentRecord[] = [];
 			let paginationData: any = null;
-			
+
 			// Case 1: New API format with success, data, and pagination fields
 			if (response && response.success === true) {
 				// Check if data is directly in the response or nested
@@ -141,13 +141,14 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 					payments = response.payments;
 				}
 				// Convert amount to number for all payments
-				payments = payments.map(p => ({
+				payments = payments.map((p) => ({
 					...p,
-					amount: Number(p.amount)
+					amount: Number(p.amount),
 				}));
 				// Get pagination data
-				paginationData = response.pagination || (response.data && response.data.pagination);
-			} 
+				paginationData =
+					response.pagination || (response.data && response.data.pagination);
+			}
 			// Case 2: Direct data array with pagination object
 			else if (Array.isArray(response)) {
 				payments = response;
@@ -155,11 +156,11 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 					total: payments.length,
 					page: page || 1,
 					limit: limit || 10,
-					totalPages: 1
+					totalPages: 1,
 				};
 			}
 			// Case 3: Object with data array and pagination
-			else if (response && typeof response === 'object') {
+			else if (response && typeof response === "object") {
 				if (Array.isArray(response.payments)) {
 					payments = response.payments;
 				} else if (response.data && Array.isArray(response.data)) {
@@ -167,7 +168,7 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 				} else if (response.data && Array.isArray(response.data.payments)) {
 					payments = response.data.payments;
 				} else {
-					const possibleDataFields = ['items', 'results', 'records', 'list'];
+					const possibleDataFields = ["items", "results", "records", "list"];
 					for (const field of possibleDataFields) {
 						if (Array.isArray(response[field])) {
 							payments = response[field];
@@ -178,56 +179,74 @@ export const fetchAllPaymentsAdmin = createAsyncThunk<
 						}
 					}
 				}
-				paginationData = response.pagination || response.meta || response.page || response.paging;
+				paginationData =
+					response.pagination ||
+					response.meta ||
+					response.page ||
+					response.paging;
 				if (!paginationData && response.data) {
-					paginationData = response.data.pagination || response.data.meta || response.data.page || response.data.paging;
+					paginationData =
+						response.data.pagination ||
+						response.data.meta ||
+						response.data.page ||
+						response.data.paging;
 				}
-				if (!paginationData && 'total' in response) {
+				if (!paginationData && "total" in response) {
 					paginationData = {
 						total: response.total,
 						page: page || 1,
 						limit: limit || 10,
-						totalPages: Math.ceil((response.total || 0) / (limit || 10))
+						totalPages: Math.ceil((response.total || 0) / (limit || 10)),
 					};
 				}
 			}
-			
+
 			// If we couldn't extract payments data, throw an error
 			if (!payments) {
 				console.error("API Response:", response);
 				throw new Error("Could not extract payments data from API response");
 			}
-			
+
 			// Ensure payments is an array
 			if (!Array.isArray(payments)) {
-				console.warn("Payments is not an array, converting to array:", payments);
+				console.warn(
+					"Payments is not an array, converting to array:",
+					payments
+				);
 				payments = payments ? [payments] : [];
 			}
 			// Convert amount to number for all payments (regardless of branch)
-			payments = payments.map(p => ({
+			payments = payments.map((p) => ({
 				...p,
-				amount: Number(p.amount)
+				amount: Number(p.amount),
 			}));
-			
+
 			// If we couldn't extract pagination data, use defaults
 			if (!paginationData) {
 				paginationData = {
 					total: payments.length,
 					page: page || 1,
 					limit: limit || 10,
-					totalPages: 1
+					totalPages: 1,
 				};
 			}
-			
+
 			// Transform pagination to match our frontend format
 			let pagination = {
-				totalItems: paginationData.total || paginationData.totalItems || payments.length,
-				currentPage: paginationData.page || paginationData.currentPage || page || 1,
+				totalItems:
+					paginationData.total || paginationData.totalItems || payments.length,
+				currentPage:
+					paginationData.page || paginationData.currentPage || page || 1,
 				limit: paginationData.limit || paginationData.perPage || limit || 10,
-				totalPages: paginationData.totalPages || paginationData.pages || 
-						Math.ceil((paginationData.total || payments.length) / (paginationData.limit || limit || 10))
+				totalPages:
+					paginationData.totalPages ||
+					paginationData.pages ||
+					Math.ceil(
+						(paginationData.total || payments.length) /
+							(paginationData.limit || limit || 10)
+					),
 			};
-			
+
 			return { payments, pagination };
 		} catch (e: any) {
 			const errorMessage =
@@ -366,10 +385,66 @@ export const getReceiptData = createAsyncThunk<
 	{ rejectValue: string }
 >("payment/getReceiptData", async (paymentId, { rejectWithValue }) => {
 	try {
-		const receiptData = await get<UnifiedReceiptData>(
+		// 1. Fetch the raw data. Let's assume it returns a PaymentRecord with a nested Invoice.
+		const rawPaymentData = await get<any>( // Use `any` for now to handle the raw structure
 			`/payments/${paymentId}/receipt-data`
 		);
-		return receiptData;
+
+		if (!rawPaymentData || !rawPaymentData.id) {
+			throw new Error("Invalid or empty response from receipt data endpoint.");
+		}
+
+		// 2. This is the crucial transformation step.
+		// We build the `UnifiedReceiptData` object ourselves.
+		const unifiedData: UnifiedReceiptData = {
+			// --- Map Payment Fields ---
+			paymentId: rawPaymentData.id,
+			paymentDate: rawPaymentData.createdAt,
+			paymentStatus: rawPaymentData.status,
+			paymentAmount: parseFloat(rawPaymentData.amount) || 0, // Ensure it's a number
+			paymentCurrency: rawPaymentData.currency,
+			paymentMethod: rawPaymentData.paymentMethod || rawPaymentData.provider,
+			paymentProviderReference:
+				rawPaymentData.providerReference || rawPaymentData.gatewayRef,
+
+			// --- Map Invoice Fields (if invoice exists) ---
+			invoiceId: rawPaymentData.invoice?.id || rawPaymentData.invoiceId,
+			invoiceDescription: rawPaymentData.invoice?.description,
+			invoiceDueDate: rawPaymentData.invoice?.dueDate,
+			invoiceStatus: rawPaymentData.invoice?.status,
+
+			// --- Map Student Fields ---
+			studentName:
+				rawPaymentData.userName || rawPaymentData.invoice?.student?.name,
+			studentEmail:
+				rawPaymentData.userEmail || rawPaymentData.invoice?.student?.email,
+
+			// --- Map Billing Details ---
+			billingDetails: rawPaymentData.billingDetails || null,
+
+			// --- Map Items ---
+			// If the invoice has items, use them. Otherwise, create a single summary item from the payment description.
+			items:
+				rawPaymentData.invoice?.items &&
+				Array.isArray(rawPaymentData.invoice.items) &&
+				rawPaymentData.invoice.items.length > 0
+					? rawPaymentData.invoice.items
+					: [
+							{
+								description:
+									rawPaymentData.description || "Payment for unspecified items",
+								amount: parseFloat(rawPaymentData.amount) || 0,
+								quantity: 1,
+								courseId: "SUMMARY_PAYMENT_DESC", // A special ID to indicate it's a summary
+							},
+						],
+
+			// --- IMPORTANT: Include the original record ---
+			originalPaymentRecord: rawPaymentData as PaymentRecord, // Pass the whole raw object
+			originalInvoice: rawPaymentData.invoice || null,
+		};
+
+		return unifiedData;
 	} catch (e: any) {
 		return rejectWithValue(
 			e.response?.data?.message || e.message || "Failed to get receipt data"
@@ -431,7 +506,10 @@ const paymentHistorySlice = createSlice({
 				data: null,
 			};
 		},
-		setSelectedPayment: (state, action: PayloadAction<PaymentRecord | null>) => {
+		setSelectedPayment: (
+			state,
+			action: PayloadAction<PaymentRecord | null>
+		) => {
 			state.selectedPayment = action.payload;
 		},
 		setSelectedInvoice: (state, action: PayloadAction<Invoice | null>) => {
@@ -452,7 +530,8 @@ const paymentHistorySlice = createSlice({
 			})
 			.addCase(fetchMyPaymentHistory.rejected, (state, action) => {
 				state.status = "failed";
-				state.error = action.payload ?? "Unknown error fetching payment history";
+				state.error =
+					action.payload ?? "Unknown error fetching payment history";
 			})
 
 			// fetchAllPaymentsAdmin
@@ -497,7 +576,11 @@ const paymentHistorySlice = createSlice({
 				state.paymentVerification.status = "succeeded";
 				state.paymentVerification.data = action.payload;
 				// Set selectedPayment for downstream selectors/UI
-				state.selectedPayment = action.payload?.payment || action.payload?.payments || action.payload || null;
+				state.selectedPayment =
+					action.payload?.payment ||
+					action.payload?.payments ||
+					action.payload ||
+					null;
 			})
 			.addCase(verifyPayment.rejected, (state, action) => {
 				state.paymentVerification.status = "failed";
@@ -545,7 +628,8 @@ const paymentHistorySlice = createSlice({
 			})
 			.addCase(getInvoiceById.rejected, (state, action) => {
 				state.status = "failed";
-				state.error = action.payload ?? "Unknown error fetching invoice details";
+				state.error =
+					action.payload ?? "Unknown error fetching invoice details";
 			})
 
 			// getReceiptData
@@ -617,21 +701,27 @@ export const selectPaymentVerificationData = (state: RootState) =>
 export const selectVerificationStatus = selectPaymentVerificationStatus;
 export const selectCurrentPayment = selectSelectedPayment;
 export const selectCurrentInvoice = selectSelectedInvoice;
-export const selectInvoiceFetchStatus = (state: RootState) => state.paymentHistory.status;
-export const selectInvoiceFetchError = (state: RootState) => state.paymentHistory.error;
-export const selectSelectedPaymentStatus = (state: RootState) => state.paymentHistory.status;
-export const selectInvoiceCreationStatus = (state: RootState) => state.paymentHistory.status;
-export const selectInvoiceCreationError = (state: RootState) => state.paymentHistory.error;
-export const selectUnifiedReceiptData = (state: RootState) => state.paymentHistory.receiptData;
+export const selectInvoiceFetchStatus = (state: RootState) =>
+	state.paymentHistory.status;
+export const selectInvoiceFetchError = (state: RootState) =>
+	state.paymentHistory.error;
+export const selectSelectedPaymentStatus = (state: RootState) =>
+	state.paymentHistory.status;
+export const selectInvoiceCreationStatus = (state: RootState) =>
+	state.paymentHistory.status;
+export const selectInvoiceCreationError = (state: RootState) =>
+	state.paymentHistory.error;
+export const selectUnifiedReceiptData = (state: RootState) =>
+	state.paymentHistory.receiptData;
 
 // Additional selectors
 export const selectCourseIdsFromCurrentInvoice = (state: RootState) => {
 	const invoice = selectCurrentInvoice(state);
 	if (!invoice || !invoice.items) return [];
-	
+
 	return invoice.items
-		.filter(item => item.courseId)
-		.map(item => item.courseId);
+		.filter((item) => item.courseId)
+		.map((item) => item.courseId);
 };
 
 // --- Reducer ---
