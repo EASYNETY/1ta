@@ -24,186 +24,114 @@ export const fetchAdminPayments = createAsyncThunk<
   "adminPayments/fetchAll",
   async (params, { rejectWithValue }) => {
     try {
-      // Build query string from params
+      // 1. Build the query string from parameters
       const queryParams = new URLSearchParams();
-      
-      if (params.page) queryParams.append("page", params.page.toString());
-      if (params.limit) queryParams.append("limit", params.limit.toString());
-      if (params.status) queryParams.append("status", params.status);
-      if (params.userId) queryParams.append("userId", params.userId);
-      if (params.invoiceId) queryParams.append("invoiceId", params.invoiceId);
-      if (params.startDate) queryParams.append("startDate", params.startDate);
-      if (params.endDate) queryParams.append("endDate", params.endDate);
-      if (params.minAmount) queryParams.append("minAmount", params.minAmount.toString());
-      if (params.maxAmount) queryParams.append("maxAmount", params.maxAmount.toString());
-      if (params.provider) queryParams.append("provider", params.provider);
-      if (params.sortBy) queryParams.append("sortBy", params.sortBy);
-      if (params.sortOrder) queryParams.append("sortOrder", params.sortOrder);
-      if (params.search) queryParams.append("search", params.search);
-
+      // A more concise way to build the query string
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, String(value));
+        }
+      });
       const query = queryParams.toString();
       const url = `/admin/payments${query ? `?${query}` : ''}`;
-      
+
+      // 2. Fetch data from the API
       console.log("Fetching admin payments from:", url);
       const response = await get(url);
-      console.log("Admin payments response:", response);
+      console.log("Admin payments raw response:", response);
 
-      // Handle different response formats
       let payments: PaymentRecord[] = [];
       let paginationData: any = null;
 
-      // Case 1: New API format with success, data, and pagination fields
-      if ((response as any) && (response as any).success === true) {
-        // Check if data is directly in the response or nested
-        if (Array.isArray((response as any).data)) {
-          payments = (response as any).data;
-        } else if ((response as any).data && Array.isArray((response as any).data.payments)) {
-          payments = (response as any).data.payments;
-        } else if ((response as any).payments && Array.isArray((response as any).payments)) {
-          payments = (response as any).payments;
-        }
-        // Get pagination data
-        paginationData = (response as any).pagination || ((response as any).data && (response as any).data.pagination);
-      } 
-      // Case 2: Direct data array with pagination object
-      else if (Array.isArray(response)) {
-        payments = response as any;
-        paginationData = {
-          total: payments.length,
-          page: params.page || 1,
-          limit: params.limit || 10,
-          totalPages: 1
-        };
-      }
-      // Case 3: Object with data array and pagination
-      else if (response && typeof response === 'object') {
-        if (Array.isArray((response as any).payments)) {
-          payments = (response as any).payments;
-        } else if ((response as any).data && Array.isArray((response as any).data)) {
-          payments = (response as any).data;
-        } else if ((response as any).data && Array.isArray((response as any).data.payments)) {
-          payments = (response as any).data.payments;
-        } else {
-          const possibleDataFields = ['items', 'results', 'records', 'list'];
-          for (const field of possibleDataFields) {
-            if (Array.isArray((response as any)[field])) {
-              payments = (response as any)[field];
-              break;
-            } else if ((response as any).data && Array.isArray((response as any).data[field])) {
-              payments = (response as any).data[field];
-              break;
-            }
+      // 3. Robustly extract payments and pagination data
+      if (response && typeof response === 'object') {
+        // --- Find the payments array ---
+        // The order of these checks is important, from most likely to least likely.
+        const possiblePaymentKeys = ['data', 'payments', 'items', 'results', 'records'];
+        for (const key of possiblePaymentKeys) {
+          if (Array.isArray(response[key])) {
+            payments = response[key];
+            break;
+          }
+          if (response.data && Array.isArray(response.data[key])) {
+            payments = response.data[key];
+            break;
           }
         }
-        paginationData = (response as any).pagination || (response as any).meta || (response as any).page || (response as any).paging;
-        if (!paginationData && (response as any).data) {
-          paginationData = (response as any).data.pagination || (response as any).data.meta || (response as any).data.page || (response as any).data.paging;
+        
+        // **Fallback for the malformed object-with-numeric-keys structure**
+        if (payments.length === 0 && !Array.isArray(response)) {
+            console.warn("Standard payment array keys not found. Attempting to parse object values.");
+            payments = Object.values(response).filter(
+              (value): value is PaymentRecord => 
+                typeof value === 'object' && value !== null && 'id' in value && 'userId' in value
+            );
         }
-        if (!paginationData && 'total' in (response as any)) {
-          paginationData = {
-            total: (response as any).total,
-            page: params.page || 1,
-            limit: params.limit || 10,
-            totalPages: Math.ceil(((response as any).total || 0) / (params.limit || 10))
-          };
-        }
+
+        // --- Find the pagination object ---
+        paginationData = response.pagination || response.meta || (response.data && response.data.pagination);
       }
 
-      // Log what we found
-      console.log("Extracted payments:", payments);
-      console.log("Extracted pagination:", paginationData);
-
-      // If we couldn't extract payments data, throw an error
-      if (!payments) {
-        console.error("API Response:", response);
-        throw new Error("Could not extract payments data from API response");
-      }
-
-      // Ensure payments is an array
+      console.log(`Extracted ${payments.length} payment records.`);
+      console.log("Extracted pagination data:", paginationData);
+      
+      // If we still have no payments after all checks, we can assume the response is empty/invalid.
       if (!Array.isArray(payments)) {
-        console.warn("Payments is not an array, converting to array:", payments);
-        payments = payments ? [payments] : [];
+        console.error("Failed to extract a valid payments array from the response.", response);
+        payments = []; // Ensure it's an empty array to prevent downstream errors.
       }
 
-      // If we couldn't extract pagination data, use defaults
-      if (!paginationData) {
-        paginationData = {
-          total: payments.length,
-          page: params.page || 1,
-          limit: params.limit || 10,
-          totalPages: 1
-        };
-      }
-
-      // Transform pagination to match our frontend format
-      let paginationMeta: PaginationMeta = {
-        totalItems: paginationData.total || paginationData.totalItems || payments.length,
-        currentPage: paginationData.page || paginationData.currentPage || params.page || 1,
-        limit: paginationData.limit || paginationData.perPage || params.limit || 10,
-        totalPages: paginationData.totalPages || paginationData.pages || 
-                   Math.ceil((paginationData.total || payments.length) / (paginationData.limit || params.limit || 10))
+      // 4. Create a standardized pagination object
+      // If pagination data is missing, we create a default based on what we have.
+      const fallbackPagination = {
+        totalItems: payments.length,
+        currentPage: params.page || 1,
+        limit: params.limit || 10,
+        totalPages: (params.limit && params.limit > 0) ? Math.ceil(payments.length / params.limit) : 1,
       };
 
-      // --- Normalize payments for frontend table ---
-      payments = payments.map((p: any) => {
-        // Fallback for description
-        let description = p.description;
-        if (description == null && p.invoice && typeof p.invoice.description === 'string') {
-          description = p.invoice.description;
-        }
-        // Ensure amount is a number
-        let amount = p.amount;
-        if (typeof amount === 'string') {
-          const parsed = parseFloat(amount);
-          amount = isNaN(parsed) ? 0 : parsed;
-        }
-        // Ensure providerReference (snake/camel)
-        let providerReference = p.providerReference || p.provider_reference || '';
-        // Ensure createdAt (snake/camel)
-        let createdAt = p.createdAt || p.created_at || '';
-        // Ensure status is a string
-        let status = typeof p.status === 'string' ? p.status : String(p.status);
-        // Ensure currency is a string
-        let currency = typeof p.currency === 'string' ? p.currency : (p.currency?.toString() || '');
-        // Invoice id fallback
-        let invoiceId = p.invoiceId || p.invoice_id || (p.invoice && p.invoice.id) || null;
-        // Defensive: ensure all required fields for the table are present
+      const finalPagination: PaginationMeta = {
+        totalItems: paginationData?.total || paginationData?.totalItems || fallbackPagination.totalItems,
+        currentPage: paginationData?.page || paginationData?.currentPage || fallbackPagination.currentPage,
+        limit: paginationData?.limit || paginationData?.perPage || fallbackPagination.limit,
+        totalPages: paginationData?.totalPages || paginationData?.pages || fallbackPagination.totalPages,
+      };
+
+      // 5. Normalize each payment record for consistent use in the frontend
+      const normalizedPayments = payments.map((p: any): PaymentRecord => {
+        const amount = parseFloat(p.amount);
         return {
           ...p,
-          amount,
-          description: description || '',
-          providerReference,
-          createdAt,
-          status,
-          currency,
-          invoiceId,
-          // Defensive: ensure metadata and relatedItemIds are always objects/arrays
+          // Ensure required fields have safe fallbacks
+          id: p.id || `missing-id-${Math.random()}`,
+          userId: p.userId || 'N/A',
+          userName: p.userName || 'N/A',
+          amount: isNaN(amount) ? 0 : amount,
+          currency: p.currency || 'NGN',
+          status: p.status || 'unknown',
+          provider: p.provider || 'unknown',
+          createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+          description: p.description || p.invoice?.description || 'No description',
+          invoiceId: p.invoiceId || p.invoice_id || p.invoice?.id || null,
           metadata: p.metadata || {},
           relatedItemIds: Array.isArray(p.relatedItemIds) ? p.relatedItemIds : [],
         };
       });
 
-      // Defensive: if payments is still not an array, set to empty array
-      if (!Array.isArray(payments)) payments = [];
-
-      console.log("Final payments data:", payments);
-      console.log("Final pagination data:", paginationMeta);
+      console.log("Final normalized payments:", normalizedPayments);
+      console.log("Final pagination meta:", finalPagination);
 
       return {
-        payments,
-        pagination: paginationMeta
+        payments: normalizedPayments,
+        pagination: finalPagination,
       };
     } catch (error: any) {
-      console.error("Error fetching admin payments:", error);
-      return rejectWithValue(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to fetch admin payments"
-      );
+      console.error("Critical error in fetchAdminPayments thunk:", error);
+      const errorMessage = error.response?.data?.message || error.message || "An unknown error occurred while fetching payments.";
+      return rejectWithValue(errorMessage);
     }
   }
 );
-
 // Get payment statistics
 export const fetchPaymentStats = createAsyncThunk<
   AdminPaymentStats,
