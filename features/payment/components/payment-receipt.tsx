@@ -65,6 +65,10 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
     }
   }
 
+  // Helper function for safe toFixed rendering
+  const safeToFixed = (value, digits = 2) =>
+    typeof value === 'number' ? value.toFixed(digits) : (value ?? '0.00');
+
   // itemsToDisplay will always have at least one item if receiptData is not null,
   // due to the updated selector logic.
   const itemsToDisplay: InvoiceItem[] = receiptData.items; // No '|| []' needed if selector guarantees it.
