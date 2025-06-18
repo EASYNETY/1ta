@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice";
+// --- CORRECTED IMPORTS ---
 import {
-    selectAllCourseClassOptions,
-    selectCourseClassOptionsStatus
+    selectAllAdminClasses,
+    selectClassesStatus,
 } from "@/features/classes/store/classes-slice";
-import { fetchCourseClassOptionsForScanner } from "@/features/classes/store/classes-thunks";
-import { CourseClassOption } from "@/features/classes/types/classes-types";
+import { fetchAllClassesAdmin } from "@/features/classes/store/classes-thunks";
+import type { CourseClass, CourseClassOption } from "@/features/classes/types/classes-types";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { ScanLine, RefreshCw } from "lucide-react";
+import { ScanLine, RefreshCw, Loader2 } from "lucide-react";
 
 interface ClassSelectorProps {
     casualScanMode: boolean;
@@ -23,52 +24,62 @@ interface ClassSelectorProps {
 export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelectorProps) {
     const dispatch = useAppDispatch();
     const selectedClass = useAppSelector(selectCourseClass);
-    const classOptions = useAppSelector(selectAllCourseClassOptions) || [];
-    const classOptionsStatus = useAppSelector(selectCourseClassOptionsStatus);
-    const classOptionsLoading = classOptionsStatus === 'loading';
-    const initialClassOptionsFetchAttempted = useRef(false);
 
-    // Effect: Fetch class options when component mounts
+    // --- CORRECTED: Use the admin classes selector and status ---
+    const allFetchedClasses = useAppSelector(selectAllAdminClasses);
+    const classesStatus = useAppSelector(selectClassesStatus);
+    const classesLoading = classesStatus === 'loading' || classesStatus === 'idle';
+
+    // --- CORRECTED: Fetch all admin classes if needed ---
     useEffect(() => {
-        if (!initialClassOptionsFetchAttempted.current && classOptionsStatus !== 'loading' && classOptionsStatus !== 'succeeded') {
-            console.log("ClassSelector: Fetching class options for scanner");
-            dispatch(fetchCourseClassOptionsForScanner());
-            initialClassOptionsFetchAttempted.current = true;
+        if (classesStatus === 'idle' || classesStatus === 'failed') {
+            dispatch(fetchAllClassesAdmin({ limit: 1000 }));
         }
-    }, [dispatch, classOptionsStatus]);
+    }, [dispatch, classesStatus]);
+
+
+    // --- FIX APPLIED HERE: Map the full class objects to the simple option format ---
+    const classOptions: CourseClassOption[] = useMemo(() => {
+        if (!allFetchedClasses) return [];
+        return allFetchedClasses.map((cls: CourseClass) => ({
+            id: cls.id,
+            // Use the most descriptive name available
+            courseName: cls.course?.name || cls.courseTitle || cls.name,
+            sessionName: cls.name, // The primary 'name' often serves as the session name
+        }));
+    }, [allFetchedClasses]);
+
 
     // Handle class selection
     const handleClassChange = (value: string) => {
         if (!value) {
-            dispatch(setCourseClass({ id: '', courseName: "", sessionName: "" }));
-            return;
+            dispatch(setCourseClass({
+                id: '',
+                courseName: '',
+                sessionName: ''
+            })); // Clear the selected class            return;
         }
 
+        // Find the selected option from our mapped `classOptions`
         const selectedOption = classOptions.find(option => option.id === value);
         if (selectedOption) {
-            dispatch(setCourseClass({
-                id: selectedOption.id,
-                courseName: selectedOption.courseName,
-                sessionName: selectedOption.sessionName,
-            }));
-
-            // If selecting a class, turn off casual mode
+            dispatch(setCourseClass(selectedOption));
+            // If selecting a class, ensure casual mode is off
             if (casualScanMode) {
                 setCasualScanMode(false);
             }
         }
     };
 
-    // Handle retry fetch options
-    const handleRetryFetchOptions = () => {
-        dispatch(fetchCourseClassOptionsForScanner());
+    // Handle retry fetch
+    const handleRetryFetch = () => {
+        dispatch(fetchAllClassesAdmin({ limit: 1000 }));
     };
 
     // Toggle casual scan mode
     const handleToggleCasualMode = (checked: boolean) => {
         setCasualScanMode(checked);
-
-        // If enabling casual mode, clear selected class
+        // If enabling casual mode, clear the selected class
         if (checked && selectedClass?.id) {
             dispatch(setCourseClass({ id: '', courseName: "", sessionName: "" }));
         }
@@ -79,29 +90,32 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
             <div className="flex flex-col sm:flex-row gap-4">
                 {/* Class Selection Dropdown */}
                 <div className="flex-1">
-                    <Label htmlFor="classSelect">Select Class</Label>
+                    <Label htmlFor="classSelect">Select Class for Attendance</Label>
                     <Select
                         value={selectedClass?.id || ""}
                         onValueChange={handleClassChange}
-                        disabled={classOptionsLoading || casualScanMode}
+                        disabled={classesLoading || casualScanMode}
                     >
                         <SelectTrigger id="classSelect" className="w-full mt-2">
-                            <SelectValue placeholder="Select a class to mark attendance" />
+                            <SelectValue placeholder="Select a class to begin scanning..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {classOptions.map((option: CourseClassOption) => (
+                            {classesLoading && (
+                                <SelectItem value="loading" disabled>
+                                    <div className="flex items-center">
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Loading classes...
+                                    </div>
+                                </SelectItem>
+                            )}
+                            {classOptions.map((option) => (
                                 <SelectItem key={option.id} value={option.id}>
                                     {option.courseName} - {option.sessionName}
                                 </SelectItem>
                             ))}
-                            {classOptions.length === 0 && !classOptionsLoading && (
+                            {!classesLoading && classOptions.length === 0 && (
                                 <SelectItem value="no-classes" disabled>
-                                    No classes available
-                                </SelectItem>
-                            )}
-                            {classOptionsLoading && (
-                                <SelectItem value="loading" disabled>
-                                    Loading classes...
+                                    No classes available to select.
                                 </SelectItem>
                             )}
                         </SelectContent>
@@ -115,7 +129,7 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
                             id="casualMode"
                             checked={casualScanMode}
                             onCheckedChange={handleToggleCasualMode}
-                            disabled={classOptionsLoading}
+                            disabled={classesLoading}
                         />
                         <Label htmlFor="casualMode" className="cursor-pointer flex items-center gap-1">
                             <ScanLine className="h-4 w-4 text-purple-500" />
@@ -124,14 +138,15 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
                     </div>
                 </div>
 
-                {/* Retry Button - Only show when fetch failed */}
-                {classOptionsStatus === 'failed' && (
+                {/* Retry Button */}
+                {classesStatus === 'failed' && (
                     <div className="flex-shrink-0 flex items-end">
                         <Button
                             variant="outline"
                             size="icon"
-                            onClick={handleRetryFetchOptions}
+                            onClick={handleRetryFetch}
                             className="h-10 w-10"
+                            aria-label="Retry fetching classes"
                         >
                             <RefreshCw className="h-4 w-4" />
                         </Button>
@@ -140,23 +155,19 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
             </div>
 
             {/* Helper Text */}
-            {!selectedClass?.id && !casualScanMode && !classOptionsLoading && classOptionsStatus !== 'failed' && (
-                <p className="text-xs text-muted-foreground">You must select a class before scanning can begin, or enable casual scan mode.</p>
-            )}
-            {casualScanMode && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <ScanLine className="h-4 w-4 text-purple-500" /> Casual scan mode:
-                    <span className="font-medium text-purple-700">
-                        Students will be identified but attendance won't be marked
-                    </span>
+            {casualScanMode ? (
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <ScanLine className="h-4 w-4 text-purple-500" />
+                    <strong>Casual Scan Mode is ON:</strong> Student barcodes will be identified without marking attendance.
                 </p>
-            )}
-            {selectedClass?.id && !casualScanMode && (
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <ScanLine className="h-4 w-4" /> Scanning for:
-                    <span className="font-medium text-primary">
-                        {selectedClass.courseName} - {selectedClass.sessionName}
-                    </span>
+            ) : selectedClass?.id ? (
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <ScanLine className="h-4 w-4 text-primary" />
+                    <strong>Scanning for:</strong> {selectedClass.courseName} - {selectedClass.sessionName}
+                </p>
+            ) : (
+                <p className="text-xs text-muted-foreground">
+                    You must select a class before scanning can begin, or enable Casual Mode.
                 </p>
             )}
         </div>

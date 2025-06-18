@@ -1,23 +1,12 @@
-// app/(authenticated)/attendance/facilitator/page.tsx OR wherever FacilitatorAttendanceView is used
+// app/(authenticated)/attendance/facilitator/page.tsx
+// FINAL CORRECTED VERSION - Adapted for the real API response
+
 "use client";
 
 import * as React from "react";
-import { useState, useMemo, useEffect, useCallback, useRef } from "react"; // Added useRef
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  format,
-  parseISO,
-  // startOfMonth, // Not directly used, consider removing if not needed by other parts
-  // endOfMonth, // Not directly used
-  isSameDay, // Useful for comparing dates
-  isWeekend,
-  // addMonths, // Not directly used
-  // subMonths, // Not directly used
-  // isToday, // Not directly used
-  compareDesc,
-  setMonth,
-  setYear,
-} from "date-fns";
+import { format, parseISO, isSameDay, isWeekend, compareDesc, setMonth, setYear } from "date-fns";
 import { Calendar as CalendarIcon, Search, X, Check, Clock, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,13 +25,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { DayClickEventHandler, DayPickerSingleProps, Modifiers } from "react-day-picker";
-import { Label } from "@/components/ui/label"; // Adjusted path
+import { Label } from "@/components/ui/label";
 import { selectCourseClass, setCourseClass } from "@/features/classes/store/classSessionSlice";
-import { useToast } from "@/hooks/use-toast";
-import { CourseClassOption } from "@/features/classes/types/classes-types";
-import { selectAllCourseClassOptions, selectCourseClassOptionsStatus, setCourseClassOptionStatus } from "@/features/classes/store/classes-slice";
-import { fetchCourseClassOptionsForScanner } from "@/features/classes/store/classes-thunks";
-
+import { selectAllAdminClasses, selectClassesStatus } from "@/features/classes/store/classes-slice";
+import { fetchAllClassesAdmin } from "@/features/classes/store/classes-thunks";
+import type { CourseClass, CourseClassOption } from "@/features/classes/types/classes-types";
 
 // --- In-file Type Definitions ---
 type AttendanceStatusIndicator = "present" | "absent" | "late" | "holiday" | string;
@@ -55,9 +42,9 @@ export interface CalendarProps extends Omit<DayPickerSingleProps, 'modifiers' | 
   styles?: DayPickerSingleProps['styles'];
 }
 
-const generateYears = (center: number, range = 120) => {
-  const start = Math.max(1900, center - Math.floor(range / 1.5));
-  const end = Math.min(new Date().getFullYear() + 5, center + Math.ceil(range / 2.5));
+const generateYears = (center: number, range = 10) => {
+  const start = center - Math.floor(range / 2);
+  const end = center + Math.ceil(range / 2);
   return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 };
 
@@ -66,445 +53,250 @@ const months = Array.from({ length: 12 }, (_, i) => ({
   label: format(new Date(0, i), "MMMM"),
 }));
 
-// const formatDateKey = (date: Date): string => format(date, "yyyy-MM-dd"); // Not used, consider removing
-
 export function FacilitatorAttendanceView() {
-  const { user } = useAppSelector((state) => state.auth);
   const dispatch = useAppDispatch();
-  const { toast } = useToast();
 
+  // --- State Hooks ---
   const [displayMonth, setDisplayMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [popoverOpen, setPopoverOpen] = React.useState(false);
 
-  const selectedClass = useAppSelector(selectCourseClass); // CRITICAL: Ensure selectCourseClass is memoized (e.g. with reselect)
-  const classOptions = useAppSelector(selectAllCourseClassOptions);
-  const classOptionsStatus = useAppSelector(selectCourseClassOptionsStatus);
-  const classOptionsLoading = classOptionsStatus === 'loading';
+  // --- Redux Selectors ---
+  const selectedClass = useAppSelector(selectCourseClass);
+  // CORRECTED: Use the selector that holds the array of class objects
+  const availableClasses = useAppSelector(selectAllAdminClasses);
+  const classesStatus = useAppSelector(selectClassesStatus);
   const fetchingAttendance = useAppSelector(selectFetchingCourseAttendance);
 
-  const initialFetchAttempted = useRef(false);
+  const classesLoading = classesStatus === 'loading' || classesStatus === 'idle';
 
-  // --- Fetch Class Options (aligned with ScanPage) ---
+  // --- Data Fetching Effects ---
   useEffect(() => {
-    // Reset flag if user context changes, or on initial mount for the component instance
-    initialFetchAttempted.current = false;
-  }, [user?.id]); // Or simply [] if user context isn't primary driver for re-fetching options list globally
-
-  useEffect(() => {
-    if (user === undefined) { // Wait for auth slice to determine user
-        console.log("FacilitatorAttendanceView: User data is undefined.");
-        return;
+    // Fetch the list of classes if it's not already loaded or has failed.
+    if (classesStatus === 'idle' || classesStatus === 'failed') {
+      dispatch(fetchAllClassesAdmin({ limit: 1000 })); // Fetch all classes for the dropdown
     }
-    // No role check here as this view might be accessible to students too, adjust if needed.
+  }, [dispatch, classesStatus]);
 
-    const needsFetch =
-        classOptionsStatus === 'idle' ||
-        classOptionsStatus === 'failed' ||
-        (classOptionsStatus === 'succeeded' && (!classOptions || classOptions.length === 0) && !initialFetchAttempted.current);
-
-    if (needsFetch) {
-        console.log(`FacilitatorAttendanceView: Triggering fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}, Initial Fetch Attempted: ${initialFetchAttempted.current}`);
-        dispatch(fetchCourseClassOptionsForScanner());
-        initialFetchAttempted.current = true;
-    } else {
-        console.log(`FacilitatorAttendanceView: Skipping fetch for course class options. Status: ${classOptionsStatus}, Options Length: ${classOptions?.length}`);
-    }
-  }, [user, dispatch, classOptionsStatus, classOptions]); // Removed fetchCourseClassOptionsForScanner from deps as it's a stable dispatch
-
-  // Force classOptionsStatus to 'succeeded' if it's stuck in 'loading' for too long
   useEffect(() => {
-    if (classOptionsStatus === 'loading') {
-      const timer = setTimeout(() => {
-        console.log("FacilitatorAttendanceView: Class options loading timeout, forcing status to succeeded");
-        dispatch(setCourseClassOptionStatus('succeeded'));
-      }, 5000); // 5 seconds timeout
-
-      return () => clearTimeout(timer);
-    }
-  }, [classOptionsStatus, dispatch]);
-  // --- End Fetch Class Options ---
-
-  // Fetch attendance data when a class is selected
-  useEffect(() => {
+    // When a class is selected, fetch its specific attendance data.
     if (selectedClass?.id) {
-      console.log(`FacilitatorAttendanceView: Fetching attendance data for class ${selectedClass.id}`);
       dispatch(fetchCourseAttendance(selectedClass.id));
     }
   }, [dispatch, selectedClass?.id]);
 
-  const handleClassChange = useCallback((value: string) => {
-    if (value === "select-a-class" || !value) {
-      dispatch(setCourseClass({ id: '', courseName: "", sessionName: "" }));
+  // --- Event Handlers ---
+  const handleClassChange = useCallback((classId: string) => {
+    const newSelectedClass = availableClasses.find((c: CourseClass) => c.id === classId);
+    if (newSelectedClass) {
+      // To make the state compatible with `setCourseClass`, we map the properties.
+      const classToSet = {
+        id: newSelectedClass.id,
+        courseName: newSelectedClass.courseTitle || newSelectedClass.name, // Use courseTitle or fallback to name
+        sessionName: newSelectedClass.name, // The main name can be the session name
+      } as CourseClassOption;
+      dispatch(setCourseClass(classToSet));
     } else {
-      const selected = classOptions.find((option: CourseClassOption) => option.id === value);
-      if (selected) {
-        dispatch(setCourseClass(selected));
-        // Toasting here might be too frequent if class changes often programmatically.
-        // Consider if it's only for user-initiated changes.
-        // toast({ title: "Class Selected", description: `Viewing attendance for ${selected.courseName} - ${selected.sessionName}` });
-      }
+      dispatch(setCourseClass({
+        id: '',
+        courseName: '',
+        sessionName: ''
+      })); // Clear the selected class
     }
-    // Reset date selection when class changes to avoid showing old data
+    // Reset view state when class changes
     setSelectedDate(undefined);
-    setDisplayMonth(new Date()); // Reset calendar to current month
+    setDisplayMonth(new Date());
     setShowDetailsPanel(false);
-  }, [dispatch, classOptions /*, toast (if re-enabled) */]);
+  }, [dispatch, availableClasses]);
 
-  const handleRetryFetchOptions = () => {
-    initialFetchAttempted.current = false;
-    dispatch(fetchCourseClassOptionsForScanner());
+  const handleDayClick: DayClickEventHandler = (day, modifiers) => {
+    if (modifiers.disabled) return;
+    setSelectedDate(day);
+    setShowDetailsPanel(true);
+    setPopoverOpen(false);
   };
 
-  const isSm = useMediaQuery("(max-width: 640px)");
-  const isMdUp = useMediaQuery("(min-width: 768px)");
-
-  // CRITICAL: Ensure selectCourseDailyAttendances is memoized (e.g. with reselect)
-  // It should handle selectedClass?.id being undefined or '' by returning a STABLE empty array.
+  // --- Memoized Calculations ---
   const courseDailyAttendances = useAppSelector((state) =>
     selectCourseDailyAttendances(state, selectedClass?.id)
   );
 
   const attendanceDataForPicker = useMemo(() => {
-    const data: AttendanceDataForPicker = {};
-    (courseDailyAttendances || []).forEach(att => { // Guard against null/undefined courseDailyAttendances
-      data[att.date] = "hasData";
-    });
-    return data;
+    return (courseDailyAttendances || []).reduce((acc, att) => {
+      acc[att.date] = "hasData";
+      return acc;
+    }, {} as AttendanceDataForPicker);
   }, [courseDailyAttendances]);
-
-  const attendanceModifiers = React.useMemo<Modifiers>(() => {
-    const mods: Modifiers = { today: [new Date()] } as Modifiers; // Initialize with today
-    Object.entries(attendanceDataForPicker).forEach(([dateStr, status]) => {
-      const key = `modifier_${status}` as keyof Modifiers; // Custom modifier key
-      if (!mods[key]) mods[key] = [];
-      try {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        // Ensure UTC to match typical ISO date string storage and avoid timezone issues with Date constructor
-        const attendanceDate = new Date(Date.UTC(year, month - 1, day));
-        if (!isNaN(attendanceDate.getTime())) {
-          (mods[key] as Date[]).push(attendanceDate);
-        }
-      } catch (e) { console.error(`Error parsing date: ${dateStr}`, e); }
-    });
-    return mods;
-  }, [attendanceDataForPicker]);
-
-  const modifierClassNames: CalendarProps['modifiersClassNames'] = {
-    modifier_hasData: 'relative after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-primary',
-    modifier_today: 'bg-accent text-accent-foreground rounded-md font-bold',
-  };
-
-  const currentYear = displayMonth.getFullYear();
-  const currentMonth = displayMonth.getMonth();
-  const years = React.useMemo(() => generateYears(currentYear), [currentYear]);
-
-  // Effect to initialize or update view based on attendance data and selected class
-  useEffect(() => {
-    // This effect runs when courseDailyAttendances (i.e., selected class's data) changes,
-    // or when selectedDate is changed by the user/calendar.
-    const hasData = courseDailyAttendances && courseDailyAttendances.length > 0;
-
-    if (!selectedClass?.id) { // No class selected
-        setSelectedDate(undefined);
-        setShowDetailsPanel(false);
-        // setDisplayMonth(new Date()); // Optionally reset calendar view
-        return;
-    }
-
-    if (hasData) {
-        // If a date is already selected and still valid for current data, keep it.
-        // Otherwise, try to pick a new one.
-        const currentSelectedDateIsValid = selectedDate && courseDailyAttendances.some(att => isSameDay(parseISO(att.date), selectedDate));
-
-        if (currentSelectedDateIsValid && showDetailsPanel) { // Ensure panel is shown if date is valid
-            return; // Date is fine, panel is shown, do nothing
-        }
-        if(currentSelectedDateIsValid && !showDetailsPanel) {
-            setShowDetailsPanel(true); // Date is fine, but panel was hidden, show it
-            return;
-        }
-
-
-        // No valid date selected or current selection is not in new data, find a default.
-        const today = new Date();
-        const todayHasData = courseDailyAttendances.some(att => isSameDay(parseISO(att.date), today));
-        let newSelectedDateToSet: Date | undefined = undefined;
-
-        if (todayHasData) {
-            newSelectedDateToSet = today;
-        } else {
-            const sortedDates = [...courseDailyAttendances]
-                .map((att) => parseISO(att.date))
-                .sort(compareDesc);
-            if (sortedDates.length > 0) {
-                newSelectedDateToSet = sortedDates[0];
-            }
-        }
-
-        if (newSelectedDateToSet) {
-            // Only update if the new date is different from the current selectedDate
-            // This helps prevent loops if newSelectedDateToSet happens to be the same as selectedDate
-            if (!selectedDate || !isSameDay(newSelectedDateToSet, selectedDate)) {
-                setSelectedDate(newSelectedDateToSet);
-                setDisplayMonth(newSelectedDateToSet); // Update calendar view to the month of the new selected date
-            }
-            setShowDetailsPanel(true);
-            // setSearchQuery(""); // Reset search when auto-selecting date
-        } else { // No data to select a date from
-            setSelectedDate(undefined);
-            setShowDetailsPanel(false);
-        }
-    } else { // No attendance data for the selected class
-        setSelectedDate(undefined);
-        setShowDetailsPanel(false);
-        // Optionally reset displayMonth: setDisplayMonth(new Date());
-    }
-  }, [courseDailyAttendances, selectedClass?.id]); // Key dependencies. selectedDate removed to avoid loop if it's set inside.
-                                                  // Add showDetailsPanel to deps if its external changes should re-trigger logic.
 
   const selectedDayAttendanceDetails: DailyAttendance | null = useMemo(() => {
     if (!selectedDate || !courseDailyAttendances) return null;
-    const formattedDate = format(selectedDate, "yyyy-MM-dd");
-    return courseDailyAttendances.find((a) => a.date === formattedDate) || null;
+    const formattedDate = format(selectedDate, "yyyy-M-d"); // Use a format that matches the keys
+    // Find a match ignoring timezones by checking just the date part
+    return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-M-d") === formattedDate) || null;
   }, [selectedDate, courseDailyAttendances]);
 
   const filteredStudents = useMemo(() => {
     if (!selectedDayAttendanceDetails) return [];
-    const studentsOnSelectedDay = selectedDayAttendanceDetails.attendances || [];
-    if (!searchQuery) return studentsOnSelectedDay;
-    return studentsOnSelectedDay.filter((student) => student.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const students = selectedDayAttendanceDetails.attendances || [];
+    if (!searchQuery) return students;
+    return students.filter(student => student.name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [selectedDayAttendanceDetails, searchQuery]);
-
-  const getStatusClasses = (status: AttendanceStatus): string => {
-    switch (status) {
-      case "present": return "bg-green-200/30 text-green-800 border-green-300 dark:bg-green-300/10 dark:text-green-400 dark:border-green-400/20";
-      case "absent": return "bg-red-200/30 text-red-800 border-red-300 dark:bg-red-300/10 dark:text-red-400 dark:border-red-400/20";
-      case "late": return "bg-amber-200/30 text-amber-800 border-amber-300 dark:bg-amber-300/10 dark:text-amber-400 dark:border-amber-400/20";
-      default: return "bg-muted/50 text-muted-foreground border-border dark:bg-muted/10 dark:text-muted-foreground dark:border-muted/30";
-    }
-  };
-
-  const getStatusIcon = (status: AttendanceStatus) => {
-    switch (status) {
-      case "present": return <Check className="h-4 w-4 text-green-600 dark:text-green-300" />;
-      case "absent": return <X className="h-4 w-4 text-red-600 dark:text-red-300" />;
-      case "late": return <Clock className="h-4 w-4 text-amber-600 dark:text-amber-300" />;
-      default: return null;
-    }
-  };
 
   const attendanceStats = useMemo(() => {
     if (!selectedDayAttendanceDetails) return { present: 0, absent: 0, late: 0, total: 0 };
-    const attendances = selectedDayAttendanceDetails.attendances ?? [];
-    const present = attendances.filter((a) => a.status === "present").length;
-    const absent = attendances.filter((a) => a.status === "absent").length;
-    const late = attendances.filter((a) => a.status === "late").length;
-    return { present, absent, late, total: attendances.length };
+    const { attendances = [] } = selectedDayAttendanceDetails;
+    return {
+      present: attendances.filter(a => a.status === "present").length,
+      absent: attendances.filter(a => a.status === "absent").length,
+      late: attendances.filter(a => a.status === "late").length,
+      total: attendances.length,
+    };
   }, [selectedDayAttendanceDetails]);
 
-  const handleDayClick: DayClickEventHandler = (day, modifiers) => {
-    if (modifiers.disabled) return; // Don't do anything for disabled days
-
-    // Check if the day has data using our custom modifier OR if it's selectable in general
-    // The `modifier_hasData` implies there's data.
-    // If you want to allow selecting any day (even without data) and then show "no data", adjust this.
-    if (modifiers.modifier_hasData) {
-      setSelectedDate(day);
-      // setDisplayMonth(day); // Calendar's onMonthChange will handle this if month navigation occurs
-      setShowDetailsPanel(true);
-      setSearchQuery("");
-      setPopoverOpen(false); // Close popover on day click
-    } else {
-      // toast({ variant: "default", title: "No Data", description: "No attendance data recorded for this day." });
-      // Decide if selecting a day with no data should clear the panel or show "no data found"
-      setSelectedDate(day); // Select the day
-      setShowDetailsPanel(true); // Show panel (it will say no records)
-      setSearchQuery("");
-      setPopoverOpen(false);
+  // --- Auto-select first available date logic ---
+  useEffect(() => {
+    if (courseDailyAttendances && courseDailyAttendances.length > 0 && !selectedDate) {
+      const latestDate = [...courseDailyAttendances].sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)))[0];
+      if (latestDate) {
+        const dateToSelect = parseISO(latestDate.date);
+        setSelectedDate(dateToSelect);
+        setDisplayMonth(dateToSelect);
+        setShowDetailsPanel(true);
+      }
     }
-  };
+  }, [courseDailyAttendances, selectedDate]);
 
-  if (!user && classOptionsStatus !== 'loading' && classOptionsStatus !== 'idle') { // Better loading/auth check
-      // This might redirect or show a login prompt if user is truly null after auth check.
-      // For now, returning null if user is definitively not available post-loading.
-      return <p>Authenticating or user not found...</p>;
-  }
-  if (user === undefined && (classOptionsStatus === 'loading' || classOptionsStatus === 'idle')) {
-      return <div className="flex justify-center items-center h-32"><Loader2 className="h-8 w-8 animate-spin" /></div>; // Initial loading state
-  }
+
+  // --- UI Constants & Helpers ---
+  const isSm = useMediaQuery("(max-width: 640px)");
+  const currentYear = displayMonth.getFullYear();
+  const years = React.useMemo(() => generateYears(currentYear), [currentYear]);
+
+  const getStatusClasses = (status: AttendanceStatus) => ({
+    "present": "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700",
+    "absent": "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700",
+    "late": "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700",
+  }[status] || "bg-muted text-muted-foreground border-border");
+
+  const getStatusIcon = (status: AttendanceStatus) => ({
+    "present": <Check className="h-4 w-4 text-green-600" />,
+    "absent": <X className="h-4 w-4 text-red-600" />,
+    "late": <Clock className="h-4 w-4 text-amber-600" />,
+  }[status] || null);
 
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="courseClassSelect">Select Class/Session</Label>
-        <div className="flex flex-col sm:flex-row gap-4 items-start">
-          <Select
-            value={selectedClass?.id || ""}
-            onValueChange={handleClassChange}
-            disabled={classOptionsStatus === 'loading'}
-          >
-            <SelectTrigger id="courseClassSelect" className="w-full sm:w-auto sm:min-w-[300px] flex-grow">
-              <SelectValue placeholder="Select a class to view attendance..." />
-            </SelectTrigger>
-            <SelectContent>
-              {classOptionsLoading && classOptionsStatus === 'loading' && (
-                <SelectItem value="loading" disabled>
-                  <div className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading classes...</div>
-                </SelectItem>
-              )}
-              <SelectItem value="select-a-class">-- Select a Class --</SelectItem>
-              {classOptions?.map((option) => (
-                <SelectItem key={option.id} value={option.id}>
-                  {option.courseName} - {option.sessionName}
-                </SelectItem>
-              ))}
-              {!classOptionsLoading && classOptionsStatus === 'succeeded' && classOptions?.length === 0 && (
-                <SelectItem value="no-classes" disabled>No classes available</SelectItem>
-              )}
-              {classOptionsStatus === 'failed' && (
-                <div className="p-2 text-center text-destructive">
-                  Failed to load classes.
-                  <Button variant="link" onClick={handleRetryFetchOptions} className="text-xs">Retry</Button>
-                </div>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+        <Label htmlFor="class-select">Select Class/Session</Label>
+        <Select value={selectedClass?.id || ""} onValueChange={handleClassChange} disabled={classesLoading}>
+          <SelectTrigger id="class-select" className="w-full sm:w-[400px]">
+            <SelectValue placeholder="Select a class to view attendance..." />
+          </SelectTrigger>
+          <SelectContent>
+            {classesLoading && <SelectItem value="loading" disabled><div className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading classes...</div></SelectItem>}
+            {availableClasses.map((cls: CourseClass) => (
+              <SelectItem key={cls.id} value={cls.id}>
+                {cls.courseTitle || cls.name}
+              </SelectItem>
+            ))}
+            {!classesLoading && availableClasses.length === 0 && <SelectItem value="no-classes" disabled>No classes available.</SelectItem>}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-1">
-          <Card className="shadow-sm">
+          <Card>
             <CardHeader>
               <CardTitle className="text-base font-semibold">Select Date</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {selectedDate ? format(selectedDate, "PPP") : "No date selected"}
-              </p>
             </CardHeader>
             <CardContent className="p-2 md:p-4">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    aria-label={"Select Attendance Date"}
-                    className={cn("w-full justify-start text-left font-normal mb-2", !selectedDate && "text-muted-foreground")}
-                    disabled={!selectedClass?.id} // Disable if no class selected
-                  >
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")} disabled={!selectedClass?.id}>
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    <span>{format(displayMonth, isSm ? "MMM yyyy" : "MMMM yyyy")}</span>
+                    <span>{selectedDate ? format(selectedDate, "PPP") : "Select a date"}</span>
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className={cn("w-auto p-0 bg-background/80 backdrop-blur-sm border", isMdUp && "md:min-w-[540px]")}>
+                <PopoverContent className="w-auto p-0">
                   <div className="flex flex-wrap items-center justify-between gap-2 p-2 border-b">
-                    <Select value={String(currentMonth)} onValueChange={(val) => setDisplayMonth(setMonth(displayMonth, +val))}>
-                      <SelectTrigger className="w-[140px] h-10 text-sm focus:ring-0"><SelectValue placeholder="Month" /></SelectTrigger>
-                      <SelectContent>{months.map(({ value, label }) => (<SelectItem key={value} value={String(value)} className="text-sm">{label}</SelectItem>))}</SelectContent>
+                    <Select value={String(displayMonth.getMonth())} onValueChange={(val) => setDisplayMonth(setMonth(displayMonth, +val))}>
+                      <SelectTrigger className="w-[140px] h-9 text-sm focus:ring-0"><SelectValue /></SelectTrigger>
+                      <SelectContent>{months.map(({ value, label }) => (<SelectItem key={value} value={String(value)}>{label}</SelectItem>))}</SelectContent>
                     </Select>
-                    <Select value={String(currentYear)} onValueChange={(val) => setDisplayMonth(setYear(displayMonth, +val))}>
-                      <SelectTrigger className="w-[100px] h-10 text-sm focus:ring-0"><SelectValue placeholder="Year" /></SelectTrigger>
-                      <SelectContent className="max-h-[200px] overflow-y-auto">{years.map((year) => (<SelectItem key={year} value={String(year)} className="text-sm">{year}</SelectItem>))}</SelectContent>
+                    <Select value={String(displayMonth.getFullYear())} onValueChange={(val) => setDisplayMonth(setYear(displayMonth, +val))}>
+                      <SelectTrigger className="w-[100px] h-9 text-sm focus:ring-0"><SelectValue /></SelectTrigger>
+                      <SelectContent>{years.map((year) => (<SelectItem key={year} value={String(year)}>{year}</SelectItem>))}</SelectContent>
                     </Select>
                   </div>
                   <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    month={displayMonth}
-                    onMonthChange={setDisplayMonth} // Let calendar control month changes
-                    onDayClick={handleDayClick} // Use onDayClick for selection logic
-                    // onSelect={handleDateSelect} // Use onDayClick primarily
-                    toDate={new Date()} // Can't select future dates for attendance tracking
-                    disabled={isWeekend} // Example: disable weekends
-                    initialFocus
-                    numberOfMonths={1}
-                    modifiers={attendanceModifiers}
-                    modifiersClassNames={modifierClassNames}
-                    classNames={{ caption: "hidden", caption_dropdowns: "hidden" }} // Hiding default nav as we have custom
+                    mode="single" selected={selectedDate} month={displayMonth} onMonthChange={setDisplayMonth}
+                    onDayClick={handleDayClick} toDate={new Date()} disabled={isWeekend} initialFocus
+                    modifiers={{ hasData: (date) => Object.keys(attendanceDataForPicker).some(d => isSameDay(parseISO(d), date)) }}
+                    modifiersClassNames={{ hasData: 'relative after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-primary' }}
+                    classNames={{ caption: "hidden" }}
                   />
                 </PopoverContent>
               </Popover>
-              <Button variant="outline" size="sm" className="w-full mt-2 text-xs" onClick={() => setDisplayMonth(new Date())}  disabled={!selectedClass?.id}>
-                Go to Current Month
-              </Button>
+              <Button variant="outline" size="sm" className="w-full mt-2 text-xs" onClick={() => { setDisplayMonth(new Date()); setSelectedDate(new Date()) }} disabled={!selectedClass?.id}>Go to Today</Button>
             </CardContent>
           </Card>
         </div>
 
         <div className="md:col-span-2">
-          <motion.div
-            key={selectedDate ? format(selectedDate, "yyyy-MM-dd") : (selectedClass?.id || "empty")}
-            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.3 }}
-          >
+          <motion.div key={selectedDate ? format(selectedDate, "yyyy-MM-dd") : 'empty'}>
             {fetchingAttendance ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
-                <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-                <h3 className="text-lg font-semibold mb-1">Loading Attendance Data</h3>
-                <p className="text-sm text-muted-foreground max-w-xs">
-                  Please wait while we fetch attendance records...
-                </p>
-              </div>
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-6 text-center rounded-lg bg-card border"><Loader2 className="w-10 h-10 mb-4 text-primary animate-spin" /><h3 className="font-semibold">Loading Attendance...</h3></div>
             ) : selectedClass?.id ? (
               showDetailsPanel && selectedDayAttendanceDetails ? (
-                <Card className="shadow-sm h-full">
+                <Card className="h-full">
                   <CardHeader>
-                    <div className="flex justify-between items-start gap-2">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <CardTitle className="text-lg mb-1">Attendance for {format(selectedDate!, "PPP")}</CardTitle>
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <Badge variant="outline" className={getStatusClasses("present") + " px-2 py-0.5"}>{attendanceStats.present} Present</Badge>
-                          <Badge variant="outline" className={getStatusClasses("absent") + " px-2 py-0.5"}>{attendanceStats.absent} Absent</Badge>
-                          <Badge variant="outline" className={getStatusClasses("late") + " px-2 py-0.5"}>{attendanceStats.late} Late</Badge>
+                        <CardTitle>Attendance for {format(selectedDate!, "PPP")}</CardTitle>
+                        <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                          <Badge variant="outline" className={getStatusClasses("present")}>{attendanceStats.present} Present</Badge>
+                          <Badge variant="outline" className={getStatusClasses("absent")}>{attendanceStats.absent} Absent</Badge>
+                          <Badge variant="outline" className={getStatusClasses("late")}>{attendanceStats.late} Late</Badge>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 flex-shrink-0" onClick={() => setShowDetailsPanel(false)}><X className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="w-8 h-8 -mt-1 -mr-2" onClick={() => setShowDetailsPanel(false)}><X className="w-4 h-4" /></Button>
                     </div>
-                    <div className="relative mt-2">
-                      <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input placeholder="Search students..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-8 h-9" />
-                    </div>
+                    <div className="relative mt-4"><Search className="absolute text-muted-foreground w-4 h-4 left-3 top-1/2 -translate-y-1/2" /><Input placeholder="Search students..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" /></div>
                   </CardHeader>
-                  <CardContent className="max-h-[calc(100vh-280px)] overflow-y-auto space-y-1 pr-3 pt-0">
+                  <CardContent className="max-h-[calc(100vh-350px)] overflow-y-auto pt-0">
                     {filteredStudents.length > 0 ? (
-                      filteredStudents.map((student) => (
-                        <div key={student.studentId} className="flex items-center justify-between p-2 -mx-2 rounded hover:bg-accent transition-colors">
-                          <span className="text-sm font-medium truncate pr-2">{student.name}</span>
-                          <Badge variant="outline" className={cn("capitalize text-xs px-2 py-0.5 font-medium border whitespace-nowrap", getStatusClasses(student.status))}>
-                            <span className="flex items-center gap-1">{getStatusIcon(student.status)}{student.status}</span>
-                          </Badge>
-                        </div>
-                      ))
+                      <div className="space-y-1">
+                        {filteredStudents.map(student => (
+                          <div key={student.studentId} className="flex items-center justify-between p-2 rounded-md hover:bg-accent">
+                            <p className="font-medium text-sm">{student.name}</p>
+                            <div className={cn("flex items-center gap-2 px-2 py-1 text-xs font-semibold capitalize rounded-md", getStatusClasses(student.status))}>
+                              {getStatusIcon(student.status)}
+                              {student.status}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground text-center py-8">
-                        {searchQuery ? "No students found matching search." : "No attendance records found for this day."}
-                      </p>
+                      <div className="py-12 text-center text-muted-foreground text-sm">{searchQuery ? 'No students found for your search.' : 'No attendance records for this day.'}</div>
                     )}
                   </CardContent>
                 </Card>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
-                  <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-1">
-                    {selectedDate ? "No Attendance Data" : "Select a Date"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground max-w-xs">
-                    {selectedDate
-                        ? `No attendance data recorded for ${format(selectedDate, "PPP")}.`
-                        : "Choose a date from the calendar with recorded attendance (indicated by a dot) to view details."
-                    }
-                  </p>
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-6 text-center rounded-lg bg-card border border-dashed">
+                  <CalendarIcon className="w-12 h-12 mb-4 text-muted-foreground" />
+                  <h3 className="font-semibold">{selectedDate ? 'No Records Found' : 'Select a Date'}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{selectedDate ? `No attendance data recorded for ${format(selectedDate, "PPP")}.` : "Choose a date from the calendar to view details."}</p>
                 </div>
               )
             ) : (
-              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center p-6 bg-muted/30 rounded-lg border-2 border-dashed border-border">
-                <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-1">Select a Class</h3>
-                <p className="text-sm text-muted-foreground max-w-xs">
-                  Please select a class/session first to see attendance data.
-                </p>
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] p-6 text-center rounded-lg bg-card border border-dashed">
+                <CalendarIcon className="w-12 h-12 mb-4 text-muted-foreground" />
+                <h3 className="font-semibold">Select a Class</h3>
+                <p className="mt-1 text-sm text-muted-foreground">Please select a class from the dropdown to begin.</p>
               </div>
             )}
           </motion.div>
