@@ -146,7 +146,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
                 </tr>
               </thead>
               <tbody className="bg-none">
-                {itemsToDisplay.map((item, index) => (
+                {Array.isArray(itemsToDisplay) && itemsToDisplay.map((item, index) => (
                   <tr key={item.courseId || `item-${index}-${item.description.slice(0, 5)}`}>
                     <td className="px-4 py-3 whitespace-normal break-words">
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.description}</div>
