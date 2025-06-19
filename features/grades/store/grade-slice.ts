@@ -24,19 +24,51 @@ import { get, post, put, del } from "@/lib/api-client";
 
 // --- Thunks ---
 
+// NEW THUNK for Analytics: Fetch all course grades for all students
+export const fetchAllCourseGrades = createAsyncThunk<
+	CourseGrade[], // Returns a flat array of all course grades
+	void, // No arguments needed
+	{ state: RootState; rejectValue: string }
+>("grades/fetchAllCourseGrades", async (_, { rejectWithValue }) => {
+	try {
+		// This assumes you have a backend endpoint like GET /grades/course/all
+		// that returns all calculated course grades for all students.
+		// This is the most performant way to get this data for analytics.
+		const endpoint = "/grades/course/all"; // <<-- ASSUMED ENDPOINT
+		console.log(`Calling API for all course grades: GET ${endpoint}`);
+
+		const response = await get<CourseGrade[]>(endpoint);
+
+		// Fallback if the endpoint doesn't exist (less performant)
+		if (!response) {
+			console.warn(
+				"Endpoint /grades/course/all not found. This is a placeholder; analytics will not have grade data."
+			);
+			return [];
+		}
+
+		return response;
+	} catch (error: any) {
+		console.error("Error fetching all course grades:", error);
+		return rejectWithValue(
+			error.message || "Failed to fetch all course grades"
+		);
+	}
+});
+
 // Simple fetchGrades function for dashboard
 export const fetchGrades = createAsyncThunk<
-    void,
-    void,
-    { rejectValue: string }
+	void,
+	void,
+	{ rejectValue: string }
 >("grades/fetchGrades", async (_, { dispatch, rejectWithValue }) => {
-    try {
-        // Call the more specific fetchGradeItems function with default parameters
-        await dispatch(fetchGradeItems({ role: 'student' }));
-    } catch (error: any) {
-        console.error("Error fetching grades:", error);
-        return rejectWithValue(error.message || "Failed to fetch grades");
-    }
+	try {
+		// Call the more specific fetchGradeItems function with default parameters
+		await dispatch(fetchGradeItems({ role: "student" }));
+	} catch (error: any) {
+		console.error("Error fetching grades:", error);
+		return rejectWithValue(error.message || "Failed to fetch grades");
+	}
 });
 
 // Fetch grade items (Backend needs to determine response type based on user role/context)
@@ -401,6 +433,13 @@ const gradeSlice = createSlice({
 				state.error = action.payload ?? "Failed to create grade item";
 			});
 
+		builder.addCase(fetchAllCourseGrades.fulfilled, (state, action) => {
+			// We can decide how to handle this. For now, let's just update the main courseGrades array.
+			// This might overwrite a more specific view, so be mindful of the UX.
+			// A separate state property like `allCourseGrades` might be better in a full implementation.
+			state.courseGrades = action.payload;
+			state.status = "succeeded";
+		});
 		// Update Grade Item
 		builder
 			.addCase(updateGradeItem.pending, (state) => {
@@ -617,34 +656,44 @@ export const selectGradeOperationStatus = (state: RootState) =>
 export const selectGradeError = (state: RootState) => state.grades.error;
 
 // Additional selectors for filtering by course and class
-export const selectGradeItemsByCourseId = (courseId: string) => (state: RootState) =>
-	state.grades.gradeItems.filter(item => item.courseId === courseId);
+export const selectGradeItemsByCourseId =
+	(courseId: string) => (state: RootState) =>
+		state.grades.gradeItems.filter((item) => item.courseId === courseId);
 
-export const selectGradeItemsByClassId = (classId: string) => (state: RootState) =>
-	state.grades.gradeItems.filter(item => item.classId === classId);
+export const selectGradeItemsByClassId =
+	(classId: string) => (state: RootState) =>
+		state.grades.gradeItems.filter((item) => item.classId === classId);
 
-export const selectStudentGradeItemsByCourseId = (courseId: string) => (state: RootState) =>
-	state.grades.studentGradeItems.filter(item => item.courseId === courseId);
+export const selectStudentGradeItemsByCourseId =
+	(courseId: string) => (state: RootState) =>
+		state.grades.studentGradeItems.filter((item) => item.courseId === courseId);
 
-export const selectStudentGradeItemsByClassId = (classId: string) => (state: RootState) =>
-	state.grades.studentGradeItems.filter(item => item.classId === classId);
+export const selectStudentGradeItemsByClassId =
+	(classId: string) => (state: RootState) =>
+		state.grades.studentGradeItems.filter((item) => item.classId === classId);
 
-export const selectStudentGradesByCourseId = (courseId: string) => (state: RootState) => {
-	// First, get all grade items for this course
-	const courseGradeItems = state.grades.gradeItems.filter(item => item.courseId === courseId);
-	// Then, get all student grades for these grade items
-	return state.grades.studentGrades.filter(grade =>
-		courseGradeItems.some(item => item.id === grade.gradeItemId)
-	);
-};
+export const selectStudentGradesByCourseId =
+	(courseId: string) => (state: RootState) => {
+		// First, get all grade items for this course
+		const courseGradeItems = state.grades.gradeItems.filter(
+			(item) => item.courseId === courseId
+		);
+		// Then, get all student grades for these grade items
+		return state.grades.studentGrades.filter((grade) =>
+			courseGradeItems.some((item) => item.id === grade.gradeItemId)
+		);
+	};
 
-export const selectStudentGradesByClassId = (classId: string) => (state: RootState) => {
-	// First, get all grade items for this class
-	const classGradeItems = state.grades.gradeItems.filter(item => item.classId === classId);
-	// Then, get all student grades for these grade items
-	return state.grades.studentGrades.filter(grade =>
-		classGradeItems.some(item => item.id === grade.gradeItemId)
-	);
-};
+export const selectStudentGradesByClassId =
+	(classId: string) => (state: RootState) => {
+		// First, get all grade items for this class
+		const classGradeItems = state.grades.gradeItems.filter(
+			(item) => item.classId === classId
+		);
+		// Then, get all student grades for these grade items
+		return state.grades.studentGrades.filter((grade) =>
+			classGradeItems.some((item) => item.id === grade.gradeItemId)
+		);
+	};
 
 export default gradeSlice.reducer;

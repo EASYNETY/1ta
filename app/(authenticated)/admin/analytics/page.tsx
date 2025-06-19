@@ -4,17 +4,22 @@
 
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchAnalyticsDashboard, selectAnalyticsDashboardStats, selectAnalyticsStatus } from "@/features/analytics/store/analytics-slice";
+import { fetchAnalyticsDashboard, selectAnalyticsDashboardStats, selectAnalyticsStatus, selectDerivedCourseRevenue, selectDerivedAttendanceReports } from "@/features/analytics/store/analytics-slice";
 import { PageHeader } from "@/components/layout/auth/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { BarChart, LineChart, PieChart, AreaChart, Bar, Line, Pie, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
-import { Users, BookOpen, CreditCard, Calendar, TrendingUp, BarChart3 } from "lucide-react";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
+import { BarChart, LineChart, PieChart, AreaChart, Bar, Line, Pie, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Cell } from "recharts";
+import { Users, BookOpen, CreditCard, Calendar } from "lucide-react";
 import Link from "next/link";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280", "#EF4444"];
+
+// Helper to ensure data is always an array for charts
+const ensureArray = (data: any) => (Array.isArray(data) ? data : []);
 
 export default function AnalyticsDashboard() {
   const dispatch = useAppDispatch();
@@ -22,16 +27,85 @@ export default function AnalyticsDashboard() {
   const status = useAppSelector(selectAnalyticsStatus);
 
   useEffect(() => {
-    dispatch(fetchAnalyticsDashboard());
-  }, [dispatch]);
+    if (status === "idle" || status === "failed") {
+      dispatch(fetchAnalyticsDashboard());
+    }
+  }, [dispatch, status]);
 
-  const isLoading = status === "loading";
+  const isLoading = status === "loading" || status === "idle";
+
+  // --- Define Chart Configs ---
+  // This is required by <ChartContainer> to render tooltips and legends correctly.
+  const revenueTrendConfig: ChartConfig = {
+    value: { label: "Revenue", color: "#28A745" },
+  };
+  const popularCoursesConfig: ChartConfig = {
+    value: { label: "Enrolments", color: "#28A745" },
+  };
+  const studentGrowthConfig: ChartConfig = {
+    value: { label: "New Students", color: "#28A745" },
+  };
+  const completionRateConfig: ChartConfig = {
+    value: { label: "Completion %", color: "#28A745" },
+  };
+  const avgGradeConfig: ChartConfig = {
+    value: { label: "Avg. Grade", color: "#3B82F6" },
+  };
+  const revenueByCourseConfig: ChartConfig = {
+    value: { label: "Revenue", color: "#28A745" },
+  };
+  const attendanceTrendConfig: ChartConfig = {
+    value: { label: "Attendance Rate", color: "#28A745" },
+  };
+  const attendanceDayConfig: ChartConfig = {
+    value: { label: "Attendance Rate", color: "#28A745" },
+  };
+
+
+  // Safely get chart data and create dynamic configs for Pie Charts
+  const genderData = ensureArray(stats?.studentStats?.genderDistribution);
+  const genderConfig = Object.fromEntries(
+    genderData.map((entry, index) => [
+      entry.name,
+      { label: entry.name, color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length] },
+    ])
+  ) as ChartConfig;
+
+  const ageData = ensureArray(stats?.studentStats?.ageDistribution);
+  const ageConfig: ChartConfig = {
+    value: { label: "Students", color: "#28A745" },
+  }
+
+  const paymentMethodData = ensureArray(stats?.paymentStats?.paymentMethodDistribution);
+  const paymentMethodConfig = Object.fromEntries(
+    paymentMethodData.map((entry, index) => [
+      entry.name,
+      { label: entry.name, color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length] },
+    ])
+  ) as ChartConfig;
+
+  const paymentStatusData = ensureArray(stats?.paymentStats?.paymentStatusDistribution);
+  const paymentStatusConfig = Object.fromEntries(
+    paymentStatusData.map((entry, index) => [
+      entry.name,
+      { label: entry.name, color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length] },
+    ])
+  ) as ChartConfig;
+
+  const attendanceStatusData = ensureArray(stats?.attendanceStats?.statusDistribution);
+  const attendanceStatusConfig = Object.fromEntries(
+    attendanceStatusData.map((entry, index) => [
+      entry.name,
+      { label: entry.name, color: PIE_CHART_COLORS[index % PIE_CHART_COLORS.length] },
+    ])
+  ) as ChartConfig;
+
 
   return (
     <div className="space-y-6">
       <PageHeader
         heading="Analytics Dashboard"
-        subheading="View key metrics and performance indicators"
+        subheading="View key metrics and performance indicators for your academy"
         actions={
           <div className="flex gap-2">
             <DyraneButton asChild>
@@ -53,217 +127,101 @@ export default function AnalyticsDashboard() {
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
+        {/* --- OVERVIEW TAB --- */}
         <TabsContent value="overview" className="space-y-6">
-          {/* Overview Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Student Stats Card */}
+            {/* Stat Cards are fine, no charts here */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Students</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <>
-                    <Skeleton className="h-7 w-24 mb-1" />
-                    <Skeleton className="h-4 w-32" />
-                  </>
-                ) : (
+                {isLoading ? <Skeleton className="h-12 w-32" /> : (
                   <>
                     <div className="text-2xl font-bold">{stats.studentStats.total}</div>
-                    <div className="text-xs text-muted-foreground">
-                      +{stats.studentStats.newThisMonth} this month
-                    </div>
+                    <p className="text-xs text-muted-foreground">+{stats.studentStats.newThisMonth} new this month</p>
                   </>
                 )}
               </CardContent>
             </Card>
-
-            {/* Course Stats Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Courses</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
                 <BookOpen className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <>
-                    <Skeleton className="h-7 w-24 mb-1" />
-                    <Skeleton className="h-4 w-32" />
-                  </>
-                ) : (
+                {isLoading ? <Skeleton className="h-12 w-32" /> : (
                   <>
                     <div className="text-2xl font-bold">{stats.courseStats.total}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {stats.courseStats.averageCompletion}% avg. completion
-                    </div>
+                    <p className="text-xs text-muted-foreground">{stats.courseStats.averageCompletion}% avg. completion</p>
                   </>
                 )}
               </CardContent>
             </Card>
-
-            {/* Revenue Stats Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <>
-                    <Skeleton className="h-7 w-24 mb-1" />
-                    <Skeleton className="h-4 w-32" />
-                  </>
-                ) : (
+                {isLoading ? <Skeleton className="h-12 w-32" /> : (
                   <>
                     <div className="text-2xl font-bold">₦{(stats.paymentStats.totalRevenue / 100).toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">
-                      +₦{(stats.paymentStats.revenueThisMonth / 100).toLocaleString()} this month
-                    </div>
+                    <p className="text-xs text-muted-foreground">+₦{(stats.paymentStats.revenueThisMonth / 100).toLocaleString()} this month</p>
                   </>
                 )}
               </CardContent>
             </Card>
-
-            {/* Attendance Stats Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Attendance</CardTitle>
+                <CardTitle className="text-sm font-medium">Avg. Attendance</CardTitle>
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <>
-                    <Skeleton className="h-7 w-24 mb-1" />
-                    <Skeleton className="h-4 w-32" />
-                  </>
-                ) : (
+                {isLoading ? <Skeleton className="h-12 w-32" /> : (
                   <>
                     <div className="text-2xl font-bold">{stats.attendanceStats.averageRate}%</div>
-                    <div className="text-xs text-muted-foreground">
-                      Average attendance rate
-                    </div>
+                    <p className="text-xs text-muted-foreground">Overall attendance rate</p>
                   </>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Charts Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Revenue Trend Chart */}
             <Card>
-              <CardHeader>
-                <CardTitle>Revenue Trend</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      revenue: {
-                        label: "Revenue",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <AreaChart
-                      data={stats.paymentStats.revenueTrends || [
-                        { month: "Jan", revenue: 120000 },
-                        { month: "Feb", revenue: 150000 },
-                        { month: "Mar", revenue: 180000 },
-                        { month: "Apr", revenue: 170000 },
-                        { month: "May", revenue: 200000 },
-                        { month: "Jun", revenue: 250000 },
-                      ]}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            formatter={(value) => `₦${(value as number / 100).toLocaleString()}`}
-                          />
-                        )}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="var(--color-revenue)"
-                        fill="var(--color-revenue)"
-                        fillOpacity={0.2}
-                      />
-                    </AreaChart>
+              <CardHeader><CardTitle>Revenue Trend (Last 6 Months)</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={revenueTrendConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={ensureArray(stats.paymentStats.revenueTrends)} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis tickFormatter={(value) => `₦${(value / 100 / 1000)}k`} />
+                        <ChartTooltip content={<ChartTooltipContent formatter={(value) => `₦${(value as number / 100).toLocaleString()}`} />} />
+                        <Area type="monotone" dataKey="value" stroke={revenueTrendConfig.value.color} fill={revenueTrendConfig.value.color} fillOpacity={0.2} name="Revenue" />
+                      </AreaChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
             </Card>
-
-            {/* Enrolment Distribution Chart */}
             <Card>
-              <CardHeader>
-                <CardTitle>Course Enrolments</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      enrolments: {
-                        label: "Enrolments",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <BarChart
-                      data={stats.courseStats.categoryDistribution ?
-                        Object.entries(stats.courseStats.categoryDistribution).map(([category, count]) => ({
-                          category,
-                          enrolments: count
-                        })) :
-                        [
-                          { category: "Web Dev", enrolments: 45 },
-                          { category: "Data Science", enrolments: 30 },
-                          { category: "UX Design", enrolments: 25 },
-                          { category: "Mobile Dev", enrolments: 20 },
-                          { category: "DevOps", enrolments: 15 },
-                        ]
-                      }
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="category" />
-                      <YAxis />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                          />
-                        )}
-                      />
-                      <Bar
-                        dataKey="enrolments"
-                        fill="var(--color-enrolments)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
+              <CardHeader><CardTitle>Top 5 Most Popular Courses</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={popularCoursesConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ensureArray(stats.courseStats.enrolmentsByCourse)} layout="vertical" margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="value" fill={popularCoursesConfig.value.color} radius={[0, 4, 4, 0]} name="Enrolments" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
@@ -271,659 +229,168 @@ export default function AnalyticsDashboard() {
           </div>
         </TabsContent>
 
-        {/* Additional tabs content */}
-        <TabsContent value="students">
-          <div className="space-y-6">
-            {/* Student Growth Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Growth</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      students: {
-                        label: "Students",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <AreaChart
-                      data={[
-                        { month: "Jan", students: 150 },
-                        { month: "Feb", students: 170 },
-                        { month: "Mar", students: 180 },
-                        { month: "Apr", students: 190 },
-                        { month: "May", students: 210 },
-                        { month: "Jun", students: 230 },
-                        { month: "Jul", students: 250 },
-                      ]}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
+        {/* --- STUDENTS TAB --- */}
+        <TabsContent value="students" className="space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Student Growth (Last 6 Months)</CardTitle></CardHeader>
+            <CardContent className="h-80">
+              {isLoading ? <Skeleton className="h-full w-full" /> : (
+                <ChartContainer config={studentGrowthConfig}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={ensureArray(stats.studentStats.growth)} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
+                      <XAxis dataKey="date" />
                       <YAxis />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                          />
-                        )}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="students"
-                        stroke="var(--color-students)"
-                        fill="var(--color-students)"
-                        fillOpacity={0.2}
-                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Area type="monotone" dataKey="value" stroke={studentGrowthConfig.value.color} fill={studentGrowthConfig.value.color} fillOpacity={0.2} name="New Students" />
                     </AreaChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader><CardTitle>Gender Distribution</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={genderConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {genderData.map((entry) => (
+                            <Cell key={`cell-${entry.name}`} fill={genderConfig[entry.name]?.color} />
+                          ))}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
             </Card>
-
-            {/* Student Demographics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Gender Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gender Distribution</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        male: {
-                          label: "Male",
-                          theme: {
-                            light: "#3B82F6",
-                            dark: "#3B82F6",
-                          },
-                        },
-                        female: {
-                          label: "Female",
-                          theme: {
-                            light: "#EC4899",
-                            dark: "#EC4899",
-                          },
-                        },
-                        other: {
-                          label: "Other",
-                          theme: {
-                            light: "#10B981",
-                            dark: "#10B981",
-                          },
-                        },
-                      }}
-                    >
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Male", value: 140 },
-                            { name: "Female", value: 105 },
-                            { name: "Other", value: 5 },
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          nameKey="name"
-                        />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                            />
-                          )}
-                        />
-                        <ChartLegend
-                          content={({ payload }) => (
-                            <ChartLegendContent payload={payload} />
-                          )}
-                        />
-                      </PieChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Age Distribution */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Age Distribution</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        count: {
-                          label: "Students",
-                          theme: {
-                            light: "#28A745",
-                            dark: "#28A745",
-                          },
-                        },
-                      }}
-                    >
-                      <BarChart
-                        data={[
-                          { age: "Under 18", count: 15 },
-                          { age: "18-24", count: 95 },
-                          { age: "25-34", count: 85 },
-                          { age: "35-44", count: 45 },
-                          { age: "45+", count: 10 },
-                        ]}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
+            <Card>
+              <CardHeader><CardTitle>Age Distribution</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={ageConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="age" />
+                        <XAxis dataKey="name" />
                         <YAxis />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                            />
-                          )}
-                        />
-                        <Bar
-                          dataKey="count"
-                          name="Students"
-                          fill="var(--color-count)"
-                          radius={[4, 4, 0, 0]}
-                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="value" fill={ageConfig.value.color} radius={[4, 4, 0, 0]} name="Students" />
                       </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="courses">
-          <div className="space-y-6">
-            {/* Course Popularity Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Popularity</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      enrolments: {
-                        label: "Enrolments",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <BarChart
-                      data={[
-                        { course: "Web Development", enrolments: 85 },
-                        { course: "Data Science", enrolments: 65 },
-                        { course: "UX Design", enrolments: 55 },
-                        { course: "Mobile Development", enrolments: 45 },
-                        { course: "DevOps", enrolments: 35 },
-                      ]}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="course"
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                          />
-                        )}
-                      />
-                      <Bar
-                        dataKey="enrolments"
-                        name="Enrolments"
-                        fill="var(--color-enrolments)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
 
-            {/* Course Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Completion Rates */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Completion Rates</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        completionRate: {
-                          label: "Completion Rate",
-                          theme: {
-                            light: "#28A745",
-                            dark: "#28A745",
-                          },
-                        },
-                      }}
-                    >
-                      <BarChart
-                        data={[
-                          { course: "Web Development", completionRate: 78 },
-                          { course: "Data Science", completionRate: 65 },
-                          { course: "UX Design", completionRate: 82 },
-                          { course: "Mobile Development", completionRate: 70 },
-                          { course: "DevOps", completionRate: 85 },
-                        ]}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                      >
+        {/* All other tabs follow the same pattern... */}
+        {/* --- COURSES TAB --- */}
+        <TabsContent value="courses" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader><CardTitle>Completion Rates by Course (Top 5)</CardTitle></CardHeader>
+              <CardContent className="h-96">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={completionRateConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ensureArray(stats.courseStats.completionRateByCourse)} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="course"
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                              formatter={(value) => `${value}%`}
-                            />
-                          )}
-                        />
-                        <Bar
-                          dataKey="completionRate"
-                          name="Completion Rate"
-                          fill="var(--color-completionRate)"
-                          radius={[4, 4, 0, 0]}
-                        />
+                        <XAxis type="number" domain={[0, 100]} />
+                        <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent formatter={(value) => `${value}%`} />} />
+                        <Bar dataKey="value" fill={completionRateConfig.value.color} name="Completion %" radius={[0, 4, 4, 0]} />
                       </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Average Grades */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Average Grades</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        grade: {
-                          label: "Average Grade",
-                          theme: {
-                            light: "#28A745",
-                            dark: "#28A745",
-                          },
-                        },
-                      }}
-                    >
-                      <BarChart
-                        data={[
-                          { course: "Web Development", grade: 82 },
-                          { course: "Data Science", grade: 78 },
-                          { course: "UX Design", grade: 85 },
-                          { course: "Mobile Development", grade: 80 },
-                          { course: "DevOps", grade: 88 },
-                        ]}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                      >
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Average Grades by Course (Top 5)</CardTitle></CardHeader>
+              <CardContent className="h-96">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={avgGradeConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ensureArray(stats.courseStats.averageGradeByCourse)} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="course"
-                          angle={-45}
-                          textAnchor="end"
-                          height={60}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis domain={[0, 100]} />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                              formatter={(value) => `${value}%`}
-                            />
-                          )}
-                        />
-                        <Bar
-                          dataKey="grade"
-                          name="Average Grade"
-                          fill="var(--color-grade)"
-                          radius={[4, 4, 0, 0]}
-                        />
+                        <XAxis type="number" domain={[0, 100]} />
+                        <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent formatter={(value) => `${value}%`} />} />
+                        <Bar dataKey="value" fill={avgGradeConfig.value.color} name="Avg. Grade" radius={[0, 4, 4, 0]} />
                       </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="payments">
-          <div className="space-y-6">
-            {/* Revenue Trends Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Revenue</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      revenue: {
-                        label: "Revenue",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <AreaChart
-                      data={stats.paymentStats.revenueTrends || [
-                        { month: "Jan", revenue: 12000000 },
-                        { month: "Feb", revenue: 15000000 },
-                        { month: "Mar", revenue: 18000000 },
-                        { month: "Apr", revenue: 17000000 },
-                        { month: "May", revenue: 20000000 },
-                        { month: "Jun", revenue: 25000000 },
-                      ]}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            formatter={(value) => `₦${(value as number / 100).toLocaleString()}`}
-                          />
-                        )}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="revenue"
-                        stroke="var(--color-revenue)"
-                        fill="var(--color-revenue)"
-                        fillOpacity={0.2}
-                      />
-                    </AreaChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
 
-            {/* Payment Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Payment Methods */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Methods</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        card: {
-                          label: "Card",
-                          theme: {
-                            light: "#3B82F6",
-                            dark: "#3B82F6",
-                          },
-                        },
-                        bankTransfer: {
-                          label: "Bank Transfer",
-                          theme: {
-                            light: "#F59E0B",
-                            dark: "#F59E0B",
-                          },
-                        },
-                        ussd: {
-                          label: "USSD",
-                          theme: {
-                            light: "#10B981",
-                            dark: "#10B981",
-                          },
-                        },
-                        other: {
-                          label: "Other",
-                          theme: {
-                            light: "#6B7280",
-                            dark: "#6B7280",
-                          },
-                        },
-                      }}
-                    >
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Card", value: 65 },
-                            { name: "Bank Transfer", value: 20 },
-                            { name: "USSD", value: 10 },
-                            { name: "Other", value: 5 },
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          nameKey="name"
-                        />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                              formatter={(value) => `${value}%`}
-                            />
-                          )}
-                        />
-                        <ChartLegend
-                          content={({ payload }) => (
-                            <ChartLegendContent payload={payload} />
-                          )}
-                        />
-                      </PieChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Payment Status */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Status</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        successful: {
-                          label: "Successful",
-                          theme: {
-                            light: "#10B981",
-                            dark: "#10B981",
-                          },
-                        },
-                        pending: {
-                          label: "Pending",
-                          theme: {
-                            light: "#F59E0B",
-                            dark: "#F59E0B",
-                          },
-                        },
-                        failed: {
-                          label: "Failed",
-                          theme: {
-                            light: "#EF4444",
-                            dark: "#EF4444",
-                          },
-                        },
-                      }}
-                    >
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Successful", value: 85 },
-                            { name: "Pending", value: 10 },
-                            { name: "Failed", value: 5 },
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          nameKey="name"
-                        />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                              formatter={(value) => `${value}%`}
-                            />
-                          )}
-                        />
-                        <ChartLegend
-                          content={({ payload }) => (
-                            <ChartLegendContent payload={payload} />
-                          )}
-                        />
-                      </PieChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Revenue by Course */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue by Course</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      revenue: {
-                        label: "Revenue",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <BarChart
-                      data={[
-                        { course: "Web Development", revenue: 1200000000 },
-                        { course: "Data Science", revenue: 950000000 },
-                        { course: "UX Design", revenue: 850000000 },
-                        { course: "Mobile Development", revenue: 750000000 },
-                        { course: "DevOps", revenue: 550000000 },
-                      ]}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                    >
+        {/* --- PAYMENTS TAB --- */}
+          <TabsContent value="payments" className="space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Revenue by Course (Top 5)</CardTitle></CardHeader>
+            <CardContent className="h-96">
+              {isLoading ? <Skeleton className="h-full w-full" /> : (
+                <ChartContainer config={revenueByCourseConfig}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ensureArray(selectDerivedCourseRevenue)} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="course"
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            formatter={(value) => `₦${(value as number / 100).toLocaleString()}`}
-                          />
-                        )}
-                      />
-                      <Bar
-                        dataKey="revenue"
-                        name="Revenue"
-                        fill="var(--color-revenue)"
-                        radius={[4, 4, 0, 0]}
-                      />
+                      <XAxis type="number" tickFormatter={(value) => `₦${(value / 100 / 1000)}k`} />
+                      <YAxis dataKey="courseName" type="category" width={150} tick={{ fontSize: 12 }} />
+                      <ChartTooltip content={<ChartTooltipContent formatter={(value) => `₦${(value as number / 100).toLocaleString()}`} />} />
+                      <Bar dataKey="totalRevenue" fill={revenueByCourseConfig.value.color} name="Revenue" radius={[0, 4, 4, 0]} />
                     </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader><CardTitle>Payment Methods</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={paymentMethodConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={paymentMethodData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {paymentMethodData.map((entry) => (
+                            <Cell key={`cell-${entry.name}`} fill={paymentMethodConfig[entry.name]?.color} />
+                          ))}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle>Payment Status</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={paymentStatusConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={paymentStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {paymentStatusData.map((entry) => (
+                            <Cell key={`cell-${entry.name}`} fill={paymentStatusConfig[entry.name]?.color} />
+                          ))}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
@@ -931,320 +398,61 @@ export default function AnalyticsDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="attendance">
-          <div className="space-y-6">
-            {/* Attendance Rate Trends */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Rate Trends</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      rate: {
-                        label: "Attendance Rate",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <LineChart
-                      data={[
-                        { month: "Jan", rate: 82 },
-                        { month: "Feb", rate: 85 },
-                        { month: "Mar", rate: 88 },
-                        { month: "Apr", rate: 84 },
-                        { month: "May", rate: 87 },
-                        { month: "Jun", rate: 90 },
-                      ]}
-                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                    >
+        {/* --- ATTENDANCE TAB --- */}
+        <TabsContent value="attendance" className="space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Attendance Rate Trend (Last 6 Months)</CardTitle></CardHeader>
+            <CardContent className="h-80">
+              {isLoading ? <Skeleton className="h-full w-full" /> : (
+                <ChartContainer config={attendanceTrendConfig}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={ensureArray(stats.attendanceStats.rateTrends)} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis domain={[0, 100]} />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            formatter={(value) => `${value}%`}
-                          />
-                        )}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="rate"
-                        stroke="var(--color-rate)"
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                        activeDot={{ r: 6 }}
-                      />
+                      <XAxis dataKey="date" />
+                      <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                      <ChartTooltip content={<ChartTooltipContent formatter={(value) => `${value}%`} />} />
+                      <Line type="monotone" dataKey="value" stroke={attendanceTrendConfig.value.color} strokeWidth={2} name="Attendance Rate" />
                     </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader><CardTitle>Attendance by Day of Week</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={attendanceDayConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={ensureArray(stats.attendanceStats.byDayOfWeek)} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                        <ChartTooltip content={<ChartTooltipContent formatter={(value) => `${value}%`} />} />
+                        <Bar dataKey="value" fill={attendanceDayConfig.value.color} radius={[4, 4, 0, 0]} name="Attendance Rate" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
             </Card>
-
-            {/* Attendance Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Attendance by Day of Week */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Attendance by Day of Week</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        rate: {
-                          label: "Attendance Rate",
-                          theme: {
-                            light: "#28A745",
-                            dark: "#28A745",
-                          },
-                        },
-                      }}
-                    >
-                      <BarChart
-                        data={[
-                          { day: "Monday", rate: 88 },
-                          { day: "Tuesday", rate: 92 },
-                          { day: "Wednesday", rate: 85 },
-                          { day: "Thursday", rate: 80 },
-                          { day: "Friday", rate: 75 },
-                          { day: "Saturday", rate: 65 },
-                        ]}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="day" />
-                        <YAxis domain={[0, 100]} />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                              formatter={(value) => `${value}%`}
-                            />
-                          )}
-                        />
-                        <Bar
-                          dataKey="rate"
-                          name="Attendance Rate"
-                          fill="var(--color-rate)"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Attendance by Time of Day */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Attendance by Time of Day</CardTitle>
-                </CardHeader>
-                <CardContent className="min-h-80 h-auto">
-                  {isLoading ? (
-                    <div className="h-full w-full flex items-center justify-center">
-                      <Skeleton className="h-64 w-full" />
-                    </div>
-                  ) : (
-                    <ChartContainer
-                      config={{
-                        rate: {
-                          label: "Attendance Rate",
-                          theme: {
-                            light: "#28A745",
-                            dark: "#28A745",
-                          },
-                        },
-                      }}
-                    >
-                      <BarChart
-                        data={[
-                          { time: "8-10 AM", rate: 92 },
-                          { time: "10-12 PM", rate: 88 },
-                          { time: "12-2 PM", rate: 75 },
-                          { time: "2-4 PM", rate: 82 },
-                          { time: "4-6 PM", rate: 85 },
-                          { time: "6-8 PM", rate: 78 },
-                        ]}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" />
-                        <YAxis domain={[0, 100]} />
-                        <ChartTooltip
-                          content={({ active, payload }) => (
-                            <ChartTooltipContent
-                              active={active}
-                              payload={payload}
-                              formatter={(value) => `${value}%`}
-                            />
-                          )}
-                        />
-                        <Bar
-                          dataKey="rate"
-                          name="Attendance Rate"
-                          fill="var(--color-rate)"
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ChartContainer>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Attendance by Course */}
             <Card>
-              <CardHeader>
-                <CardTitle>Attendance by Course</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      rate: {
-                        label: "Attendance Rate",
-                        theme: {
-                          light: "#28A745",
-                          dark: "#28A745",
-                        },
-                      },
-                    }}
-                  >
-                    <BarChart
-                      data={[
-                        { course: "Web Development", rate: 88 },
-                        { course: "Data Science", rate: 82 },
-                        { course: "UX Design", rate: 90 },
-                        { course: "Mobile Development", rate: 85 },
-                        { course: "DevOps", rate: 92 },
-                      ]}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="course"
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis domain={[0, 100]} />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            formatter={(value) => `${value}%`}
-                          />
-                        )}
-                      />
-                      <Bar
-                        dataKey="rate"
-                        name="Attendance Rate"
-                        fill="var(--color-rate)"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Attendance Status Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Attendance Status Distribution</CardTitle>
-              </CardHeader>
-              <CardContent className="min-h-80 h-auto">
-                {isLoading ? (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <Skeleton className="h-64 w-full" />
-                  </div>
-                ) : (
-                  <ChartContainer
-                    config={{
-                      present: {
-                        label: "Present",
-                        theme: {
-                          light: "#10B981",
-                          dark: "#10B981",
-                        },
-                      },
-                      late: {
-                        label: "Late",
-                        theme: {
-                          light: "#F59E0B",
-                          dark: "#F59E0B",
-                        },
-                      },
-                      absent: {
-                        label: "Absent",
-                        theme: {
-                          light: "#EF4444",
-                          dark: "#EF4444",
-                        },
-                      },
-                      excused: {
-                        label: "Excused",
-                        theme: {
-                          light: "#6B7280",
-                          dark: "#6B7280",
-                        },
-                      },
-                    }}
-                  >
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { name: "Present", value: 75 },
-                          { name: "Late", value: 10 },
-                          { name: "Absent", value: 10 },
-                          { name: "Excused", value: 5 },
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        nameKey="name"
-                      />
-                      <ChartTooltip
-                        content={({ active, payload }) => (
-                          <ChartTooltipContent
-                            active={active}
-                            payload={payload}
-                            formatter={(value) => `${value}%`}
-                          />
-                        )}
-                      />
-                      <ChartLegend
-                        content={({ payload }) => (
-                          <ChartLegendContent payload={payload} />
-                        )}
-                      />
-                    </PieChart>
+              <CardHeader><CardTitle>Attendance Status Distribution</CardTitle></CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? <Skeleton className="h-full w-full" /> : (
+                  <ChartContainer config={attendanceStatusConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={attendanceStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {attendanceStatusData.map((entry) => (
+                            <Cell key={`cell-${entry.name}`} fill={attendanceStatusConfig[entry.name]?.color} />
+                          ))}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 )}
               </CardContent>
