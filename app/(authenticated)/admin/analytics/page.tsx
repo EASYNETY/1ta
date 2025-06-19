@@ -167,8 +167,8 @@ export default function AnalyticsDashboard() {
               <CardContent>
                 {isLoading ? <Skeleton className="h-12 w-32" /> : (
                   <>
-                    <div className="text-2xl font-bold">₦{(stats.paymentStats.totalRevenue / 100).toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">+₦{(stats.paymentStats.revenueThisMonth / 100).toLocaleString()} this month</p>
+                    <div className="text-2xl font-bold">₦{(stats.paymentStats.totalRevenue).toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">+₦{(stats.paymentStats.revenueThisMonth).toLocaleString()} this month</p>
                   </>
                 )}
               </CardContent>
