@@ -44,7 +44,7 @@ export default function AccountingAnalytics() {
 
     // Fetch data on component mount
     useEffect(() => {
-        dispatch(fetchAccountingData({}))
+        dispatch(fetchAccountingData())
 
         // Clear any existing errors
         return () => {
@@ -54,7 +54,7 @@ export default function AccountingAnalytics() {
 
     const handleRefreshData = () => {
         dispatch(clearAccountingError())
-        dispatch(fetchAccountingData({}))
+        dispatch(fetchAccountingData())
     }
 
     const handleExportAll = () => {
