@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type { StudentBiodataState, StudentBiodataStats } from "../types/student-biodata-types";
-import { deriveStudentBiodataStats } from "../utils/data-derivation";
+import { deriveStudentBiodataReports as deriveStudentBiodataStats } from "../utils/data-derivation-reports";
 
 // Initial state
 const initialState: StudentBiodataState = {
@@ -35,17 +35,31 @@ const initialState: StudentBiodataState = {
 // Async thunk to fetch student biodata stats
 export const fetchStudentBiodataStats = createAsyncThunk(
   "studentBiodata/fetchStats",
-  async (_, { getState, rejectWithValue }) => {
+  async (filter: any, { getState, rejectWithValue }) => {
     try {
       // Get the current state
       const state = getState() as RootState;
 
       // Derive student biodata stats from the state
-      const studentBiodataStats = deriveStudentBiodataStats(state);
+      const studentBiodataStats = deriveStudentBiodataStats(state, filter);
 
-      return studentBiodataStats;
+      return studentBiodataStats.data;
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to derive student biodata stats");
+    }
+  }
+);
+
+// Async thunk to fetch student biodata stats summary for state update
+export const fetchStudentBiodataStatsSummary = createAsyncThunk(
+  "studentBiodata/fetchStatsSummary",
+  async (filter: any, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const studentBiodataStats = deriveStudentBiodataStats(state, filter);
+      return studentBiodataStats;
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to derive student biodata stats summary");
     }
   }
 );

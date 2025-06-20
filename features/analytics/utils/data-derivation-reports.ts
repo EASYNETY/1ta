@@ -7,7 +7,8 @@ import {
 import {
   StudentBiodataReport,
   CourseReport,
-  ReportResponse
+  ReportResponse,
+  StudentReport
 } from "../types/report-types";
 import { StudentUser } from "@/types/user.types";
 import { Course } from "@/data/mock-course-data";
@@ -328,6 +329,122 @@ export function deriveCourseReports(
       completionRate,
       averageGrade,
       revenue
+    };
+  });
+
+  // Apply pagination
+  const page = filter.page || 1;
+  const limit = filter.limit || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedReports = reports.slice(startIndex, endIndex);
+
+  return {
+    data: paginatedReports,
+    total: reports.length,
+    page,
+    limit,
+    totalPages: Math.ceil(reports.length / limit)
+  };
+}
+
+/**
+ * Derive student reports from the Redux store
+ * @param state The Redux store state
+ * @param filter Report filter options
+ * @returns Student reports
+ */
+export function deriveStudentReports(
+  state: RootState,
+  filter: ReportFilter
+): ReportResponse<StudentReport> {
+  // Default empty values for safety
+  const students = state.auth?.users?.filter(user => user.role === "student") || [];
+
+  // Define enrolment type
+  interface Enrolment {
+    studentId: string;
+    courseId: string;
+    progress?: number;
+    grade?: number;
+  }
+
+  // Create mock enrolments array
+  const enrolments: Enrolment[] = [];
+
+  // Apply filters
+  let filteredStudents = students as StudentUser[];
+
+  if (filter.searchTerm) {
+    const searchTerm = filter.searchTerm.toLowerCase();
+    filteredStudents = filteredStudents.filter(student =>
+      student.name?.toLowerCase().includes(searchTerm) ||
+      student.email?.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  if (filter.startDate) {
+    const startDate = new Date(filter.startDate);
+    filteredStudents = filteredStudents.filter(student => {
+      const createdAt = student.createdAt ? new Date(student.createdAt) : null;
+      return createdAt ? createdAt >= startDate : true;
+    });
+  }
+
+  if (filter.endDate) {
+    const endDate = new Date(filter.endDate);
+    filteredStudents = filteredStudents.filter(student => {
+      const createdAt = student.createdAt ? new Date(student.createdAt) : null;
+      return createdAt ? createdAt <= endDate : true;
+    });
+  }
+
+  if (filter.status) {
+    filteredStudents = filteredStudents.filter(student =>
+      (student as any).status === filter.status
+    );
+  }
+
+  // Map students to reports
+  const reports: StudentReport[] = filteredStudents.map(student => {
+    // Get student enrolments
+    const studentEnrolments = enrolments.filter(
+      (enrolment: Enrolment) => enrolment.studentId === student.id
+    );
+
+    // Calculate enrolment count
+    const enrolmentCount = studentEnrolments.length;
+
+    // Calculate completion rate
+    let totalProgress = 0;
+    studentEnrolments.forEach((enrolment: Enrolment) => {
+      totalProgress += enrolment.progress || 0;
+    });
+
+    const completionRate = enrolmentCount > 0
+      ? Math.round(totalProgress / enrolmentCount)
+      : 0;
+
+    // Calculate average grade
+    let totalGrade = 0;
+    let gradeCount = 0;
+
+    studentEnrolments.forEach((enrolment: Enrolment) => {
+      if (enrolment.grade && enrolment.grade > 0) {
+        totalGrade += enrolment.grade;
+        gradeCount++;
+      }
+    });
+
+    const averageGrade = gradeCount > 0 ? Math.round(totalGrade / gradeCount) : 0;
+
+    return {
+      id: student.id || "",
+      name: student.name || "",
+      email: student.email || "",
+      enrolmentCount,
+      completionRate,
+      averageGrade
     };
   });
 

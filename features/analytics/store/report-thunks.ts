@@ -13,7 +13,7 @@ import type {
   AttendanceReport,
   ReportResponse
 } from "../types/report-types";
-import { deriveStudentReports } from "../utils/data-derivation";
+import { deriveStudentReports } from "../utils/data-derivation-reports";
 import { deriveStudentBiodataReports, deriveCourseReports } from "../utils/data-derivation-reports";
 
 // Helper function to build query string from filter
