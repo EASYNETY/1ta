@@ -92,9 +92,9 @@ export function AnalyticsTab() {
                             </>
                         ) : (
                             <>
-                                <div className="text-2xl font-bold">₦{(stats.paymentStats.totalRevenue / 100).toLocaleString()}</div>
+                                <div className="text-2xl font-bold">₦{(stats.paymentStats.totalRevenue).toLocaleString()}</div>
                                 <div className="text-xs text-muted-foreground">
-                                    +₦{(stats.paymentStats.revenueThisMonth / 100).toLocaleString()} this month
+                                    +₦{(stats.paymentStats.revenueThisMonth).toLocaleString()} this month
                                 </div>
                             </>
                         )}
@@ -168,7 +168,7 @@ export function AnalyticsTab() {
                                             <ChartTooltipContent
                                                 active={active}
                                                 payload={payload}
-                                                formatter={(value) => `₦${(value as number / 100).toLocaleString()}`}
+                                                formatter={(value) => `₦${(value as number).toLocaleString()}`}
                                             />
                                         )}
                                     />

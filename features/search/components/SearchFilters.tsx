@@ -499,7 +499,7 @@ export function SearchFilters() {
                     {/* Price Range */}
                     <div>
                       <label className="text-sm font-medium mb-1 block">
-                        Price Range: ₦{(priceRange[0] / 100).toLocaleString()} - ₦{(priceRange[1] / 100).toLocaleString()}
+                        Price Range: ₦{(priceRange[0]).toLocaleString()} - ₦{(priceRange[1]).toLocaleString()}
                       </label>
                       <Slider
                         defaultValue={priceRange}
@@ -626,7 +626,7 @@ export function SearchFilters() {
                 <AccordionContent>
                   <div>
                     <label className="text-sm font-medium mb-1 block">
-                      Amount Range: ₦{(priceRange[0] / 100).toLocaleString()} - ₦{(priceRange[1] / 100).toLocaleString()}
+                      Amount Range: ₦{(priceRange[0]).toLocaleString()} - ₦{(priceRange[1]).toLocaleString()}
                     </label>
                     <Slider
                       defaultValue={priceRange}

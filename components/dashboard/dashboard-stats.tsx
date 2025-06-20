@@ -315,9 +315,9 @@ export function DashboardStats() {
       // Description for the revenue card (revenue this month)
       // This uses the calculated currentMonthRevenueForDisplay
       const revenueThisMonthDescription = currentMonthRevenueForDisplay > 0
-        ? `+${formatCurrency(currentMonthRevenueForDisplay / 100)} this month` // ASSUMES Kobo/Cents
+        ? `+${formatCurrency(currentMonthRevenueForDisplay)} this month` // ASSUMES Kobo/Cents
         : (analytics.dashboardStats?.paymentStats?.revenueThisMonth // Fallback to your 'analytics' object
-          ? `+${formatCurrency(analytics.dashboardStats.paymentStats.revenueThisMonth / 100)} this month`
+          ? `+${formatCurrency(analytics.dashboardStats.paymentStats.revenueThisMonth)} this month`
           : "No revenue this month");
 
       // Trend object for the StatCard
@@ -391,13 +391,13 @@ export function DashboardStats() {
             loading={coursesLoading || analyticsLoading} // Assuming coursesLoading covers courses
             className="bg-purple-50 dark:bg-purple-950/5"
           />
-          {isSuperAdmin(user) && <StatCard
+          <StatCard
             title="Revenue" // For the selected dateRange
             value={
               totalRevenueForPeriod
-                ? formatCurrency(totalRevenueForPeriod / 100) // ASSUMES Kobo/Cents
+                ? formatCurrency(totalRevenueForPeriod) // ASSUMES Kobo/Cents
                 : analytics.dashboardStats?.paymentStats?.totalRevenue
-                  ? formatCurrency(analytics.dashboardStats.paymentStats.totalRevenue / 100)
+                  ? formatCurrency(analytics.dashboardStats.paymentStats.totalRevenue)
                   : "₦0"
             }
             description={revenueThisMonthDescription}
@@ -405,7 +405,7 @@ export function DashboardStats() {
             loading={overallIsLoading} // Use combined loading state
             className="bg-amber-50 dark:bg-amber-950/5"
             trend={revenueCardTrend}
-          />}
+          />
         </div>
       )
 

@@ -194,7 +194,7 @@ export const searchService = {
         results.push({
           id: payment.id,
           title: payment.description,
-          description: `Amount: ₦${(payment.amount / 100).toLocaleString()} - ${payment.status}`,
+          description: `Amount: ₦${(payment.amount).toLocaleString()} - ${payment.status}`,
           type: 'payment',
           href: `/payments`,
           date: payment.createdAt,

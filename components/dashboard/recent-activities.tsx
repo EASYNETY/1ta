@@ -154,7 +154,7 @@ export function RecentActivities() {
                         roleSpecificActivities.push({
                             id: "analytics-revenue",
                             title: "Monthly Revenue Update",
-                            description: `₦${(paymentStats.revenueThisMonth / 100).toLocaleString()} revenue generated this month`,
+                            description: `₦${(paymentStats.revenueThisMonth).toLocaleString()} revenue generated this month`,
                             timestamp: new Date().toISOString(),
                             type: "payment",
                             icon: <CreditCard className="h-4 w-4" />,
@@ -247,7 +247,7 @@ export function RecentActivities() {
                     roleSpecificActivities.push({
                         id: "student-recent-payment",
                         title: "Recent Payment",
-                        description: `Payment of ₦${(recentPayments[0]?.amount / 100).toLocaleString()} was processed`,
+                        description: `Payment of ₦${(recentPayments[0]?.amount).toLocaleString()} was processed`,
                         timestamp: recentPayments[0]?.createdAt || new Date().toISOString(),
                         type: "payment",
                         icon: <CreditCard className="h-4 w-4" />,

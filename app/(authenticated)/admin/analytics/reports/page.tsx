@@ -275,7 +275,7 @@ export default function ReportsPage() {
                         <TableCell>{course.enrolmentCount}</TableCell>
                         <TableCell>{course.completionRate}%</TableCell>
                         <TableCell>{course.averageGrade}%</TableCell>
-                        <TableCell>₦{(course.revenue / 100).toLocaleString()}</TableCell>
+                        <TableCell>₦{(course.revenue).toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -320,7 +320,7 @@ export default function ReportsPage() {
                     {paymentReports.data.map((payment) => (
                       <TableRow key={payment.id}>
                         <TableCell>{payment.userName}</TableCell>
-                        <TableCell>₦{(payment.amount / 100).toLocaleString()}</TableCell>
+                        <TableCell>₦{(payment.amount).toLocaleString()}</TableCell>
                         <TableCell>
                           <Badge
                             variant={

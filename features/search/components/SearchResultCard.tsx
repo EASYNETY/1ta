@@ -152,7 +152,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
 
           {result.type === 'payment' && result.metadata?.amount && (
             <div className="mt-2 text-xs text-muted-foreground">
-              Amount: ₦{(result.metadata.amount / 100).toLocaleString()} •
+              Amount: ₦{(result.metadata.amount).toLocaleString()} •
               Provider: {result.metadata.provider}
             </div>
           )}
