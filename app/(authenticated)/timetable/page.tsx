@@ -78,9 +78,9 @@ export default function TimetablePage() {
             case "schedule":
                 return <ScheduleView role={user.role} userId={user.id} />;
             case "all-classes":
-                return (user.role === 'super_admin') ? <AdminClassesTab /> : null; // Only admin sees this content
+                return (user.role !== 'super_admin') ? <AdminClassesTab /> : null; // Only admin sees this content
             case "all-classes":
-                return (user.role === 'admin') ? <AdminClassesTab /> : null; // Only admin sees this content
+                return (user.role !== 'admin') ? <AdminClassesTab /> : null; // Only admin sees this content
             case myClassesTabValue: // Handle dynamic tab value
                 if (user.role === 'teacher') return <TeacherClassesTab />;
                 if (user.role === 'student') return <StudentClassesTab />;
