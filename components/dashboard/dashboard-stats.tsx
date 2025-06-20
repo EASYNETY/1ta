@@ -20,7 +20,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { safeArray, safeFilter, safeLength, safeReduce } from "@/lib/utils/safe-data"
-import type { UserRole } from "@/types/user.types"
+import { isSuperAdmin, type UserRole } from "@/types/user.types"
 
 // Import various thunks based on role needs
 import { fetchAssignments } from "@/features/assignments/store/assignment-slice"
@@ -391,7 +391,7 @@ export function DashboardStats() {
             loading={coursesLoading || analyticsLoading} // Assuming coursesLoading covers courses
             className="bg-purple-50 dark:bg-purple-950/5"
           />
-          <StatCard
+          {isSuperAdmin(user) && <StatCard
             title="Revenue" // For the selected dateRange
             value={
               totalRevenueForPeriod
@@ -405,7 +405,7 @@ export function DashboardStats() {
             loading={overallIsLoading} // Use combined loading state
             className="bg-amber-50 dark:bg-amber-950/5"
             trend={revenueCardTrend}
-          />
+          />}
         </div>
       )
 

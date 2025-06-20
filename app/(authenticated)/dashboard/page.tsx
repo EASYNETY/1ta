@@ -45,7 +45,7 @@ export default function DashboardPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const { toast } = useToast()
-    
+
     // State for enrolled and available courses
     const [enrolledCourses, setEnrolledCourses] = useState<AuthCourse[]>([])
     const [availableCourses, setAvailableCourses] = useState<PublicCourse[]>([])
@@ -106,23 +106,23 @@ export default function DashboardPage() {
             }
         }
     }, [user, isInitialized, router])
-    
+
     // --- Fetch Enrolled and Available Courses ---
     useEffect(() => {
         if (isInitialized && user && token) {
             console.log("Fetching courses for user:", user.id)
-            
+
             // Fetch enrolled courses
             const getEnrolledCourses = async () => {
                 setIsLoadingEnrolled(true)
                 setEnrolledError(null)
                 try {
                     console.log("Dashboard: Fetching enrolled courses with token:", token.substring(0, 10) + "...")
-                    
+
                     // Use our new API client that properly filters enrolled courses
                     const fetchedCourses = await fetchEnrolledCoursesApi(token)
                     console.log(`Dashboard: Received ${fetchedCourses.length} enrolled courses:`, fetchedCourses)
-                    
+
                     if (fetchedCourses.length > 0) {
                         console.log("Dashboard: Setting enrolled courses from API");
                         setEnrolledCourses(fetchedCourses);
@@ -130,11 +130,11 @@ export default function DashboardPage() {
                         // If no enrolled courses returned, check if we have courses in Redux store
                         console.log("Dashboard: No enrolled courses returned from API, checking Redux store");
                         if (courses && courses.length > 0) {
-                            const reduxCourses = courses.filter(course => 
-                                course.enrolmentStatus === 'enroled' || 
+                            const reduxCourses = courses.filter(course =>
+                                course.enrolmentStatus === 'enroled' ||
                                 course.enrollmentStatus === true
                             );
-                            
+
                             if (reduxCourses.length > 0) {
                                 console.log("Dashboard: Found enrolled courses in Redux store:", reduxCourses);
                                 setEnrolledCourses(reduxCourses);
@@ -148,14 +148,14 @@ export default function DashboardPage() {
                 } catch (error) {
                     console.error("Error fetching enrolled courses:", error)
                     setEnrolledError("Failed to load your enrolled courses")
-                    
+
                     // Fallback to using the courses from the Redux store
                     if (courses && courses.length > 0) {
-                        const reduxCourses = courses.filter(course => 
-                            course.enrolmentStatus === 'enroled' || 
+                        const reduxCourses = courses.filter(course =>
+                            course.enrolmentStatus === 'enroled' ||
                             course.enrollmentStatus === true
                         )
-                        
+
                         if (reduxCourses.length > 0) {
                             console.log("Using fallback enrolled courses from Redux store:", reduxCourses)
                             setEnrolledCourses(reduxCourses)
@@ -169,18 +169,18 @@ export default function DashboardPage() {
                     setIsLoadingEnrolled(false)
                 }
             }
-            
+
             // Fetch all available courses
             const getAvailableCourses = async () => {
                 setIsLoadingAvailable(true)
                 setAvailableError(null)
                 try {
                     console.log("Dashboard: Fetching available courses with token:", token.substring(0, 10) + "...")
-                    
+
                     // Use our new API client that properly filters available courses
                     const availableCoursesList = await fetchAvailableCoursesApi(token)
                     console.log(`Dashboard: Received ${availableCoursesList.length} available courses:`, availableCoursesList)
-                    
+
                     if (availableCoursesList.length > 0) {
                         console.log("Dashboard: Setting available courses from API");
                         setAvailableCourses(availableCoursesList);
@@ -194,8 +194,8 @@ export default function DashboardPage() {
                             setAvailableCourses(filteredCourses)
                         } else if (courses && courses.length > 0) {
                             // Filter out enrolled courses from Redux store
-                            const filteredCourses = courses.filter(course => 
-                                course.enrolmentStatus !== 'enroled' && 
+                            const filteredCourses = courses.filter(course =>
+                                course.enrolmentStatus !== 'enroled' &&
                                 course.enrollmentStatus !== true
                             );
                             setAvailableCourses(filteredCourses)
@@ -204,7 +204,7 @@ export default function DashboardPage() {
                 } catch (error) {
                     console.error("Error fetching available courses:", error)
                     setAvailableError("Failed to load available courses")
-                    
+
                     // Fallback to using filtered courses from Redux store
                     if (courses && courses.length > 0 && enrolledCourses.length > 0) {
                         const filteredCourses = filterOutEnrolledCourses(courses, enrolledCourses)
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                     setIsLoadingAvailable(false)
                 }
             }
-            
+
             getEnrolledCourses()
             // Wait a bit before fetching available courses to ensure enrolled courses are loaded first
             setTimeout(() => {
@@ -270,27 +270,29 @@ export default function DashboardPage() {
         const commonTabs = (
             <>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="my-courses">My Courses</TabsTrigger>
-                <TabsTrigger value="courses">All Courses</TabsTrigger>
                 <TabsTrigger value="schedule">Schedule</TabsTrigger>
             </>
         )
-        
+
 
         switch (user.role) {
             case "super_admin":
                 return (
                     <>
                         {commonTabs}
+                        <TabsTrigger value="courses">All Courses</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
                     </>
                 )
             case "admin":
-                return <>{commonTabs}</>
+                return <>{commonTabs}
+                    <TabsTrigger value="courses">All Courses</TabsTrigger>
+                </>
             case "accounting":
                 return (
                     <>
                         {commonTabs}
+                        <TabsTrigger value="courses">All Courses</TabsTrigger>
                         <TabsTrigger value="payments">Payments</TabsTrigger>
                     </>
                 )
@@ -305,6 +307,7 @@ export default function DashboardPage() {
                 return (
                     <>
                         {commonTabs}
+                        <TabsTrigger value="courses">All Courses</TabsTrigger>
                         <TabsTrigger value="students">Students</TabsTrigger>
                         <TabsTrigger value="assignments">Assignments</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -315,6 +318,7 @@ export default function DashboardPage() {
                 return (
                     <>
                         {commonTabs}
+                        <TabsTrigger value="my-courses">My Courses</TabsTrigger>
                         <TabsTrigger value="assignments">Assignments</TabsTrigger>
                         <TabsTrigger value="grades">Grades</TabsTrigger>
                     </>
@@ -527,7 +531,7 @@ export default function DashboardPage() {
                         )}
                     </div>
                 </TabsContent>
-                
+
                 <TabsContent value="courses">
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {isLoadingAvailable ? (
@@ -550,8 +554,8 @@ export default function DashboardPage() {
                         ) : availableCourses.length > 0 ? (
                             // Only show available courses (not enrolled)
                             availableCourses
-                                .filter(course => 
-                                    course.enrolmentStatus === 'not_enroled' || 
+                                .filter(course =>
+                                    course.enrolmentStatus === 'not_enroled' ||
                                     course.enrollmentStatus === false
                                 )
                                 .map((course, index) => (
@@ -560,8 +564,8 @@ export default function DashboardPage() {
                         ) : courses && courses.length > 0 ? (
                             // Fallback to using only non-enrolled courses from Redux store
                             courses
-                                .filter(course => 
-                                    course.enrolmentStatus !== 'enroled' && 
+                                .filter(course =>
+                                    course.enrolmentStatus !== 'enroled' &&
                                     course.enrollmentStatus !== true
                                 )
                                 .map((course, index) => (
@@ -571,7 +575,7 @@ export default function DashboardPage() {
                             <div className="col-span-full text-center py-8">
                                 <p className="text-muted-foreground mb-4">No additional courses available at the moment.</p>
                                 <DyraneButton asChild>
-                                    <Link href="/my-courses">View My Courses</Link>
+                                    <Link href="/courses">View My Courses</Link>
                                 </DyraneButton>
                             </div>
                         )}
