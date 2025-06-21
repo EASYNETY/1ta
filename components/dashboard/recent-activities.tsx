@@ -1,3 +1,5 @@
+// components/dashboard/recent-activities.tsx
+
 "use client"
 
 import type React from "react"
@@ -33,7 +35,7 @@ import { fetchNotifications, selectNotifications } from "@/features/notification
 import { fetchAssignments } from "@/features/assignments/store/assignment-slice"
 import { fetchGrades } from "@/features/grades/store/grade-slice"
 import { fetchSchedule } from "@/features/schedule/store/schedule-slice"
-import { fetchMyPaymentHistory } from "@/features/payment/store/payment-slice"
+import { fetchMyPaymentHistory, selectMyPayments } from "@/features/payment/store/payment-slice"
 import { fetchAccountingData, selectAccountingStats, selectCourseRevenues } from "@/features/payment/store/accounting-slice"
 import { fetchAnalyticsDashboard } from "@/features/analytics/store/analytics-slice"
 import type { UserRole } from "@/types/user.types"
@@ -60,7 +62,8 @@ export function RecentActivities() {
     const notifications = useAppSelector(selectNotifications)
     const assignments = useAppSelector((state) => state.assignments.assignments)
     const grades = useAppSelector((state) => state.grades.studentGradeItems)
-    const payments = useAppSelector((state) => state.paymentHistory.myPayments)
+    // const payments = useAppSelector((state) => state.adminPayments)
+    const payments = useAppSelector(selectMyPayments)
     const events = useAppSelector((state) => state.schedule.events)
     const courses = useAppSelector((state) => state.auth_courses.courses)
     const accountingData = useAppSelector((state) => state.accounting)
@@ -84,7 +87,7 @@ export function RecentActivities() {
                 break
 
             case "accounting":
-                dispatch(fetchAccountingData({}))
+                dispatch(fetchAccountingData())
                 break
 
             case "teacher":
