@@ -288,7 +288,7 @@ export default function EditCoursePage() {
                 variant: "success",
             });
             // Redirect to course view page or list page after update
-            // router.push(`/courses`); // Redirect to the course view page
+            router.push(`/courses`); // Redirect to the course view page
 
         } catch (error) {
             // Error handling remains similar to create page
