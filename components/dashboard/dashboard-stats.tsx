@@ -137,13 +137,13 @@ export function DashboardStats() {
           dispatch(fetchAnalyticsDashboard())
           dispatch(fetchAuthCourses())
           dispatch(fetchAllUsersComplete())
-          dispatch(fetchAccountingData({}))
+          dispatch(fetchAccountingData())
         }
         break
 
       case "accounting":
         if (stats === undefined) {
-          dispatch(fetchAccountingData({}))
+          dispatch(fetchAccountingData())
         }
         break
 

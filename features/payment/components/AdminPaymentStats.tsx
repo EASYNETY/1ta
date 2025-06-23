@@ -26,20 +26,11 @@ export function AdminPaymentStats() {
   
   const isLoading = status === "loading"
 
-  // Fetch stats on component mount
-  useEffect(() => {
-    const startDate = dateRange.startDate || format(subDays(new Date(), 30), "yyyy-MM-dd")
-    const endDate = dateRange.endDate || format(new Date(), "yyyy-MM-dd")
-    
-    dispatch(fetchPaymentStats({ startDate, endDate }))
-  }, [dispatch, dateRange])
-
-  // Handle date range change
-  const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
+   const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
     dispatch(setDateRange({
       startDate: range.from ? format(range.from, "yyyy-MM-dd") : null,
       endDate: range.to ? format(range.to, "yyyy-MM-dd") : null,
-    }))
+    }));
   }
 
   // Format currency amount

@@ -22,32 +22,35 @@ import {
 	calculatePaymentMethodDistribution,
 } from "../utils/accounting-calculations";
 
+// This is the restored "wrapper" thunk. Components call this single action.
 export const fetchAccountingData = createAsyncThunk<
-	PaymentRecord[], // It can still return the payments array on success
-	void, // It no longer needs to accept any arguments
+	// This thunk will return void because its only job is to trigger other actions
+	// and reflect their status. The actual data is handled by the other slice.
+	void,
+	void, // It accepts no arguments
 	{ state: RootState; rejectValue: string }
->(
-	"accounting/fetchData", // Use the original thunk name
-	async (_, { dispatch, rejectWithValue }) => {
-		try {
-			// Dispatch the REAL data-fetching thunk
-			const resultAction = await dispatch(
-				fetchAllAdminPaymentsSequentially({})
-			);
+>("accounting/fetchData", async (_, { dispatch, rejectWithValue }) => {
+	try {
+		// Dispatch the REAL data-fetching thunk from the adminPayments slice.
+		// The `await` here is crucial to wait for the operation to complete.
+		const resultAction = await dispatch(fetchAllAdminPaymentsSequentially({}));
 
-			// Check if the underlying thunk failed and pass the error up
-			if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
-				return rejectWithValue(resultAction.payload as string);
-			}
-
-			// If it succeeded, return the payload. The adminPayments slice will store it,
-			// and this slice will just react to the status.
-			return resultAction.payload as PaymentRecord[];
-		} catch (error: any) {
-			return rejectWithValue(error.message || "An unknown error occurred");
+		// Check if the underlying thunk was rejected. If so, this thunk will also be rejected.
+		// This ensures the error bubbles up correctly.
+		if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
+			return rejectWithValue(resultAction.payload as string);
 		}
+
+		// If the underlying thunk was fulfilled, this thunk is also considered fulfilled.
+		// We don't need to return a payload as the data is already in the adminPayments slice.
+		return;
+	} catch (error: any) {
+		return rejectWithValue(
+			error.message ||
+				"An unknown error occurred while fetching accounting data"
+		);
 	}
-);
+});
 
 const initialState: AccountingState = {
 	dateRange: {
@@ -79,7 +82,8 @@ const accountingSlice = createSlice({
 			state.error = null;
 		},
 	},
-	// The extraReducers now listen to our local, restored fetchAccountingData thunk.
+	// The extraReducers listen to our local fetchAccountingData thunk.
+	// This correctly mirrors the status of the underlying fetch operation.
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchAccountingData.pending, (state) => {
@@ -100,7 +104,8 @@ const accountingSlice = createSlice({
 export const { setDateRange, clearAccountingError, resetAccountingState } =
 	accountingSlice.actions;
 
-// --- SELECTORS (All original names are preserved) ---
+// --- SELECTORS ---
+// These selectors are unchanged and will work correctly with this fix.
 
 export const selectAccountingStatus = (state: RootState) =>
 	state.accounting.status;
@@ -108,28 +113,45 @@ export const selectAccountingError = (state: RootState) =>
 	state.accounting.error;
 export const selectDateRange = (state: RootState) => state.accounting.dateRange;
 
+// Selects the raw payment data from its true source in the adminPayments slice.
 const selectAllAdminPayments = (state: RootState) =>
 	state.adminPayments.payments;
 
+// This selector correctly filters the raw payments based on the local dateRange.
 const selectFilteredPaymentsForAccounting = createSelector(
 	[selectAllAdminPayments, selectDateRange],
 	(allPayments, dateRange) => {
+		// If no date range is set, return all payments
 		if (!dateRange.startDate && !dateRange.endDate) {
 			return allPayments;
 		}
+
+		// Otherwise, filter the payments by the date range
 		return allPayments.filter((payment) => {
-			const paymentDate = new Date(payment.createdAt);
-			const start = dateRange.startDate ? new Date(dateRange.startDate) : null;
-			if (start) start.setHours(0, 0, 0, 0);
-			const end = dateRange.endDate ? new Date(dateRange.endDate) : null;
-			if (end) end.setHours(23, 59, 59, 999);
-			if (start && paymentDate < start) return false;
-			if (end && paymentDate > end) return false;
-			return true;
+			try {
+				const paymentDate = new Date(payment.createdAt);
+				const start = dateRange.startDate
+					? new Date(dateRange.startDate)
+					: null;
+				if (start) start.setHours(0, 0, 0, 0); // Set to start of the day
+				const end = dateRange.endDate ? new Date(dateRange.endDate) : null;
+				if (end) end.setHours(23, 59, 59, 999); // Set to end of the day
+
+				if (start && paymentDate < start) return false;
+				if (end && paymentDate > end) return false;
+				return true;
+			} catch (e) {
+				// Safely ignore payments with invalid date strings
+				console.warn(
+					`Could not parse date for payment ${payment.id}: ${payment.createdAt}`
+				);
+				return false;
+			}
 		});
 	}
 );
 
+// The rest of the selectors derive data from the filtered list. No changes needed.
 export const selectAccountingStats = createSelector(
 	[selectFilteredPaymentsForAccounting],
 	(filteredPayments): AccountingStats =>

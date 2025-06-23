@@ -1,37 +1,42 @@
+// features/payments/components/AdminPaymentsTable.tsx
+
 "use client"
 
 import { useEffect } from "react"
-import { useAppSelector } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import AdminPaymentTable from "./AdminPaymentTable"
 import AdminPaymentStats from "./AdminPaymentStats"
 import AdminDailyRevenueTrends from "./AdminDailyRevenueTrends"
-import PaymentMethodsDistribution from "./PaymentMethodsDistribution"
+// 1. Import the new component
+import { RevenueByCourseDistribution } from "./RevenueByCourseDistribution"
+import { fetchPaymentStats, selectDateRange, selectPaymentStatsStatus } from "../store/adminPayments"
 
-/**
- * This component is a wrapper around the new AdminPaymentTable component
- * It's kept for backward compatibility with existing code
- */
 const AdminPaymentsTable: React.FC = () => {
-  // Get user role from auth state
-  const { user } = useAppSelector((state) => state.auth)
-  const userRole = user?.role || "admin"
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
+  const userRole = user?.role || "admin";
+
+  const statsStatus = useAppSelector(selectPaymentStatsStatus);
+  const dateRange = useAppSelector(selectDateRange);
+  const { startDate, endDate } = dateRange as { startDate: string; endDate: string };
+
+  useEffect(() => {
+    dispatch(fetchPaymentStats({ startDate, endDate }));
+  }, [dispatch, startDate, endDate]);
 
   return (
     <div className="space-y-6">
-      {/* Stats Section - Only shown for admin, super_admin, and accounting roles */}
       {(userRole === "admin" || userRole === "super_admin" || userRole === "accounting") && (
         <AdminPaymentStats />
       )}
 
-      {/* Revenue Trends - Only shown for super_admin and accounting roles */}
       {(userRole === "super_admin" || userRole === "accounting") && (
         <div className="grid gap-6 lg:grid-cols-2">
           <AdminDailyRevenueTrends />
-          <PaymentMethodsDistribution />
+          <RevenueByCourseDistribution />
         </div>
       )}
 
-      {/* Enhanced Payment Table with all requested columns */}
       <AdminPaymentTable />
     </div>
   )

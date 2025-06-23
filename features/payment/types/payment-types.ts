@@ -75,38 +75,85 @@ export interface BillingDetails {
 	phone?: string;
 }
 
+// The main, comprehensive PaymentRecord type
 export interface PaymentRecord {
+	// --- Core Payment Identifiers ---
 	id: string;
+	invoiceId: string | null;
+
+	// --- User Information ---
 	userId: string;
-	userName?: string;
-	amount: number;
+	userName: string | null;
+	userEmail?: string; // From your new data
+	userRole?: "student" | "admin" | "teacher" | "accounting" | "super_admin"; // From your new data
+
+	// --- Monetary Values ---
+	amount: number; // The normalized amount should be a number
 	currency: string;
+
+	// --- Status & Provider ---
 	status:
 		| "pending"
 		| "succeeded"
 		| "failed"
 		| "refunded"
 		| "processing"
-		| "requires_action"; // Added more statuses
-	provider: "paystack" | "stripe" | "mock" | "corporate";
-	providerReference: string;
+		| "requires_action"
+		| "unknown";
+	provider: "paystack" | "stripe" | "mock" | "corporate" | string; // Use string for future expansion
+	paymentMethod: string | null; // From your new data
+	providerReference: string | null;
 	gatewayRef?: string;
 	transactionId?: string;
 	reconciliationStatus?: "pending" | "reconciled" | "disputed" | "failed";
-	description: string;
+
+	// --- Descriptive Information ---
+	description: string | null;
+
+	// --- Card & Date Information ---
+	cardType: string | null; // From your new data
+	last4: string | null; // From your new data
 	createdAt: string;
-	// updatedAt: string;
+	updatedAt: string; // From your new data
+
+	// --- Nested & Relational Data ---
+	// This is where we keep the original nested objects from the API
+	invoice?: NestedInvoiceInfo | null;
+	course?: NestedCourseInfo | null; // Placeholder for future use
+
+	// This is for a more structured relation mapping, good for frontend logic
 	relatedItemIds?: { type: "course" | "other"; id: string }[];
-	cardType?: string;
-	last4?: string;
+
+	// --- Receipt & Metadata ---
 	receiptNumber?: string;
+
+	// This is for a structured receipt. It might be derived or come from the API
 	receiptItems?: ReceiptItem[];
 	billingDetails?: BillingDetails;
+
+	// These fields are for any extra data you want to store
 	metadata?: Record<string, any>;
 	providerMetadata?: Record<string, any>;
 	transactionMetadata?: Record<string, any>;
-	invoiceId?: string | null;
+
+	// --- Deprecated / Legacy Fields ---
+	// Kept for backward compatibility during normalization if needed
 	invoice_id?: string | null;
+}
+
+// A simplified type for the nested invoice object found in your payment data
+export interface NestedInvoiceInfo {
+	id: string;
+	amount: string; // Keep as string to match raw data, will be parsed later
+	description: string;
+	status: "paid" | "pending" | "overdue" | "cancelled";
+}
+
+// A simplified type for the nested course object (currently null in your data, but good to have)
+export interface NestedCourseInfo {
+	// Define fields if/when this object is populated
+	id: string;
+	title: string;
 }
 
 // --- API Response Structures for Payment History ---
@@ -264,42 +311,42 @@ export interface PaginationMeta {
 }
 
 export interface PaymentHistoryState {
-    myPayments: PaymentRecord[];
-    allPayments: PaymentRecord[];
-    pagination?: PaginationMeta | null;
-    status: "idle" | "loading" | "succeeded" | "failed";
-    error: string | null;
+	myPayments: PaymentRecord[];
+	allPayments: PaymentRecord[];
+	pagination?: PaginationMeta | null;
+	status: "idle" | "loading" | "succeeded" | "failed";
+	error: string | null;
 
-    // Payment initiation (for starting a payment)
-    paymentInitiation: {
-        status: "idle" | "loading" | "succeeded" | "failed";
-        error: string | null;
-        data: PaymentResponse | null;
-    };
+	// Payment initiation (for starting a payment)
+	paymentInitiation: {
+		status: "idle" | "loading" | "succeeded" | "failed";
+		error: string | null;
+		data: PaymentResponse | null;
+	};
 
-    // Payment verification (for verifying a payment)
-    paymentVerification: {
-        status: "idle" | "loading" | "succeeded" | "failed";
-        error: string | null;
-        data: VerifyPaymentResponse | null;
-    };
+	// Payment verification (for verifying a payment)
+	paymentVerification: {
+		status: "idle" | "loading" | "succeeded" | "failed";
+		error: string | null;
+		data: VerifyPaymentResponse | null;
+	};
 
-    // Selected/active payment (for details, verification, etc.)
-    selectedPayment: PaymentRecord | null;
+	// Selected/active payment (for details, verification, etc.)
+	selectedPayment: PaymentRecord | null;
 
-    // Invoice-related state
-    selectedInvoice: Invoice | null;
-    receiptData: UnifiedReceiptData | null;
+	// Invoice-related state
+	selectedInvoice: Invoice | null;
+	receiptData: UnifiedReceiptData | null;
 
-    // For admin/my payments pagination
-    adminPagination?: PaginationMeta | null;
-    myPaymentsPagination?: PaginationMeta | null;
+	// For admin/my payments pagination
+	adminPagination?: PaginationMeta | null;
+	myPaymentsPagination?: PaginationMeta | null;
 
-    // Invoice creation/fetch status
-    invoiceCreationStatus?: "idle" | "loading" | "succeeded" | "failed";
-    invoiceCreationError?: string | null;
-    invoiceFetchStatus?: "idle" | "loading" | "succeeded" | "failed";
-    invoiceFetchError?: string | null;
+	// Invoice creation/fetch status
+	invoiceCreationStatus?: "idle" | "loading" | "succeeded" | "failed";
+	invoiceCreationError?: string | null;
+	invoiceFetchStatus?: "idle" | "loading" | "succeeded" | "failed";
+	invoiceFetchError?: string | null;
 }
 
 export interface UnifiedReceiptData {
