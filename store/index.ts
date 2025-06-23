@@ -80,7 +80,7 @@ const persistConfig = {
 		"auth_courses",
 		"attendanceMarking",
 		"classSession",
-		"paymentHistory",
+		// "paymentHistory",
 		"adminPayments",
 		"schedule",
 		"classes",
@@ -95,7 +95,7 @@ const persistConfig = {
 		"analytics",
 		"reports",
 		"studentBiodata",
-		"accounting",
+		// "accounting",
 	],
 };
 
