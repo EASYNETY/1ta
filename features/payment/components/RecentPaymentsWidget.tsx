@@ -38,7 +38,7 @@ const getStatusBadge = (status: PaymentRecord["status"]) => {
   switch (status) {
     case "succeeded":
       return (
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant="success" className="text-xs">
           <CheckCircle className="mr-1 h-3 w-3" />
           Successful
         </Badge>

@@ -30,6 +30,8 @@ import {
   selectAccountingError,
   clearAccountingError,
 } from "@/features/payment/store/accounting-slice"
+import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends"
+import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution"
 
 export default function AccountingDashboard() {
   const dispatch = useAppDispatch()
@@ -93,18 +95,18 @@ export default function AccountingDashboard() {
         <RecentPaymentsWidget />
 
         {/* Charts Section */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        {/* <div className="grid gap-6 lg:grid-cols-2">
           <RevenueTrendsChart data={monthlyRevenue} isLoading={isLoading} />
           <PaymentMethodsChart data={paymentMethods} isLoading={isLoading} />
+        </div> */}
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AdminDailyRevenueTrends />
+          <RevenueByCourseDistribution />
         </div>
 
         {/* Course Revenue Section */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          <CourseRevenueChart data={courseRevenues} isLoading={isLoading} />
-          <div className="lg:col-span-1">
-            <CourseRevenueTable data={courseRevenues} isLoading={isLoading} />
-          </div>
-        </div>
+        <CourseRevenueTable data={courseRevenues} isLoading={isLoading} />
 
         {/* Quick Actions */}
         <div className="grid gap-6">
