@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, CreditCard, Calendar } from "lucide-react"
 import { Skeleton } from "../ui/skeleton";
 import { TabsContent } from "../ui/tabs";
+import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends";
+import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution";
 
 
 export function AnalyticsTab() {
@@ -125,125 +127,10 @@ export function AnalyticsTab() {
                 </Card>
             </div>
 
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Revenue Trend Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Revenue Trend</CardTitle>
-                    </CardHeader>
-                    <CardContent className="min-h-80 h-auto">
-                        {isLoading ? (
-                            <div className="h-full w-full flex items-center justify-center">
-                                <Skeleton className="h-64 w-full" />
-                            </div>
-                        ) : (
-                            <ChartContainer
-                                config={{
-                                    revenue: {
-                                        label: "Revenue",
-                                        theme: {
-                                            light: "#28A745",
-                                            dark: "#28A745",
-                                        },
-                                    },
-                                }}
-                            >
-                                <AreaChart
-                                    data={stats.paymentStats.revenueTrends || [
-                                        { month: "Jan", revenue: 120000 },
-                                        { month: "Feb", revenue: 150000 },
-                                        { month: "Mar", revenue: 180000 },
-                                        { month: "Apr", revenue: 170000 },
-                                        { month: "May", revenue: 200000 },
-                                        { month: "Jun", revenue: 250000 },
-                                    ]}
-                                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="month" />
-                                    <YAxis />
-                                    <ChartTooltip
-                                        content={({ active, payload }) => (
-                                            <ChartTooltipContent
-                                                active={active}
-                                                payload={payload}
-                                                formatter={(value) => `₦${(value as number).toLocaleString()}`}
-                                            />
-                                        )}
-                                    />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="revenue"
-                                        stroke="var(--color-revenue)"
-                                        fill="var(--color-revenue)"
-                                        fillOpacity={0.2}
-                                    />
-                                </AreaChart>
-                            </ChartContainer>
-                        )}
-                    </CardContent>
-                </Card>
 
-                {/* Enrolment Distribution Chart */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Course Enrolments</CardTitle>
-                    </CardHeader>
-                    <CardContent className="min-h-80 h-auto">
-                        {isLoading ? (
-                            <div className="h-full w-full flex items-center justify-center">
-                                <Skeleton className="h-64 w-full" />
-                            </div>
-                        ) : (
-                            <ChartContainer
-                                config={{
-                                    enrolments: {
-                                        label: "Enrolments",
-                                        theme: {
-                                            light: "#28A745",
-                                            dark: "#28A745",
-                                        },
-                                    },
-                                }}
-                            >
-                                <BarChart
-                                    data={stats.courseStats.categoryDistribution ?
-                                        Object.entries(stats.courseStats.categoryDistribution).map(([category, count]) => ({
-                                            category,
-                                            enrolments: count
-                                        })) :
-                                        [
-                                            { category: "Web Dev", enrolments: 45 },
-                                            { category: "Data Science", enrolments: 30 },
-                                            { category: "UX Design", enrolments: 25 },
-                                            { category: "Mobile Dev", enrolments: 20 },
-                                            { category: "DevOps", enrolments: 15 },
-                                        ]
-                                    }
-                                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="category" />
-                                    <YAxis />
-                                    <ChartTooltip
-                                        content={({ active, payload }) => (
-                                            <ChartTooltipContent
-                                                active={active}
-                                                payload={payload}
-                                            />
-                                        )}
-                                    />
-                                    <Bar
-                                        dataKey="enrolments"
-                                        fill="var(--color-enrolments)"
-                                        radius={[4, 4, 0, 0]}
-                                    />
-                                </BarChart>
-                            </ChartContainer>
-                        )}
-                    </CardContent>
-                </Card>
+            <div className="grid gap-6 lg:grid-cols-2">
+                <AdminDailyRevenueTrends />
+                <RevenueByCourseDistribution />
             </div>
         </TabsContent>
     )
