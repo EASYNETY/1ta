@@ -17,11 +17,11 @@ const safeFormatTime = (dateString: string | undefined | null): string => {
 // Helper to get type-based background color
 const getEventTypeBgColor = (type: ScheduleEvent['type']): string => {
     switch (type) {
-        case "lecture": return "bg-blue-500/20 border-blue-400 dark:bg-blue-500/30 dark:border-blue-700";
-        case "lab": return "bg-green-500/20 border-green-400 dark:bg-green-500/30 dark:border-green-700";
-        case "exam": return "bg-red-500/20 border-red-400 dark:bg-red-500/30 dark:border-red-700";
-        case "office-hours": return "bg-purple-500/20 border-purple-400 dark:bg-purple-500/30 dark:border-purple-700";
-        case "meeting": return "bg-indigo-500/20 border-indigo-400 dark:bg-indigo-500/30 dark:border-indigo-700";
+        case "lecture": return "bg-blue-500/20 border-blue-400 dark:bg-blue-500/50 dark:border-blue-700";
+        case "lab": return "bg-green-500/20 border-green-400 dark:bg-green-500/50 dark:border-green-700";
+        case "exam": return "bg-red-500/20 border-red-400 dark:bg-red-500/50 dark:border-red-700";
+        case "office-hours": return "bg-purple-500/20 border-purple-400 dark:bg-purple-500/50 dark:border-purple-700";
+        case "meeting": return "bg-indigo-500/20 border-indigo-400 dark:bg-indigo-500/50 dark:border-indigo-700";
         default: return "bg-muted/50 border-border";
     }
 };
@@ -46,7 +46,7 @@ export const TimetableEventItem: React.FC<TimetableEventItemProps> = ({
         <div
             key={event.id}
             className={cn(
-                "absolute text-[10px] leading-tight rounded border p-1 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10", // Base styles
+                "absolute text-[10px] leading-tight rounded border p-2 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10 backdrop-blur-md", // Base styles
                 getEventTypeBgColor(event.type) // Type-specific background/border
             )}
             style={{
@@ -59,8 +59,8 @@ export const TimetableEventItem: React.FC<TimetableEventItemProps> = ({
             title={title} // Tooltip for full details
         >
             {/* Display more info if height allows */}
-            {height > 25 && <p className="font-semibold truncate">{event.title}</p>}
-            {(height > 40 || height <= 25) && <p className="text-muted-foreground truncate">{safeFormatTime(event.startTime)}</p>}
+            {height > 25 && <p className="font-semibold truncate text-sm">{event.title}</p>}
+            {(height > 40 || height <= 25) && <p className="text-muted-foreground truncate text-xs">{safeFormatTime(event.startTime)}</p>}
             {/* Optionally add link or icon if space permits */}
         </div>
     );
