@@ -29,6 +29,8 @@ import {
 
 import { exportComprehensiveAccountingReport } from "@/features/payment/utils/export-utils"
 import { CourseRevenueChart } from "@/features/payment/components/CourseRevenueChart"
+import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends"
+import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution"
 
 export default function AccountingAnalytics() {
     const dispatch = useAppDispatch()
@@ -97,23 +99,24 @@ export default function AccountingAnalytics() {
                 {/* Detailed Course Revenue Analysis */}
                 <CourseRevenueTable data={courseRevenues} isLoading={isLoading} />
 
+
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <AdminDailyRevenueTrends />
+                    <RevenueByCourseDistribution />
+                </div>
+
                 {/* Detailed Charts Section */}
-                <div className="
+                {/* <div className="
                     grid
                     gap-6
-                    grid-cols-1        // Mobile: 1 column (charts stack)
-                    md:grid-cols-2      // Medium screens: 2 columns
-                    xl:grid-cols-3      // Extra Large screens: 3 columns
+                    grid-cols-1      
+                    md:grid-cols-2     
+                    xl:grid-cols-3      
                 ">
-                    {/*
-                        Each chart component should be designed to be responsive within its grid cell.
-                        The grid provides the column structure.
-                    */}
                     <RevenueTrendsChart data={monthlyRevenue} isLoading={isLoading} />
                     <PaymentMethodsChart data={paymentMethods} isLoading={isLoading} />
                     <CourseRevenueChart data={courseRevenues} isLoading={isLoading} />
-                    {/* If you had more charts, they would flow into this grid structure */}
-                </div>
+                </div> */}
 
                 {/* Export Actions */}
                 <AccountingQuickActions />
