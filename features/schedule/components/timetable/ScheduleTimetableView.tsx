@@ -136,6 +136,7 @@ export const ScheduleTimetableView: React.FC<ScheduleTimetableViewProps> = ({
                                 dayIndex={dayIndex}
                                 top={top}
                                 height={height}
+                                colSpan={3}
                             />
                         );
                     })}
