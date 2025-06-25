@@ -1,4 +1,5 @@
 // features/support/store/supportSlice.ts
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
@@ -12,7 +13,7 @@ import type {
 	FeedbackType,
 	TicketStatus,
 } from "../types/support-types";
-import { get, post } from "@/lib/api-client"; // Import API client methods
+import { get, post } from "@/lib/api-client";
 
 // --- Async Thunks ---
 
@@ -30,12 +31,9 @@ export const fetchMyTickets = createAsyncThunk<
 	"support/fetchMyTickets",
 	async ({ userId, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			// Construct query parameters
 			const params = new URLSearchParams();
 			params.append("page", page.toString());
 			params.append("limit", limit.toString());
-
-			// API call using the API client
 			return await get<{ tickets: SupportTicket[]; total: number }>(
 				`/support/my-tickets?${params.toString()}`
 			);
@@ -50,31 +48,70 @@ interface FetchAllTicketsParams {
 	page?: number;
 	limit?: number;
 }
+
+// VVVV --- THIS THUNK IS THE MAIN FIX --- VVVV
+// The generic type for what the thunk itself returns to the reducer
+interface FetchAllTicketsThunkResponse {
+	tickets: SupportTicket[];
+	pagination: {
+		total: number;
+		page: number;
+		limit: number;
+		pages: number;
+	};
+}
+
 export const fetchAllTickets = createAsyncThunk<
-	{ tickets: SupportTicket[]; total: number },
+	FetchAllTicketsThunkResponse, // <--- This is what we return
 	FetchAllTicketsParams,
 	{ rejectValue: string }
 >(
 	"support/fetchAllTickets",
 	async ({ status, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			// Construct query parameters
 			const params = new URLSearchParams();
 			if (status) params.append("status", status);
 			params.append("page", page.toString());
 			params.append("limit", limit.toString());
 
-			// API call using the API client
-			return await get<{ tickets: SupportTicket[]; total: number }>(
+			// The `get` function returns the quirky object from api-client
+			const apiClientResponse = await get<any>(
 				`/admin/support-tickets?${params.toString()}`
 			);
+
+			// --- DATA TRANSFORMATION LOGIC ---
+			// This is where we fix the data shape.
+			const tickets: SupportTicket[] = [];
+			let pagination: FetchAllTicketsThunkResponse["pagination"] = {
+				total: 0,
+				page: 1,
+				limit: 10,
+				pages: 1,
+			};
+
+			if (apiClientResponse && typeof apiClientResponse === "object") {
+				// Extract the pagination object first
+				if (apiClientResponse.pagination) {
+					pagination = apiClientResponse.pagination;
+				}
+
+				// Iterate over the keys of the response object to find the ticket items
+				Object.keys(apiClientResponse).forEach((key) => {
+					// Check if the key is a number (which is how arrays get spread into objects)
+					if (!isNaN(parseInt(key, 10))) {
+						tickets.push(apiClientResponse[key]);
+					}
+				});
+			}
+
+			// Return the correctly structured payload
+			return { tickets, pagination };
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to fetch all tickets");
 		}
 	}
 );
 
-// Fetch single ticket detail (including responses)
 interface FetchTicketByIdParams {
 	ticketId: string;
 	userId: string;
@@ -88,8 +125,6 @@ export const fetchTicketById = createAsyncThunk<
 	"support/fetchTicketById",
 	async ({ ticketId, userId, role }, { rejectWithValue }) => {
 		try {
-			// API call using the API client
-			// The endpoint depends on the user's role
 			const endpoint =
 				role !== "student"
 					? `/admin/support-tickets/${ticketId}`
@@ -101,7 +136,6 @@ export const fetchTicketById = createAsyncThunk<
 	}
 );
 
-// Create a new ticket
 interface CreateTicketThunkPayload extends CreateTicketPayload {
 	userId: string;
 }
@@ -113,7 +147,6 @@ export const createTicket = createAsyncThunk<
 	"support/createTicket",
 	async ({ userId, ...payload }, { rejectWithValue }) => {
 		try {
-			// API call using the API client
 			return await post<SupportTicket>("/support/ticket", payload);
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to create ticket");
@@ -121,7 +154,6 @@ export const createTicket = createAsyncThunk<
 	}
 );
 
-// Add a response to a ticket
 interface AddResponseThunkPayload extends AddTicketResponsePayload {
 	senderId: string;
 	senderRole: string;
@@ -134,8 +166,6 @@ export const addTicketResponse = createAsyncThunk<
 	"support/addResponse",
 	async ({ senderId, senderRole, ticketId, message }, { rejectWithValue }) => {
 		try {
-			// API call using the API client
-			// The endpoint depends on the user's role
 			const endpoint =
 				senderRole === "admin"
 					? `/admin/support-tickets/${ticketId}/responses`
@@ -147,7 +177,6 @@ export const addTicketResponse = createAsyncThunk<
 	}
 );
 
-// Submit Feedback
 interface SubmitFeedbackThunkPayload extends SubmitFeedbackPayload {
 	userId: string;
 }
@@ -159,7 +188,6 @@ export const submitFeedback = createAsyncThunk<
 	"support/submitFeedback",
 	async ({ userId, ...payload }, { rejectWithValue }) => {
 		try {
-			// API call using the API client
 			return await post<{ success: boolean }>("/support/feedback", payload);
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to submit feedback");
@@ -167,7 +195,6 @@ export const submitFeedback = createAsyncThunk<
 	}
 );
 
-// Fetch All Feedback (Admin)
 interface FetchAllFeedbackParams {
 	type?: FeedbackType;
 	page?: number;
@@ -181,13 +208,10 @@ export const fetchAllFeedback = createAsyncThunk<
 	"support/fetchAllFeedback",
 	async ({ type, page = 1, limit = 10 }, { rejectWithValue }) => {
 		try {
-			// Construct query parameters
 			const params = new URLSearchParams();
 			if (type) params.append("type", type);
 			params.append("page", page.toString());
 			params.append("limit", limit.toString());
-
-			// API call using the API client
 			return await get<{ feedback: FeedbackRecord[]; total: number }>(
 				`/admin/feedback?${params.toString()}`
 			);
@@ -197,7 +221,6 @@ export const fetchAllFeedback = createAsyncThunk<
 	}
 );
 
-// --- Initial State ---
 const initialState: SupportState = {
 	myTickets: [],
 	allTickets: [],
@@ -211,7 +234,6 @@ const initialState: SupportState = {
 	adminFeedbackPagination: null,
 };
 
-// --- Slice ---
 const supportSlice = createSlice({
 	name: "support",
 	initialState,
@@ -228,7 +250,6 @@ const supportSlice = createSlice({
 		},
 	},
 	extraReducers: (builder) => {
-		// Fetch My Tickets
 		builder
 			.addCase(fetchMyTickets.pending, (state) => {
 				state.status = "loading";
@@ -236,15 +257,14 @@ const supportSlice = createSlice({
 			})
 			.addCase(fetchMyTickets.fulfilled, (state, action) => {
 				state.status = "succeeded";
-				state.myTickets =
-					action.payload.tickets; /* TODO: Handle pagination if needed */
+				state.myTickets = action.payload.tickets;
 			})
 			.addCase(fetchMyTickets.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Error";
 			});
 
-		// Fetch All Tickets (Admin)
+		// VVVV --- THIS REDUCER IS THE OTHER MAIN FIX --- VVVV
 		builder
 			.addCase(fetchAllTickets.pending, (state) => {
 				state.status = "loading";
@@ -252,20 +272,25 @@ const supportSlice = createSlice({
 			})
 			.addCase(fetchAllTickets.fulfilled, (state, action) => {
 				state.status = "succeeded";
+				// The payload from our thunk now has the correct shape
 				state.allTickets = action.payload.tickets;
-				// state.adminTicketPagination = { ... }; // Update pagination
+				state.adminTicketPagination = {
+					totalItems: action.payload.pagination.total,
+					currentPage: action.payload.pagination.page,
+					totalPages: action.payload.pagination.pages,
+					limit: action.payload.pagination.limit,
+				};
 			})
 			.addCase(fetchAllTickets.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.payload ?? "Error";
 			});
 
-		// Fetch Ticket By ID
 		builder
 			.addCase(fetchTicketById.pending, (state) => {
 				state.ticketStatus = "loading";
 				state.error = null;
-			}) // Use ticketStatus
+			})
 			.addCase(fetchTicketById.fulfilled, (state, action) => {
 				state.ticketStatus = "succeeded";
 				state.currentTicket = action.payload;
@@ -275,7 +300,6 @@ const supportSlice = createSlice({
 				state.error = action.payload ?? "Error";
 			});
 
-		// Create Ticket
 		builder
 			.addCase(createTicket.pending, (state) => {
 				state.createStatus = "loading";
@@ -283,8 +307,7 @@ const supportSlice = createSlice({
 			})
 			.addCase(createTicket.fulfilled, (state, action) => {
 				state.createStatus = "succeeded";
-				state.myTickets.unshift(action.payload); // Add to start of user's list
-				// Also add to admin list if already fetched?
+				state.myTickets.unshift(action.payload);
 				if (state.allTickets.length > 0)
 					state.allTickets.unshift(action.payload);
 			})
@@ -293,15 +316,13 @@ const supportSlice = createSlice({
 				state.error = action.payload ?? "Error";
 			});
 
-		// Add Ticket Response
 		builder
 			.addCase(addTicketResponse.pending, (state) => {
 				state.createStatus = "loading";
 				state.error = null;
-			}) // Use createStatus
+			})
 			.addCase(addTicketResponse.fulfilled, (state, action) => {
 				state.createStatus = "succeeded";
-				// Add response to the currentTicket if loaded
 				if (
 					state.currentTicket &&
 					state.currentTicket.id === action.payload.ticketId
@@ -309,10 +330,9 @@ const supportSlice = createSlice({
 					if (!state.currentTicket.responses)
 						state.currentTicket.responses = [];
 					state.currentTicket.responses.push(action.payload);
-					state.currentTicket.status = "in_progress"; // Example status update
+					state.currentTicket.status = "in_progress";
 					state.currentTicket.updatedAt = action.payload.createdAt;
 				}
-				// Also update the list views potentially
 				const updateTicketList = (list: SupportTicket[]) =>
 					list.map((t) =>
 						t.id === action.payload.ticketId
@@ -331,21 +351,19 @@ const supportSlice = createSlice({
 				state.error = action.payload ?? "Error";
 			});
 
-		// Submit Feedback
 		builder
 			.addCase(submitFeedback.pending, (state) => {
 				state.createStatus = "loading";
 				state.error = null;
 			})
 			.addCase(submitFeedback.fulfilled, (state) => {
-				state.createStatus = "succeeded"; /* Maybe clear form? */
+				state.createStatus = "succeeded";
 			})
 			.addCase(submitFeedback.rejected, (state, action) => {
 				state.createStatus = "failed";
 				state.error = action.payload ?? "Error submitting feedback";
 			});
 
-		// Fetch All Feedback (Admin)
 		builder
 			.addCase(fetchAllFeedback.pending, (state) => {
 				state.status = "loading";
@@ -354,7 +372,6 @@ const supportSlice = createSlice({
 			.addCase(fetchAllFeedback.fulfilled, (state, action) => {
 				state.status = "succeeded";
 				state.allFeedback = action.payload.feedback;
-				// state.adminFeedbackPagination = { ... }; // Update pagination
 			})
 			.addCase(fetchAllFeedback.rejected, (state, action) => {
 				state.status = "failed";
@@ -363,7 +380,6 @@ const supportSlice = createSlice({
 	},
 });
 
-// --- Actions & Selectors ---
 export const { clearSupportError, clearCurrentTicket, resetCreateStatus } =
 	supportSlice.actions;
 

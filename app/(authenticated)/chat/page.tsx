@@ -16,7 +16,9 @@ export default function ChatPage() {
     useEffect(() => {
         if (currentUser?.id) {
             dispatch(clearCreateRoomStatus())
-            dispatch(fetchChatRooms(currentUser.id))
+            dispatch(fetchChatRooms(
+                // currentUser.id
+            ))
         }
     }, [dispatch, currentUser?.id])
 

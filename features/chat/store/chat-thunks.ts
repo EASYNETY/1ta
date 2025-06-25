@@ -13,20 +13,20 @@ import { get, post } from "@/lib/api-client";
 import { MarkRoomReadPayload } from "@/data/mock-chat-data";
 
 // Fetch chat rooms for a user
-export const fetchChatRooms = createAsyncThunk<
-	ChatRoom[],
-	string, // userId
-	{ rejectValue: string }
->("chat/fetchRooms", async (userId, { rejectWithValue }) => {
-	try {
-		const response = await get<FetchRoomsResponse>(
-			`/chat/rooms/user/${userId}`
-		);
-		return response.rooms;
-	} catch (e: any) {
-		return rejectWithValue(e.message || "Failed to fetch chat rooms");
-	}
-});
+// export const fetchChatRooms = createAsyncThunk<
+// 	ChatRoom[],
+// 	string, // userId
+// 	{ rejectValue: string }
+// >("chat/fetchRooms", async (userId, { rejectWithValue }) => {
+// 	try {
+// 		const response = await get<FetchRoomsResponse>(
+// 			`/chat/rooms/user/${userId}`
+// 		);
+// 		return response.rooms;
+// 	} catch (e: any) {
+// 		return rejectWithValue(e.message || "Failed to fetch chat rooms");
+// 	}
+// });
 
 // Fetch messages for a specific room
 export interface FetchMessagesParams {
@@ -52,6 +52,25 @@ export const fetchChatMessages = createAsyncThunk<
 		}
 	}
 );
+
+export const fetchChatRooms = createAsyncThunk<
+	ChatRoom[],
+	void, // No argument is needed (changed from string)
+	{ rejectValue: string }
+>("chat/fetchRooms", async (_, { rejectWithValue }) => {
+	try {
+        // Call a generic endpoint that returns all rooms.
+        // Adjust "/chat/rooms" if your backend endpoint is different (e.g., "/chat/rooms/all").
+		const response = await get<FetchRoomsResponse>(
+			`/chat/rooms` 
+		);
+		// Assuming your apiClient still unwraps the response, 
+        // and the response.data contains a `rooms` array.
+		return response.rooms; 
+	} catch (e: any) {
+		return rejectWithValue(e.message || "Failed to fetch chat rooms");
+	}
+});
 
 // Send a new message
 export interface SendMessageParams {
