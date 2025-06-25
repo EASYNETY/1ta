@@ -224,13 +224,22 @@ export default function CreateChatRoomPage() {
     }, [createRoomReqStatus, createRoomReqError, reset, dispatch, router, currentUser]);
 
     const onSubmitHandler = (data: CreateChatRoomFormValues) => {
-        if (!currentUser?.id) { toast.error("User not authenticated."); return; }
-        let finalContextId = data.contextId;
+        if (!currentUser?.id) {
+            toast.error("User not authenticated.");
+            return;
+        }
+
+        let finalContextId = "";
         if (data.type !== ChatRoomType.ANNOUNCEMENT && data.dynamicContextSelection) {
             finalContextId = data.dynamicContextSelection;
-        } else if (data.type !== ChatRoomType.ANNOUNCEMENT && !data.dynamicContextSelection && contextItems.length > 0) {
+        } else if (data.type === ChatRoomType.ANNOUNCEMENT) {
+            finalContextId = data.contextId; // This will be 'general_announcements'
+        }
+
+        if (data.type !== ChatRoomType.ANNOUNCEMENT && !finalContextId && contextItems.length > 0) {
             toast.error(`Please select a specific ${data.type} for the context.`);
-            setValue("contextId", "", { shouldValidate: true }); return;
+            setValue("contextId", "", { shouldValidate: true });
+            return;
         }
 
         let finalParticipantIds = [...data.participantIds];
@@ -240,11 +249,30 @@ export default function CreateChatRoomPage() {
         }
         finalParticipantIds = Array.from(new Set(finalParticipantIds));
 
-        const { dynamicContextSelection, ...payloadToSubmit } = data;
+        const { dynamicContextSelection, contextId, ...basePayload } = data;
+
         const finalPayload: CreateRoomPayload = {
-            ...payloadToSubmit, contextId: finalContextId,
-            participantIds: finalParticipantIds, createdBy: currentUser.id,
+            ...basePayload,
+            participantIds: finalParticipantIds,
+            createdBy: currentUser.id,
         };
+
+        switch (data.type) {
+            case ChatRoomType.CLASS:
+                finalPayload.classId = finalContextId;
+                break;
+            case ChatRoomType.COURSE:
+                finalPayload.courseId = finalContextId;
+                break;
+            case ChatRoomType.EVENT:
+                finalPayload.eventId = finalContextId;
+                break;
+            case ChatRoomType.ANNOUNCEMENT:
+                finalPayload.contextId = finalContextId;
+                break;
+        }
+
+        console.log("Dispatching final payload:", finalPayload);
         dispatch(createChatRoom(finalPayload));
     };
 

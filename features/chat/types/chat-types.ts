@@ -110,9 +110,12 @@ export interface CreateRoomPayload {
 	name: string;
 	description?: string;
 	type: ChatRoomType;
-	contextId: string; // e.g., courseId, classId, eventId, or 'general' for announcement
+	contextId?: string; // e.g., courseId, classId, eventId, or 'general' for announcement
 	participantIds: string[]; // Array of user IDs to be added as participants
 	createdBy: string; // ID of the user creating the room
+	classId?: string;
+	courseId?: string;
+	eventId?: string;
 }
 
 export interface MarkReadResponse {
