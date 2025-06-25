@@ -1,5 +1,4 @@
 // features/support/store/supportSlice.ts
-
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type {
@@ -13,11 +12,8 @@ import type {
 	FeedbackType,
 	TicketStatus,
 } from "../types/support-types";
-import { get, post } from "@/lib/api-client";
+import { get, post, put } from "@/lib/api-client";
 
-// --- Async Thunks ---
-
-// Fetch tickets (distinguish between user's and admin's all)
 interface FetchTicketsParams {
 	userId: string;
 	page?: number;
@@ -48,9 +44,6 @@ interface FetchAllTicketsParams {
 	page?: number;
 	limit?: number;
 }
-
-// VVVV --- THIS THUNK IS THE MAIN FIX --- VVVV
-// The generic type for what the thunk itself returns to the reducer
 interface FetchAllTicketsThunkResponse {
 	tickets: SupportTicket[];
 	pagination: {
@@ -60,9 +53,8 @@ interface FetchAllTicketsThunkResponse {
 		pages: number;
 	};
 }
-
 export const fetchAllTickets = createAsyncThunk<
-	FetchAllTicketsThunkResponse, // <--- This is what we return
+	FetchAllTicketsThunkResponse,
 	FetchAllTicketsParams,
 	{ rejectValue: string }
 >(
@@ -73,14 +65,9 @@ export const fetchAllTickets = createAsyncThunk<
 			if (status) params.append("status", status);
 			params.append("page", page.toString());
 			params.append("limit", limit.toString());
-
-			// The `get` function returns the quirky object from api-client
 			const apiClientResponse = await get<any>(
 				`/admin/support-tickets?${params.toString()}`
 			);
-
-			// --- DATA TRANSFORMATION LOGIC ---
-			// This is where we fix the data shape.
 			const tickets: SupportTicket[] = [];
 			let pagination: FetchAllTicketsThunkResponse["pagination"] = {
 				total: 0,
@@ -88,23 +75,16 @@ export const fetchAllTickets = createAsyncThunk<
 				limit: 10,
 				pages: 1,
 			};
-
 			if (apiClientResponse && typeof apiClientResponse === "object") {
-				// Extract the pagination object first
 				if (apiClientResponse.pagination) {
 					pagination = apiClientResponse.pagination;
 				}
-
-				// Iterate over the keys of the response object to find the ticket items
 				Object.keys(apiClientResponse).forEach((key) => {
-					// Check if the key is a number (which is how arrays get spread into objects)
 					if (!isNaN(parseInt(key, 10))) {
 						tickets.push(apiClientResponse[key]);
 					}
 				});
 			}
-
-			// Return the correctly structured payload
 			return { tickets, pagination };
 		} catch (e: any) {
 			return rejectWithValue(e.message || "Failed to fetch all tickets");
@@ -167,7 +147,7 @@ export const addTicketResponse = createAsyncThunk<
 	async ({ senderId, senderRole, ticketId, message }, { rejectWithValue }) => {
 		try {
 			const endpoint =
-				senderRole === "admin"
+				senderRole === "admin" || senderRole === "super_admin"
 					? `/admin/support-tickets/${ticketId}/responses`
 					: `/support/my-tickets/${ticketId}/responses`;
 			return await post<TicketResponse>(endpoint, { message });
@@ -175,6 +155,29 @@ export const addTicketResponse = createAsyncThunk<
 			return rejectWithValue(e.message || "Failed to add response");
 		}
 	}
+);
+
+interface UpdateTicketStatusPayload {
+    ticketId: string;
+    status: TicketStatus;
+}
+export const updateTicketStatus = createAsyncThunk<
+    SupportTicket, 
+    UpdateTicketStatusPayload,
+    { rejectValue: string }
+>(
+    "support/updateTicketStatus",
+    async ({ ticketId, status }, { rejectWithValue }) => {
+        try {
+            const updatedTicket = await put<SupportTicket>(
+                `/admin/support-tickets/${ticketId}/status`, 
+                { status }
+            );
+            return updatedTicket;
+        } catch (e: any) {
+            return rejectWithValue(e.message || "Failed to update ticket status");
+        }
+    }
 );
 
 interface SubmitFeedbackThunkPayload extends SubmitFeedbackPayload {
@@ -264,7 +267,6 @@ const supportSlice = createSlice({
 				state.error = action.payload ?? "Error";
 			});
 
-		// VVVV --- THIS REDUCER IS THE OTHER MAIN FIX --- VVVV
 		builder
 			.addCase(fetchAllTickets.pending, (state) => {
 				state.status = "loading";
@@ -272,7 +274,6 @@ const supportSlice = createSlice({
 			})
 			.addCase(fetchAllTickets.fulfilled, (state, action) => {
 				state.status = "succeeded";
-				// The payload from our thunk now has the correct shape
 				state.allTickets = action.payload.tickets;
 				state.adminTicketPagination = {
 					totalItems: action.payload.pagination.total,
@@ -323,33 +324,68 @@ const supportSlice = createSlice({
 			})
 			.addCase(addTicketResponse.fulfilled, (state, action) => {
 				state.createStatus = "succeeded";
+				const newResponse = action.payload;
 				if (
 					state.currentTicket &&
-					state.currentTicket.id === action.payload.ticketId
+					state.currentTicket.id === newResponse.ticketId
 				) {
-					if (!state.currentTicket.responses)
-						state.currentTicket.responses = [];
-					state.currentTicket.responses.push(action.payload);
-					state.currentTicket.status = "in_progress";
-					state.currentTicket.updatedAt = action.payload.createdAt;
+					const updatedResponses = [
+						...(state.currentTicket.responses || []),
+						newResponse,
+					];
+					state.currentTicket = {
+						...state.currentTicket,
+						responses: updatedResponses,
+						updatedAt: newResponse.createdAt,
+					};
 				}
-				const updateTicketList = (list: SupportTicket[]) =>
-					list.map((t) =>
-						t.id === action.payload.ticketId
-							? {
-									...t,
-									status: "in_progress" as TicketStatus,
-									updatedAt: action.payload.createdAt,
-								}
-							: t
-					);
-				state.myTickets = updateTicketList(state.myTickets);
-				state.allTickets = updateTicketList(state.allTickets);
+				const updateTicketInList = (ticket: SupportTicket) => {
+					if (ticket.id === newResponse.ticketId) {
+						return {
+							...ticket,
+							updatedAt: newResponse.createdAt,
+						};
+					}
+					return ticket;
+				};
+				if (Array.isArray(state.myTickets)) {
+					state.myTickets = state.myTickets.map(updateTicketInList);
+				}
+				if (Array.isArray(state.allTickets)) {
+					state.allTickets = state.allTickets.map(updateTicketInList);
+				}
 			})
 			.addCase(addTicketResponse.rejected, (state, action) => {
 				state.createStatus = "failed";
 				state.error = action.payload ?? "Error";
 			});
+
+        builder
+            .addCase(updateTicketStatus.pending, (state) => {
+                state.ticketStatus = "loading";
+                state.error = null;
+            })
+            .addCase(updateTicketStatus.fulfilled, (state, action) => {
+                state.ticketStatus = "succeeded";
+                const updatedTicket = action.payload;
+                if (state.currentTicket && state.currentTicket.id === updatedTicket.id) {
+                    state.currentTicket = updatedTicket;
+                }
+                if (Array.isArray(state.allTickets)) {
+                    state.allTickets = state.allTickets.map(ticket => 
+                        ticket.id === updatedTicket.id ? updatedTicket : ticket
+                    );
+                }
+                if (Array.isArray(state.myTickets)) {
+                    state.myTickets = state.myTickets.map(ticket => 
+                        ticket.id === updatedTicket.id ? updatedTicket : ticket
+                    );
+                }
+            })
+            .addCase(updateTicketStatus.rejected, (state, action) => {
+                state.ticketStatus = "failed";
+                state.error = action.payload ?? "Failed to update status";
+            });
 
 		builder
 			.addCase(submitFeedback.pending, (state) => {

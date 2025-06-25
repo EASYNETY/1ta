@@ -1,25 +1,27 @@
 // app/(authenticated)/admin/tickets/[ticketId]/page.tsx
 
-"use client"
 
-import type React from "react"
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
-import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
-import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { Textarea } from "@/components/ui/textarea"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, XCircle } from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { format, parseISO, isValid } from "date-fns"
-import { cn } from "@/lib/utils"
+"use client";
+
+import type React from "react";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { DyraneCard } from "@/components/dyrane-ui/dyrane-card";
+import { CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { format, parseISO, isValid } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
     fetchTicketById,
     addTicketResponse,
+    updateTicketStatus,
     selectCurrentTicket,
     selectTicketStatus,
     selectSupportError,
@@ -27,68 +29,61 @@ import {
     clearCurrentTicket,
     clearSupportError,
     resetCreateStatus,
-} from "@/features/support/store/supportSlice"
-import type { TicketResponse, TicketStatus } from "@/features/support/types/support-types"
-import { Label } from "@/components/ui/label"
-import { getPriorityStyles, getStatusVariant } from "@/features/support/components/TicketListItem"
-import { hasAdminAccess, isCustomerCare } from "@/types/user.types"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PageHeader } from "@/components/layout/auth/page-header"
+} from "@/features/support/store/supportSlice";
+import type { TicketResponse, TicketStatus } from "@/features/support/types/support-types";
+import { Label } from "@/components/ui/label";
+import { getPriorityStyles, getStatusVariant } from "@/features/support/components/TicketListItem";
+import { hasAdminAccess, isCustomerCare } from "@/types/user.types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/auth/page-header";
+import { toast } from "sonner";
 
-// Helper to format date string safely
 const safeFormatDetailedDate = (dateString?: string): string => {
-    if (!dateString) return "N/A"
+    if (!dateString) return "N/A";
     try {
-        const date = parseISO(dateString)
-        return isValid(date) ? format(date, "PPP 'at' p") : "Invalid Date"
+        const date = parseISO(dateString);
+        return isValid(date) ? format(date, "PPP 'at' p") : "Invalid Date";
     } catch {
-        return "Error"
+        return "Error";
     }
-}
+};
 
 export default function AdminTicketDetailPage() {
-    const params = useParams()
-    const router = useRouter()
-    const dispatch = useAppDispatch()
-    const { user } = useAppSelector((state) => state.auth)
-    const ticket = useAppSelector(selectCurrentTicket)
-    const status = useAppSelector(selectTicketStatus)
-    const responseStatus = useAppSelector(selectSupportCreateStatus)
-    const error = useAppSelector(selectSupportError)
-    const ticketId = typeof params.ticketId === "string" ? params.ticketId : ""
-    const [replyContent, setReplyContent] = useState("")
-    const [ticketStatus, setTicketStatus] = useState<TicketStatus>("open")
-    const isSendingReply = responseStatus === "loading"
+    const params = useParams();
+    const router = useRouter();
+    const dispatch = useAppDispatch();
+    const { user } = useAppSelector((state) => state.auth);
+    const ticket = useAppSelector(selectCurrentTicket);
+    const status = useAppSelector(selectTicketStatus);
+    const responseStatus = useAppSelector(selectSupportCreateStatus);
+    const error = useAppSelector(selectSupportError);
+    const ticketId = typeof params.ticketId === "string" ? params.ticketId : "";
+    const [replyContent, setReplyContent] = useState("");
+    const isSendingReply = responseStatus === "loading";
 
-    // Redirect non-admin users
+    // const [ticketStatus, setTicketStatus] = useState<TicketStatus>("open");
+
     useEffect(() => {
         if (user && (!hasAdminAccess(user) && !isCustomerCare(user))) {
-            router.push("/dashboard")
+            router.push("/dashboard");
         }
-    }, [user, router])
+    }, [user, router]);
 
     useEffect(() => {
         if (ticketId && user?.id && (hasAdminAccess(user) || isCustomerCare(user))) {
-            dispatch(fetchTicketById({ ticketId, userId: user.id, role: user.role }))
+            dispatch(fetchTicketById({ ticketId, userId: user.id, role: user.role }));
         }
-
         return () => {
-            dispatch(clearCurrentTicket())
-            dispatch(clearSupportError())
-            dispatch(resetCreateStatus())
-        }
-    }, [dispatch, ticketId, user])
-
-    useEffect(() => {
-        if (ticket) {
-            setTicketStatus(ticket.status)
-        }
-    }, [ticket])
+            dispatch(clearCurrentTicket());
+            dispatch(clearSupportError());
+            dispatch(resetCreateStatus());
+        };
+    }, [dispatch, ticketId, user]);
 
     const handleAddResponse = (e: React.FormEvent) => {
-        e.preventDefault()
-        const trimmedContent = replyContent.trim()
-        if (!trimmedContent || !ticket || !user || isSendingReply) return
+        e.preventDefault();
+        const trimmedContent = replyContent.trim();
+        if (!trimmedContent || !ticket || !user || isSendingReply) return;
 
         dispatch(
             addTicketResponse({
@@ -100,18 +95,28 @@ export default function AdminTicketDetailPage() {
         )
             .unwrap()
             .then(() => {
-                setReplyContent("")
+                setReplyContent("");
+                toast.success("Response sent successfully!");
             })
             .catch((err) => {
-                console.error("Failed to send reply:", err)
-            })
-    }
+                toast.error("Failed to send reply.");
+                console.error("Failed to send reply:", err);
+            });
+    };
 
     const handleStatusChange = (newStatus: TicketStatus) => {
-        setTicketStatus(newStatus)
-        // In a real app, you would dispatch an action to update the ticket status
-        // For now, we'll just update the local state
-    }
+        if (!ticket || ticket.status === newStatus) return;
+
+        toast.info(`Updating status...`);
+        dispatch(updateTicketStatus({ ticketId: ticket.id, status: newStatus }))
+            .unwrap()
+            .then(() => {
+                toast.success("Ticket status updated successfully!");
+            })
+            .catch(() => {
+                toast.error("Failed to update status.");
+            });
+    };
 
     if (!user || (!hasAdminAccess(user) && !isCustomerCare(user))) {
         return (
@@ -120,7 +125,7 @@ export default function AdminTicketDetailPage() {
                 <AlertTitle>Access Denied</AlertTitle>
                 <AlertDescription>You don't have permission to access this page.</AlertDescription>
             </Alert>
-        )
+        );
     }
 
     if (status === "loading") {
@@ -131,7 +136,7 @@ export default function AdminTicketDetailPage() {
                 <Skeleton className="h-40 w-full" />
                 <Skeleton className="h-20 w-full" />
             </div>
-        )
+        );
     }
 
     if (status === "failed" || !ticket) {
@@ -146,12 +151,11 @@ export default function AdminTicketDetailPage() {
                     <AlertDescription>{error || "Could not load the support ticket details."}</AlertDescription>
                 </Alert>
             </div>
-        )
+        );
     }
 
     return (
         <div className="mx-auto">
-            {/* Header */}
             <PageHeader
                 heading="Ticket Management"
                 subheading="View and manage all support tickets"
@@ -160,7 +164,7 @@ export default function AdminTicketDetailPage() {
             <DyraneCard className="mb-6">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                        <CardTitle className="text-xl">{ticket.subject}</CardTitle>
+                        <CardTitle className="text-xl">{ticket.title}</CardTitle>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <Badge variant={getStatusVariant(ticket.status)} className="capitalize">
                                 {ticket.status.replace("_", " ")}
@@ -177,15 +181,14 @@ export default function AdminTicketDetailPage() {
                 </CardHeader>
                 <CardContent>
                     <p className="whitespace-pre-wrap">{ticket.description}</p>
-
                     <div className="mt-6 pt-4 border-t">
-                        <div className="flex justify-between items-center">
+                        {/* <div className="flex justify-between items-center">
                             <h3 className="font-medium">Ticket Management</h3>
                             <div className="flex items-center gap-2">
                                 <Label htmlFor="status-select" className="mr-2">
                                     Status:
                                 </Label>
-                                <Select value={ticketStatus} onValueChange={(value) => handleStatusChange(value as TicketStatus)}>
+                                <Select value={ticket.status} onValueChange={(value) => handleStatusChange(value as TicketStatus)}>
                                     <SelectTrigger id="status-select" className="w-[180px]">
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
@@ -197,7 +200,7 @@ export default function AdminTicketDetailPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </div>
+                        </div> */}
 
                         <div className="flex gap-2 mt-4">
                             <DyraneButton
@@ -209,7 +212,6 @@ export default function AdminTicketDetailPage() {
                                 <CheckCircle className="mr-2 h-4 w-4" />
                                 Mark Resolved
                             </DyraneButton>
-
                             <DyraneButton
                                 variant="outline"
                                 size="sm"
@@ -226,7 +228,6 @@ export default function AdminTicketDetailPage() {
 
             <h2 className="text-xl font-semibold mb-4">Conversation History</h2>
 
-            {/* Response List */}
             <div className="space-y-4 mb-6">
                 {ticket.responses && ticket.responses.length > 0 ? (
                     ticket.responses.map((response: TicketResponse) => (
@@ -266,7 +267,6 @@ export default function AdminTicketDetailPage() {
                 )}
             </div>
 
-            {/* Add Response Form */}
             <form onSubmit={handleAddResponse} className="space-y-3 border-t pt-6">
                 <Label htmlFor="replyMessage" className="font-semibold">
                     Add Admin Response
@@ -289,5 +289,5 @@ export default function AdminTicketDetailPage() {
                 {responseStatus === "failed" && error && <p className="text-xs text-destructive mt-1">{error}</p>}
             </form>
         </div>
-    )
+    );
 }
