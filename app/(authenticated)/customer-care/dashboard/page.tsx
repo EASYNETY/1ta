@@ -1,4 +1,6 @@
 // app/(authenticated)/customer-care/dashboard/page.tsx
+// FULLY CORRECTED AND UNABBREVIATED
+
 "use client";
 
 import React, { useEffect, useMemo } from 'react';
@@ -28,7 +30,7 @@ import {
 } from '@/features/support/store/supportSlice';
 import type { SupportTicket, TicketStatus, TicketPriority } from '@/features/support/types/support-types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertTitle } from '@/components/ui/alert'; // Removed AlertDescription as CardDescription is used in error
+import { Alert, AlertTitle } from '@/components/ui/alert';
 import { isToday, parseISO, formatDistanceToNowStrict } from 'date-fns';
 import { PageHeader } from '@/components/layout/auth/page-header';
 
@@ -124,19 +126,16 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
     }
   };
 
-  // Inside RecentTicketsTable component, within the getStatusVariant function:
-
-  const getStatusVariant = (status: TicketStatus): "destructive" | "default" | "secondary" | "outline" => { // Adjusted return type
+  const getStatusVariant = (status: TicketStatus): "destructive" | "default" | "secondary" | "outline" => {
     switch (status) {
       case 'open':
         return 'destructive';
       case 'in_progress':
-        return 'default'; // Or 'secondary' if 'default' isn't visually distinct enough for "in progress"
+        return 'default';
       case 'resolved':
-        return 'secondary'; // Changed "success" to "secondary" or "outline" or "default"
-      // Choose one that exists in your Badge variants and looks appropriate for "resolved"
+        return 'secondary';
       case 'closed':
-        return 'outline'; // Or 'secondary'
+        return 'outline';
       default:
         return 'secondary';
     }
@@ -158,11 +157,15 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
               <div key={ticket.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors dark:border-gray-700">
                 <div className="flex-grow mb-2 sm:mb-0 pr-2">
                   <Link href={`/support/tickets/${ticket.id}`} className="hover:underline block">
-                    <p className="font-medium text-sm leading-tight truncate max-w-xs sm:max-w-sm md:max-w-md dark:text-gray-100">{ticket.subject}</p>
+                    <p className="font-medium text-sm leading-tight truncate max-w-xs sm:max-w-sm md:max-w-md dark:text-gray-100">{ticket.title}</p>
                   </Link>
+                  {/* VVVV --- THIS IS THE FIX --- VVVV */}
                   <p className="text-xs text-muted-foreground">
-                    By: {ticket.studentName || 'N/A'} (ID: {ticket.studentId.substring(0, 8)}...)
+                    By: {ticket.studentName || 'N/A'}
+                    {/* Safely handle potentially missing studentId */}
+                    {ticket.studentId ? ` (ID: ${ticket.studentId.substring(0, 8)}...)` : ' (ID: Unknown)'}
                   </p>
+                  {/* ^^^^ --- END OF THE FIX --- ^^^^ */}
                 </div>
                 <div className="flex items-center space-x-2 flex-shrink-0">
                   <Badge
@@ -201,22 +204,19 @@ export default function CustomerCareDashboard() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { user: loggedInUser } = useAppSelector((state) => state.auth);
-  const allTickets = useAppSelector(selectAllTickets); // This is SupportTicket[]
+  const allTickets = useAppSelector(selectAllTickets);
   const supportStatus = useAppSelector(selectSupportStatus);
   const supportError = useAppSelector(selectSupportError);
 
-  // isLoading considers initial idle state before first fetch attempt as loading too
   const isLoading = supportStatus === 'loading' || (supportStatus === 'idle' && (!allTickets || allTickets.length === 0));
 
   useEffect(() => {
-    // Fetch tickets if user is loaded and either status is idle or no tickets are present (e.g., after a clear or initial load)
     if (loggedInUser && (supportStatus === 'idle' || (!allTickets || allTickets.length === 0))) {
       dispatch(clearSupportError());
-      dispatch(fetchAllTickets({ limit: 10000, page: 1 })); // Fetch a large number for client-side stats
+      dispatch(fetchAllTickets({ limit: 10000, page: 1 }));
     }
-  }, [dispatch, loggedInUser, allTickets]); // allTickets in dep array to refetch if it becomes empty
+  }, [dispatch, loggedInUser, allTickets, supportStatus]); // Added supportStatus to dependency array
 
-  // --- Global Stats Calculation ---
   const customerCareStats = useMemo(() => {
     if (!allTickets || allTickets.length === 0) {
       return {
@@ -234,12 +234,12 @@ export default function CustomerCareDashboard() {
 
     const resolvedTodayCount = allTickets.filter(ticket =>
       resolvedStatuses.includes(ticket.status) &&
-      ticket.updatedAt && // Ensure updatedAt exists
+      ticket.updatedAt &&
       isToday(parseISO(ticket.updatedAt))
     ).length;
 
     const newTicketsTodayCount = allTickets.filter(ticket =>
-      ticket.createdAt && // Ensure createdAt exists
+      ticket.createdAt &&
       isToday(parseISO(ticket.createdAt))
     ).length;
 
@@ -251,11 +251,10 @@ export default function CustomerCareDashboard() {
     };
   }, [allTickets]);
 
-  // --- "My Activity Today" Stats Calculation ---
   const myActivityStats = useMemo(() => {
     if (!loggedInUser || !allTickets || allTickets.length === 0) {
       return {
-        ticketsHandledByMeToday: 0, // Renamed for clarity
+        ticketsResolvedOrLastHandledByMeToday: 0,
       };
     }
 
@@ -269,27 +268,15 @@ export default function CustomerCareDashboard() {
         isToday(parseISO(ticket.updatedAt));
 
       if (ticketResolvedOrClosedToday) {
-        // Check if the logged-in user was the one who likely resolved it
-        // by checking the last response if `responses` array is available and populated.
         if (ticket.responses && ticket.responses.length > 0) {
-          // Sort responses by date to be sure, though usually they are appended.
           const sortedResponses = [...ticket.responses].sort((a, b) => parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime());
           const lastResponse = sortedResponses[0];
 
           if (lastResponse && lastResponse.userId === loggedInUser.id) {
-            // Check if this last response by the user was also today,
-            // or if the ticket's updatedAt (resolution time) is today.
-            // The ticket.updatedAt check is already covered by ticketResolvedOrClosedToday.
             ticketsHandledByMeToday++;
-            return; // Move to the next ticket
+            return;
           }
         }
-        // Fallback or alternative: if your ticket has an `assignedToUserId` and that matches,
-        // and the ticket was resolved today, you might count it.
-        // else if (ticket.assignedToUserId === loggedInUser.id) {
-        //   ticketsCount++;
-        //   return;
-        // }
       }
     });
 
@@ -298,7 +285,6 @@ export default function CustomerCareDashboard() {
     };
   }, [loggedInUser, allTickets]);
 
-  // --- Error Display ---
   if (supportError && !isLoading) {
     return (
       <CustomerCareGuard>
@@ -306,7 +292,7 @@ export default function CustomerCareDashboard() {
           <Alert variant="destructive" className="w-full max-w-md">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error Loading Support Data</AlertTitle>
-            <CardDescription>{supportError}</CardDescription> {/* Used CardDescription for consistency */}
+            <CardDescription>{supportError}</CardDescription>
             <Button
               onClick={() => {
                 dispatch(clearSupportError());
@@ -322,7 +308,6 @@ export default function CustomerCareDashboard() {
     );
   }
 
-  // --- Quick Actions Definition ---
   const quickActions = [
     { icon: QrCode, label: "Scan Student ID", href: "/attendance/scan" },
     { icon: Search, label: "Student Directory", href: "/customer-care/students" },
@@ -338,7 +323,6 @@ export default function CustomerCareDashboard() {
           subheading="Support overview and student assistance tools"
         />
 
-        {/* Stats Cards Section */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatsCard
             title="Total Tickets"
@@ -355,7 +339,7 @@ export default function CustomerCareDashboard() {
             isLoading={isLoading}
           />
           <StatsCard
-            title="Tickets Resolved Today" // Globally resolved
+            title="Tickets Resolved Today"
             value={customerCareStats.resolvedToday.value}
             subValue={customerCareStats.resolvedToday.subValue}
             icon={CheckCircle}
@@ -370,9 +354,8 @@ export default function CustomerCareDashboard() {
           />
         </div>
 
-        {/* Quick Actions & My Activity Section */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card> {/* Quick Actions */}
+          <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
               <CardDescription>Common customer care tasks</CardDescription>
@@ -394,13 +377,13 @@ export default function CustomerCareDashboard() {
             </CardContent>
           </Card>
 
-          <Card> {/* My Activity Today */}
+          <Card>
             <CardHeader>
               <CardTitle>My Activity Today</CardTitle>
               <CardDescription>Your key interactions and resolutions</CardDescription>
             </CardHeader>
             <CardContent>
-              {(isLoading && (!myActivityStats || myActivityStats.ticketsHandledByMeToday === undefined)) ? (
+              {(isLoading && (!myActivityStats || myActivityStats.ticketsResolvedOrLastHandledByMeToday === undefined)) ? (
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between"><span>My Handled Tickets:</span><Skeleton className="h-4 w-10 inline-block" /></div>
                   <div className="flex items-center justify-between"><span>My Avg. Response:</span><Skeleton className="h-4 w-24 inline-block" /></div>
@@ -409,7 +392,7 @@ export default function CustomerCareDashboard() {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
                     <span>Tickets Handled by Me Today:</span>
-                    <span className="font-semibold text-lg">{myActivityStats.ticketsHandledByMeToday}</span>
+                    <span className="font-semibold text-lg">{myActivityStats.ticketsResolvedOrLastHandledByMeToday}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>My Avg. First Response Time:</span>
@@ -423,7 +406,7 @@ export default function CustomerCareDashboard() {
 
         <RecentTicketsTable tickets={allTickets || []} isLoading={isLoading} />
 
-        <Card> {/* Student Information Lookup Card */}
+        <Card>
           <CardHeader>
             <CardTitle>Student Information Lookup</CardTitle>
             <CardDescription>Quickly access student profiles using ID card scan</CardDescription>
