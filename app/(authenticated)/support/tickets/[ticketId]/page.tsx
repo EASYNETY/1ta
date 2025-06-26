@@ -136,14 +136,14 @@ export default function TicketDetailPage() {
             <DyraneCard className="mb-6">
                 <CardHeader>
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                        <CardTitle className="text-xl">{ticket.subject}</CardTitle>
+                        <CardTitle className="text-xl">{ticket.title}</CardTitle>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <Badge variant={getStatusVariant(ticket.status)} className="capitalize">{ticket.status.replace('_', ' ')}</Badge>
                             <span className={cn("text-xs font-medium uppercase tracking-wide", getPriorityStyles(ticket.priority))}>{ticket.priority}</span>
                         </div>
                     </div>
                     <CardDescription className="text-xs pt-1">
-                        Opened by {ticket.studentName || ticket.studentId} on {safeFormatDetailedDate(ticket.createdAt)}
+                        Opened by {ticket.user.name || ticket.user.id} on {safeFormatDetailedDate(ticket.createdAt)}
                         {' • '} Last updated: {safeFormatDetailedDate(ticket.updatedAt)}
                     </CardDescription>
                 </CardHeader>

@@ -64,7 +64,7 @@ export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
                                 {ticket.priority}
                             </p>
                         </div>
-                        <h3 className="font-semibold truncate text-md">{ticket.subject}</h3>
+                        <h3 className="font-semibold truncate text-md">{ticket.title}</h3>
                         <p className="text-sm text-muted-foreground truncate mt-0.5">{ticket.description}</p>
                     </div>
                     <div className="flex flex-col sm:items-end text-xs text-muted-foreground flex-shrink-0 gap-1 sm:gap-0 pt-2 sm:pt-0 border-t sm:border-none">

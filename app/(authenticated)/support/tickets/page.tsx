@@ -65,9 +65,9 @@ export default function AdminTicketsPage() {
 
         const query = searchQuery.toLowerCase()
         return (
-            ticket.subject.toLowerCase().includes(query) ||
+            ticket.title.toLowerCase().includes(query) ||
             ticket.description.toLowerCase().includes(query) ||
-            ticket.studentName?.toLowerCase().includes(query) ||
+            ticket.user.name?.toLowerCase().includes(query) ||
             ticket.id.toLowerCase().includes(query)
         )
     })

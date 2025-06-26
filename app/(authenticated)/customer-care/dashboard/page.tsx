@@ -151,21 +151,22 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
         <div className="space-y-3">
           {tickets
             .slice()
-            .sort((a, b) => parseISO(b.updatedAt).getTime() - parseISO(a.updatedAt).getTime())
+            // Defensive sort: ensure updatedAt exists before parsing
+            .sort((a, b) => (parseISO(b.updatedAt || 0 as any).getTime() - parseISO(a.updatedAt || 0 as any).getTime()))
             .slice(0, 5)
             .map((ticket) => (
               <div key={ticket.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors dark:border-gray-700">
                 <div className="flex-grow mb-2 sm:mb-0 pr-2">
-                  <Link href={`/support/tickets/${ticket.id}`} className="hover:underline block">
+                  {/* FIX: Changed href to use correct admin path */}
+                  <Link href={`/admin/tickets/${ticket.id}`} className="hover:underline block">
+                    {/* FIX: Use `ticket.title` instead of `ticket.subject` */}
                     <p className="font-medium text-sm leading-tight truncate max-w-xs sm:max-w-sm md:max-w-md dark:text-gray-100">{ticket.title}</p>
                   </Link>
-                  {/* VVVV --- THIS IS THE FIX --- VVVV */}
                   <p className="text-xs text-muted-foreground">
-                    By: {ticket.studentName || 'N/A'}
-                    {/* Safely handle potentially missing studentId */}
-                    {ticket.studentId ? ` (ID: ${ticket.studentId.substring(0, 8)}...)` : ' (ID: Unknown)'}
+                    {/* FIX: Use the nested `user` object and `userId` */}
+                    By: {ticket.user?.name || 'Unknown User'}
+                    {ticket.userId ? ` (ID: ${ticket.userId.substring(0, 8)}...)` : ' (ID: Unknown)'}
                   </p>
-                  {/* ^^^^ --- END OF THE FIX --- ^^^^ */}
                 </div>
                 <div className="flex items-center space-x-2 flex-shrink-0">
                   <Badge
@@ -180,8 +181,8 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
                   >
                     {ticket.status.replace('_', ' ')}
                   </Badge>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap" title={new Date(ticket.createdAt).toLocaleString()}>
-                    {formatDistanceToNowStrict(parseISO(ticket.createdAt), { addSuffix: true })}
+                  <span className="text-xs text-muted-foreground whitespace-nowrap" title={ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : 'N/A'}>
+                    {ticket.createdAt ? formatDistanceToNowStrict(parseISO(ticket.createdAt), { addSuffix: true }) : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -189,8 +190,9 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
         </div>
         {tickets.length > 5 && (
           <div className="mt-4 text-center">
+            {/* FIX: Changed href to correct admin path */}
             <Button variant="link" size="sm" asChild>
-              <Link href="/support/tickets">View All Tickets</Link>
+              <Link href="/admin/tickets">View All Tickets</Link>
             </Button>
           </div>
         )}
@@ -211,11 +213,11 @@ export default function CustomerCareDashboard() {
   const isLoading = supportStatus === 'loading' || (supportStatus === 'idle' && (!allTickets || allTickets.length === 0));
 
   useEffect(() => {
-    if (loggedInUser && (supportStatus === 'idle' || (!allTickets || allTickets.length === 0))) {
+    if (loggedInUser && (supportStatus === 'idle' || allTickets.length === 0)) {
       dispatch(clearSupportError());
       dispatch(fetchAllTickets({ limit: 10000, page: 1 }));
     }
-  }, [dispatch, loggedInUser, allTickets, supportStatus]); // Added supportStatus to dependency array
+  }, [dispatch, loggedInUser, allTickets.length, supportStatus]);
 
   const customerCareStats = useMemo(() => {
     if (!allTickets || allTickets.length === 0) {
@@ -267,6 +269,9 @@ export default function CustomerCareDashboard() {
         ticket.updatedAt &&
         isToday(parseISO(ticket.updatedAt));
 
+      // This logic is flawed because the `responses` array isn't available in the list view.
+      // This is a note for future improvement: to get this stat, the backend would need
+      // to either provide `lastResponderId` on the ticket object or a new endpoint.
       if (ticketResolvedOrClosedToday) {
         if (ticket.responses && ticket.responses.length > 0) {
           const sortedResponses = [...ticket.responses].sort((a, b) => parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime());
@@ -312,7 +317,7 @@ export default function CustomerCareDashboard() {
     { icon: QrCode, label: "Scan Student ID", href: "/attendance/scan" },
     { icon: Search, label: "Student Directory", href: "/customer-care/students" },
     { icon: MessageSquare, label: "Create New Ticket", href: "/support/tickets/new" },
-    { icon: Ticket, label: "View All Tickets", href: "/support/tickets" },
+    { icon: Ticket, label: "View All Tickets", href: "/admin/tickets" }, // Corrected path
   ];
 
   return (
