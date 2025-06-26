@@ -396,7 +396,7 @@ export default function CustomerCareDashboard() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span>My Avg. First Response Time:</span>
-                    <span className="font-medium text-muted-foreground italic">N/A (Requires Backend Logic)</span>
+                    <span className="font-medium text-muted-foreground italic">N/A</span>
                   </div>
                 </div>
               )}
