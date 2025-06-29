@@ -105,6 +105,9 @@ const chatSlice = createSlice({
 			state.createRoomStatus = "idle";
 			state.createRoomError = null;
 		},
+		clearSendMessageStatus: (state) => {
+			state.sendMessageStatus = "idle";
+		},
 	},
 	extraReducers: (builder) => {
 		// Fetch Rooms
@@ -235,22 +238,17 @@ const chatSlice = createSlice({
 		// Mark Room as Read
 		builder
 			.addCase(markRoomAsRead.fulfilled, (state, action) => {
-				const { roomId, updatedRoom } = action.payload;
-				// Defensive check for rooms array
+				// The payload is now just { roomId: string }
+				const { roomId } = action.payload;
+
 				if (!Array.isArray(state.rooms)) {
 					state.rooms = [];
 				}
+
 				const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
+
 				if (roomIndex !== -1) {
-					if (updatedRoom) {
-						state.rooms[roomIndex] = {
-							...state.rooms[roomIndex],
-							...updatedRoom,
-							unreadCount: updatedRoom.unreadCount ?? 0,
-						};
-					} else {
-						state.rooms[roomIndex].unreadCount = 0;
-					}
+					state.rooms[roomIndex].unreadCount = 0;
 				}
 			})
 			.addCase(markRoomAsRead.rejected, (state, action) => {
@@ -265,6 +263,7 @@ export const {
 	clearChatError,
 	messageReceived,
 	clearCreateRoomStatus,
+	clearSendMessageStatus,
 } = chatSlice.actions;
 
 // Basic selectors

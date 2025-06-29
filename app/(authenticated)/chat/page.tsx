@@ -6,7 +6,7 @@ import { useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { ChatLayout } from "@/features/chat/components/ChatLayout"
 import { fetchChatRooms } from "@/features/chat/store/chat-thunks"
-import { clearCreateRoomStatus } from "@/features/chat/store/chatSlice"
+import { clearCreateRoomStatus, clearSendMessageStatus } from "@/features/chat/store/chatSlice"
 
 export default function ChatPage() {
     const dispatch = useAppDispatch()
@@ -16,6 +16,7 @@ export default function ChatPage() {
     useEffect(() => {
         if (currentUser?.id) {
             dispatch(clearCreateRoomStatus())
+            dispatch(clearSendMessageStatus())
             dispatch(fetchChatRooms(
                 // currentUser.id
             ))

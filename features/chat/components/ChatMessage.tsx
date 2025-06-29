@@ -4,7 +4,7 @@
 
 import type React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format, parseISO, isToday, isYesterday } from "date-fns";
+import { format, parseISO, isToday, isYesterday, isValid } from "date-fns";
 import { cn, generateColorFromString, getContrastColor, getInitials } from "@/lib/utils";
 import { type ChatMessage as MessageType, MessageType as MsgType } from "../types/chat-types";
 import { useAppSelector } from "@/store/hooks";
@@ -21,18 +21,37 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, showSenderInf
     const currentUser = useAppSelector((state) => state.auth.user);
     const isOwnMessage = message.senderId === currentUser?.id;
 
-    const formatTimestamp = (ts: string) => {
+    const formatTimestamp = (ts: string | null | undefined): string => {
+        // FIX #1: Handle null, undefined, or empty string inputs at the start.
+        // This is the most common case for new rooms with no messages.
+        // Returning an empty string is often cleaner in the UI than "Invalid time".
+        if (!ts) {
+            return "";
+        }
+
         try {
             const date = parseISO(ts);
-            if (isToday(date)) {
-                return format(date, "p");
-            } else if (isYesterday(date)) {
-                return `Yesterday, ${format(date, "p")}`;
-            } else {
-                return format(date, "MMM d, p");
+
+            // FIX #2: Check if the parsed date is valid. 
+            // This handles cases where `ts` is a string but not a valid date format.
+            if (!isValid(date)) {
+                // Log a warning for developers to find bad data, but don't show an ugly error to users.
+                console.warn(`Invalid timestamp provided to formatTimestamp: "${ts}"`);
+                return "";
             }
-        } catch {
-            return "Invalid time";
+
+            // --- Original logic is kept, as it's correct ---
+            if (isToday(date)) {
+                return format(date, "p"); // e.g., "4:30 PM"
+            } else if (isYesterday(date)) {
+                return `Yesterday, ${format(date, "p")}`; // e.g., "Yesterday, 2:15 PM"
+            } else {
+                return format(date, "MMM d, p"); // e.g., "Jun 28, 10:00 AM"
+            }
+        } catch (error) {
+            // This catch block is now a final safety net for any other unexpected errors.
+            console.error("Error formatting timestamp:", error);
+            return "";
         }
     };
 
