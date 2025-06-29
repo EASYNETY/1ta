@@ -18,11 +18,24 @@ export function ErrorBoundary({ children }: ErrorBoundaryProps) {
     const [isNetworkError, setIsNetworkError] = useState(false)
 
     useEffect(() => {
+        const isBenignError = (msg: string) => {
+            return (
+                msg.includes("ResizeObserver loop") ||
+                msg.includes("hydration") || // Hydration mismatch
+                msg.includes("Minified React error") // React dev-only minified errors
+            )
+        }
+
         const errorHandler = (event: ErrorEvent) => {
-            console.error("Caught error:", event)
+            const msg = event?.message || ""
+            if (isBenignError(msg)) {
+                console.warn("⚠️ Ignored benign browser error:", msg)
+                return
+            }
+
+            console.error("❌ Caught error:", event)
             setError(event.error)
 
-            // Check if it's a network error
             if (event.error instanceof ApiError && event.error.isNetworkError) {
                 setIsNetworkError(true)
             } else {
@@ -32,15 +45,21 @@ export function ErrorBoundary({ children }: ErrorBoundaryProps) {
             setHasError(true)
         }
 
-        // Handle unhandled promise rejections
         const rejectionHandler = (event: PromiseRejectionEvent) => {
-            console.error("Unhandled promise rejection:", event)
+            const reason = event.reason
+            const msg = reason?.message || ""
 
-            if (event.reason instanceof Error) {
-                setError(event.reason)
+            if (typeof msg === "string" && isBenignError(msg)) {
+                console.warn("⚠️ Ignored benign promise rejection:", msg)
+                return
+            }
 
-                // Check if it's a network error
-                if (event.reason instanceof ApiError && event.reason.isNetworkError) {
+            console.error("❌ Unhandled promise rejection:", event)
+
+            if (reason instanceof Error) {
+                setError(reason)
+
+                if (reason instanceof ApiError && reason.isNetworkError) {
                     setIsNetworkError(true)
                 } else {
                     setIsNetworkError(false)

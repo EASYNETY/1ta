@@ -1,6 +1,5 @@
 // app/(authenticated)/admin/tickets/[ticketId]/page.tsx
 
-
 "use client";
 
 import type React from "react";
@@ -60,8 +59,6 @@ export default function AdminTicketDetailPage() {
     const ticketId = typeof params.ticketId === "string" ? params.ticketId : "";
     const [replyContent, setReplyContent] = useState("");
     const isSendingReply = responseStatus === "loading";
-
-    // const [ticketStatus, setTicketStatus] = useState<TicketStatus>("open");
 
     useEffect(() => {
         if (user && (!hasAdminAccess(user) && !isCustomerCare(user))) {
@@ -181,15 +178,16 @@ export default function AdminTicketDetailPage() {
                 </CardHeader>
                 <CardContent>
                     <p className="whitespace-pre-wrap">{ticket.description}</p>
-                    <div className="mt-6 pt-4 border-t">
-                        {/* <div className="flex justify-between items-center">
-                            <h3 className="font-medium">Ticket Management</h3>
-                            <div className="flex items-center gap-2">
-                                <Label htmlFor="status-select" className="mr-2">
+                    <div className="mt-6 pt-6 border-t">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <Label htmlFor="status-select" className="mr-2 text-sm">
                                     Status:
                                 </Label>
-                                <Select value={ticket.status} onValueChange={(value) => handleStatusChange(value as TicketStatus)}>
-                                    <SelectTrigger id="status-select" className="w-[180px]">
+                                <Select value={ticket.status}
+                                    onValueChange={(value) => handleStatusChange(value as TicketStatus)}
+                                >
+                                    <SelectTrigger id="status-select" className="w-full sm:w-[180px]">
                                         <SelectValue placeholder="Select status" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -200,27 +198,27 @@ export default function AdminTicketDetailPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-                        </div> */}
 
-                        <div className="flex gap-2 mt-4">
-                            <DyraneButton
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange("resolved")}
-                                className="text-green-600"
-                            >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Mark Resolved
-                            </DyraneButton>
-                            <DyraneButton
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusChange("closed")}
-                                className="text-red-600"
-                            >
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Close Ticket
-                            </DyraneButton>
+                            <div className="flex gap-2">
+                                <DyraneButton
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusChange("resolved")}
+                                    className="text-green-600"
+                                >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Mark Resolved
+                                </DyraneButton>
+                                <DyraneButton
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleStatusChange("closed")}
+                                    className="text-red-600"
+                                >
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Close Ticket
+                                </DyraneButton>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
