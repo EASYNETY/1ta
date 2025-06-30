@@ -172,7 +172,7 @@ export default function AdminTicketDetailPage() {
                         </div>
                     </div>
                     <CardDescription className="text-xs pt-1">
-                        Opened by {ticket.user.name || ticket.user.id} on {safeFormatDetailedDate(ticket.createdAt)}
+                        Opened by {ticket.user?.name || ticket.user?.id} on {safeFormatDetailedDate(ticket.createdAt)}
                         {" • "} Last updated: {safeFormatDetailedDate(ticket.updatedAt)}
                     </CardDescription>
                 </CardHeader>
