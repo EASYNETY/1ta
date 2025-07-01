@@ -683,10 +683,11 @@ export function TechnologyCourseModal({ isOpen, onClose, techCourse, publicCours
                                   <div>
                                     <Input
                                       type="tel"
-                                      placeholder="Your phone number (optional)"
+                                      placeholder="Your phone number"
                                       className="h-10 text-sm"
                                       value={waitlistPhone}
                                       onChange={(e) => setWaitlistPhone(e.target.value)}
+                                      required
                                     />
                                   </div>
                                 </div>

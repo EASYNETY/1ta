@@ -14,21 +14,15 @@ import { FacebookLogo, InstagramLogo, TiktokLogo } from 'phosphor-react';
 // Or import DyraneButton if you prefer its effects here:
 // import { DyraneButton } from '@/components/dyrane-ui/dyrane-button';
 
-// --- Footer Link Constants (Example) ---
+// --- Footer Link Constants ---
 const footerLinks = {
-    product: [
-        // { href: '#features', label: 'Features' },
-        // { href: '#', label: 'Pricing' }, // Replace # with actual link
-        { href: '/#courses', label: 'Courses' }, // Replace # with actual link
+    services: [
+        { href: '/#courses', label: 'Training Courses' },
+        { href: '/corporate-training', label: 'Corporate Training' },
+        { href: '/certification-programs', label: 'Certification Programs' },
     ],
     resources: [
-        // { href: '#', label: 'Documentation' },
-        // { href: '#', label: 'Guides' },
         { href: '/help-support', label: 'Support' },
-    ],
-    company: [
-        // { href: '#', label: 'About' },
-        // { href: '#', label: 'Careers' },
         { href: '/contact', label: 'Contact' },
     ],
     legal: [
@@ -36,6 +30,8 @@ const footerLinks = {
         { href: '/terms-conditions', label: 'Terms & Conditions' },
         { href: '/cookies-policy', label: 'Cookies Policy' },
         { href: '/data-protection-policy', label: 'Data Protection Policy' },
+        { href: '/student-code-of-conduct', label: 'Student Code of Conduct' },
+        { href: '/refund-policy', label: 'Refund Policy' },
     ],
 };
 
@@ -79,14 +75,14 @@ export function Footer() {
     const mutedTextColor = 'text-muted-foreground';
 
     return (
-        <footer className="border-t border-border/40 bg-background py-8 md:py-10"> {/* Reduced padding */}
-            <div className=" px-4 md:px-6">
+        <footer className="border-t border-border/40 bg-background py-6 md:py-8"> {/* More compact padding */}
+            <div className="container mx-auto px-4 md:px-6">
                 {/* Top section: Logo, Description, Links Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-6">
                     {/* Column 1: Logo, Description, Address, Socials */}
-                    <div className="col-span-2 lg:col-span-2">
+                    <div className="col-span-1 lg:col-span-1">
                         {/* Logo & Address */}
-                        <div className="flex flex-col items-start h-auto justify-between gap-4 mb-3">
+                        <div className="flex flex-col items-start gap-3 mb-4">
                             <Link href="/" className="">
                                 {mounted && currentTheme && (
                                     <Image
@@ -114,14 +110,8 @@ export function Footer() {
                             </address>
                         </div>
 
-
-                        {/* Description */}
-                        {/* <p className={cn('text-sm mb-4', mutedTextColor)}>
-                            Beyond Limits, Beyond Today.
-                        </p> */}
-
                         {/* Social Links */}
-                        <div className="flex space-x-4">
+                        <div className="flex space-x-3">
                             {socialLinks.map((social) => (
                                 <Link
                                     key={social.label}
@@ -140,8 +130,8 @@ export function Footer() {
 
                     {/* Link Columns */}
                     {Object.entries(footerLinks).map(([key, links]) => (
-                        <div key={key}>
-                            <h3 className="text-sm font-semibold text-foreground mb-3 capitalize">{key}</h3>
+                        <div key={key} className="space-y-3">
+                            <h3 className="text-sm font-semibold text-foreground capitalize">{key}</h3>
                             <ul className="space-y-2">
                                 {links.map((link) => (
                                     <li key={link.label}>
@@ -160,14 +150,13 @@ export function Footer() {
                 </div>
 
                 {/* Bottom section: Copyright, Language */}
-                <div className="border-t border-border/40 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className={cn('text-xs', mutedTextColor)}> {/* Slightly smaller text */}
-                        {/* Copyright */}
+                <div className="border-t border-border/40 pt-4 flex flex-col md:flex-row justify-between items-center gap-3">
+                    <p className={cn('text-xs', mutedTextColor)}>
                         &copy; 2025 1Tech Academy. All rights reserved.
                     </p>
                     {/* Optional: Language switcher or other links */}
-                    <div className="mt-4 md:mt-0">
-                        <Button variant="ghost" size="sm" className={mutedTextColor}>
+                    <div className="mt-2 md:mt-0">
+                        <Button variant="ghost" size="sm" className={cn('text-xs', mutedTextColor)}>
                             English (US)
                         </Button>
                     </div>
