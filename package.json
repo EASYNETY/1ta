@@ -5,6 +5,8 @@
 	"scripts": {
 		"dev": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider --max-old-space-size=2048 --expose-gc\" next dev",
 		"build": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider --max-old-space-size=4096\" next build",
+		"build:safe": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider --max-old-space-size=6144\" next build",
+		"build:clean": "rimraf .next out && npm run build",
 		"start": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider --max-old-space-size=1024 --expose-gc\" next start",
 		"start:memory-safe": "cross-env NODE_OPTIONS=\"--openssl-legacy-provider --max-old-space-size=1024 --expose-gc --optimize-for-size --gc-interval=100\" next start",
 		"lint": "next lint",

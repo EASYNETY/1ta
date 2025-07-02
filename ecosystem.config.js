@@ -3,11 +3,11 @@ module.exports = {
   apps: [
     {
       name: 'frontend',
-      script: 'npm',
-      args: 'start',
+      script: 'server.js',
       cwd: './',
       instances: 1, // Single instance to control memory usage
       exec_mode: 'fork', // Fork mode for better memory isolation
+      interpreter: 'node',
       
       // Memory management
       max_memory_restart: '1G', // Restart if memory exceeds 1GB
@@ -23,8 +23,6 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3000,
-        // Memory monitoring
-        NODE_OPTIONS: '--max-old-space-size=1024 --expose-gc',
         // Disable source maps in production to save memory
         GENERATE_SOURCEMAP: 'false',
         // Reduce bundle analyzer memory usage
@@ -35,7 +33,6 @@ module.exports = {
       env_development: {
         NODE_ENV: 'development',
         PORT: 3000,
-        NODE_OPTIONS: '--max-old-space-size=2048 --expose-gc',
         GENERATE_SOURCEMAP: 'true'
       },
       

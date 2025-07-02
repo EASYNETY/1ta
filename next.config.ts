@@ -15,65 +15,23 @@ const nextConfig = {
 				hostname: "images.unsplash.com",
 			},
 		],
-		minimumCacheTTL: 60,
-		dangerouslyAllowSVG: true,
-		contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
 	},
-	experimental: {
-		// Only use valid experimental options here
-		webpackMemoryOptimizations: true,
-	},
-	webpack: (config, { dev, isServer }) => {
-		config.optimization = {
-			...config.optimization,
-			splitChunks: {
-				...config.optimization.splitChunks,
-				maxSize: 244000,
-				cacheGroups: {
-					...config.optimization.splitChunks?.cacheGroups,
-					default: {
-						minChunks: 2,
-						priority: -20,
-						reuseExistingChunk: true,
-						maxSize: 244000,
-					},
-				},
-			},
+	// Disable problematic features that might cause build issues
+	swcMinify: false,
+	poweredByHeader: false,
+	// Simplified webpack config to avoid build issues
+	webpack: (config: any) => {
+		// Handle module resolution issues
+		config.resolve.fallback = {
+			...config.resolve.fallback,
+			fs: false,
+			net: false,
+			tls: false,
 		};
-
-		if (dev) {
-			config.watchOptions = {
-				...config.watchOptions,
-				ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],
-			};
-		}
 
 		return config;
 	},
-	async headers() {
-		if (process.env.NODE_ENV === 'development') {
-			return [
-				{
-					source: '/(.*)',
-					headers: [
-						{
-							key: 'Cache-Control',
-							value: 'no-cache, no-store, must-revalidate',
-						},
-						{
-							key: 'Pragma',
-							value: 'no-cache',
-						},
-						{
-							key: 'Expires',
-							value: '0',
-						},
-					],
-				},
-			];
-		}
-		return [];
-	},
+
 };
 
 export default nextConfig;
