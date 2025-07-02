@@ -177,3 +177,4 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 	// Always decrement the active requests counter
 	activeRequests = Math.max(0, activeRequests - 1);
 }
+}
