@@ -15,27 +15,20 @@ const nextConfig = {
 				hostname: "images.unsplash.com",
 			},
 		],
-		// Add memory safety for image processing
 		minimumCacheTTL: 60,
 		dangerouslyAllowSVG: true,
 		contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
 	},
-	// Memory and performance optimizations
 	experimental: {
-		// Reduce memory usage during builds
-		memoryBasedWorkerPoolSize: true,
-		// Enable webpack memory optimizations
+		// Only use valid experimental options here
 		webpackMemoryOptimizations: true,
 	},
-	// Webpack configuration for memory management
 	webpack: (config, { dev, isServer }) => {
-		// Memory optimizations
 		config.optimization = {
 			...config.optimization,
-			// Reduce memory usage
 			splitChunks: {
 				...config.optimization.splitChunks,
-				maxSize: 244000, // 244KB chunks
+				maxSize: 244000,
 				cacheGroups: {
 					...config.optimization.splitChunks?.cacheGroups,
 					default: {
@@ -48,7 +41,6 @@ const nextConfig = {
 			},
 		};
 
-		// Reduce memory pressure in development
 		if (dev) {
 			config.watchOptions = {
 				...config.watchOptions,
@@ -58,7 +50,6 @@ const nextConfig = {
 
 		return config;
 	},
-	// Add cache control headers for development
 	async headers() {
 		if (process.env.NODE_ENV === 'development') {
 			return [
