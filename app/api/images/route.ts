@@ -1,180 +1,129 @@
 // app/api/images/route.ts
 
-"use server";
+'use server';
 
-import { NextRequest, NextResponse } from "next/server";
-// Import the Agent class directly from 'undici', the engine that powers Node.js fetch
-import { Agent } from "undici";
+import { NextRequest, NextResponse } from 'next/server';
+import { Agent } from 'undici';
 
-// Simple in-memory cache to prevent repeated failed requests
+// In-memory cache to avoid retrying recently failed URLs
 const failedUrlsCache = new Map<string, number>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Memory safety constants
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+// Memory and load safety constants
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_CONCURRENT_REQUESTS = 5;
 let activeRequests = 0;
 
-// Agent 1: The insecure agent for servers with bad certificates (like api.onetechacademy.com)
-// This dispatcher will be used for our first attempt to handle the UNABLE_TO_VERIFY_LEAF_SIGNATURE error.
+// Insecure Agent (used to bypass certificate issues)
 const insecureDispatcher = new Agent({
-	connect: {
-		rejectUnauthorized: false,
-	},
+  connect: {
+    rejectUnauthorized: false,
+  },
 });
 
-/**
- * GET /api/images
- * A robust proxy that handles two types of server errors:
- * 1. Servers with incomplete SSL certificate chains (UNABLE_TO_VERIFY_LEAF_SIGNATURE).
- * 2. Servers running plain HTTP on an HTTPS port (ERR_SSL_WRONG_VERSION_NUMBER).
- */
 export async function GET(req: NextRequest): Promise<NextResponse> {
-	const { searchParams } = new URL(req.url);
-	const imageUrl = searchParams.get("imageUrl");
+  const { searchParams } = new URL(req.url);
+  const imageUrl = searchParams.get('imageUrl');
 
-	if (!imageUrl) {
-		return NextResponse.json(
-			{ error: "The 'imageUrl' query parameter is required." },
-			{ status: 400 }
-		);
-	}
+  if (!imageUrl) {
+    return NextResponse.json(
+      { error: "The 'imageUrl' query parameter is required." },
+      { status: 400 }
+    );
+  }
 
-	// Rate limiting check
-	if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
-		console.warn(`[Image Proxy] Too many concurrent requests (${activeRequests}), returning placeholder`);
-		return NextResponse.redirect(new URL('/placeholder.svg', req.url));
-	}
+  if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
+    console.warn(`[Image Proxy] Too many concurrent requests (${activeRequests}), returning placeholder`);
+    return NextResponse.redirect(new URL('/placeholder.svg', req.url));
+  }
 
-	// Check if this URL has failed recently
-	const now = Date.now();
-	const lastFailTime = failedUrlsCache.get(imageUrl);
-	if (lastFailTime && (now - lastFailTime) < CACHE_DURATION) {
-		console.log(`[Image Proxy] Returning cached placeholder for recently failed URL: ${imageUrl}`);
-		return NextResponse.redirect(new URL('/placeholder.svg', req.url));
-	}
+  const now = Date.now();
+  const lastFailTime = failedUrlsCache.get(imageUrl);
+  if (lastFailTime && now - lastFailTime < CACHE_DURATION) {
+    console.log(`[Image Proxy] Using cached placeholder for: ${imageUrl}`);
+    return NextResponse.redirect(new URL('/placeholder.svg', req.url));
+  }
 
-	// Increment active requests counter
-	activeRequests++;
+  activeRequests++;
 
-	try {
-		console.log(
-			`[Image Proxy] First attempt (secure with insecure agent): ${imageUrl}`
-		);
+  try {
+    console.log(`[Image Proxy] Attempting fetch (with insecure agent): ${imageUrl}`);
 
-		// --- ATTEMPT 1: Secure fetch with certificate bypass ---
-		// This will work for api.onetechacademy.com
-		// It will fail for 34.249.241.206 with ERR_SSL_WRONG_VERSION_NUMBER
-		const response = await fetch(imageUrl, {
-			dispatcher: insecureDispatcher,
-			cache: "no-store",
-			signal: AbortSignal.timeout(10000), // 10 second timeout
-		});
+    const response = await fetch(imageUrl, {
+      dispatcher: insecureDispatcher,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(10000),
+    });
 
-		if (!response.ok) {
-			// Log the specific error for debugging
-			console.warn(`[Image Proxy] Initial fetch failed: ${response.status} ${response.statusText} for ${imageUrl}`);
+    if (!response.ok) {
+      const msg = `[Image Proxy] Initial fetch failed: ${response.status} ${response.statusText} for ${imageUrl}`;
+      console.warn(msg);
 
-			// For 502/503/504 errors, try fallback immediately
-			if (response.status >= 502 && response.status <= 504) {
-				throw new Error(`Server error: ${response.status} ${response.statusText}`);
-			}
+      if (response.status >= 502 && response.status <= 504) {
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
 
-			// This creates an error that our catch block can inspect
-			throw new Error(
-				`Initial fetch failed with status: ${response.status} ${response.statusText}`
-			);
-		}
+      throw new Error(`Initial fetch failed with status: ${response.status} ${response.statusText}`);
+    }
 
-		// Check content length to prevent memory issues
-		const contentLength = response.headers.get('content-length');
-		if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
-			console.warn(`[Image Proxy] File too large: ${contentLength} bytes for ${imageUrl}`);
-			throw new Error(`File too large: ${contentLength} bytes`);
-		}
+    const contentLength = response.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
+      throw new Error(`File too large: ${contentLength} bytes`);
+    }
 
-		// If successful, stream the response immediately
-		// Remove from failed cache if it was there
-		failedUrlsCache.delete(imageUrl);
-		const headers = new Headers(response.headers);
-		return new NextResponse(response.body, { status: 200, headers });
-	} catch (error: any) {
-		// --- SMART ERROR HANDLING ---
-		// Now we inspect the failure from the first attempt.
-		const isWrongVersionError =
-			error.cause?.code === "ERR_SSL_WRONG_VERSION_NUMBER";
-		const isServerError = error.message.includes("Server error:");
-		const isTimeoutError = error.name === "TimeoutError" || error.message.includes("timeout");
+    failedUrlsCache.delete(imageUrl);
+    const headers = new Headers(response.headers);
+    return new NextResponse(response.body, { status: 200, headers });
 
-		// Try HTTP fallback for SSL errors or server errors
-		if ((isWrongVersionError || isServerError) && imageUrl.startsWith("https://")) {
-			console.warn(
-				`[Image Proxy] ${isServerError ? 'Server error' : 'SSL error'} detected. Retrying with HTTP for: ${imageUrl}`
-			);
+  } catch (error: unknown) {
+    const err = error as NodeJS.ErrnoException;
 
-			// --- ATTEMPT 2: Retry with plain HTTP ---
-			// This is our tool for the HTTP-only server (34.249.241.206)
-			const httpUrl = imageUrl.replace("https://", "http://");
+    const isWrongVersionError = err.cause?.code === 'ERR_SSL_WRONG_VERSION_NUMBER';
+    const isServerError = err.message.includes('Server error:');
+    const isTimeoutError = err.name === 'TimeoutError' || err.message.includes('timeout');
 
-			try {
-				// We don't need any special dispatcher for a plain http request
-				const httpResponse = await fetch(httpUrl, {
-					cache: "no-store",
-					signal: AbortSignal.timeout(10000) // 10 second timeout
-				});
+    if ((isWrongVersionError || isServerError) && imageUrl.startsWith('https://')) {
+      const httpUrl = imageUrl.replace('https://', 'http://');
+      console.warn(`[Image Proxy] Retrying with HTTP for: ${httpUrl}`);
 
-				if (!httpResponse.ok) {
-					console.warn(`[Image Proxy] HTTP retry failed: ${httpResponse.status} ${httpResponse.statusText} for ${httpUrl}`);
-					throw new Error(
-						`HTTP retry also failed with status: ${httpResponse.status} ${httpResponse.statusText}`
-					);
-				}
+      try {
+        const httpResponse = await fetch(httpUrl, {
+          cache: 'no-store',
+          signal: AbortSignal.timeout(10000),
+        });
 
-				// Check content length for HTTP retry too
-				const contentLength = httpResponse.headers.get('content-length');
-				if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
-					console.warn(`[Image Proxy] HTTP retry file too large: ${contentLength} bytes for ${httpUrl}`);
-					throw new Error(`File too large: ${contentLength} bytes`);
-				}
+        if (!httpResponse.ok) {
+          throw new Error(`HTTP retry failed: ${httpResponse.status} ${httpResponse.statusText}`);
+        }
 
-				console.log(`[Image Proxy] HTTP retry successful for: ${httpUrl}`);
-				// Remove from failed cache if it was there
-				failedUrlsCache.delete(imageUrl);
-				const headers = new Headers(httpResponse.headers);
-				return new NextResponse(httpResponse.body, { status: 200, headers });
-			} catch (retryError: any) {
-				console.error(
-					`[Image Proxy] The HTTP retry attempt also failed:`,
-					retryError.message
-				);
+        const contentLength = httpResponse.headers.get('content-length');
+        if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
+          throw new Error(`HTTP retry file too large: ${contentLength} bytes`);
+        }
 
-				// Cache this failed URL
-				failedUrlsCache.set(imageUrl, now);
+        console.log(`[Image Proxy] HTTP retry succeeded: ${httpUrl}`);
+        failedUrlsCache.delete(imageUrl);
+        const headers = new Headers(httpResponse.headers);
+        return new NextResponse(httpResponse.body, { status: 200, headers });
 
-				// Return a placeholder image instead of error
-				return NextResponse.redirect(new URL('/placeholder.svg', req.url));
-			}
-		}
+      } catch (retryError: unknown) {
+        console.error(`[Image Proxy] HTTP retry failed:`, (retryError as Error).message);
+        failedUrlsCache.set(imageUrl, now);
+        return NextResponse.redirect(new URL('/placeholder.svg', req.url));
+      }
+    }
 
-		// For timeout errors, return placeholder immediately
-		if (isTimeoutError) {
-			console.warn(`[Image Proxy] Timeout error for: ${imageUrl}, returning placeholder`);
-			failedUrlsCache.set(imageUrl, now);
-			return NextResponse.redirect(new URL('/placeholder.svg', req.url));
-		}
+    if (isTimeoutError) {
+      console.warn(`[Image Proxy] Timeout error for: ${imageUrl}`);
+      failedUrlsCache.set(imageUrl, now);
+      return NextResponse.redirect(new URL('/placeholder.svg', req.url));
+    }
 
-		// For all other errors that we don't have a special tool for.
-		console.error(`[Image Proxy] An unhandled critical error occurred:`, error.message);
+    console.error(`[Image Proxy] Unhandled error for ${imageUrl}:`, err.message);
+    failedUrlsCache.set(imageUrl, now);
+    return NextResponse.redirect(new URL('/placeholder.svg', req.url));
 
-		// Cache this failed URL
-		failedUrlsCache.set(imageUrl, now);
-
-		// Instead of returning an error, redirect to placeholder image
-		console.log(`[Image Proxy] Returning placeholder for failed image: ${imageUrl}`);
-		return NextResponse.redirect(new URL('/placeholder.svg', req.url));
-	}
-} finally {
-	// Always decrement the active requests counter
-	activeRequests = Math.max(0, activeRequests - 1);
-}
+  } finally {
+    activeRequests = Math.max(0, activeRequests - 1);
+  }
 }
