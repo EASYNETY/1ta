@@ -520,10 +520,10 @@ const AdminPaymentTable: React.FC = () => {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleEditClick(payment)}>
+                          {/* <DropdownMenuItem onClick={() => handleEditClick(payment)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Payment
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                           {payment.status === "succeeded" && (
                             <DropdownMenuItem
                             // onClick={() => handleGenerateReceipt(payment.id)}
@@ -538,13 +538,13 @@ const AdminPaymentTable: React.FC = () => {
                               </Link>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem
+                          {/* <DropdownMenuItem
                             onClick={() => handleDeleteClick(payment)}
                             className="text-destructive focus:text-destructive"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete Payment
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TooltipProvider>

@@ -25,7 +25,7 @@ export interface UserData {
     role: UserRole;
     isActive: boolean;
     barcodeId?: string; // Optional, only if applicable
-    referral_code?: string; // Optional referral code
+    referralCode?: string; // Optional referral code
     createdAt: string;
     // Add other fields if needed by the row
 }
@@ -125,11 +125,13 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
                 </Badge>
             </td>
             {/* Referral Code Cell */}
+
+            
             <td className="py-3 px-4 align-top text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
-                    {user.referral_code ? (
+                    {user.referralCode ? (
                         <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                            {user.referral_code}
+                            {user.referralCode}
                         </span>
                     ) : (
                         <span className="text-muted-foreground italic">No referral</span>
