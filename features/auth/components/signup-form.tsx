@@ -35,6 +35,7 @@ const signupSchema = z
         confirmPassword: z.string(),
         phone: z.string().min(1, { message: "Phone number is required" }),
         address: z.string().min(1, { message: "Address is required" }),
+        referralCode: z.string().max(50, { message: "Referral code must be 50 characters or less" }).optional(),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords do not match",
@@ -64,6 +65,7 @@ export function SignupForm() {
             confirmPassword: "",
             phone: "",
             address: "",
+            referralCode: "",
         },
     })
 
@@ -139,7 +141,7 @@ export function SignupForm() {
         <Card className="w-full max-w-md mx-auto bg-transparent backdrop-blur-xs border-none">
             <CardHeader className="text-center space-y-1">
                 <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
-                <CardDescription>Join SmartEdu to start learning</CardDescription>
+                <CardDescription>Join 1Tech Academy to start learning</CardDescription>
             </CardHeader>
 
             <CardContent>
@@ -216,6 +218,24 @@ export function SignupForm() {
                                     {serverErrors.address && !form.formState.errors.address && (
                                         <p className="text-sm font-medium text-destructive">{serverErrors.address}</p>
                                     )}
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Referral Code Field */}
+                        <FormField
+                            control={form.control}
+                            name="referralCode"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Referral Code <span className="text-muted-foreground">(Optional)</span></FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Enter referral code if you have one" {...field} disabled={isLoading} />
+                                    </FormControl>
+                                    <FormDescription>
+                                        If someone referred you to 1Tech Academy, enter their referral code here.
+                                    </FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}

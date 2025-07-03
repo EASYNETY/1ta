@@ -19,6 +19,7 @@ export function UserTable({ users, onDeleteUser, isLoading = false, error = null
                             <th className="py-3 px-4">Email</th>
                             <th className="py-3 px-4">Role</th>
                             <th className="py-3 px-4">Status</th>
+                            <th className="py-3 px-4">Referral Code</th>
                             <th className="py-3 px-4">Join Date</th>
                             <th className="py-3 px-4 text-right">Actions</th>
                         </tr>
@@ -43,6 +44,9 @@ export function UserTable({ users, onDeleteUser, isLoading = false, error = null
                                             <Skeleton className="h-6 w-20" />
                                         </td>
                                         <td className="py-3 px-4">
+                                            <Skeleton className="h-6 w-20" />
+                                        </td>
+                                        <td className="py-3 px-4">
                                             <Skeleton className="h-6 w-24" />
                                         </td>
                                         <td className="py-3 px-4">
@@ -53,14 +57,14 @@ export function UserTable({ users, onDeleteUser, isLoading = false, error = null
                         ) : error ? (
                             // Error state
                             <tr>
-                                <td colSpan={6} className="py-4 px-4 text-center text-red-500">
+                                <td colSpan={7} className="py-4 px-4 text-center text-red-500">
                                     {error}
                                 </td>
                             </tr>
                         ) : users?.length === 0 ? (
                             // Empty state
                             <tr>
-                                <td colSpan={6} className="py-4 px-4 text-center text-muted-foreground">
+                                <td colSpan={7} className="py-4 px-4 text-center text-muted-foreground">
                                     No users found.
                                 </td>
                             </tr>

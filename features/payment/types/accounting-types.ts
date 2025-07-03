@@ -47,7 +47,7 @@ export interface CourseRevenueReport {
 	enrolledStudents: number;
 	completionRate: number;
 	averageRevenuePerStudent: number;
-	month: string;
+	date: string;
 }
 
 export interface PaymentMethodReport {
@@ -56,7 +56,7 @@ export interface PaymentMethodReport {
 	totalRevenue: number;
 	percentage: number;
 	averageTransactionValue: number;
-	month: string;
+	date: string;
 }
 
 export interface MonthlyRevenueReport {

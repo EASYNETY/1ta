@@ -75,35 +75,35 @@ export function Footer() {
     const mutedTextColor = 'text-muted-foreground';
 
     return (
-        <footer className="border-t border-border/40 bg-background py-6 md:py-8">
-            <div className="max-w-5xl mx-auto px-4 md:px-6">
+        <footer className="border-t border-border/40 bg-background py-6 md:py-8"> {/* More compact padding */}
+            <div className="container mx-auto px-4 md:px-6">
                 {/* Top section: Logo, Description, Links Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-6">
                     {/* Column 1: Logo, Description, Address, Socials */}
                     <div className="col-span-1 lg:col-span-1">
                         {/* Logo & Address */}
-                        <div className="flex flex-col items-start gap-4 mb-6">
+                        <div className="flex flex-col items-start gap-3 mb-4">
                             <Link href="/" className="">
                                 {mounted && currentTheme && (
                                     <Image
                                         src={currentTheme === "dark" ? "/logo_md.jpg" : "/logo_mw.jpg"}
                                         alt="1techacademy Logo"
-                                        className="h-8 w-auto"
+                                        className="h-6 w-auto"
                                         priority
                                         width={150}
                                         height={50}
                                     />
                                 )}
-                                {(!mounted || !currentTheme) && <div className="h-8 w-[120px] bg-muted rounded animate-pulse"></div>}
+                                {(!mounted || !currentTheme) && <div className="h-6 w-[80px] bg-muted rounded animate-pulse"></div>}
                             </Link>
 
                             {/* Company Address with Icons */}
-                            <address className={cn('not-italic text-sm space-y-2', mutedTextColor)}>
-                                <div className="flex items-center gap-3">
+                            <address className={cn('not-italic text-sm space-y-1', mutedTextColor)}>
+                                <div className="flex items-center gap-2">
                                     <Building2 className="h-4 w-4 text-muted-foreground" />
                                     <span>1Tech Academy</span>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 text-muted-foreground" />
                                     <span>17 Aje Street, Sabo Yaba Lagos.</span>
                                 </div>
@@ -111,7 +111,7 @@ export function Footer() {
                         </div>
 
                         {/* Social Links */}
-                        <div className="flex space-x-4">
+                        <div className="flex space-x-3">
                             {socialLinks.map((social) => (
                                 <Link
                                     key={social.label}
@@ -121,7 +121,7 @@ export function Footer() {
                                     rel="noopener noreferrer"
                                 >
                                     <span className="sr-only">{social.label}</span>
-                                    <social.icon className="h-6 w-6" aria-hidden="true" />
+                                    <social.icon className="h-5 w-5" aria-hidden="true" />
                                 </Link>
                             ))}
                         </div>
@@ -130,14 +130,14 @@ export function Footer() {
 
                     {/* Link Columns */}
                     {Object.entries(footerLinks).map(([key, links]) => (
-                        <div key={key} className="space-y-2"> {/* Reduced from space-y-3 to space-y-2 */}
+                        <div key={key} className="space-y-3">
                             <h3 className="text-sm font-semibold text-foreground capitalize">{key}</h3>
-                            <ul className="space-y-1"> {/* Reduced from space-y-2 to space-y-1 */}
+                            <ul className="space-y-2">
                                 {links.map((link) => (
                                     <li key={link.label}>
                                         <Link
                                             href={link.href}
-                                            className={cn('text-xs transition-colors', mutedTextColor, linkHoverColor)}
+                                            className={cn('text-sm transition-colors', mutedTextColor, linkHoverColor)}
                                         >
                                             {link.label}
                                         </Link>
@@ -150,13 +150,13 @@ export function Footer() {
                 </div>
 
                 {/* Bottom section: Copyright, Language */}
-                <div className="border-t border-border/40 pt-3 flex flex-col md:flex-row justify-between items-center gap-2"> {/* Reduced padding and gap */}
+                <div className="border-t border-border/40 pt-4 flex flex-col md:flex-row justify-between items-center gap-3">
                     <p className={cn('text-xs', mutedTextColor)}>
                         &copy; 2025 1Tech Academy. All rights reserved.
                     </p>
                     {/* Optional: Language switcher or other links */}
-                    <div className="mt-1 md:mt-0">
-                        <Button variant="ghost" size="sm" className={cn('text-xs px-2 py-1', mutedTextColor)}>
+                    <div className="mt-2 md:mt-0">
+                        <Button variant="ghost" size="sm" className={cn('text-xs', mutedTextColor)}>
                             English (US)
                         </Button>
                     </div>

@@ -51,6 +51,8 @@ export interface BaseUser {
 	corporateId?: string | null;
 	/** Display name of the linked corporate account. For frontend convenience. */
 	corporateAccountName?: string | null;
+	/** Referral code used during registration. Optional. */
+	referralCode?: string | null;
 }
 
 // --- Student Specific Information ---

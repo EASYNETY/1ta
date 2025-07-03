@@ -48,7 +48,7 @@ export function exportCourseRevenueReports(
 			course.enrolledStudents > 0
 				? course.totalRevenue / course.enrolledStudents
 				: 0,
-		month: getFormattedDate(),
+		date: getFormattedDate(),
 	}));
 
 	const defaultFilename = `course-revenue-reports-${getFormattedDate()}`;
@@ -70,7 +70,7 @@ export function exportPaymentMethodReports(
 		totalRevenue: 0, // Would need additional calculation
 		percentage: method.percentage,
 		averageTransactionValue: 0, // Would need additional calculation
-		month: getFormattedDate(),
+		date: getFormattedDate(),
 	}));
 
 	const defaultFilename = `payment-method-reports-${getFormattedDate()}`;

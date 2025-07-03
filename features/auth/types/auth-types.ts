@@ -47,6 +47,7 @@ export interface RegisterData {
 	phone?: string;
 	address?: string;
 	dateOfBirth?: string;
+	referralCode?: string;
 	guardianDetails?: {
 		name: string;
 		email: string;

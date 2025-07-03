@@ -17,7 +17,6 @@ const nextConfig = {
 		],
 	},
 	// Disable problematic features that might cause build issues
-	swcMinify: false,
 	poweredByHeader: false,
 	// Simplified webpack config to avoid build issues
 	webpack: (config: any) => {

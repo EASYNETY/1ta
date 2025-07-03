@@ -451,14 +451,17 @@ const AdminPaymentTable: React.FC = () => {
                   </TableCell>
 
                   {/* Event/Course */}
-                  <TableCell className="max-w-[150px] truncate">
-                    {payment.metadata?.courseName ||
-                      payment.relatedItemIds?.find(item => item.type === "course")?.id ||
-                      (payment.description?.length > 30 ?
-                        `${payment.description.substring(0, 30)}...` :
-                        payment.description) ||
-                      "N/A"}
-                  </TableCell>
+                <TableCell className="max-w-[250px] truncate text-xs">
+                  {(() => {
+                    // Use the invoice description as the course name, with a fallback
+                    const courseName = payment.invoice?.description || payment.description || "Unknown Course";
+
+                    // Clean up the course name by removing "Course enrolment:" prefix
+                    const cleanedName = courseName.replace(/^Course enrolment:\s*/, '').trim();
+
+                    return cleanedName.length > 30 ? `${cleanedName.substring(0, 30)}...` : cleanedName;
+                  })()}
+                </TableCell>
 
                   {/* Payment Date/Time */}
                   <TableCell className="text-xs whitespace-nowrap">

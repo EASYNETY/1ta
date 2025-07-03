@@ -40,7 +40,7 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
     const formatCurrency = (amount: number) => {
         // Convert to number to remove any leading zeros
         const cleanAmount = Number(amount);
-        
+
         // For NGN, use the ₦ symbol directly to ensure consistent display
         return `₦${cleanAmount.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`;
     }
@@ -137,7 +137,20 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
                             ) : (
                                 filteredAndSortedData.map((course) => (
                                     <TableRow key={course.courseId}>
-                                        <TableCell className="font-medium">{course.courseName}</TableCell>
+                                        <TableCell className="font-medium">
+                                            {(() => {
+                                                // Use the invoice description as the course name, with a fallback
+                                                const courseName =
+                                                    course.invoice?.description || course.courseName || course.description || "Unknown Course";
+
+                                                // Remove the "Course enrolment:" prefix (if present)
+                                                const cleanedName = courseName.replace(/^Course enrolment:\s*/, '').trim();
+
+                                                // Truncate if longer than 30 characters
+                                                return cleanedName.length > 30 ? `${cleanedName.substring(0, 30)}...` : cleanedName;
+                                            })()}
+                                        </TableCell>
+
                                         <TableCell className="text-right font-mono">{formatCurrency(course.totalRevenue)}</TableCell>
                                         <TableCell className="text-right">{course.enrolledStudents}</TableCell>
                                         <TableCell className="text-right font-mono">

@@ -25,6 +25,7 @@ export interface UserData {
     role: UserRole;
     isActive: boolean;
     barcodeId?: string; // Optional, only if applicable
+    referralCode?: string; // Optional referral code
     createdAt: string;
     // Add other fields if needed by the row
 }
@@ -122,6 +123,18 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
                 <Badge variant="outline" className={`whitespace-nowrap ${getStatusBadgeClass(user.isActive)}`}>
                     {getStatusString(user.isActive).charAt(0).toUpperCase() + getStatusString(user.isActive).slice(1)}
                 </Badge>
+            </td>
+            {/* Referral Code Cell */}
+            <td className="py-3 px-4 align-top text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                    {user.referralCode ? (
+                        <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
+                            {user.referralCode}
+                        </span>
+                    ) : (
+                        <span className="text-muted-foreground italic">No referral</span>
+                    )}
+                </div>
             </td>
             {/* Join Date Cell */}
             <td className="py-3 px-4 align-top text-sm text-muted-foreground">
