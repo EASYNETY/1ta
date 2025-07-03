@@ -41,6 +41,7 @@ function convertBackendUserToUser(backendUser: any): User {
 		bio: backendUser.bio || null,
 		dateOfBirth: backendUser.dateOfBirth || null,
 		barcodeId: backendUser.barcodeId || null,
+		referralCode: backendUser.referralCode || null,
 		classId: backendUser.class || null, // Backend uses 'class', we use 'classId'
 		isCorporateManager: Boolean(backendUser.isCorporateManager),
 		subjects: backendUser.subjects || null,
