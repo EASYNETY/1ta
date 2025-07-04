@@ -31,11 +31,8 @@ import {
     resetCreateStatus,
 } from "@/features/support/store/supportSlice";
 import type { TicketResponse, TicketStatus } from "@/features/support/types/support-types";
-import { Label } from "@/components/ui/label";
 import { getPriorityStyles, getStatusVariant } from "@/features/support/components/TicketListItem";
 import { hasAdminAccess, isCustomerCare } from "@/types/user.types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PageHeader } from "@/components/layout/auth/page-header";
 import { toast } from "sonner";
 
 const safeFormatDetailedDate = (dateString?: string): string => {
