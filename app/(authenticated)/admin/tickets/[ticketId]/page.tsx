@@ -1,5 +1,3 @@
-// app/(authenticated)/admin/tickets/[ticketId]/page.tsx
-
 "use client";
 
 import type React from "react";
