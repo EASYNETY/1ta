@@ -11,10 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format, parseISO, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
 import {
     fetchTicketById,
     addTicketResponse,
@@ -241,7 +244,7 @@ export default function AdminTicketDetailPage() {
                             </Avatar>
                             <div
                                 className={cn("flex-1 p-3 rounded-md border", {
-                                    "bg-primary/10 border-primary/20": response?.responder?.role === "admin" || response?.responder?role === 'super_admin',
+                                    "bg-primary/10 border-primary/20": response?.responder?.role === "admin" || response?.responder?.role === 'super_admin',
                                     "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800":
                                         response?.responder?.role === "teacher",
                                     "bg-muted/60": response?.responder?.role === "student",
