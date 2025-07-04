@@ -232,12 +232,14 @@ export default function AdminTicketDetailPage() {
                         <div key={response.id} className="flex gap-3">
                             <Avatar
                                 className={cn("h-8 w-8 border", {
-                                    "border-primary": response.userRole === "admin" || response.userRole === 'super_admin',
-                                    "border-blue-500": response.userRole === "teacher",
-                                    "border-green-500": response.userRole === "student",
+                                    "border-primary": response.responder?.role === "admin" || response.responder?.role === 'super_admin',
+                                    "border-blue-500": response.responder?.role === "teacher",
+                                    "border-green-500": response.responder?.role === "student",
                                 })}
                             >
-                                <AvatarFallback className="text-primary font-medium">{response.userName?.charAt(0) || "?"}</AvatarFallback>
+                                <AvatarFallback className="text-primary font-medium">
+                                    {response.responder?.name?.charAt(0) || "?"}
+                                </AvatarFallback>
                             </Avatar>
                             <div
                                 className={cn("flex-1 p-3 rounded-md border", {

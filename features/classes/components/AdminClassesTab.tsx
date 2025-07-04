@@ -10,13 +10,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { Plus, Search, AlertTriangle, Users, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, AlertTriangle, Users, Eye, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { AdminClassView } from '../types/classes-types';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { resetOperationStatus, selectAdminPagination, selectAllAdminClasses, selectClassesError, selectClassesStatus } from '../store/classes-slice';
 import { deleteClass, fetchAllClassesAdmin } from '../store/classes-thunks';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 
 const AdminClassesTab: React.FC = () => {
@@ -26,13 +27,18 @@ const AdminClassesTab: React.FC = () => {
     const status = useAppSelector(selectClassesStatus);
     const error = useAppSelector(selectClassesError);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const { toast } = useToast();
-    // TODO: Add state for page and limit if implementing pagination controls
 
     useEffect(() => {
-        // Fetch initial data
-        dispatch(fetchAllClassesAdmin({ search: searchTerm })); // Add pagination params later
-    }, [dispatch]); // Fetch once initially
+        // Fetch initial data with pagination
+        dispatch(fetchAllClassesAdmin({
+            search: searchTerm,
+            page: currentPage,
+            limit: pageSize
+        }));
+    }, [dispatch, currentPage, pageSize]); // Refetch when page or size changes
 
     // Log classes when they change
     useEffect(() => {
@@ -42,9 +48,24 @@ const AdminClassesTab: React.FC = () => {
         }
     }, [allClasses, error]);
 
-    // Optional: Debounce search or fetch on button click
+    // Search handler - reset to page 1 on search
     const handleSearch = () => {
-        dispatch(fetchAllClassesAdmin({ search: searchTerm, page: 1 })); // Reset to page 1 on search
+        setCurrentPage(1);
+        dispatch(fetchAllClassesAdmin({
+            search: searchTerm,
+            page: 1,
+            limit: pageSize
+        }));
+    };
+
+    // Pagination handlers
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+    };
+
+    const handlePageSizeChange = (newSize: string) => {
+        setPageSize(parseInt(newSize));
+        setCurrentPage(1); // Reset to first page when changing page size
     };
 
     // --- Delete Handler ---
@@ -252,7 +273,60 @@ const AdminClassesTab: React.FC = () => {
                         </Table>
                     </div>
                 )}
-                {/* TODO: Add Pagination Controls based on pagination state */}
+
+                {/* Pagination Controls */}
+                {status === 'succeeded' && pagination && pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between px-2 py-4">
+                        <div className="flex items-center space-x-2">
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, pagination.totalClasses)} of {pagination.totalClasses} classes
+                            </p>
+                        </div>
+
+                        <div className="flex items-center space-x-6">
+                            <div className="flex items-center space-x-2">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Rows per page</p>
+                                <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
+                                    <SelectTrigger className="h-8 w-[70px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent side="top">
+                                        <SelectItem value="5">5</SelectItem>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Page {currentPage} of {pagination.totalPages}
+                                </p>
+                                <div className="flex items-center space-x-1">
+                                    <DyraneButton
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage <= 1}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </DyraneButton>
+                                    <DyraneButton
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage >= pagination.totalPages}
+                                        className="h-8 w-8 p-0"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </DyraneButton>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
