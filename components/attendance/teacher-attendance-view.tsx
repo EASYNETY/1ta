@@ -76,7 +76,7 @@ export function FacilitatorAttendanceView() {
   useEffect(() => {
     // Fetch the list of classes if it's not already loaded or has failed.
     if (classesStatus === 'idle' || classesStatus === 'failed') {
-      dispatch(fetchAllClassesAdmin({ page: 1, limit: 1000 })); // Fetch all classes for the dropdown with high limit
+      dispatch(fetchAllClassesAdmin({ page: 1, limit: 5000 })); // Fetch all classes for the dropdown with very high limit
     }
   }, [dispatch, classesStatus]);
 

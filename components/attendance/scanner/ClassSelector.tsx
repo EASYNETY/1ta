@@ -33,7 +33,7 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
     // --- CORRECTED: Fetch all admin classes if needed ---
     useEffect(() => {
         if (classesStatus === 'idle' || classesStatus === 'failed') {
-            dispatch(fetchAllClassesAdmin({ limit: 1000 }));
+            dispatch(fetchAllClassesAdmin({ page: 1, limit: 5000 })); // Fetch all classes with very high limit
         }
     }, [dispatch, classesStatus]);
 
@@ -73,7 +73,7 @@ export function ClassSelector({ casualScanMode, setCasualScanMode }: ClassSelect
 
     // Handle retry fetch
     const handleRetryFetch = () => {
-        dispatch(fetchAllClassesAdmin({ limit: 1000 }));
+        dispatch(fetchAllClassesAdmin({ page: 1, limit: 5000 }));
     };
 
     // Toggle casual scan mode
