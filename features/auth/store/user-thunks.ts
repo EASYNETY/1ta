@@ -196,14 +196,20 @@ export const deleteUser = createAsyncThunk<
 	{ state: RootState; rejectValue: string }
 >("users/delete", async (userId, { rejectWithValue }) => {
 	try {
-		const response = await del<{ success: boolean; message: string; data: { id: string; name: string; email: string } }>(
+		// The API client returns just the data part, not the full response
+		const data = await del<{ id: string; name: string; email: string }>(
 			`/admin/users/${userId}`
 		);
-		// Return the format expected by the reducer
-		return {
-			success: response.success,
-			id: response.data.id
-		};
+
+		// If we get data back, it means the deletion was successful
+		if (data && data.id) {
+			return {
+				success: true,
+				id: data.id
+			};
+		} else {
+			return rejectWithValue("Failed to delete user - no data returned");
+		}
 	} catch (error: any) {
 		const message = error?.message || "Failed to delete user";
 		return rejectWithValue(message);

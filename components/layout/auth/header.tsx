@@ -350,9 +350,10 @@ export function Header() {
                         </Link>
                     )}
 
-                    {isAuthenticated && (
+                    {/* Notification Bell - Commented out for now */}
+                    {/* {isAuthenticated && (
                         <NotificationCenter />
-                    )}
+                    )} */}
                 </div>
             </div>
         </header>
