@@ -1,3 +1,5 @@
+// app/(authenticated)/admin/tickets/[ticketId]/page.tsx
+
 "use client";
 
 import type React from "react";
@@ -11,13 +13,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format, parseISO, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
-import { PageHeader } from "@/components/layout/page-header";
 import {
     fetchTicketById,
     addTicketResponse,
@@ -31,8 +30,11 @@ import {
     resetCreateStatus,
 } from "@/features/support/store/supportSlice";
 import type { TicketResponse, TicketStatus } from "@/features/support/types/support-types";
+import { Label } from "@/components/ui/label";
 import { getPriorityStyles, getStatusVariant } from "@/features/support/components/TicketListItem";
 import { hasAdminAccess, isCustomerCare } from "@/types/user.types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/auth/page-header";
 import { toast } from "sonner";
 
 const safeFormatDetailedDate = (dateString?: string): string => {
@@ -230,28 +232,26 @@ export default function AdminTicketDetailPage() {
                         <div key={response.id} className="flex gap-3">
                             <Avatar
                                 className={cn("h-8 w-8 border", {
-                                    "border-primary": response?.responder?.role === "admin" || response?.responder?.role === 'super_admin',
-                                    "border-blue-500": response?.responder?.role === "teacher",
-                                    "border-green-500": response?.responder?.role === "student",
+                                    "border-primary": response.userRole === "admin" || response.userRole === 'super_admin',
+                                    "border-blue-500": response.userRole === "teacher",
+                                    "border-green-500": response.userRole === "student",
                                 })}
                             >
-                                <AvatarFallback className="text-primary font-medium">
-                                    {response?.responder?.name?.charAt(0) || "?"}
-                                </AvatarFallback>
+                                <AvatarFallback className="text-primary font-medium">{response.userName?.charAt(0) || "?"}</AvatarFallback>
                             </Avatar>
                             <div
                                 className={cn("flex-1 p-3 rounded-md border", {
-                                    "bg-primary/10 border-primary/20": response?.responder?.role === "admin" || response?.responder?.role === 'super_admin',
+                                    "bg-primary/10 border-primary/20": response.userRole === "admin" || response.userRole === 'super_admin',
                                     "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800":
-                                        response?.responder?.role === "teacher",
-                                    "bg-muted/60": response?.responder?.role === "student",
+                                        response.userRole === "teacher",
+                                    "bg-muted/60": response.userRole === "student",
                                 })}
                             >
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="text-sm font-semibold flex items-center gap-1">
-                                        {response?.responder?.name || "Unknown"}
+                                        {response.userName || "Unknown"}
                                         <Badge variant="outline" className="ml-2 text-xs capitalize">
-                                            {response?.responder?.role}
+                                            {response.userRole}
                                         </Badge>
                                     </span>
                                     <span className="text-xs text-muted-foreground">{safeFormatDetailedDate(response.createdAt)}</span>
