@@ -243,17 +243,17 @@ export default function AdminTicketDetailPage() {
                             </Avatar>
                             <div
                                 className={cn("flex-1 p-3 rounded-md border", {
-                                    "bg-primary/10 border-primary/20": response.userRole === "admin" || response.userRole === 'super_admin',
+                                    "bg-primary/10 border-primary/20": response.responder?.role === "admin" || response.responder?role === 'super_admin',
                                     "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800":
-                                        response.userRole === "teacher",
-                                    "bg-muted/60": response.userRole === "student",
+                                        response.responder?.role === "teacher",
+                                    "bg-muted/60": response.responder?.role === "student",
                                 })}
                             >
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="text-sm font-semibold flex items-center gap-1">
-                                        {response.userName || "Unknown"}
+                                        {response.responder?.name || "Unknown"}
                                         <Badge variant="outline" className="ml-2 text-xs capitalize">
-                                            {response.userRole}
+                                            {response.responder?.role}
                                         </Badge>
                                     </span>
                                     <span className="text-xs text-muted-foreground">{safeFormatDetailedDate(response.createdAt)}</span>
