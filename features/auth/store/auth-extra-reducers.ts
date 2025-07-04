@@ -315,18 +315,32 @@ export const addAuthExtraReducers = (builder: any) => {
 	);
 
 	// --- DELETE USER ---
+	builder.addCase(deleteUser.pending, (state: AuthState) => {
+		state.usersLoading = true;
+		state.usersError = null;
+	});
+
 	builder.addCase(
 		deleteUser.fulfilled,
 		(
 			state: AuthState,
 			action: PayloadAction<{ success: boolean; id: string }>
 		) => {
+			state.usersLoading = false;
 			if (action.payload.success) {
 				state.users = state.users.filter(
 					(user) => user.id !== action.payload.id
 				);
 				state.totalUsers = Math.max(0, state.totalUsers - 1);
 			}
+		}
+	);
+
+	builder.addCase(
+		deleteUser.rejected,
+		(state: AuthState, action: ReturnType<typeof deleteUser.rejected>) => {
+			state.usersLoading = false;
+			state.usersError = action.payload ?? "Failed to delete user";
 		}
 	);
 

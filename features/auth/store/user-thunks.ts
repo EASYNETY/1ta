@@ -196,10 +196,14 @@ export const deleteUser = createAsyncThunk<
 	{ state: RootState; rejectValue: string }
 >("users/delete", async (userId, { rejectWithValue }) => {
 	try {
-		const response = await del<{ success: boolean; id: string }>(
+		const response = await del<{ success: boolean; message: string; data: { id: string; name: string; email: string } }>(
 			`/admin/users/${userId}`
 		);
-		return response;
+		// Return the format expected by the reducer
+		return {
+			success: response.success,
+			id: response.data.id
+		};
 	} catch (error: any) {
 		const message = error?.message || "Failed to delete user";
 		return rejectWithValue(message);
