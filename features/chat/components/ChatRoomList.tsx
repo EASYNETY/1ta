@@ -23,6 +23,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -39,6 +40,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const router = useRouter();
     const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
     const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
+
+    // Get token from localStorage or Redux (adjust as needed)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
     useEffect(() => {
         if (currentUser?.id && status === "idle") {
@@ -79,7 +83,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         try {
             const res = await fetch(`https://api.onetechacademy.com/api/chat/rooms/${roomId}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({ name: newName })
             });
             if (!res.ok) throw new Error("Failed to update room");
@@ -97,7 +104,8 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         setDeletingRoomId(roomId);
         try {
             const res = await fetch(`https://api.onetechacademy.com/api/chat/rooms/${roomId}`, {
-                method: "DELETE"
+                method: "DELETE",
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
             if (!res.ok) throw new Error("Failed to delete room");
             toast.success("Room deleted");
@@ -209,35 +217,36 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                         isSelected={room.id === selectedRoomId}
                                         onClick={() => handleSelectRoom(room.id)}
                                     />
-                                    {/* Show CRUD actions for admin/super_admin */}
+                                    {/* Show CRUD actions for admin/super_admin as a dropdown */}
                                     {(currentUser?.role === "admin" || currentUser?.role === "super_admin") && (
-                                        <div className="flex gap-1 ml-2">
-                                            {/* Update Room (simple prompt for demo) */}
-                                            <button
-                                                className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50"
-                                                disabled={updatingRoomId === room.id}
-                                                onClick={() => {
-                                                    const newName = prompt("Enter new room name", room.name);
-                                                    if (newName && newName !== room.name) {
-                                                        handleUpdateRoom(room.id, newName);
-                                                    }
-                                                }}
-                                            >
-                                                {updatingRoomId === room.id ? "Updating..." : "Update"}
-                                            </button>
-                                            {/* Delete Room */}
-                                            <button
-                                                className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50"
-                                                disabled={deletingRoomId === room.id}
-                                                onClick={() => {
-                                                    if (confirm("Are you sure you want to delete this room?")) {
-                                                        handleDeleteRoom(room.id);
-                                                    }
-                                                }}
-                                            >
-                                                {deletingRoomId === room.id ? "Deleting..." : "Delete"}
-                                            </button>
-                                        </div>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <button className="ml-2 px-2 py-1 rounded bg-muted text-xs hover:bg-muted/70">Actions</button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        const newName = prompt("Enter new room name", room.name);
+                                                        if (newName && newName !== room.name) {
+                                                            handleUpdateRoom(room.id, newName);
+                                                        }
+                                                    }}
+                                                    disabled={updatingRoomId === room.id}
+                                                >
+                                                    {updatingRoomId === room.id ? "Updating..." : "Update Room"}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => {
+                                                        if (confirm("Are you sure you want to delete this room?")) {
+                                                            handleDeleteRoom(room.id);
+                                                        }
+                                                    }}
+                                                    disabled={deletingRoomId === room.id}
+                                                >
+                                                    {deletingRoomId === room.id ? "Deleting..." : "Delete Room"}
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     )}
                                 </div>
                             ))}
