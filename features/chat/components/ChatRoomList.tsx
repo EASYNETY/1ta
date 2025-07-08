@@ -77,7 +77,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const handleUpdateRoom = async (roomId: string, newName: string) => {
         setUpdatingRoomId(roomId);
         try {
-            const res = await fetch(`/api/chat/rooms/${roomId}`, {
+            const res = await fetch(`https://api.onetechacademy.com/api/chat/rooms/${roomId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: newName })
@@ -96,7 +96,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const handleDeleteRoom = async (roomId: string) => {
         setDeletingRoomId(roomId);
         try {
-            const res = await fetch(`/api/chat/rooms/${roomId}`, {
+            const res = await fetch(`https://api.onetechacademy.com/api/chat/rooms/${roomId}`, {
                 method: "DELETE"
             });
             if (!res.ok) throw new Error("Failed to delete room");
