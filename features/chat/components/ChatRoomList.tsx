@@ -20,6 +20,9 @@ import { ChatRoomType } from "../types/chat-types"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { fetchChatRooms } from "../store/chat-thunks"
 import Link from "next/link"
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -33,6 +36,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const currentUser = useAppSelector((state) => state.auth.user)
     const [searchQuery, setSearchQuery] = React.useState("")
     const [filter, setFilter] = React.useState<ChatRoomType | "all">("all")
+    const router = useRouter();
+    const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
+    const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
 
     useEffect(() => {
         if (currentUser?.id && status === "idle") {
@@ -66,6 +72,46 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         },
         {} as Record<ChatRoomType, typeof rooms>,
     )
+
+    // Update Room handler
+    const handleUpdateRoom = async (roomId: string, newName: string) => {
+        setUpdatingRoomId(roomId);
+        try {
+            const res = await fetch(`/api/chat/rooms/${roomId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newName })
+            });
+            if (!res.ok) throw new Error("Failed to update room");
+            toast.success("Room updated");
+            dispatch(fetchChatRooms(currentUser.id));
+        } catch (err) {
+            toast.error("Failed to update room");
+        } finally {
+            setUpdatingRoomId(null);
+        }
+    };
+
+    // Delete Room handler
+    const handleDeleteRoom = async (roomId: string) => {
+        setDeletingRoomId(roomId);
+        try {
+            const res = await fetch(`/api/chat/rooms/${roomId}`, {
+                method: "DELETE"
+            });
+            if (!res.ok) throw new Error("Failed to delete room");
+            toast.success("Room deleted");
+            dispatch(fetchChatRooms(currentUser.id));
+            if (roomId === selectedRoomId) {
+                dispatch(selectChatRoom(""));
+            }
+        } catch (err) {
+            toast.error("Failed to delete room");
+        } finally {
+            setDeletingRoomId(null);
+        }
+    };
+
 
     return (
         <div className="flex h-full flex-col">
@@ -157,12 +203,43 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                                 : "Other"}
                             </h3>
                             {rooms.map((room) => (
-                                <ChatRoomItem
-                                    key={room.id}
-                                    room={room}
-                                    isSelected={room.id === selectedRoomId}
-                                    onClick={() => handleSelectRoom(room.id)}
-                                />
+                                <div key={room.id} className="flex items-center">
+                                    <ChatRoomItem
+                                        room={room}
+                                        isSelected={room.id === selectedRoomId}
+                                        onClick={() => handleSelectRoom(room.id)}
+                                    />
+                                    {/* Show CRUD actions for admin/super_admin */}
+                                    {(currentUser?.role === "admin" || currentUser?.role === "super_admin") && (
+                                        <div className="flex gap-1 ml-2">
+                                            {/* Update Room (simple prompt for demo) */}
+                                            <button
+                                                className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50"
+                                                disabled={updatingRoomId === room.id}
+                                                onClick={() => {
+                                                    const newName = prompt("Enter new room name", room.name);
+                                                    if (newName && newName !== room.name) {
+                                                        handleUpdateRoom(room.id, newName);
+                                                    }
+                                                }}
+                                            >
+                                                {updatingRoomId === room.id ? "Updating..." : "Update"}
+                                            </button>
+                                            {/* Delete Room */}
+                                            <button
+                                                className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 disabled:opacity-50"
+                                                disabled={deletingRoomId === room.id}
+                                                onClick={() => {
+                                                    if (confirm("Are you sure you want to delete this room?")) {
+                                                        handleDeleteRoom(room.id);
+                                                    }
+                                                }}
+                                            >
+                                                {deletingRoomId === room.id ? "Deleting..." : "Delete"}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
                     ))}
