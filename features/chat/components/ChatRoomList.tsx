@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import apiClient from "@/lib/api-client";
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -81,15 +82,12 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const handleUpdateRoom = async (roomId: string, newName: string) => {
         setUpdatingRoomId(roomId);
         try {
-            const res = await fetch(`https://api.onetechacademy.com/api/chat/rooms/${roomId}`, {
+            await apiClient(`/chat/rooms/${roomId}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
-                },
-                body: JSON.stringify({ name: newName })
+                body: JSON.stringify({ name: newName }),
+                headers: { "Content-Type": "application/json" },
+                requiresAuth: true
             });
-            if (!res.ok) throw new Error("Failed to update room");
             toast.success("Room updated");
             dispatch(fetchChatRooms(currentUser.id));
         } catch (err) {
@@ -103,11 +101,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const handleDeleteRoom = async (roomId: string) => {
         setDeletingRoomId(roomId);
         try {
-            const res = await fetch(`https://api.onetechacademy.com/api/chat/rooms/${roomId}`, {
+            await apiClient(`/chat/rooms/${roomId}`, {
                 method: "DELETE",
-                headers: token ? { Authorization: `Bearer ${token}` } : {}
+                requiresAuth: true
             });
-            if (!res.ok) throw new Error("Failed to delete room");
             toast.success("Room deleted");
             dispatch(fetchChatRooms(currentUser.id));
             if (roomId === selectedRoomId) {

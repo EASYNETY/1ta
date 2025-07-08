@@ -16,6 +16,7 @@ import {
 } from "../store/chatSlice";
 import { ChatMessage } from "./ChatMessage";
 import { fetchChatMessages, markRoomAsRead } from "../store/chat-thunks";
+import { io, Socket } from "socket.io-client";
 
 export const ChatMessageList: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -31,6 +32,7 @@ export const ChatMessageList: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [page, setPage] = useState(1);
     const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+    const socketRef = useRef<Socket | null>(null);
 
 
     // --- Effect 1: Fetch messages when room changes and they haven't been loaded ---
@@ -140,6 +142,36 @@ export const ChatMessageList: React.FC = () => {
             [] as (typeof messages)[],
         );
     }, [messages]);
+
+
+    // --- Socket.IO: Real-time message updates ---
+    useEffect(() => {
+        // Connect to Socket.IO server only once
+        if (!socketRef.current) {
+            socketRef.current = io("https://api.onetechacademy.com", {
+                transports: ["websocket"],
+                withCredentials: true
+            });
+        }
+        const socket = socketRef.current;
+        if (selectedRoomId) {
+            socket.emit("joinRoom", selectedRoomId);
+        }
+        // Listen for newMessage events
+        const handleNewMessage = (message: any) => {
+            if (message.roomId === selectedRoomId) {
+                // Optionally, you can dispatch an action to add the message to Redux
+                dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: page * 20 }));
+            }
+        };
+        socket.on("newMessage", handleNewMessage);
+        return () => {
+            if (selectedRoomId) {
+                socket.emit("leaveRoom", selectedRoomId);
+            }
+            socket.off("newMessage", handleNewMessage);
+        };
+    }, [selectedRoomId, dispatch, page]);
 
 
     return (
