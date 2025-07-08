@@ -151,11 +151,37 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
                 {Array.isArray(itemsToDisplay) && itemsToDisplay.map((item, index) => (
                   <tr key={item.courseId || `item-${index}-${item.description.slice(0, 5)}`}>
                     <td className="px-4 py-3 whitespace-normal break-words">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.description}</div>
-                      {item.courseId && item.courseId !== 'SUMMARY_PAYMENT_DESC' && item.courseId !== 'SUMMARY_ITEM_NO_COURSE_ID' && item.courseId !== 'GENERIC_SUMMARY_ITEM' && (
-                        <div className="text-xs text-muted-foreground">Course ID: {item.courseId}</div>
-                      )}
+                      {/* Description (cleaned & truncated) */}
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {(() => {
+                          // Use invoice description first, fall back to the plain description
+                          const raw =
+                            item.invoice?.description ||
+                            item.description ||
+                            item.courseName ||
+                            'Unknown Course';
+
+                          // Strip leading “Course enrolment:” (case‑insensitive, keeps other text)
+                          const cleaned = raw.replace(/^Course\s+enrolment:\s*/i, '').trim();
+
+                          // Truncate to 30 chars
+                          return cleaned.length > 30
+                            ? `${cleaned.substring(0, 30)}…`
+                            : cleaned;
+                        })()}
+                      </div>
+
+                      {/* Course ID shown only when it’s a real course */}
+                      {item.courseId &&
+                        item.courseId !== 'SUMMARY_PAYMENT_DESC' &&
+                        item.courseId !== 'SUMMARY_ITEM_NO_COURSE_ID' &&
+                        item.courseId !== 'GENERIC_SUMMARY_ITEM' && (
+                          <div className="text-xs text-muted-foreground">
+                            Course&nbsp;ID:&nbsp;{item.courseId}
+                          </div>
+                        )}
                     </td>
+
                     <td className="px-4 py-3 text-right text-sm text-gray-500 dark:text-gray-400">{item.quantity}</td>
                     <td className="px-4 py-3 text-right text-sm text-gray-500 dark:text-gray-400">
                       {formatCurrency(item.amount, receiptData.paymentCurrency)}
