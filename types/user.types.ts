@@ -195,7 +195,7 @@ export function isCustomerCare(
 
 // Helper function to check if user has admin-level access (super_admin or admin)
 export function hasAdminAccess(user: User | null | undefined): boolean {
-	return user?.role === "super_admin" || user?.role === "admin";
+	return user?.role === "super_admin" || user?.role === "admin" || user?.role === "customer_care";
 }
 
 // Helper function to check if user has staff-level access (all roles except student)

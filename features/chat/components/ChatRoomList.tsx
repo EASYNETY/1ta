@@ -24,7 +24,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import apiClient from "@/lib/api-client";
+import { apiClient } from "@/lib/api-client";
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
