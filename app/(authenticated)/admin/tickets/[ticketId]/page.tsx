@@ -232,7 +232,7 @@ export default function AdminTicketDetailPage() {
                         <div key={response.id} className="flex gap-3">
                             <Avatar
                                 className={cn("h-8 w-8 border", {
-                                    "border-primary": response.userRole === "admin" || response.userRole === 'super_admin',
+                                    "border-primary": response.userRole === "admin" || response.userRole === 'super_admin' || response.userRole === 'customer_care',
                                     "border-blue-500": response.userRole === "teacher",
                                     "border-green-500": response.userRole === "student",
                                 })}

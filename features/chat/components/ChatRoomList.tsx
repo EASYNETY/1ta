@@ -217,12 +217,13 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                     {/* Show CRUD actions for admin/super_admin as a dropdown */}
                                     {(currentUser?.role === "admin" || currentUser?.role === "super_admin") && (
                                         <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <button className="ml-2 px-2 py-1 rounded bg-muted text-xs hover:bg-muted/70">Actions</button>
+                                            <DropdownMenuTrigger>
+                                                <button type="button" className="ml-2 px-2 py-1 rounded bg-muted text-xs hover:bg-muted/70">Actions</button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
                                                     onClick={() => {
+                                                        console.log('Update clicked for room', room.id);
                                                         const newName = prompt("Enter new room name", room.name);
                                                         if (newName && newName !== room.name) {
                                                             handleUpdateRoom(room.id, newName);
@@ -234,6 +235,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => {
+                                                        console.log('Delete clicked for room', room.id);
                                                         if (confirm("Are you sure you want to delete this room?")) {
                                                             handleDeleteRoom(room.id);
                                                         }

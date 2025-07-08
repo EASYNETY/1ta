@@ -17,6 +17,7 @@ import {
 import { ChatMessage } from "./ChatMessage";
 import { fetchChatMessages, markRoomAsRead } from "../store/chat-thunks";
 import { io, Socket } from "socket.io-client";
+import { messageReceived } from "../store/chatSlice";
 
 export const ChatMessageList: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -123,9 +124,9 @@ export const ChatMessageList: React.FC = () => {
     };
 
     // --- Group messages by sender for better UI ---
-    const groupedMessages = useMemo(() => { // Memoize groupedMessages
+    const groupedMessages = useMemo(() => {
         return messages.reduce(
-            (groups, message, index) => {
+            (groups: any[][], message: any, index: number) => {
                 const prevMessage = messages[index - 1];
                 const shouldStartNewGroup =
                     !prevMessage ||
@@ -139,14 +140,13 @@ export const ChatMessageList: React.FC = () => {
                 }
                 return groups;
             },
-            [] as (typeof messages)[],
+            [] as any[][],
         );
     }, [messages]);
 
 
     // --- Socket.IO: Real-time message updates ---
     useEffect(() => {
-        // Connect to Socket.IO server only once
         if (!socketRef.current) {
             socketRef.current = io("https://api.onetechacademy.com", {
                 transports: ["websocket"],
@@ -160,8 +160,7 @@ export const ChatMessageList: React.FC = () => {
         // Listen for newMessage events
         const handleNewMessage = (message: any) => {
             if (message.roomId === selectedRoomId) {
-                // Optionally, you can dispatch an action to add the message to Redux
-                dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: page * 20 }));
+                dispatch(messageReceived(message));
             }
         };
         socket.on("newMessage", handleNewMessage);
@@ -171,7 +170,7 @@ export const ChatMessageList: React.FC = () => {
             }
             socket.off("newMessage", handleNewMessage);
         };
-    }, [selectedRoomId, dispatch, page]);
+    }, [selectedRoomId, dispatch]);
 
 
     return (
@@ -221,9 +220,9 @@ export const ChatMessageList: React.FC = () => {
                 )}
 
                 {/* Render Message Groups */}
-                {groupedMessages.map((group, groupIndex) => (
+                {groupedMessages.map((group: any[], groupIndex: number) => (
                     <div key={`group-${groupIndex}-${group[0]?.id}`} className="space-y-1"> {/* More stable key */}
-                        {group.map((message, messageIndex) => (
+                        {group.map((message: any, messageIndex: number) => (
                             <ChatMessage
                                 key={message.id}
                                 message={message}
