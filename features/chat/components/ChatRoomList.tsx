@@ -25,6 +25,9 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { apiClient } from "@/lib/api-client";
+import { ChatRoomForm } from "./ChatRoomForm";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { fetchAllUsers } from "../store/user-thunks";
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -41,9 +44,19 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const router = useRouter();
     const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
     const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
+    const [editingRoom, setEditingRoom] = useState<any | null>(null);
 
     // Get token from localStorage or Redux (adjust as needed)
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    // User autocomplete state
+    const users = useAppSelector((state: any) => state.users?.users ?? []);
+    const usersStatus = useAppSelector((state: any) => state.users?.status ?? "idle");
+    useEffect(() => {
+        if (usersStatus === "idle") {
+            dispatch(fetchAllUsers());
+        }
+    }, [dispatch, usersStatus]);
 
     useEffect(() => {
         if (currentUser?.id && status === "idle") {
@@ -117,6 +130,26 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         }
     };
 
+    const handleRoomFormSubmit = async (data: any) => {
+        if (editingRoom) {
+            setUpdatingRoomId(editingRoom.id);
+            try {
+                await apiClient(`/chat/rooms/${editingRoom.id}`, {
+                    method: "PUT",
+                    body: JSON.stringify(data),
+                    headers: { "Content-Type": "application/json" },
+                    requiresAuth: true
+                });
+                toast.success("Room updated");
+                dispatch(fetchChatRooms(currentUser.id));
+            } catch (err) {
+                toast.error("Failed to update room");
+            } finally {
+                setUpdatingRoomId(null);
+                setEditingRoom(null);
+            }
+        }
+    };
 
     return (
         <div className="flex h-full flex-col">
@@ -222,20 +255,13 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
-                                                    onClick={() => {
-                                                        console.log('Update clicked for room', room.id);
-                                                        const newName = prompt("Enter new room name", room.name);
-                                                        if (newName && newName !== room.name) {
-                                                            handleUpdateRoom(room.id, newName);
-                                                        }
-                                                    }}
+                                                    onClick={() => setEditingRoom(room)}
                                                     disabled={updatingRoomId === room.id}
                                                 >
                                                     {updatingRoomId === room.id ? "Updating..." : "Update Room"}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     onClick={() => {
-                                                        console.log('Delete clicked for room', room.id);
                                                         if (confirm("Are you sure you want to delete this room?")) {
                                                             handleDeleteRoom(room.id);
                                                         }
@@ -265,6 +291,26 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                     </DyraneButton>
                 </div>
             )}
+
+            {/* Edit Room Dialog */}
+            <Dialog open={!!editingRoom} onOpenChange={open => !open && setEditingRoom(null)}>
+                <DialogContent className="max-w-md w-full">
+                    {typeof window !== "undefined" && usersStatus === "succeeded" ? (
+                        <ChatRoomForm
+                            initialRoom={editingRoom}
+                            onSubmit={handleRoomFormSubmit}
+                            onCancel={() => setEditingRoom(null)}
+                            users={users}
+                        />
+                    ) : usersStatus === "loading" ? (
+                        <div className="flex items-center justify-center py-8"><Skeleton className="h-8 w-32" /> Loading users...</div>
+                    ) : usersStatus === "failed" ? (
+                        <div className="text-destructive text-center py-8">Failed to load users. Please try again.</div>
+                    ) : (
+                        <div>Loading users...</div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

@@ -43,7 +43,7 @@ export const standOutPointsData: StandOutPoint[] = [
       "Programs designed for professionals in Banking, Telecoms, FMCG, Health, Oil & Gas, Tech, and beyond.",
   },
   {
-    icon: <img src="/icons/why/Hands-On, Practical Learning.png" alt="Hands-On, Practical Learning" className="h-10 w-10" />,
+    icon: <img src="/icons/why/Hands-On Practical Learning.png" alt="Hands-On, Practical Learning" className="h-10 w-10" />,
     title: "Hands-On, Practical Learning",
     description:
       "Graduate with immediately usable skills and project experience.",
@@ -89,6 +89,13 @@ export const standOutPointsData: StandOutPoint[] = [
     title: "Transformative Impact",
     description:
       "Results-driven education that transforms lives and careers.",
+  },
+  
+  {
+    icon: <img src="/icons/why/Free Tech Career Consultation -01.png" alt="Free Tech Career Consultation" className="h-10 w-10" />,
+    title: "Free Tech Career Consultation",
+    description:
+      "Free Tech Career Consultation",
   },
   {
     icon: <img src="/icons/why/24 hours uninterrupted power supply-01-01.png" alt="24/7 Power Supply" className="h-10 w-10" />,
