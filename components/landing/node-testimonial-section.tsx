@@ -17,78 +17,63 @@ type ScreenSize = "desktop" | "tablet" | "mobile";
 // --- Sample Data & Positions  ---
 // Sample testimonials data
 const testimonials: Testimonial[] = [
-    {
-      id: "1",
-      name: "Adeola Bello",
-      role: "Fashion Entrepreneur",
-      company: "Lagos",
-      quote:
-        "Managing inventory and payments used to be a hassle. 1TechAcademy's integrated system streamlined everything for my boutique. Truly a game-changer!",
-      image:
-        "https://images.pexels.com/photos/3760263/pexels-photo-3760263.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-    {
-      id: "2",
-      name: "Chukwudi Eze",
-      role: "Freelance Designer",
-      company: "Abuja",
-      quote:
-        "As a graphic designer, receiving international payments was always complex. 1TechAcademy made it seamless. Now I focus more on creativity, less on admin.",
-      image:
-        "https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-    {
-      id: "3",
-      name: "Fatima Aliyu",
-      role: "Student & Online Retailer",
-      company: "Kano",
-      quote:
-        "The courses at 1TechAcademy gave me the digital skills I needed. Now I use their platform to manage my online store effectively. Great ecosystem!",
-      image:
-        "https://images.pexels.com/photos/3760067/pexels-photo-3760067.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-    {
-      id: "4",
-      name: "Emeka Nwosu",
-      role: "E-commerce Store Owner",
-      company: "Ibadan",
-      quote:
-        "The reliability of 1TechAcademy's logistics service helped my e-commerce business grow. Customers in Ibadan get their orders faster than ever.",
-      image:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-    {
-      id: "5",
-      name: "Zainab Ibrahim",
-      role: "Software Developer",
-      company: "Port Harcourt",
-      quote:
-        "We integrated 1TechAcademy's payment gateway into our app. The API was developer-friendly, and their support team was very responsive.",
-      image:
-        "https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-    {
-      id: "6",
-      name: "Oluwatobi Ayodele",
-      role: "Startup Founder",
-      company: "Abeokuta",
-      quote:
-        "Accessing business tools without breaking the bank was crucial for my startup. 1TechAcademy provided affordable and powerful solutions.",
-      image:
-        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-    {
-      id: "7",
-      name: "Ngozi Okonkwo",
-      role: "Restaurant Chain Owner",
-      company: "Enugu",
-      center: true,
-      quote:
-        "From POS solutions for my restaurant chain to managing payroll, 1TechAcademy is the backbone of our operations across Nigeria. Highly dependable.",
-      image:
-        "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    },
-  ]
+  {
+    id: "smith-oshodin",
+    name: "Smith Oshodin",
+    role: "Techpreneur",
+    company: "Lagos",
+    quote: "1 Tech Academy focuses on the understanding of information and skill through theoretical and practical delivery. The academy will assist with opportunities for the application of delivery of knowledge acquired.",
+    image: "/images/testimonials/Smith Oshodin.jpg"
+  },
+  {
+    id: "adebukola-adebamipe",
+    name: "Adebukola Adebamipe",
+    role: "Social media manager",
+    company: "Ogun",
+    quote: "1TechAcademy is a serene tech hub with up-to-date facilities and a true focus on innovation. The team is both professional and sociable, creating the perfect environment for young tech innovators. Having international instructors who are deeply grounded in their fields truly feels like bringing Harvard to Nigeria, without any wasted time. Plus, the ample parking space for visitors is a welcome bonus.",
+    image: "/images/testimonials/Adebukola Adebamipe.jpg"
+  },
+  {
+    id: "adelaja-adelani",
+    name: "Adelaja Adelani",
+    role: "UI/UX Designer",
+    company: "Abuja",
+    quote: "1techacademy, in my experience, is one of the best out there, because they take mentorship very serious and also, the onsite learning is also very key to give learner access to the instructor and their fellow learners.",
+    image: "/images/testimonials/Adelabu Adelaja.jpg"
+  },
+  {
+    id: "henry-lawson",
+    name: "Mr. Henry Lawson",
+    role: "IT professional",
+    company: "USA",
+    quote: "The webinar, in my view, is exactly what people need right now, and I hope you guys can do more. It's not just about recognizing the importance of IT, it’s about understanding how to make it work and where to concentrate on. 1Tech Academy does an excellent job of clearly explaining everything. There’s a real gap in meeting the IT training needs of professionals, and this organization offers a solid solution. Great job to the entire team, I’m truly glad I was part of the experience.",
+    image: "/images/testimonials/Henry Lawson.jpg"
+  },
+  {
+    id: "israel-clement",
+    name: "Israel Clement",
+    role: "Graphics Designer",
+    company: "Lagos",
+    quote: "This is one of the Best Tech Schools in Lagos that I would recommend to anyone who is really serious about learning a globally recognized tech skill. I gained insights from one of their webinars and I understood that a globally recognized tech skill that is learnt and consistently worked on will take me places.",
+    image: "/images/testimonials/Israel Clement.jpg"
+  },
+  {
+    id: "teri-oke",
+    name: "Teri Oke",
+    role: "Digital Strategist",
+    company: "Lagos",
+    quote: "I finished my master’s only to realize that this isn't enough with how Tech is taking over globally. I joined the 1Tech Academy webinar and I got clarity on how I can transition with my current Tech skills without having to start from scratch. I love the community; they are passionate about helping people switch and start their tech journeys. The best part is that they take you from Training to globally certified. Enjoying the smooth ride.",
+    image: "/images/testimonials/Teri Oke.jpg"
+  },
+  {
+    id: "utibe-davies",
+    name: "Utibe Davies",
+    role: "Product Manager",
+    company: "Port Harcourt",
+    quote: "I highly recommend 1Tech Academy to anyone looking to break into the tech industry or sharpen their digital skills. It’s a launchpad for your future. One of the things that stood out the most is the community. You become part of a network of learners, mentors, and professionals who motivate you to grow and succeed.",
+    image: "/images/testimonials/Utibe Davies.jpg"
+  }
+];
 const nodePositions: Record<ScreenSize, NodePosition[]> = { /* ... your positions ... */
     desktop: [{ top: "5%", left: "60%" }, { top: "25%", left: "10%" }, { top: "50%", left: "75%" }, { top: "75%", left: "20%" }, { top: "15%", left: "80%" }, { top: "85%", left: "55%" }, { top: "50%", left: "50%", center: true },],
     tablet: [{ top: "10%", left: "15%" }, { top: "15%", left: "75%" }, { top: "40%", left: "65%" }, { top: "70%", left: "10%" }, { top: "85%", left: "55%" }, { top: "50%", left: "5%" }, { top: "50%", left: "50%", center: true },],

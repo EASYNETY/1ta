@@ -138,13 +138,13 @@ const fallbackListings: CourseListing[] = [
     }
   },
   {
-    id: "cybersecurity",
-    name: "Advanced Cybersecurity",
-    description: "Develop expertise in protecting systems and networks from digital attacks with advanced security techniques.",
+    id: "is02000",
+    name: "ISO 20000 – IT Service Management",
+    description: "Develop expertise in managing IT services",
     category: "future",
     waitlistCount: 0,
-    imageUrl: "/images/future/ADVANCED CYBERSECURITY.jpeg",
-    iconUrl: "/images/future/ADVANCED CYBERSECURITY.jpeg",
+    imageUrl: "/images/future/ISO 20000 – IT Service Management.jpg",
+    iconUrl: "/images/future/ISO 20000 – IT Service Management.jpg",
     gradientColors: {
       to: "to-red-600",
       from: "from-rose-500"
@@ -668,8 +668,8 @@ const getTechnologyIcon = (name: string): string => {
     },
 
     // Security & Cybersecurity
-    cybersecurity: {
-      keywords: ['cyber', 'security', 'penetration', 'ethical hacking', 'kali', 'nmap', 'vulnerability', 'firewall', 'encryption'],
+    is02000: {
+      keywords: ['IT', 'security', 'services', 'management', 'role', 'users', 'workspace', 'firewall', 'programs'],
       icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Kali-dragon-icon.svg/512px-Kali-dragon-icon.svg.png',
       confidence: 0.9
     },
