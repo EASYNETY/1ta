@@ -1,0 +1,84 @@
+nohup: ignoring input
+
+> 1techacademy-frontend@0.1.0 start C:\Windows\1tafe
+> cross-env NODE_OPTIONS="--openssl-legacy-provider --max-old-space-size=1024 --expose-gc" next start
+
+   ▲ Next.js 15.3.1
+   - Local:        http://localhost:3000
+   - Network:      http://172.26.13.16:3000
+
+ ✓ Starting...
+ ✓ Ready in 1439ms
+🎯 Icon Queue initialized with 34 diverse icons
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-26 at 08.28.21_bb28ea2c-1750923027103-386940520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0020-1749588499713-482355211.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/ui-ux-1748596260820-511124924.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0023-1748435994520-100983923.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/corporate trainng in java-1748441893711-586782822.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0014-1748437455304-310364249.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Node.js-1751648437334-567689920.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-11 at 09.50.21_5813d4c9-1749631852764-674072699.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0015-1748437510203-136909520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0021-1748437598573-819919997.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0022-1748438068904-900690916.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0010-1748438267245-527400686.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/html-css3-1748438694904-587894741.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/web dev-1751007677117-707189857.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/frontened react-1748596086334-676277496.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 pract-1748438909641-650760396.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 found-1748439103845-687099159.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Cisco-1751704982362-826466332.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-26 at 08.28.21_bb28ea2c-1750923027103-386940520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0023-1748435994520-100983923.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0020-1749588499713-482355211.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/ui-ux-1748596260820-511124924.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/corporate trainng in java-1748441893711-586782822.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Node.js-1751648437334-567689920.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0014-1748437455304-310364249.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0015-1748437510203-136909520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0021-1748437598573-819919997.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-11 at 09.50.21_5813d4c9-1749631852764-674072699.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0022-1748438068904-900690916.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0010-1748438267245-527400686.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/html-css3-1748438694904-587894741.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/web dev-1751007677117-707189857.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/frontened react-1748596086334-676277496.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 pract-1748438909641-650760396.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 found-1748439103845-687099159.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Cisco-1751704982362-826466332.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-26 at 08.28.21_bb28ea2c-1750923027103-386940520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0020-1749588499713-482355211.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0023-1748435994520-100983923.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/ui-ux-1748596260820-511124924.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/corporate trainng in java-1748441893711-586782822.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Node.js-1751648437334-567689920.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0014-1748437455304-310364249.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0015-1748437510203-136909520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0021-1748437598573-819919997.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-11 at 09.50.21_5813d4c9-1749631852764-674072699.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0022-1748438068904-900690916.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0010-1748438267245-527400686.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/web dev-1751007677117-707189857.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/html-css3-1748438694904-587894741.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/frontened react-1748596086334-676277496.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 pract-1748438909641-650760396.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 found-1748439103845-687099159.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Cisco-1751704982362-826466332.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-26 at 08.28.21_bb28ea2c-1750923027103-386940520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0020-1749588499713-482355211.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0023-1748435994520-100983923.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/ui-ux-1748596260820-511124924.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/corporate trainng in java-1748441893711-586782822.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Node.js-1751648437334-567689920.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0014-1748437455304-310364249.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0015-1748437510203-136909520.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0021-1748437598573-819919997.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/WhatsApp Image 2025-06-11 at 09.50.21_5813d4c9-1749631852764-674072699.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0022-1748438068904-900690916.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/IMG-20250525-WA0010-1748438267245-527400686.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/html-css3-1748438694904-587894741.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/web dev-1751007677117-707189857.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/frontened react-1748596086334-676277496.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 pract-1748438909641-650760396.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/prince 2 found-1748439103845-687099159.jpg
+[Image Proxy] Attempting fetch (with insecure agent): https://api.onetechacademy.com/courseTB/Cisco-1751704982362-826466332.jpg

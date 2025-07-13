@@ -1,0 +1,140 @@
+2025-07-02 11:45:12 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:12 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:12 +00:00: ^
+2025-07-02 11:45:12 +00:00: 
+2025-07-02 11:45:12 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:12 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:12 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:12 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:12 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:12 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:12 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:12 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:12 +00:00: 
+2025-07-02 11:45:12 +00:00: Node.js v20.19.1
+2025-07-02 11:45:16 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:16 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:16 +00:00: ^
+2025-07-02 11:45:16 +00:00: 
+2025-07-02 11:45:16 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:16 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:16 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:16 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:16 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:16 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:16 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:16 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:16 +00:00: 
+2025-07-02 11:45:16 +00:00: Node.js v20.19.1
+2025-07-02 11:45:21 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:21 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:21 +00:00: ^
+2025-07-02 11:45:21 +00:00: 
+2025-07-02 11:45:21 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:21 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:21 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:21 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:21 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:21 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:21 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:21 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:21 +00:00: 
+2025-07-02 11:45:21 +00:00: Node.js v20.19.1
+2025-07-02 11:45:25 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:25 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:25 +00:00: ^
+2025-07-02 11:45:25 +00:00: 
+2025-07-02 11:45:25 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:25 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:25 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:25 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:25 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:25 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:25 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:25 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:25 +00:00: 
+2025-07-02 11:45:25 +00:00: Node.js v20.19.1
+2025-07-02 11:45:29 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:29 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:29 +00:00: ^
+2025-07-02 11:45:29 +00:00: 
+2025-07-02 11:45:29 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:29 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:29 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:29 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:29 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:29 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:29 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:29 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:29 +00:00: 
+2025-07-02 11:45:29 +00:00: Node.js v20.19.1
+2025-07-02 11:45:33 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:33 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:33 +00:00: ^
+2025-07-02 11:45:33 +00:00: 
+2025-07-02 11:45:33 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:33 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:33 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:33 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:33 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:33 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:33 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:33 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:33 +00:00: 
+2025-07-02 11:45:33 +00:00: Node.js v20.19.1
+2025-07-02 11:45:38 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:38 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:38 +00:00: ^
+2025-07-02 11:45:38 +00:00: 
+2025-07-02 11:45:38 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:38 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:38 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:38 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:38 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:38 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:38 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:38 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:38 +00:00: 
+2025-07-02 11:45:38 +00:00: Node.js v20.19.1
+2025-07-02 11:45:42 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:42 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:42 +00:00: ^
+2025-07-02 11:45:42 +00:00: 
+2025-07-02 11:45:42 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:42 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:42 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:42 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:42 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:42 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:42 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:42 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:42 +00:00: 
+2025-07-02 11:45:42 +00:00: Node.js v20.19.1
+2025-07-02 11:45:46 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:46 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:46 +00:00: ^
+2025-07-02 11:45:46 +00:00: 
+2025-07-02 11:45:46 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:46 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:46 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:46 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:46 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:46 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:46 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:46 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:46 +00:00: 
+2025-07-02 11:45:46 +00:00: Node.js v20.19.1
+2025-07-02 11:45:50 +00:00: C:\USERS\EASYNET\APPDATA\LOCAL\NVM\V20.19.1\NPM.CMD:1
+2025-07-02 11:45:50 +00:00: :: Created by npm, please don't edit manually.
+2025-07-02 11:45:50 +00:00: ^
+2025-07-02 11:45:50 +00:00: 
+2025-07-02 11:45:50 +00:00: SyntaxError: Unexpected token ':'
+2025-07-02 11:45:50 +00:00:     at wrapSafe (node:internal/modules/cjs/loader:1472:18)
+2025-07-02 11:45:50 +00:00:     at Module._compile (node:internal/modules/cjs/loader:1501:20)
+2025-07-02 11:45:50 +00:00:     at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+2025-07-02 11:45:50 +00:00:     at Module.load (node:internal/modules/cjs/loader:1275:32)
+2025-07-02 11:45:50 +00:00:     at Module._load (node:internal/modules/cjs/loader:1096:12)
+2025-07-02 11:45:50 +00:00:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2025-07-02 11:45:50 +00:00:     at node:internal/main/run_main_module:28:49
+2025-07-02 11:45:50 +00:00: 
+2025-07-02 11:45:50 +00:00: Node.js v20.19.1
