@@ -118,6 +118,14 @@ export function TechnologyIcons() {
             ...course,
             iconUrl: getCourseIcon(course.name, course.id)
           }))
+          // Fix: Ensure correct icon mapping for ISO certifications
+          coursesWithIcons.forEach(c => {
+            if (c.isIsoCertification) {
+              if (c.name.includes('ISO 27001')) c.iconUrl = '/images/iso-27001.png';
+              if (c.name.includes('ISO 20000')) c.iconUrl = '/images/iso-20000.png';
+              if (c.name.includes('ISO 9001')) c.iconUrl = '/images/iso-9001.png';
+            }
+          });
           setCourses(coursesWithIcons)
         } else {
           throw new Error('Invalid API response format')
