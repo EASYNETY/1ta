@@ -81,7 +81,7 @@ export function TestimonialCarousel() {
 
 		return () => clearInterval(interval)
 	}, [autoplay])
-  
+
 
 	const next = () => {
 		setAutoplay(false)

@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /private/
+Allow: /
+Sitemap: https://onetechacademy.com/sitemap.xml
