@@ -165,7 +165,7 @@ const getCourseInfo = async (classId: string): Promise<CourseInfo> => {
 ## Support
 
 For technical support or feature requests:
-- **Email**: tech-support@1techacademy.com
+- **Email**: info@1techacademy.com
 - **Internal**: Contact IT department
 - **Documentation**: Check help section in LMS
 

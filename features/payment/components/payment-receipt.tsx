@@ -217,7 +217,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
 
       <CardFooter className="flex flex-col text-center text-xs text-muted-foreground p-6">
         <p>Thank you for your payment!</p>
-        <p>If you have any questions, please contact support at support@1techacademy.com or visit our website.</p>
+        <p>If you have any questions, please contact support at info@1techacademy.com or visit our website.</p>
         <p className="mt-1">© {new Date().getFullYear()} 1Tech Academy. All rights reserved.</p>
       </CardFooter>
     </Card>

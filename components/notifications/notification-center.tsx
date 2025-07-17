@@ -61,13 +61,13 @@ export function NotificationCenter() {
   const [errorDismissed, setErrorDismissed] = useState(false)
 
   // Get notifications from Redux store
-  const apiNotifications = useAppSelector(selectNotifications)
-  const status = useAppSelector(selectNotificationsStatus)
-  const error = useAppSelector(state => state.notifications?.error)
+  const apiNotifications = useAppSelector(selectNotifications) || [];
+  const status = useAppSelector(selectNotificationsStatus);
+  const error = useAppSelector(state => state.notifications?.error);
 
   // Get courses and classes from Redux store for dynamic notifications
-  const courses = useAppSelector(selectAuthCourses)
-  const classes = useAppSelector(selectMyClasses)
+  const courses = useAppSelector(selectAuthCourses) || [];
+  const classes = useAppSelector(selectMyClasses) || [];
 
   // Check for rate limiting errors
   useEffect(() => {
@@ -108,15 +108,18 @@ export function NotificationCenter() {
 
   // Function to generate dynamic notifications
   const generateDynamicNotifications = useCallback(() => {
-    if (courses.length === 0 && classes.length === 0) return []
+    // Always coerce to arrays for safety
+    const safeCourses = Array.isArray(courses) ? courses : [];
+    const safeClasses = Array.isArray(classes) ? classes : [];
+    if (safeCourses.length === 0 && safeClasses.length === 0) return [];
 
-    const dynamicNotifications: Notification[] = []
-    const now = new Date()
-    const userId = "current" // This would be the actual user ID in a real app
+    const dynamicNotifications: Notification[] = [];
+    const now = new Date();
+    const userId = "current"; // This would be the actual user ID in a real app
 
     // Generate assignment notifications
-    courses.forEach((course: any) => {
-      const assignments = course.assignments || []
+    safeCourses.forEach((course: any) => {
+      const assignments = Array.isArray(course.assignments) ? course.assignments : [];
 
       assignments.forEach((assignment: any) => {
         if (!assignment.dueDate) return
@@ -165,7 +168,7 @@ export function NotificationCenter() {
 
       // Generate quiz notifications
       course.modules?.forEach((module: any) => {
-        const quizzes = module.lessons?.filter((lesson: any) => lesson.type === 'quiz') || []
+        const quizzes = Array.isArray(module.lessons) ? module.lessons.filter((lesson: any) => lesson.type === 'quiz') : [];
 
         quizzes.forEach((quiz: any) => {
           // Quiz not taken yet
@@ -191,7 +194,7 @@ export function NotificationCenter() {
     })
 
     // Generate class notifications
-    classes.forEach((classItem: any) => {
+    safeClasses.forEach((classItem: any) => {
       if (!classItem.start_date) return
 
       const startDate = parseISO(classItem.start_date)
@@ -217,25 +220,25 @@ export function NotificationCenter() {
       }
     })
 
-    return dynamicNotifications
+    return dynamicNotifications;
   }, [courses, classes])
 
   // Combine API notifications with dynamic notifications
   useEffect(() => {
     // Always generate dynamic notifications when the component mounts
     // or when courses/classes/API notifications change
-    const dynamicNotifications = generateDynamicNotifications()
+    const dynamicNotifications = generateDynamicNotifications();
 
     // Combine API notifications with dynamic notifications
-    const combined = [...apiNotifications, ...dynamicNotifications]
+    const combined = [...(Array.isArray(apiNotifications) ? apiNotifications : []), ...dynamicNotifications];
 
     // Sort by date (newest first)
     combined.sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
+    );
 
-    setAllNotifications(combined)
-    hasGeneratedNotifications.current = true
+    setAllNotifications(combined);
+    hasGeneratedNotifications.current = true;
   }, [apiNotifications, generateDynamicNotifications])
 
   // Debug effect to log state
@@ -249,28 +252,29 @@ export function NotificationCenter() {
   }, [status, apiNotifications.length, allNotifications.length, open])
 
   // Calculate total unread count
-  const unreadCount = allNotifications.filter(notification => !notification.read).length
+  const unreadCount = Array.isArray(allNotifications) ? allNotifications.filter(notification => !notification.read).length : 0
 
   // Filter notifications by type
   const getFilteredNotifications = () => {
+    const safeNotifications = Array.isArray(allNotifications) ? allNotifications : [];
     switch (activeTab) {
       case 'assignments':
-        return allNotifications.filter(notification => notification.type === 'assignment')
+        return safeNotifications.filter(notification => notification.type === 'assignment');
       case 'announcements':
-        return allNotifications.filter(notification => notification.type === 'announcement')
+        return safeNotifications.filter(notification => notification.type === 'announcement');
       case 'grades':
-        return allNotifications.filter(notification => notification.type === 'grade')
+        return safeNotifications.filter(notification => notification.type === 'grade');
       case 'courses':
-        return allNotifications.filter(notification => notification.type === 'course')
+        return safeNotifications.filter(notification => notification.type === 'course');
       case 'messages':
-        return allNotifications.filter(notification => notification.type === 'message')
+        return safeNotifications.filter(notification => notification.type === 'message');
       case 'payments':
-        return allNotifications.filter(notification => notification.type === 'payment')
+        return safeNotifications.filter(notification => notification.type === 'payment');
       case 'system':
-        return allNotifications.filter(notification => notification.type === 'system')
+        return safeNotifications.filter(notification => notification.type === 'system');
       case 'all':
       default:
-        return allNotifications
+        return safeNotifications;
     }
   }
 

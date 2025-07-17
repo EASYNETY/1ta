@@ -162,7 +162,7 @@ export const markStudentAttendance = createAsyncThunk<
 	{ success: boolean; studentId: string; message?: string },
 	MarkAttendancePayload,
 	{ state: RootState; rejectValue: string }
->("attendance/markStudent", async (payload, { getState, rejectWithValue }) => {
+>("attendance/markStudent", async (payload, { getState, rejectWithValue, dispatch }) => {
 	const { auth } = getState();
 	const token = auth.token;
 	if (!token) {
@@ -178,6 +178,8 @@ export const markStudentAttendance = createAsyncThunk<
 		if (response.success) {
 			if (response.data) {
 				// Backend returns nested structure with success and data
+				// Immediately refetch student attendance for real-time update
+				await dispatch(fetchStudentAttendance(payload.studentId));
 				return {
 					success: response.success,
 					studentId: payload.studentId,
@@ -185,6 +187,7 @@ export const markStudentAttendance = createAsyncThunk<
 				};
 			} else {
 				// Direct response structure
+				await dispatch(fetchStudentAttendance(payload.studentId));
 				return { ...response, studentId: payload.studentId };
 			}
 		} else {
@@ -394,6 +397,8 @@ export const selectAllAttendanceForAnalytics = (state: RootState) =>
 	state.attendanceMarking.allRecords;
 
 // --- MEMOIZED SELECTORS START ---
+// Stable empty array reference
+const EMPTY_ARRAY: DailyAttendance[] = [];
 
 // Input selector for courseAttendance part of the state
 const selectCourseAttendanceMap = (state: RootState) =>
@@ -402,9 +407,6 @@ const selectCourseAttendanceMap = (state: RootState) =>
 // Input selector for the courseClassId argument passed to the selector
 const selectCourseClassIdArg = (_: RootState, courseClassId?: string) =>
 	courseClassId;
-
-// Stable empty array reference
-const EMPTY_ARRAY: DailyAttendance[] = [];
 
 // Memoized selector for course daily attendances
 export const selectCourseDailyAttendances = createSelector(
@@ -417,11 +419,8 @@ export const selectCourseDailyAttendances = createSelector(
 		if (!courseDetails || !courseDetails.dailyRecords) {
 			return EMPTY_ARRAY; // Return stable empty array
 		}
-		// Object.values still creates a new array, but this selector will only
-		// recompute if courseAttendanceMap or courseClassId changes, OR if
-		// the content of courseDetails.dailyRecords for that specific courseClassId changes.
 		const result = Object.values(courseDetails.dailyRecords);
-		return result.length > 0 ? result : EMPTY_ARRAY; // Ensure stable empty array if result is empty
+		return Array.isArray(result) && result.length > 0 ? result : EMPTY_ARRAY; // Ensure stable empty array if result is empty
 	}
 );
 
@@ -453,7 +452,7 @@ export const selectStudentAttendanceRecords = createSelector(
 			return EMPTY_ARRAY as unknown as StudentAttendanceRecord[]; // Cast for type, still stable empty
 		}
 		const records = studentAttendanceMap[studentId];
-		return records && records.length > 0
+		return Array.isArray(records) && records.length > 0
 			? records
 			: (EMPTY_ARRAY as unknown as StudentAttendanceRecord[]);
 	}
