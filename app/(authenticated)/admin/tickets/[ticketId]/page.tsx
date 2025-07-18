@@ -164,7 +164,7 @@ export default function AdminTicketDetailPage() {
                         <CardTitle className="text-xl">{ticket.title}</CardTitle>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <Badge variant={getStatusVariant(ticket.status)} className="capitalize">
-                                {ticket.status.replace("_", " ")}
+                                {typeof ticket.status === 'string' ? ticket.status.replace("_", " ") : "Unknown"}
                             </Badge>
                             <span className={cn("text-xs font-medium uppercase tracking-wide", getPriorityStyles(ticket.priority))}>
                                 {ticket.priority}

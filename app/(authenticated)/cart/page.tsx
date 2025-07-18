@@ -285,7 +285,7 @@ export default function CartPage() {
             const invoicePayload: CreateInvoicePayload = {
                 studentId: user.id, // User is confirmed not null above
                 amount: totalWithTax,
-                description: `Course enrolment: ${cart.items.map(i => i.title).join(', ')}`,
+                description: cart.items.map(i => i.title).join(', '), // Removed 'Course enrolment:' prefix
                 dueDate: formattedDueDate,
                 items: invoiceItems,
             };
