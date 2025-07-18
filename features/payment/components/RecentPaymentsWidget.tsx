@@ -86,7 +86,7 @@ export function RecentPaymentsWidget() {
   const pagination = useAppSelector(selectAdminPaymentsPagination)
   const status = useAppSelector(selectAdminPaymentsStatus)
   const error = useAppSelector(selectAdminPaymentsError)
-  
+
   const isLoading = status === "loading"
 
   // Pagination state
@@ -127,7 +127,7 @@ export function RecentPaymentsWidget() {
     try {
       // Remove leading zeros by converting to number first
       const cleanAmount = Number(amount)
-      
+
       if (currency === "NGN") {
         // For NGN, use the ₦ symbol directly to ensure consistent display
         return `₦${cleanAmount.toLocaleString()}`
@@ -200,37 +200,48 @@ export function RecentPaymentsWidget() {
                     <TableCell>
                       <div className="font-medium">{payment.userName || "N/A"}</div>
                     </TableCell>
-                    
+
                     {/* Email */}
                     <TableCell>
                       <div className="text-xs">{payment.userEmail || "N/A"}</div>
                     </TableCell>
-                    
+
                     {/* Role */}
                     <TableCell>
                       <div className="text-xs capitalize">{payment.userRole || "N/A"}</div>
                     </TableCell>
-                    
+
                     {/* Amount */}
                     <TableCell className="text-right font-mono text-xs">
                       {formatAmount(payment.amount, payment.currency)}
                     </TableCell>
-                    
+
                     {/* Description */}
-                    <TableCell className="max-w-[150px] truncate text-xs">
+                    {/* <TableCell className="max-w-[150px] truncate text-xs">
                       {payment.invoice?.description || payment.description || "N/A"}
+                    </TableCell> */}
+                    <TableCell className="max-w-[150px] truncate">
+                      {(() => {
+                        // Use the invoice description as the course name, with a fallback
+                        const courseName = payment.invoice?.description || payment.description || "Unknown Course";
+
+                        // Clean up the course name by removing "Course enrolment:" prefix
+                        const cleanedName = courseName.replace(/^Course enrolment:\s*/, '').trim();
+
+                        return cleanedName.length > 30 ? `${cleanedName.substring(0, 30)}...` : cleanedName;
+                      })()}
                     </TableCell>
-                    
+
                     {/* Status */}
                     <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                    
+
                     {/* Provider */}
                     <TableCell>
                       <Badge variant="outline" className="capitalize text-xs">
                         {payment.provider}
                       </Badge>
                     </TableCell>
-                    
+
                     {/* Created At */}
                     <TableCell className="text-xs whitespace-nowrap">
                       {safeFormatDateTime(payment.createdAt)}

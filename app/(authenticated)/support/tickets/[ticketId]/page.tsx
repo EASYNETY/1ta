@@ -143,7 +143,7 @@ export default function TicketDetailPage() {
                         </div>
                     </div>
                     <CardDescription className="text-xs pt-1">
-                        Opened by {ticket.user.name || ticket.user.id} on {safeFormatDetailedDate(ticket.createdAt)}
+                        Opened by {ticket.user?.name ?? ticket.user?.id ?? "Unknown"} on {safeFormatDetailedDate(ticket.createdAt)}
                         {' • '} Last updated: {safeFormatDetailedDate(ticket.updatedAt)}
                     </CardDescription>
                 </CardHeader>
@@ -157,10 +157,10 @@ export default function TicketDetailPage() {
             {/* Response List */}
             <div className="space-y-4 mb-6">
                 {ticket.responses && ticket.responses.length > 0 ? (
-                    ticket.responses.map((response: TicketResponse) => (
+                    ticket.responses.map((response) => (
                         <div key={response.id} className="flex gap-3">
                             <Avatar className="h-8 w-8 border">
-                                {/* <AvatarImage src={response.userAvatar} /> */}
+                                {/* Optionally show avatar or fallback */}
                                 <AvatarFallback>{response.userName?.charAt(0) || '?'}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 p-3 rounded-md bg-muted/60 border">
@@ -168,7 +168,7 @@ export default function TicketDetailPage() {
                                     <span className="text-sm font-semibold">{response.userName || 'Staff'}</span>
                                     <span className="text-xs text-muted-foreground">{safeFormatDetailedDate(response.createdAt)}</span>
                                 </div>
-                                <p className="text-sm whitespace-pre-wrap">{response.message}</p>
+                                <p className="text-sm whitespace-pre-wrap">{response.content}</p>
                             </div>
                         </div>
                     ))

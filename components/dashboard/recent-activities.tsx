@@ -116,156 +116,81 @@ export function RecentActivities() {
 
     // Generate activities based on role and available data
     useEffect(() => {
-        if (!user) return
+        if (!user) return;
+        const userRole = user.role as UserRole;
+        const userId = user.id;
+        const roleSpecificActivities: Activity[] = [];
 
-        const userRole = user.role as UserRole
-        const roleSpecificActivities: Activity[] = []
+        // Convert notifications to activities (filter by userId)
+        const notificationActivities = notifications
+            .filter((notification) => notification.userId === userId)
+            .map((notification) => ({
+                id: `notification-${notification.id}`,
+                title: notification.title,
+                description: notification.message,
+                timestamp: notification.createdAt,
+                type: notification.type,
+                status: notification.read ? "read" : "unread",
+                href: notification.href,
+                icon: getNotificationIcon(notification.type),
+            }));
 
-        // Convert notifications to activities
-        const notificationActivities = notifications.map((notification) => ({
-            id: `notification-${notification.id}`,
-            title: notification.title,
-            description: notification.message,
-            timestamp: notification.createdAt,
-            type: notification.type,
-            status: notification.read ? "read" : "unread",
-            href: notification.href,
-            icon: getNotificationIcon(notification.type),
-        }))
-
-        // Add role-specific activities
-        switch (userRole) {
-            case "super_admin":
-            case "admin":
-                // Add analytics-based activities
-                if (analyticsData.dashboardStats) {
-                    const { studentStats, paymentStats } = analyticsData.dashboardStats
-
-                    if (studentStats?.newThisMonth) {
-                        roleSpecificActivities.push({
-                            id: "analytics-new-students",
-                            title: "New Student Enrollments",
-                            description: `${studentStats.newThisMonth} new students enrolled this month`,
-                            timestamp: new Date().toISOString(),
-                            type: "system",
-                            icon: <UserPlus className="h-4 w-4" />,
-                            href: "/users",
-                        })
-                    }
-
-                    if (paymentStats?.revenueThisMonth && user.role === 'super_admin') {
-                        roleSpecificActivities.push({
-                            id: "analytics-revenue",
-                            title: "Monthly Revenue Update",
-                            description: `₦${(paymentStats.revenueThisMonth).toLocaleString()} revenue generated this month`,
-                            timestamp: new Date().toISOString(),
-                            type: "payment",
-                            icon: <CreditCard className="h-4 w-4" />,
-                            href: "/accounting/analytics/",
-                        })
-                    }
-                }
-                break
-
-            case "teacher":
-                // Add assignment-based activities
-                const pendingAssignments = assignments?.filter((a: any) => a.status === "submitted")
-                if (pendingAssignments?.length) {
-                    roleSpecificActivities.push({
-                        id: "teacher-pending-assignments",
-                        title: "Assignments Pending Review",
-                        description: `${pendingAssignments.length} assignments waiting for your review`,
-                        timestamp: new Date().toISOString(),
-                        type: "assignment",
-                        icon: <FileText className="h-4 w-4" />,
-                        href: "/assignments",
-                    })
-                }
-
-                // Add upcoming classes
-                const upcomingClasses = events?.filter((e: any) => new Date(e.startTime) > new Date())
-                if (upcomingClasses?.length) {
-                    roleSpecificActivities.push({
-                        id: "teacher-upcoming-classes",
-                        title: "Upcoming Classes",
-                        description: `You have ${upcomingClasses.length} upcoming classes scheduled`,
-                        timestamp: new Date().toISOString(),
-                        type: "course",
-                        icon: <Calendar className="h-4 w-4" />,
-                        href: "/schedule",
-                    })
-                }
-                break
-
-            case "student":
-                // Add assignment-based activities
-                const studentAssignments = assignments?.filter((a: any) => {
-                    return a?.submission?.status === "pending" || a?.displayStatus === "pending"
-                })
-
-                if (studentAssignments?.length) {
-                    roleSpecificActivities.push({
-                        id: "student-pending-assignments",
-                        title: "Pending Assignments",
-                        description: `You have ${studentAssignments.length} assignments due soon`,
-                        timestamp: new Date().toISOString(),
-                        type: "assignment",
-                        status: "pending",
-                        icon: <FileText className="h-4 w-4" />,
-                        href: "/assignments",
-                    })
-                }
-
-                // Add recent grades
-                const recentGrades = grades?.filter((g: any) => g?.grade)
-                if (recentGrades?.length) {
-                    roleSpecificActivities.push({
-                        id: "student-recent-grades",
-                        title: "Recent Grades",
-                        description: `${recentGrades.length} of your assignments have been graded`,
-                        timestamp: new Date().toISOString(),
-                        type: "grade",
-                        icon: <BarChart3 className="h-4 w-4" />,
-                        href: "/grades",
-                    })
-                }
-
-                // Add upcoming events
-                const studentEvents = events?.filter((e: any) => new Date(e.startTime) > new Date())
-                if (studentEvents?.length) {
-                    roleSpecificActivities.push({
-                        id: "student-upcoming-events",
-                        title: "Upcoming Events",
-                        description: `You have ${studentEvents.length} upcoming classes scheduled`,
-                        timestamp: new Date().toISOString(),
-                        type: "course",
-                        icon: <Calendar className="h-4 w-4" />,
-                        href: "/schedule",
-                    })
-                }
-
-                // Add recent payments
-                const recentPayments = payments?.slice(0, 3)
-                if (recentPayments?.length) {
-                    roleSpecificActivities.push({
-                        id: "student-recent-payment",
-                        title: "Recent Payment",
-                        description: `Payment of ₦${(recentPayments[0]?.amount).toLocaleString()} was processed`,
-                        timestamp: recentPayments[0]?.createdAt || new Date().toISOString(),
-                        type: "payment",
-                        icon: <CreditCard className="h-4 w-4" />,
-                        href: "/payments",
-                    })
-                }
-                break
+        // Add role-specific activities for students
+        if (userRole === "student") {
+            // Assignments
+            const studentAssignments = assignments?.filter((a: any) => a?.userId === userId && (a?.submission?.status === "pending" || a?.displayStatus === "pending"));
+            if (studentAssignments?.length) {
+                roleSpecificActivities.push({
+                    id: "student-pending-assignments",
+                    title: "Pending Assignments",
+                    description: `You have ${studentAssignments.length} assignments due soon`,
+                    timestamp: new Date().toISOString(),
+                    type: "assignment",
+                    status: "pending",
+                    icon: <FileText className="h-4 w-4" />, href: "/assignments",
+                });
+            }
+            // Grades
+            const recentGrades = grades?.filter((g: any) => g?.userId === userId && g?.grade);
+            if (recentGrades?.length) {
+                roleSpecificActivities.push({
+                    id: "student-recent-grades",
+                    title: "Recent Grades",
+                    description: `${recentGrades.length} of your assignments have been graded`,
+                    timestamp: new Date().toISOString(),
+                    type: "grade",
+                    icon: <BarChart3 className="h-4 w-4" />, href: "/grades",
+                });
+            }
+            // Upcoming events
+            const studentEvents = events?.filter((e: any) => e?.userId === userId && new Date(e.startTime) > new Date());
+            if (studentEvents?.length) {
+                roleSpecificActivities.push({
+                    id: "student-upcoming-events",
+                    title: "Upcoming Events",
+                    description: `You have ${studentEvents.length} upcoming classes scheduled`,
+                    timestamp: new Date().toISOString(),
+                    type: "course",
+                    icon: <Calendar className="h-4 w-4" />, href: "/schedule",
+                });
+            }
+            // Payments
+            const recentPayments = payments?.filter((p: any) => p?.userId === userId).slice(0, 3);
+            if (recentPayments?.length) {
+                roleSpecificActivities.push({
+                    id: "student-recent-payment",
+                    title: "Recent Payment",
+                    description: `Payment of ₦${(recentPayments[0]?.amount).toLocaleString()} was processed`,
+                    timestamp: recentPayments[0]?.createdAt || new Date().toISOString(),
+                    type: "payment",
+                    icon: <CreditCard className="h-4 w-4" />, href: "/payments",
+                });
+            }
         }
-
-        // Combine all activities and sort by timestamp (newest first)
-        const allActivities = [...notificationActivities, ...roleSpecificActivities]
-        allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-
-        // Limit to 10 activities
-        setActivities(allActivities.slice(0, 10))
+        // Combine and sort
+        const allActivities = [...notificationActivities, ...roleSpecificActivities];
+        allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        setActivities(allActivities.slice(0, 10));
     }, [user, notifications, assignments, grades, payments, events, courses, accountingData, analyticsData])
 
     // Helper function to get icon for notification type
