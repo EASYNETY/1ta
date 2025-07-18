@@ -61,6 +61,12 @@ export default function AdminTicketDetailPage() {
     const isSendingReply = responseStatus === "loading";
 
     useEffect(() => {
+        if (user) {
+            // Debugging: log user role and isCustomerCare result
+            // Remove or comment out after debugging
+            // eslint-disable-next-line no-console
+            console.log("[TicketDetail Debug] user.role:", user.role, "isCustomerCare:", isCustomerCare(user));
+        }
         if (user && (!hasAdminAccess(user) && !isCustomerCare(user))) {
             router.push("/dashboard");
         }
