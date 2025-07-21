@@ -33,6 +33,7 @@ import { fetchNotifications } from "@/features/notifications/store/notifications
 import { fetchAnalyticsDashboard } from "@/features/analytics/store/analytics-slice"
 import { fetchAccountingData, selectAccountingStats, selectAccountingStatus, selectCourseRevenues, selectMonthlyRevenueTrend, selectPaymentMethodDistribution } from "@/features/payment/store/accounting-slice"
 import { fetchAllUsersComplete } from "@/features/auth"
+import { formatCurrency, calculateGrowthRate, sortMonthlyRevenueTrend } from "@/utils/dashboard-helpers"
 
 interface StatCardProps {
   title: string
@@ -239,15 +240,6 @@ export function DashboardStats() {
         safeReduce(validGradeItems, (acc, item) => acc + (item.grade?.percentage || 0), 0) / validGradeItems.length,
       )
       : 0
-
-  // Format currency helper
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      maximumFractionDigits: 0,
-    }).format(amount)
-  }
 
   // Loading states
   const assignmentsLoading = assignmentsStatus === "loading"
