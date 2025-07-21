@@ -254,18 +254,32 @@ export function DashboardStats() {
   // Role-based cards rendering
   if (!user) return null
 
+  // Move all selector calls and variable calculations outside the switch statement to avoid temporal dead zone issues
+  const accountingStatsFromSelector = useAppSelector(selectAccountingStats);
+  const monthlyRevenueTrendData = useAppSelector(selectMonthlyRevenueTrend);
+  const accountingDataIsLoading = useAppSelector(selectAccountingStatus) === 'loading';
+  const paymentsDataIsLoading = useAppSelector(state => state.paymentHistory.status) === 'loading';
+  const overallIsLoading = accountingDataIsLoading || paymentsDataIsLoading;
+
+  // Calculate facilitator stats (used by multiple roles)
+  let activeFacilitatorsCount = 0;
+  let totalFacilitatorsCount = 0;
+  if (totalUsers && totalUsers > 0) {
+    const facilitators = users.filter(user => user.role === 'teacher');
+    totalFacilitatorsCount = facilitators.length;
+    activeFacilitatorsCount = facilitators.filter(facilitator => facilitator.isActive === true).length;
+  }
+
+  // Calculate course stats (used by multiple roles)
+  let publishedCoursesCount = 0;
+  let totalCoursesCount = 0;
+  if (courses && courses.length > 0) {
+    totalCoursesCount = courses.length;
+    publishedCoursesCount = courses.filter(course => course.isAvailableForEnrolment === true).length;
+  }
+
   switch (userRole) {
     case "super_admin":
-      // Selectors from your accountingSlice and paymentSlice
-      const accountingStatsFromSelector = useAppSelector(selectAccountingStats); // Calls calculateAccountingStats
-      const monthlyRevenueTrendData = useAppSelector(selectMonthlyRevenueTrend); // Calls calculateMonthlyRevenueTrend
-      // const courseRevenues = useAppSelector(selectCourseRevenues); // If needed for other cards
-      // const paymentMethods = useAppSelector(selectPaymentMethodDistribution); // If needed
-
-      const accountingDataIsLoading = useAppSelector(selectAccountingStatus) === 'loading';
-      // You might also have a loading state from paymentSlice if allPayments is being fetched
-      const paymentsDataIsLoading = useAppSelector(state => state.paymentHistory.status) === 'loading';
-      const overallIsLoading = accountingDataIsLoading || paymentsDataIsLoading;
 
       // --- Inline Calculation for Revenue Card ---
       let currentMonthRevenueForDisplay = 0;
@@ -322,26 +336,7 @@ export function DashboardStats() {
         };
       }
 
-      // --- Inline Derivation for Facilitators ---
-      let activeFacilitatorsCount = 0;
-      let totalFacilitatorsCount = 0;
-
-      if (totalUsers && totalUsers > 0) {
-        const facilitators = users.filter(user => user.role === 'teacher');
-        totalFacilitatorsCount = facilitators.length;
-        activeFacilitatorsCount = facilitators.filter(facilitator => facilitator.isActive === true).length;
-      }
-      // If you already have a `totalTeachers` variable that's just a count, you can use it for the main value.
-      // The `activeFacilitatorsCount` would be the new derived part for the description.
-
-      // --- Inline Derivation for Courses ---
-      let publishedCoursesCount = 0;
-      let totalCoursesCount = 0;
-
-      if (courses && courses.length > 0) {
-        totalCoursesCount = courses.length;
-        publishedCoursesCount = courses.filter(course => course.isAvailableForEnrolment === true).length; // Adjust property name: 'status' or 'isPublished'
-      }
+      // Facilitator and course stats are now calculated outside the switch statement
 
       return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -352,14 +347,7 @@ export function DashboardStats() {
             icon={<Users className="h-4 w-4" />}
             loading={usersLoading || analyticsLoading}
             className="bg-blue-50 dark:bg-blue-950/5"
-            trend={
-              typeof analytics.dashboardStats?.studentStats?.growthRate === 'number'
-                ? {
-                    value: `${analytics.dashboardStats?.studentStats?.growthRate}%`,
-                    isPositive: analytics.dashboardStats?.studentStats?.growthRate > 0,
-                  }
-                : undefined
-            }
+            trend={undefined}
           />
           <StatCard
             title="Total Facilitators"
@@ -401,16 +389,6 @@ export function DashboardStats() {
       )
 
     case "accounting":
-      // Selectors from your accountingSlice and paymentSlice
-      const accountingStatsFromSelectorAcc = useAppSelector(selectAccountingStats); // Calls calculateAccountingStats
-      const monthlyRevenueTrendDataAcc = useAppSelector(selectMonthlyRevenueTrend); // Calls calculateMonthlyRevenueTrend
-      // const courseRevenues = useAppSelector(selectCourseRevenues); // If needed for other cards
-      // const paymentMethods = useAppSelector(selectPaymentMethodDistribution); // If needed
-
-      const accountingDataIsLoadingAcc = useAppSelector(selectAccountingStatus) === 'loading';
-      // You might also have a loading state from paymentSlice if allPayments is being fetched
-      const paymentsDataIsLoadingAcc = useAppSelector(state => state.paymentHistory.status) === 'loading';
-      const overallIsLoadingAcc = accountingDataIsLoadingAcc || paymentsDataIsLoadingAcc;
 
       // --- Inline Calculation for Revenue Card ---
       let currentMonthRevenueForDisplayAcc = 0;
@@ -418,16 +396,16 @@ export function DashboardStats() {
       let revenueGrowthTrendDescriptionAcc = "vs last month";
       let hasEnoughDataForGrowthRateAcc = false;
 
-      if (monthlyRevenueTrendDataAcc && monthlyRevenueTrendDataAcc.length > 0) {
+      if (monthlyRevenueTrendData && monthlyRevenueTrendData.length > 0) {
         // Ensure your calculateMonthlyRevenueTrend sorts this with most recent month last.
         // If not, you'd sort here:
         // const sortedMonthlyRevenue = [...monthlyRevenueTrendData].sort((a, b) => parseISO(a.monthKey) - parseISO(b.monthKey)); // Assuming monthKey is YYYY-MM
         // For now, assuming it's sorted by your utility.
 
-        currentMonthRevenueForDisplayAcc = monthlyRevenueTrendDataAcc[monthlyRevenueTrendDataAcc.length - 1].revenue;
+        currentMonthRevenueForDisplayAcc = monthlyRevenueTrendData[monthlyRevenueTrendData.length - 1].revenue;
 
-        if (monthlyRevenueTrendDataAcc.length > 1) {
-          const previousMonthRevenue = monthlyRevenueTrendDataAcc[monthlyRevenueTrendDataAcc.length - 2].revenue;
+        if (monthlyRevenueTrendData.length > 1) {
+          const previousMonthRevenue = monthlyRevenueTrendData[monthlyRevenueTrendData.length - 2].revenue;
           hasEnoughDataForGrowthRateAcc = true;
           if (previousMonthRevenue > 0) {
             revenueGrowthRateAcc = parseFloat(
@@ -446,7 +424,7 @@ export function DashboardStats() {
       }
 
       // Total Revenue for the selected period (from selectAccountingStats)
-      const totalRevenueForPeriodAcc = accountingStatsFromSelectorAcc?.totalRevenue || 0;
+      const totalRevenueForPeriodAcc = accountingStatsFromSelector?.totalRevenue || 0;
 
       // Description for the revenue card (revenue this month)
       // This uses the calculated currentMonthRevenueForDisplay
@@ -467,26 +445,7 @@ export function DashboardStats() {
         };
       }
 
-      // --- Inline Derivation for Facilitators ---
-      let activeFacilitatorsCountAcc = 0;
-      let totalFacilitatorsCountAcc = 0;
-
-      if (totalUsers && totalUsers > 0) {
-        const facilitators = users.filter(user => user.role === 'teacher');
-        totalFacilitatorsCountAcc = facilitators.length;
-        activeFacilitatorsCountAcc = facilitators.filter(facilitator => facilitator.isActive === true).length;
-      }
-      // If you already have a `totalTeachers` variable that's just a count, you can use it for the main value.
-      // The `activeFacilitatorsCount` would be the new derived part for the description.
-
-      // --- Inline Derivation for Courses ---
-      let publishedCoursesCountAcc = 0;
-      let totalCoursesCountAcc = 0;
-
-      if (courses && courses.length > 0) {
-        totalCoursesCountAcc = courses.length;
-        publishedCoursesCountAcc = courses.filter(course => course.isAvailableForEnrolment === true).length; // Adjust property name: 'status' or 'isPublished'
-      }
+      // Facilitator and course stats are now calculated outside the switch statement
 
       return (
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -497,21 +456,14 @@ export function DashboardStats() {
             icon={<Users className="h-4 w-4" />}
             loading={usersLoading || analyticsLoading}
             className="bg-blue-50 dark:bg-blue-950/5"
-            trend={
-              typeof analytics.dashboardStats?.studentStats?.growthRate === 'number'
-                ? {
-                    value: `${analytics.dashboardStats?.studentStats?.growthRate}%`,
-                    isPositive: analytics.dashboardStats?.studentStats?.growthRate > 0,
-                  }
-                : undefined
-            }
+            trend={undefined}
           />
           <StatCard
             title="Total Facilitators"
             // Use totalFacilitatorsCount if calculated, otherwise your existing totalTeachers
-            value={totalFacilitatorsCountAcc > 0 ? totalFacilitatorsCountAcc : (totalTeachers || 0)}
+            value={totalFacilitatorsCount > 0 ? totalFacilitatorsCount : (totalTeachers || 0)}
             // Use the derived activeFacilitatorsCount for the description
-            description={activeFacilitatorsCountAcc > 0 ? `${activeFacilitatorsCountAcc} active` : "0 active"}
+            description={activeFacilitatorsCount > 0 ? `${activeFacilitatorsCount} active` : "0 active"}
             icon={<GraduationCap className="h-4 w-4" />}
             loading={usersLoading || analyticsLoading} // Assuming usersLoading covers facilitators
             className="bg-green-50 dark:bg-green-950/5"
@@ -520,9 +472,9 @@ export function DashboardStats() {
           <StatCard
             title="Total Courses"
             // Use totalCoursesCount if calculated, otherwise your existing courses.length
-            value={totalCoursesCountAcc > 0 ? totalCoursesCountAcc : (courses?.length || 0)}
+            value={totalCoursesCount > 0 ? totalCoursesCount : (courses?.length || 0)}
             // Use the derived publishedCoursesCount for the description
-            description={publishedCoursesCountAcc > 0 ? `${publishedCoursesCountAcc} published` : "0 published"}
+            description={publishedCoursesCount > 0 ? `${publishedCoursesCount} published` : "0 published"}
             icon={<School className="h-4 w-4" />}
             loading={coursesLoading || analyticsLoading} // Assuming coursesLoading covers courses
             className="bg-purple-50 dark:bg-purple-950/5"
@@ -538,7 +490,7 @@ export function DashboardStats() {
             }
             description={revenueThisMonthDescriptionAcc}
             icon={<DollarSign className="h-4 w-4" />}
-            loading={overallIsLoadingAcc} // Use combined loading state
+            loading={overallIsLoading} // Use combined loading state
             className="bg-amber-50 dark:bg-amber-950/5"
             trend={revenueCardTrendAcc}
           />
@@ -555,14 +507,7 @@ export function DashboardStats() {
             icon={<Users className="h-4 w-4" />}
             loading={usersLoading || analyticsLoading}
             className="bg-blue-50 dark:bg-blue-950/5"
-            trend={
-              analytics.dashboardStats?.studentStats?.growthRate
-                ? {
-                  value: `${analytics.dashboardStats?.studentStats?.growthRate}%`,
-                  isPositive: (analytics.dashboardStats?.studentStats?.growthRate || 0) > 0,
-                }
-                : undefined
-            }
+            trend={undefined}
           />
           <StatCard
             title="Total Facilitators"
