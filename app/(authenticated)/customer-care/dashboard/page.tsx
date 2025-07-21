@@ -157,8 +157,8 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
             .map((ticket) => (
               <div key={ticket.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors dark:border-gray-700">
                 <div className="flex-grow mb-2 sm:mb-0 pr-2">
-                  {/* FIX: Changed href to use correct admin path */}
-                  <Link href={`/admin/tickets/${ticket.id}`} className="hover:underline block">
+                  {/* FIX: Changed href to use correct support path */}
+                  <Link href={`/support/tickets/${ticket.id}`} className="hover:underline block">
                     {/* FIX: Use `ticket.title` instead of `ticket.subject` */}
                     <p className="font-medium text-sm leading-tight truncate max-w-xs sm:max-w-sm md:max-w-md dark:text-gray-100">{ticket.title}</p>
                   </Link>
@@ -190,9 +190,9 @@ function RecentTicketsTable({ tickets, isLoading }: RecentTicketsTableProps) {
         </div>
         {tickets.length > 5 && (
           <div className="mt-4 text-center">
-            {/* FIX: Changed href to correct admin path */}
+            {/* FIX: Changed href to correct support path */}
             <Button variant="link" size="sm" asChild>
-              <Link href="/admin/tickets">View All Tickets</Link>
+              <Link href="/support/tickets">View All Tickets</Link>
             </Button>
           </div>
         )}
@@ -317,7 +317,7 @@ export default function CustomerCareDashboard() {
     { icon: QrCode, label: "Scan Student ID", href: "/attendance/scan" },
     { icon: Search, label: "Student Directory", href: "/customer-care/students" },
     { icon: MessageSquare, label: "Create New Ticket", href: "/support/tickets/new" },
-    { icon: Ticket, label: "View All Tickets", href: "/admin/tickets" }, // Corrected path
+    { icon: Ticket, label: "View All Tickets", href: "/support/tickets" }, // Corrected path
   ];
 
   return (
