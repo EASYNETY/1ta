@@ -61,9 +61,31 @@ export default function AdminTicketDetailPage() {
     const [replyContent, setReplyContent] = useState("");
     const isSendingReply = responseStatus === "loading";
 
+    console.log("AdminTicketDetailPage - User role:", user?.role, "TicketId:", ticketId);
+
+    // Debug: Log user permissions
+    useEffect(() => {
+        if (user) {
+            console.log("User details:", {
+                role: user.role,
+                id: user.id,
+                email: user.email
+            });
+        }
+    }, [user]);
+
     useEffect(() => {
         if (ticketId && user?.id && (hasAdminAccess(user) || isCustomerCare(user))) {
+            console.log("Fetching ticket for user:", user.role, "ticketId:", ticketId);
             dispatch(fetchTicketById({ ticketId, userId: user.id, role: user.role }));
+        } else {
+            console.log("Not fetching ticket - missing requirements:", {
+                ticketId: !!ticketId,
+                userId: !!user?.id,
+                hasAdminAccess: hasAdminAccess(user),
+                isCustomerCare: isCustomerCare(user),
+                userRole: user?.role
+            });
         }
         return () => {
             dispatch(clearCurrentTicket());
