@@ -591,9 +591,11 @@ export default function DashboardPage() {
                 <TabsContent value="grades">
                     <GradesTab />
                 </TabsContent>
-                <TabsContent value="analytics">
-                    <AnalyticsTab />
-                </TabsContent>
+                {(user.role === "super_admin" || user.role === "teacher") && (
+                    <TabsContent value="analytics">
+                        <AnalyticsTab />
+                    </TabsContent>
+                )}
             </Tabs>
         </motion.div>
     )

@@ -13,22 +13,51 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, CreditCard, Calendar } from "lucide-react"
 import { Skeleton } from "../ui/skeleton";
 import { TabsContent } from "../ui/tabs";
-import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends";
-import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution";
+// Temporarily disabled to debug the error
+// import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends";
+// import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution";
 
 
 export function AnalyticsTab() {
     const dispatch = useAppDispatch()
     const { user } = useAppSelector((state) => state.auth)
-    const stats = useAppSelector(selectAnalyticsDashboardStats);
-    const analyticStatus = useAppSelector(selectAnalyticsStatus);
+
+    // Add error handling for selectors
+    let stats, analyticStatus;
+    try {
+        stats = useAppSelector(selectAnalyticsDashboardStats);
+        analyticStatus = useAppSelector(selectAnalyticsStatus);
+    } catch (error) {
+        console.error("Error accessing analytics state:", error);
+        stats = null;
+        analyticStatus = "failed";
+    }
 
     useEffect(() => {
-        if (isSuperAdmin(user)) dispatch(fetchAnalyticsDashboard());
-    }, [dispatch]);
+        // Only fetch analytics for super admin users
+        if (user && isSuperAdmin(user)) {
+            console.log("Fetching analytics dashboard for super admin user:", user.id);
+            dispatch(fetchAnalyticsDashboard());
+        } else if (user) {
+            console.log("User does not have permission to fetch analytics:", user.role);
+        }
+    }, [dispatch, user]);
 
     const isLoading = analyticStatus === "loading";
 
+    // Safety check: Only render for authorized users
+    if (!user || (!isSuperAdmin(user) && user.role !== "teacher")) {
+        return (
+            <TabsContent value="analytics" className="space-y-6">
+                <div className="flex h-[50vh] items-center justify-center">
+                    <div className="text-center">
+                        <h2 className="text-xl font-semibold">Access Denied</h2>
+                        <p className="text-muted-foreground mt-2">You don't have permission to view analytics.</p>
+                    </div>
+                </div>
+            </TabsContent>
+        );
+    }
 
     return (
         <TabsContent value="analytics" className="space-y-6">
@@ -48,9 +77,9 @@ export function AnalyticsTab() {
                             </>
                         ) : (
                             <>
-                                <div className="text-2xl font-bold">{stats.studentStats.total}</div>
+                                <div className="text-2xl font-bold">{stats?.studentStats?.total || 0}</div>
                                 <div className="text-xs text-muted-foreground">
-                                    +{stats.studentStats.newThisMonth} this month
+                                    +{stats?.studentStats?.newThisMonth || 0} this month
                                 </div>
                             </>
                         )}
@@ -71,9 +100,9 @@ export function AnalyticsTab() {
                             </>
                         ) : (
                             <>
-                                <div className="text-2xl font-bold">{stats.courseStats.total}</div>
+                                <div className="text-2xl font-bold">{stats?.courseStats?.total || 0}</div>
                                 <div className="text-xs text-muted-foreground">
-                                    {stats.courseStats.averageCompletion}% avg. completion
+                                    {stats?.courseStats?.averageCompletion || 0}% avg. completion
                                 </div>
                             </>
                         )}
@@ -94,9 +123,9 @@ export function AnalyticsTab() {
                             </>
                         ) : (
                             <>
-                                <div className="text-2xl font-bold">₦{(stats.paymentStats.totalRevenue).toLocaleString()}</div>
+                                <div className="text-2xl font-bold">₦{(stats?.paymentStats?.totalRevenue || 0).toLocaleString()}</div>
                                 <div className="text-xs text-muted-foreground">
-                                    +₦{(stats.paymentStats.revenueThisMonth).toLocaleString()} this month
+                                    +₦{(stats?.paymentStats?.revenueThisMonth || 0).toLocaleString()} this month
                                 </div>
                             </>
                         )}
@@ -117,7 +146,7 @@ export function AnalyticsTab() {
                             </>
                         ) : (
                             <>
-                                <div className="text-2xl font-bold">{stats.attendanceStats.averageRate}%</div>
+                                <div className="text-2xl font-bold">{stats?.attendanceStats?.averageRate || 0}%</div>
                                 <div className="text-xs text-muted-foreground">
                                     Average attendance rate
                                 </div>
@@ -128,10 +157,11 @@ export function AnalyticsTab() {
             </div>
 
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            {/* Temporarily disabled to debug the error */}
+            {/* <div className="grid gap-6 lg:grid-cols-2">
                 <AdminDailyRevenueTrends />
                 <RevenueByCourseDistribution />
-            </div>
+            </div> */}
         </TabsContent>
     )
 }
