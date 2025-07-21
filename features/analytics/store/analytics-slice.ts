@@ -82,11 +82,11 @@ export const fetchAnalyticsDashboard = createAsyncThunk<
 			attendanceResult,
 			gradesResult,
 		] = await Promise.all([
-			await dispatch(fetchAllUsersComplete()),
-			await dispatch(fetchAuthCourses()),
-			await dispatch(fetchAllAdminPaymentsSequentially({})),
-			await dispatch(fetchAllAttendanceRecords()),
-			await dispatch(fetchAllCourseGrades()),
+			dispatch(fetchAllUsersComplete()),
+			dispatch(fetchAuthCourses()),
+			dispatch(fetchAllAdminPaymentsSequentially({})),
+			dispatch(fetchAllAttendanceRecords()),
+			dispatch(fetchAllCourseGrades()),
 		]);
 
 		if (fetchAllUsersComplete.rejected.match(usersResult)) {
