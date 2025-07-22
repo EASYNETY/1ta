@@ -49,7 +49,7 @@ export default function TicketDetailPage() {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
 
-    console.log("SupportTicketDetailPage - User role:", user?.role, "TicketId:", typeof params.ticketId === 'string' ? params.ticketId : '');
+    // Support ticket detail page accessible to all authenticated users
     const ticket = useAppSelector(selectCurrentTicket);
     const status = useAppSelector(selectTicketStatus); // Status for fetching the ticket
     const responseStatus = useAppSelector(selectSupportCreateStatus); // Status for sending response
