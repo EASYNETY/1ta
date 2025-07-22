@@ -48,6 +48,8 @@ export default function TicketDetailPage() {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
+
+    console.log("SupportTicketDetailPage - User role:", user?.role, "TicketId:", typeof params.ticketId === 'string' ? params.ticketId : '');
     const ticket = useAppSelector(selectCurrentTicket);
     const status = useAppSelector(selectTicketStatus); // Status for fetching the ticket
     const responseStatus = useAppSelector(selectSupportCreateStatus); // Status for sending response
