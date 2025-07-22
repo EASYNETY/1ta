@@ -169,7 +169,7 @@ export const markStudentAttendance = createAsyncThunk<
 		return rejectWithValue("Authentication required.");
 	}
 	try {
-		const response = await post<any>("/attendance/mark", payload, {
+		const response = await post<any>("/api/attendance/mark", payload, {
 			headers: { Authorization: `Bearer ${token}` },
 		});
 		console.log("Mark attendance API response:", response);
