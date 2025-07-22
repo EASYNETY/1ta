@@ -39,12 +39,12 @@ export default function AdminTicketsPage() {
     const [searchQuery, setSearchQuery] = useState("")
 
     // Redirect non-authorized users (allow admin and customer_care)
-    useEffect(() => {
-        if (user && !hasAdminAccess(user) ) {
-            console.log("User does not have access to tickets:", user.role);
-            router.push("/dashboard");
-        }
-    }, [user, router])
+    // useEffect(() => {
+    //     if (user && !hasAdminAccess(user) ) {
+    //         console.log("User does not have access to tickets:", user.role);
+    //         router.push("/dashboard");
+    //     }
+    // }, [user, router])
 
     useEffect(() => {
         if (user && (hasAdminAccess(user) || isCustomerCare(user))) {
@@ -83,15 +83,15 @@ export default function AdminTicketsPage() {
         closed: safeTickets.filter((t) => t.status === "closed").length,
     }
 
-    if (!user || (!hasAdminAccess(user) && !isCustomerCare(user))) {
-        return (
-            <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Access Denied</AlertTitle>
-                <AlertDescription>You don't have permission to access this page.</AlertDescription>
-            </Alert>
-        )
-    }
+    // if (!user || (!hasAdminAccess(user) && !isCustomerCare(user))) {
+    //     return (
+    //         <Alert variant="destructive">
+    //             <AlertTriangle className="h-4 w-4" />
+    //             <AlertTitle>Access Denied</AlertTitle>
+    //             <AlertDescription>You don't have permission to access this page.</AlertDescription>
+    //         </Alert>
+    //     )
+    // }
 
     const tabItems = [
         { value: "all" as const, label: "All", count: ticketCounts.all },
