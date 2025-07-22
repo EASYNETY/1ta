@@ -121,6 +121,21 @@ export default function AdminTicketDetailPage() {
             });
     };
 
+    if (status === "loading") {
+        return <Skeleton className="h-40 w-full rounded-lg" />;
+    }
+    if (!ticket) {
+        return (
+            <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Ticket Not Found</AlertTitle>
+                <AlertDescription>
+                    The ticket could not be loaded. It may not exist or you do not have access.
+                </AlertDescription>
+            </Alert>
+        );
+    }
+
     return (
         <PermissionGuard allowedRoles={["super_admin", "admin", "customer_care"]} fallback={
             <Alert variant="destructive">
