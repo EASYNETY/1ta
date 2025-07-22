@@ -35,6 +35,7 @@ import { MessageSquare as LucideMessageSquare } from "lucide-react";
 import { CartItem } from "@/features/cart/store/cart-slice";
 import { CourseMiniCard } from "@/features/cart/components/course-mini-card";
 import { CartNavItem } from "@/features/cart/components/cart-nav-items"; // Uncomment if needed
+import { selectChatUnreadCount } from "@/features/chat/store/chatSlice";
 // import { ThemeToggle } from "@/providers/theme-provider";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { RootState } from "@/store";
@@ -70,7 +71,7 @@ export const primaryNavItems: NavItem[] = [
     },
     { title: "Timetable", href: "/timetable", icon: Calendar, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] },
     { title: "Analytics", href: "/analytics", icon: BarChart3, roles: ["student", "teacher"] }, // Removed admin per CEO requirements
-    { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", "super_admin", "admin", "customer_care"], badgeCount: 5 }, // Example badge
+    { title: "Discussions", href: "/chat", icon: UsersThree, roles: ["student", "teacher", "super_admin", "admin", "customer_care"] }, // Dynamic badge count will be added later
 ];
 
 // Admin Specific Items
@@ -109,6 +110,7 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
     const router = useRouter()
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const cart = useAppSelector((state) => state.cart);
+    const unreadChatCount = useAppSelector(selectChatUnreadCount);
     const hasItems = cart.items.length > 0;
     const dispatch = useAppDispatch();
     const { enrolledCourses, hasEnrolledCourses } = useEnrolledCourses();
@@ -132,8 +134,18 @@ export function AppSidebar({ collapsible }: { collapsible?: "icon" | "offcanvas"
         return secondary.filter(item => !primaryHrefs.has(item.href));
     }
 
-    // Get primary navigation items
-    const visiblePrimaryItems = useFilteredPrimaryNavItems();
+    // Get primary navigation items and add dynamic badge counts
+    const basePrimaryItems = useFilteredPrimaryNavItems();
+    const visiblePrimaryItems = basePrimaryItems.map(item => {
+        // Add unread chat count to Discussions tab
+        if (item.href === "/chat") {
+            return {
+                ...item,
+                badgeCount: unreadChatCount > 0 ? unreadChatCount : undefined
+            };
+        }
+        return item;
+    });
 
     // Filter admin items and remove duplicates
     const visibleAdminItems = removeDuplicateNavItems(
