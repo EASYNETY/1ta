@@ -73,11 +73,6 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   if (allowedRoles && userRole) {
     // Role-based check
     hasAccess = allowedRoles.includes(userRole);
-    console.log('PermissionGuard: Role check -', {
-      userRole,
-      allowedRoles,
-      hasAccess
-    });
   } else if (permission) {
     // Single permission check
     hasAccess = hasPermission(permission);
@@ -93,17 +88,10 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   }
 
   if (hasAccess) {
-    console.log('PermissionGuard: Access granted, rendering children');
     return <>{children}</>;
   }
 
   // User doesn't have access
-  console.log('PermissionGuard: Access denied -', {
-    hasAccess,
-    hideOnDenied,
-    hasFallback: !!fallback
-  });
-
   if (hideOnDenied && !fallback) {
     return null;
   }

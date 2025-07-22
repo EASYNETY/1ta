@@ -61,18 +61,7 @@ export default function AdminTicketDetailPage() {
     const [replyContent, setReplyContent] = useState("");
     const isSendingReply = responseStatus === "loading";
 
-    console.log("AdminTicketDetailPage - User role:", user?.role, "TicketId:", ticketId);
-
-    // Debug: Log user permissions
-    useEffect(() => {
-        if (user) {
-            console.log("User details:", {
-                role: user.role,
-                id: user.id,
-                email: user.email
-            });
-        }
-    }, [user]);
+    // Customer care users can now access admin ticket pages
 
     useEffect(() => {
         if (ticketId && user?.id && (hasAdminAccess(user) || isCustomerCare(user))) {
