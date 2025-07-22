@@ -40,7 +40,7 @@ export default function AdminTicketsPage() {
 
     // Redirect non-authorized users (allow admin and customer_care)
     useEffect(() => {
-        if (user && !hasAdminAccess(user) && !isCustomerCare(user)) {
+        if (user && !hasAdminAccess(user) ) {
             console.log("User does not have access to tickets:", user.role);
             router.push("/dashboard");
         }
