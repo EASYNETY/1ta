@@ -38,13 +38,8 @@ export default function AdminTicketsPage() {
     const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all")
     const [searchQuery, setSearchQuery] = useState("")
 
-    // Redirect non-authorized users (allow admin and customer_care)
-    // useEffect(() => {
-    //     if (user && !hasAdminAccess(user) ) {
-    //         console.log("User does not have access to tickets:", user.role);
-    //         router.push("/dashboard");
-    //     }
-    // }, [user, router])
+    // Allow admin and customer_care users to access tickets
+    // No redirect - users without permission will see appropriate error message
 
     useEffect(() => {
         if (user && (hasAdminAccess(user) || isCustomerCare(user))) {
