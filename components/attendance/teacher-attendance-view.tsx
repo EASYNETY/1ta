@@ -83,7 +83,8 @@ export function FacilitatorAttendanceView() {
   useEffect(() => {
     // When a class is selected, fetch its specific attendance data.
     if (selectedClass?.id) {
-      dispatch(fetchCourseAttendance(selectedClass.id));
+      // dispatch(fetchCourseAttendance(selectedClass.id));
+      dispatch(fetchCourseAttendance(selectedClass.courseId));
     }
   }, [dispatch, selectedClass?.id]);
   
