@@ -86,6 +86,7 @@ export function FacilitatorAttendanceView() {
       dispatch(fetchCourseAttendance(selectedClass.id));
     }
   }, [dispatch, selectedClass?.id]);
+  
 
   // --- Event Handlers ---
   const handleClassChange = useCallback((classId: string) => {
@@ -122,6 +123,13 @@ export function FacilitatorAttendanceView() {
   const courseDailyAttendances = useAppSelector((state) =>
     selectCourseDailyAttendances(state, selectedClass?.id)
   );
+
+
+  useEffect(() => {
+  console.log("Selected Class:", selectedClass?.id);
+  console.log("Fetched Attendances:", courseDailyAttendances);
+}, [selectedClass?.id, courseDailyAttendances]);
+
 
   const attendanceDataForPicker = useMemo(() => {
     return (courseDailyAttendances || []).reduce((acc, att) => {
