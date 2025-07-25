@@ -132,9 +132,12 @@ export function FacilitatorAttendanceView() {
 
   const selectedDayAttendanceDetails: DailyAttendance | null = useMemo(() => {
     if (!selectedDate || !courseDailyAttendances) return null;
-    const formattedDate = format(selectedDate, "yyyy-M-d"); // Use a format that matches the keys
-    // Find a match ignoring timezones by checking just the date part
-    return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-M-d") === formattedDate) || null;
+    
+    const formattedDate = format(selectedDate, "yyyy-MM-dd");
+    return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-MM-dd") === formattedDate) || null;
+    // const formattedDate = format(selectedDate, "yyyy-M-d"); // Use a format that matches the keys
+    // // Find a match ignoring timezones by checking just the date part
+    // return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-M-d") === formattedDate) || null;
   }, [selectedDate, courseDailyAttendances]);
 
   const filteredStudents = useMemo(() => {
