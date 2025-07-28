@@ -1576,7 +1576,7 @@ export async function handleMockRequest<T>(
 	}
 
 	const teacherAttendanceMatch = endpoint.match(
-		/^\/courses\/(.+)\/attendance$/
+		/^\/classes\/(.+)\/attendance$/
 	);
 	if (teacherAttendanceMatch && method === "get") {
 		const courseClassId = teacherAttendanceMatch[1];
