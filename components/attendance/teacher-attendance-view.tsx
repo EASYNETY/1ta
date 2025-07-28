@@ -84,9 +84,9 @@ export function FacilitatorAttendanceView() {
     // When a class is selected, fetch its specific attendance data.
     if (selectedClass?.id) {
       dispatch(fetchCourseAttendance(selectedClass.id));
-      // dispatch(fetchCourseAttendance(selectedClass.courseId));
+      dispatch(fetchCourseAttendance(selectedClass.courseId));
     }
-  }, [dispatch, selectedClass?.id]);
+  }, [dispatch, selectedClass?.courseId]);
   
 
   // --- Event Handlers ---
@@ -95,7 +95,7 @@ export function FacilitatorAttendanceView() {
     if (newSelectedClass) {
       // To make the state compatible with `setCourseClass`, we map the properties.
       const classToSet = {
-        id: newSelectedClass.id,
+        courseId: newSelectedClass.courseId,
         courseName: newSelectedClass.courseTitle || newSelectedClass.name, // Use courseTitle or fallback to name
         sessionName: newSelectedClass.name, // The main name can be the session name
       } as CourseClassOption;
@@ -104,7 +104,8 @@ export function FacilitatorAttendanceView() {
       dispatch(setCourseClass({
         id: '',
         courseName: '',
-        sessionName: ''
+        sessionName: '',
+        courseId: ''
       })); // Clear the selected class
     }
     // Reset view state when class changes

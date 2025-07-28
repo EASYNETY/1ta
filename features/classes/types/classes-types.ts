@@ -90,6 +90,7 @@ export type CourseClassOption = {
 	id: string;
 	courseName: string;
 	sessionName: string; // e.g., "Morning", "Afternoon", "Batch A"
+	courseId: string;
 };
 
 // Full class options response from backend for creating/editing a class

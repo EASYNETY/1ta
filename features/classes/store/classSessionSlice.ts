@@ -5,12 +5,14 @@ export type CourseClass = {
 	id: string;
 	courseName: string;
 	sessionName: string;
+	courseId: string;
 };
 
 const initialState: CourseClass = {
 	id: "",
 	courseName: "",
 	sessionName: "",
+	courseId: "",
 };
 
 const classSessionSlice = createSlice({
