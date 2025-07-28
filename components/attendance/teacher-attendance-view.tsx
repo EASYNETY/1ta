@@ -95,6 +95,7 @@ export function FacilitatorAttendanceView() {
     if (newSelectedClass) {
       // To make the state compatible with `setCourseClass`, we map the properties.
       const classToSet = {
+        id: newSelectedClass.id,
         courseId: newSelectedClass.courseId,
         courseName: newSelectedClass.courseTitle || newSelectedClass.name, // Use courseTitle or fallback to name
         sessionName: newSelectedClass.name, // The main name can be the session name
