@@ -71,6 +71,7 @@ export interface BackendAttendanceResponse {
 // Original format
 export interface TeacherAttendanceResponse {
 	courseClassId: string;
+	classId: string;
 	courseTitle: string;
 	totalStudents: number;
 	dailyAttendances: DailyAttendance[];
@@ -144,6 +145,7 @@ export const mockStudentAttendance: Record<string, StudentAttendanceRecord[]> =
 export const mockClassAttendance: TeacherAttendanceResponse[] = [
 	{
 		courseClassId: "ccs_1_morn",
+		classId: "ccs_1_morn",
 		courseTitle: "Web Development Bootcamp",
 		totalStudents: 45,
 		dailyAttendances: [
@@ -185,6 +187,7 @@ export const mockClassAttendance: TeacherAttendanceResponse[] = [
 	},
 	{
 		courseClassId: "ccs_1_aft",
+		classId: "ccs_1_aft",
 		courseTitle: "Web Development Bootcamp",
 		totalStudents: 45,
 		dailyAttendances: [
@@ -227,6 +230,7 @@ export const mockClassAttendance: TeacherAttendanceResponse[] = [
 	// Add a new class with today's attendance
 	{
 		courseClassId: "ccs_2_morn",
+		classId: "ccs_2_morn",
 		courseTitle: "Advanced JavaScript",
 		totalStudents: 30,
 		dailyAttendances: [
