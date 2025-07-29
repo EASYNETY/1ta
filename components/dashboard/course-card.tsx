@@ -45,7 +45,7 @@ export function CourseCard({ course, index }: CourseCardProps) {
             <DyraneCard className="overflow-hidden h-full flex flex-col">
                 <div className="aspect-video bg-muted relative overflow-hidden">
                     <img
-                        src={getImageUrl()}
+                        src={course.image ? getImageUrl() : "/course-placeholder.png"}
                         alt={course.title || "Course"}
                         className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
