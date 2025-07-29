@@ -51,7 +51,7 @@ export function CourseCard({ course, index }: CourseCardProps) {
                         onError={(e) => {
                             // Prevent an infinite loop if the placeholder itself fails to load
                             e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/course-placeholder.png";
+                            e.currentTarget.src = course.image;
                         }}
                     />
                 </div>
