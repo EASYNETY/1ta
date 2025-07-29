@@ -27,7 +27,7 @@ export interface StudentAttendanceRecord {
 	date: string;
 	status: AttendanceStatus;
 	name?: string;
-	time?: string;
+	check_in_time?: string;
 	class?:string;
 
 }
