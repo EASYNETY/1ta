@@ -241,10 +241,10 @@ export function StudentAttendanceView() {
                                     <span className="text-muted-foreground">Class:</span>
                                     <span className="font-medium">{selectedRecord.class?.name || "N/A"}</span>
                                 </div>
-                                {selectedRecord.time && (
+                                {selectedRecord.check_in_time && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Time:</span>
-                                        <span className="font-medium">{format(parseISO(selectedRecord.time), "h:mm a")}</span>
+                                        <span className="font-medium">{format(parseISO(selectedRecord.check_in_time), "h:mm a")}</span>
                                     </div>
                                 )}
                             </div>
