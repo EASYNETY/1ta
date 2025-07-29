@@ -259,8 +259,15 @@ const attendanceMarkingSlice = createSlice({
 			})
 			.addCase(fetchStudentAttendance.fulfilled, (state, action) => {
 				state.fetchingStudentAttendance = false;
-				const { studentId, attendances } = action.payload;
-				state.studentAttendance[studentId] = attendances;
+				// The studentId is the argument passed to the thunk
+				const studentId = action.meta.arg;
+				// The attendance records are in the `records` property of the payload
+				const { records } = action.payload;
+
+				if (studentId && Array.isArray(records)) {
+					// The API response for a single student returns an array of records
+					state.studentAttendance[studentId] = records;
+				}
 			})
 			.addCase(fetchStudentAttendance.rejected, (state, action) => {
 				state.fetchingStudentAttendance = false;
