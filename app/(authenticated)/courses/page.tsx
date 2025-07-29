@@ -66,7 +66,7 @@ export default function CoursesPage() {
             if (courses && courses.length > 0) {
               const reduxCourses = courses.filter(course => 
                 course.enrolmentStatus === 'enroled' || 
-                course.enrollmentStatus === true
+                course.enrolmentStatus === true
               );
               
               if (reduxCourses.length > 0) {
@@ -87,7 +87,7 @@ export default function CoursesPage() {
           if (courses && courses.length > 0) {
             const reduxCourses = courses.filter(course => 
               course.enrolmentStatus === 'enroled' || 
-              course.enrollmentStatus === true
+              course.enrolmentStatus === true
             )
             
             if (reduxCourses.length > 0) {

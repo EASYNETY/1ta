@@ -168,8 +168,8 @@ export interface PaginatedPaymentItemFromApi {
 	provider: PaymentRecord["provider"];
 	provider_reference: string | null; // snake_case from API
 	description: string | null; // Payment's own description, might be null
-	created_at: string; // snake_case from API
-	updated_at: string; // snake_case from API
+	createdAt: string; // snake_case from API
+	updatedAt: string; // snake_case from API
 	invoice_id: string | null; // snake_case from API
 	invoice_amount?: string | null; // STRING from API
 	invoice_description?: string | null;

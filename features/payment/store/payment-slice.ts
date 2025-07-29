@@ -72,7 +72,7 @@ export const fetchMyPaymentHistory = createAsyncThunk<
 						provider: apiPayment.provider || "unknown",
 						providerReference: apiPayment.provider_reference || "",
 						description: apiPayment.description || "",
-						createdAt: apiPayment.created_at,
+						createdAt: apiPayment.createdAt,
 						// Only map updatedAt if PaymentRecord expects it
 						// updatedAt: apiPayment.updated_at,
 						invoiceId: apiPayment.invoice_id,
