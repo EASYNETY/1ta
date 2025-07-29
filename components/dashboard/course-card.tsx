@@ -26,14 +26,19 @@ export function CourseCard({ course, index }: CourseCardProps) {
     // Determine the correct image URL, handling placeholders correctly.
     // This prevents trying to fetch placeholder images from the API server.
     const getImageUrl = () => {
+        const baseUrl = "https://api.onetechacademy.com";
+
         if (!course.image || course.image.includes('placeholder')) {
-            return "/course-placeholder.png"; // Use the local placeholder
+            return "/course-placeholder.png"; // fallback
         }
-        // If it's a real image path, construct the full URL if it's relative.
-        return course.image.startsWith('http')
-            ? course.image
-            : `https://api.onetechacademy.com${course.image}`;
-    }
+
+        if (course.image.startsWith("http")) {
+            return course.image;
+        }
+
+        // If it starts with '/', assume it's a relative path from the API
+        return `${baseUrl}${course.image}`;
+    };
 
     return (
         <motion.div variants={item}>
