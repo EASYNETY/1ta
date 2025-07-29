@@ -322,12 +322,16 @@ const attendanceMarkingSlice = createSlice({
 				} else {
 					// Old format with courseClassId, courseTitle, totalStudents, dailyAttendances
 					const {
-						courseClassId,
+						courseClassId, // Keep for backward compatibility
+						classId, // Add this to handle the new API response
 						courseTitle,
 						totalStudents,
 						dailyAttendances,
 					} = action.payload;
+
+					const idToUse = courseClassId || classId;
 					console.log("Processing old format:", {
+						idToUse,
 						courseClassId,
 						courseTitle,
 						totalStudents,
@@ -348,12 +352,14 @@ const attendanceMarkingSlice = createSlice({
 						);
 					}
 
-					state.courseAttendance[courseClassId] = {
-						courseClassId,
-						courseTitle,
-						totalStudents,
-						dailyRecords,
-					};
+					if (idToUse) {
+						state.courseAttendance[idToUse] = {
+							courseClassId: idToUse,
+							courseTitle,
+							totalStudents,
+							dailyRecords,
+						};
+					}
 				}
 			})
 			// Fetch All Attendance Records (for Analytics)
