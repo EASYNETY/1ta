@@ -23,20 +23,29 @@ export function CourseCard({ course, index }: CourseCardProps) {
     // Calculate progress percentage
     const progressPercentage = course.progress ?? 0
 
-    const imageUrl = course.image && !course.image.startsWith('http')
-        ? `https://api.onetechacademy.com${course.image}`
-        : course.image
+    // Determine the correct image URL, handling placeholders correctly.
+    // This prevents trying to fetch placeholder images from the API server.
+    const getImageUrl = () => {
+        if (!course.image || course.image.includes('placeholder')) {
+            return "/course-placeholder.png"; // Use the local placeholder
+        }
+        // If it's a real image path, construct the full URL if it's relative.
+        return course.image.startsWith('http')
+            ? course.image
+            : `https://api.onetechacademy.com${course.image}`;
+    }
 
     return (
         <motion.div variants={item}>
             <DyraneCard className="overflow-hidden h-full flex flex-col">
                 <div className="aspect-video bg-muted relative overflow-hidden">
                     <img
-                        src={imageUrl}
+                        src={getImageUrl()}
                         alt={course.title || "Course"}
                         className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
-                            // Fallback to a default image if the image fails to load
+                            // Prevent an infinite loop if the placeholder itself fails to load
+                            e.currentTarget.onerror = null;
                             e.currentTarget.src = "/course-placeholder.png";
                         }}
                     />
