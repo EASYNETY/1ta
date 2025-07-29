@@ -43,6 +43,10 @@ export interface TeacherAttendanceRecord {
 export interface StudentAttendanceResponse {
 	studentId: string;
 	attendances: StudentAttendanceRecord[];
+	records: StudentAttendanceRecord[];
+}
+
+export interface TeacherAttendanceResponse {
 }
 
 // Backend API response format
