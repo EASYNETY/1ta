@@ -7,7 +7,6 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { Clock } from "lucide-react"
 import Link from "next/link"
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
-import { getCourseIcon } from "@/utils/course-icon-mapping"
 
 interface CourseCardProps {
     course: AuthCourse
@@ -22,14 +21,18 @@ export function CourseCard({ course, index }: CourseCardProps) {
     }
 
     // Calculate progress percentage
-    const progressPercentage = course.progress || (index * 15) % 100
+    const progressPercentage = course.progress ?? 0
+
+    const imageUrl = course.image && !course.image.startsWith('http')
+        ? `https://api.onetechacademy.com${course.image}`
+        : course.image
 
     return (
         <motion.div variants={item}>
             <DyraneCard className="overflow-hidden h-full flex flex-col">
                 <div className="aspect-video bg-muted relative overflow-hidden">
                     <img
-                        src={course.image}
+                        src={imageUrl}
                         alt={course.title || "Course"}
                         className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
                         onError={(e) => {
