@@ -23,6 +23,7 @@ export type OnboardingStatus =
 export interface BaseUser {
 	/** Unique identifier (UUID or DB ID). */
 	id: string;
+	barcodeId?: string; // ADDED
 	/** User's primary email address (login identifier). Unique. Typically read-only after creation. */
 	email: string;
 	/** The user's designated role. Determines permissions and UI views. */

@@ -26,6 +26,10 @@ export interface DailyAttendance {
 export interface StudentAttendanceRecord {
 	date: string;
 	status: AttendanceStatus;
+	name?: string;
+	time?: string;
+	class?:string;
+
 }
 
 // Interface for course attendance (for fetching by teacher)

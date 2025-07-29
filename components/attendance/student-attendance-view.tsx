@@ -231,7 +231,7 @@ export function StudentAttendanceView() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Student ID:</span>
-                                    <span className="font-medium">{user.id}</span>
+                                    <span className="font-medium">{user.barcodeId}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Student Name:</span>
@@ -239,14 +239,12 @@ export function StudentAttendanceView() {
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Class:</span>
-                                    {isStudent(user) &&
-                                        <span className="font-medium">{user.classId || "Not assigned"}</span>
-                                    }
+                                    <span className="font-medium">{selectedRecord.class?.name || "N/A"}</span>
                                 </div>
-                                {selectedRecord.date && (
+                                {selectedRecord.time && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Time:</span>
-                                        <span className="font-medium">{selectedRecord.date}</span>
+                                        <span className="font-medium">{format(parseISO(selectedRecord.time), "h:mm a")}</span>
                                     </div>
                                 )}
                             </div>
