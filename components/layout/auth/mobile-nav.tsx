@@ -91,6 +91,7 @@ export const getMobileNavItems = (user: User | null): MobileNavItem[] => {
             icon: UsersThree,
             roles: ["super_admin", "admin", "customer_care", "teacher", "student"],
             hidden: isCorpManager as boolean,
+            badgeKey: "messages",
         },
         { title: "Payment History", href: "/payments", icon: Money, roles: ["accounting"] },
         { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["accounting"] },

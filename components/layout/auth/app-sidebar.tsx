@@ -362,7 +362,7 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
                                     {/* Show small badge on icon when collapsed */}
                                     {!isSidebarOpen && item.badgeCount && item.badgeCount > 0 && (
                                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-medium rounded-full h-4 w-4 flex items-center justify-center leading-none">
-                                            {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                                            {item.badgeCount > 9 ? "9+" : item.badgeCount}
                                         </span>
                                     )}
                                 </div>
@@ -375,7 +375,7 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
                                         variant={item.title === "Courses" ? "success" : "default"} 
                                         className="ml-auto h-5 px-1.5 text-[10px] leading-none"
                                     >
-                                        {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                                        {item.badgeCount > 9 ? "9+" : item.badgeCount}
                                     </Badge>
                                 )}
                             </Link>
