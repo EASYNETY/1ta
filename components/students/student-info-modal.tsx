@@ -154,8 +154,8 @@ export function StudentInfoModal({
                             </div>
 
                             <div className="border-t pt-3 grid grid-cols-1 gap-x-4 gap-y-1.5"> {/* Reduced gap-y slightly */}
-                                <InfoItem icon={Barcode} label="Barcode ID" value={studentInfo.barcodeId} isCode />
-                                <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.id} isCode />
+                                {/* <InfoItem icon={Barcode} label="Barcode ID" value={studentInfo.barcodeId} isCode /> */}
+                                <InfoItem icon={BookOpen} label="Student ID" value={studentInfo.barcodeId} isCode />
                                 {studentInfo.className && <InfoItem icon={School} label="Registered Class" value={studentInfo.className} />}
                                 {lectureName && <InfoItem icon={BookOpen} label="Lecture/Class" value={lectureName} />}
                                 <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth || "Not Provided"} />
