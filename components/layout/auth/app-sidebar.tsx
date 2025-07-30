@@ -79,12 +79,12 @@ export const adminNavItems: NavItem[] = [
     { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["super_admin", "admin"] },
     { title: "Payments", href: "/payments", icon: Money, roles: ["super_admin", "admin",] },
     { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["super_admin"] }, // Only super admin
-    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin",] },
+    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin", "customer_care"] },
     {
         title: "Feedbacks",
         href: "/support/feedback",
         icon: Chat,
-        roles: ["super_admin", "admin"],
+        roles: ["super_admin", "admin", "customer_care"],
     }
 ];
 
@@ -333,40 +333,49 @@ interface NavMenuListProps {
     pathname: string;
 }
 
+
 export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps) {
     return (
         <SidebarMenu>
             {items.map((item) => {
                 const isActive = item.href === '/dashboard'
                     ? pathname === item.href
-                    : pathname.startsWith(item.href) && item.href !== '/dashboard'; // More specific active check
+                    : pathname.startsWith(item.href) && item.href !== '/dashboard';
 
                 const Icon = item.icon;
+
                 return (
-                    <SidebarMenuItem key={item.href}>
+                    <SidebarMenuItem key={item.href} className="relative">
                         <SidebarMenuButton
                             asChild
                             isActive={isActive}
-                            // Tooltip only needed when collapsed, handled by SidebarMenuButton internally
                             tooltip={item.title}
                             aria-label={item.title}
                         >
                             <Link
                                 href={item.href}
-                                className="flex items-center gap-2" // Removed overflow-hidden, let button handle it
+                                className="flex items-center gap-2"
                             >
-                                <Icon className="size-4 shrink-0" weight={isActive ? "fill" : "regular"} /> {/* Standardized icon size */}
-                                {/* Text is hidden via CSS in SidebarMenuButton when collapsed */}
-                                <span>
-                                    {item.title}
-                                </span>
-                                {/* Badge Logic - Conditionally render based on isSidebarOpen */}
-                                {item.badgeCount && item.badgeCount > 0 && isSidebarOpen && (
+                                <div className="relative">
+                                    <Icon className="size-4 shrink-0" weight={isActive ? "fill" : "regular"} />
+                                    
+                                    {/* Show small badge on icon when collapsed */}
+                                    {!isSidebarOpen && item.badgeCount && item.badgeCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-medium rounded-full h-4 w-4 flex items-center justify-center leading-none">
+                                            {item.badgeCount > 99 ? "99+" : item.badgeCount}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <span>{item.title}</span>
+
+                                {/* Show badge on the right side when expanded */}
+                                {isSidebarOpen && item.badgeCount && item.badgeCount > 0 && (
                                     <Badge 
                                         variant={item.title === "Courses" ? "success" : "default"} 
                                         className="ml-auto h-5 px-1.5 text-[10px] leading-none"
                                     >
-                                        {item.badgeCount > 9 ? "9+" : item.badgeCount}
+                                        {item.badgeCount > 99 ? "99+" : item.badgeCount}
                                     </Badge>
                                 )}
                             </Link>
@@ -377,6 +386,51 @@ export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps
         </SidebarMenu>
     );
 }
+
+// export function NavMenuList({ items, isSidebarOpen, pathname }: NavMenuListProps) {
+//     return (
+//         <SidebarMenu>
+//             {items.map((item) => {
+//                 const isActive = item.href === '/dashboard'
+//                     ? pathname === item.href
+//                     : pathname.startsWith(item.href) && item.href !== '/dashboard'; // More specific active check
+
+//                 const Icon = item.icon;
+//                 return (
+//                     <SidebarMenuItem key={item.href}>
+//                         <SidebarMenuButton
+//                             asChild
+//                             isActive={isActive}
+//                             // Tooltip only needed when collapsed, handled by SidebarMenuButton internally
+//                             tooltip={item.title}
+//                             aria-label={item.title}
+//                         >
+//                             <Link
+//                                 href={item.href}
+//                                 className="flex items-center gap-2" // Removed overflow-hidden, let button handle it
+//                             >
+//                                 <Icon className="size-4 shrink-0" weight={isActive ? "fill" : "regular"} /> {/* Standardized icon size */}
+//                                 {/* Text is hidden via CSS in SidebarMenuButton when collapsed */}
+//                                 <span>
+//                                     {item.title}
+//                                 </span>
+//                                 {/* Badge Logic - Conditionally render based on isSidebarOpen */}
+//                                 {item.badgeCount && item.badgeCount > 0 && isSidebarOpen && (
+//                                     <Badge 
+//                                         variant={item.title === "Courses" ? "success" : "default"} 
+//                                         className="ml-auto h-5 px-1.5 text-[10px] leading-none"
+//                                     >
+//                                         {item.badgeCount > 9 ? "9+" : item.badgeCount}
+//                                     </Badge>
+//                                 )}
+//                             </Link>
+//                         </SidebarMenuButton>
+//                     </SidebarMenuItem>
+//                 );
+//             })}
+//         </SidebarMenu>
+//     );
+// }
 
 // --- Reusable User Item for Footer --- (Optional but good practice)
 interface NavMenuUserItemProps {
