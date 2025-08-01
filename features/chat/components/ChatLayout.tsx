@@ -11,11 +11,10 @@ import { ChatMessageInput } from "./ChatMessageInput";
 import { ChatRoomHeader } from "./ChatRoomHeader";
 import { SelectChatPrompt } from "./SelectChatPrompt";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"; // Added SheetHeader
-import { Button } from "@/components/ui/button"; // Standard Button
-import { Menu, X } from "lucide-react"; // Added X for a potential close button inside sheet
-import { selectSelectedRoomId, selectSelectedRoom, selectChatRoom, selectChatRooms } from "../store/chatSlice"; // Ensure selectChatRoom is imported if used by ChatRoomList for selection
+import { Badge } from "@/components/ui/badge";
+import { Menu } from "lucide-react"; // Added X for a potential close button inside sheet
+import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount } from "../store/chatSlice";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"; // Assuming this is your custom button
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 export const ChatLayout: React.FC = () => {
     // const dispatch = useAppDispatch(); // dispatch is not used in this component directly
@@ -23,6 +22,7 @@ export const ChatLayout: React.FC = () => {
     const selectedRoom = useAppSelector(selectSelectedRoom);
     const allRooms = useAppSelector(selectChatRooms); // Get all rooms for context
 
+    const totalUnreadCount = useAppSelector(selectChatUnreadCount);
     const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
     // Effect to close the sheet when a room is selected (and the screen is mobile-sized)
@@ -101,8 +101,13 @@ export const ChatLayout: React.FC = () => {
                 - Takes up a fixed width.
             */}
             <div className="w-full w-1/2 max-w-[360px] hidden md:flex md:flex-col border-r bg-muted/5 backdrop-blur-sm"> {/* Added a subtle bg */}
-                <div className="p-4 py-4.5 border-b">
-                    <h2 className="text-lg font-semibold">Chat Rooms</h2>
+                <div className="p-4 py-4.5 border-b flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Discussions</h2>
+                    {totalUnreadCount > 0 && (
+                        <Badge variant="default" className="h-5 px-2 text-xs leading-none">
+                            {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                        </Badge>
+                    )}
                 </div>
                 <div className="flex-1 overflow-y-auto">
                     <ChatRoomList /> {/* No onRoomSelect needed here as it doesn't control sheet */}
