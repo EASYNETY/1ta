@@ -101,7 +101,7 @@ export function UserTableRow({ user, onDelete }: UserTableRowProps) {
                     </div>
                     <div className="min-w-0">
                         <div className="font-medium truncate">{user.name}</div>
-                        <div className="text-xs text-muted-foreground truncate">ID: {user.id}</div>
+                        <div className="text-xs text-muted-foreground truncate">ID: {user.barcodeId}</div>
                     </div>
                 </div>
             </td>
