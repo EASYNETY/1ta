@@ -49,7 +49,7 @@ export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
     };
 
     // Determine the link based on user role
-    const ticketLink = user && (hasAdminAccess(user) || isCustomerCare(user))
+    const ticketLink = user && (hasAdminAccess(user))
         ? `/admin/tickets/${ticket.id}`
         : `/support/tickets/${ticket.id}`;
 

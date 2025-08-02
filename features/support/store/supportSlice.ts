@@ -147,7 +147,7 @@ export const addTicketResponse = createAsyncThunk<
 	async ({ senderId, senderRole, ticketId, message }, { rejectWithValue }) => {
 		try {
 			const endpoint =
-				senderRole === "admin" || senderRole === "super_admin"
+				senderRole === "admin" || senderRole === "super_admin" || senderRole === "customer_care"
 					? `/admin/support-tickets/${ticketId}/responses`
 					: `/support/my-tickets/${ticketId}/responses`;
 			return await post<TicketResponse>(endpoint, { message });
