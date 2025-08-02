@@ -42,7 +42,7 @@ export default function AdminTicketsPage() {
     // No redirect - users without permission will see appropriate error message
 
     useEffect(() => {
-        if (user && (hasAdminAccess(user) || isCustomerCare(user))) {
+        if (user && (hasAdminAccess(user))) {
             // Fetch all tickets for admin and super_admin
             dispatch(
                 fetchAllTickets({

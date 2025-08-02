@@ -233,7 +233,7 @@ export default function AdminTicketDetailPage() {
                                 </Avatar>
                                 <div
                                     className={cn("flex-1 p-3 rounded-md border", {
-                                        "bg-primary/10 border-primary/20": response.userRole === "admin" || response.userRole === 'super_admin',
+                                        "bg-primary/10 border-primary/20": response.userRole === "admin" || response.userRole === 'super_admin' || response.userRole === 'customer_care',
                                         "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800":
                                             response.userRole === "teacher",
                                         "bg-muted/60": response.userRole === "student",

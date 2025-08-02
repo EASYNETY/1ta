@@ -79,12 +79,12 @@ export const adminNavItems: NavItem[] = [
     { title: "Students", href: "/users", icon: AdminUsersIcon, roles: ["super_admin", "admin"] },
     { title: "Payments", href: "/payments", icon: Money, roles: ["super_admin", "admin",] },
     { title: "Analytics", href: "/admin/analytics", icon: BarChart3, roles: ["super_admin"] }, // Only super admin
-    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin", "customer_care"] },
+    { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["super_admin", "admin"] },
     {
         title: "Feedbacks",
         href: "/support/feedback",
         icon: Chat,
-        roles: ["super_admin", "admin", "customer_care"],
+        roles: ["super_admin", "admin"],
     }
 ];
 
