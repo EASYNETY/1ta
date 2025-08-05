@@ -23,22 +23,43 @@ export function CourseCard({ course, index }: CourseCardProps) {
     // Calculate progress percentage
     const progressPercentage = course.progress ?? 0
 
+    console.log(`[CourseCard] ${course.title} image:`, course.image);
+
     // Determine the correct image URL, handling placeholders correctly.
     // This prevents trying to fetch placeholder images from the API server.
+
     const getImageUrl = () => {
-        const baseUrl = "https://api.onetechacademy.com";
+  const baseUrl = "https://api.onetechacademy.com";
 
-        if (!course.image || course.image.includes('placeholder')) {
-            return "/course-placeholder.png"; // fallback
-        }
+  if (!course.image || course.image.includes('placeholder')) {
+    return "/course-placeholder.png";
+  }
 
-        if (course.image.startsWith("http")) {
-            return course.image;
-        }
+  const trimmedImage = course.image.trim();
 
-        // If it starts with '/', assume it's a relative path from the API
-        return `${baseUrl}${course.image}`;
-    };
+  if (trimmedImage.startsWith("http")) {
+    return trimmedImage;
+  }
+
+  return `${baseUrl}${trimmedImage.startsWith("/") ? trimmedImage : `/${trimmedImage}`}`;
+};
+
+
+
+    // const getImageUrl = () => {
+    //     const baseUrl = "https://api.onetechacademy.com";
+
+    //     if (!course.image || course.image.includes('placeholder')) {
+    //         return "/course-placeholder.png"; // fallback
+    //     }
+
+    //     if (course.image.startsWith("http")) {
+    //         return course.image;
+    //     }
+
+    //     // If it starts with '/', assume it's a relative path from the API
+    //     return `${baseUrl}${course.image}`;
+    // };
 
     return (
         <motion.div variants={item}>

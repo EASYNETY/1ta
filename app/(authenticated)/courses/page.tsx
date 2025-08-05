@@ -58,7 +58,7 @@ export default function CoursesPage() {
           console.log(`Courses Page: Received ${fetchedCourses.length} enrolled courses:`, fetchedCourses)
           
           if (fetchedCourses.length > 0) {
-            console.log("Courses Page: Setting enrolled courses from API");
+            console.log("Courses Page: Setting enrolled courses from API", fetchedCourses);
             setEnrolledCourses(fetchedCourses);
           } else {
             // If no enrolled courses returned, check if we have courses in Redux store

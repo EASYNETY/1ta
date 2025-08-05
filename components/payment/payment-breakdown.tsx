@@ -38,12 +38,21 @@ const generateBreakdownData = (cartItems: CartItem[], getCourseDetails: (id: str
     const courseDetails = getCourseDetails(item.courseId)
 
     // Use discountPriceNaira if available, otherwise priceNaira from course or cart
-    let price = item.discountPriceNaira || item.priceNaira
+    // let price = item.discountPriceNaira || item.priceNaira
 
-    // If course details are available and have pricing, use those as fallback
-    if (!price && courseDetails) {
-      price = courseDetails.discountPriceNaira || courseDetails.priceNaira || 0
-    }
+    // // If course details are available and have pricing, use those as fallback
+    // if (!price && courseDetails) {
+    //   price = courseDetails.discountPriceNaira || courseDetails.priceNaira || 0
+    // }
+
+    let basePrice =
+      item.priceNaira ||
+      courseDetails?.priceNaira ||
+      0
+
+    const discount = item.discountPriceNaira || 0
+
+    const price = Math.max(basePrice - discount, 0) // Don't allow negative prices
 
     return sum + price
   }, 0)
