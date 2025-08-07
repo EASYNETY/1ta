@@ -141,8 +141,10 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
     // --- MODAL VIEW ---
     if (isModal) {
         // Get price and currency for modal display
-        const price = course.priceNaira || 0
-        const discountPrice = course.discountPriceNaira || 0
+        // const price = course.priceNaira || 0
+        // const discountPrice = course.discountPriceNaira || 0
+        const price = getPrice();
+        const discountPrice = getDiscountPrice();
         const currencySymbol = "₦";
         return (
             <div className="relative">
@@ -184,21 +186,20 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                             {/* === NEW: PRICE DISPLAY FOR MODAL FOOTER === */}
                             <div className="text-center sm:text-left order-2 sm:order-1">
                                 {(() => {
-                                    if (typeof discountPrice === 'number' && price > 0) {
+                                    if (typeof discountPrice === 'number' && discountPrice > 0 && discountPrice < price) {
                                         return (
                                             <div className="flex items-baseline gap-x-2 justify-center sm:justify-start">
                                                 <Tag className="size-5 text-primary flex-shrink-0 relative top-[-2px]" weight="fill" />
-                                                {discountPrice > 0 &&
-                                                    <span className="text-2xl font-bold text-primary">
-                                                        {currencySymbol}{discountPrice.toExponential()}
-                                                    </span>
-                                                }
+                                                <span className="text-2xl font-bold text-primary">
+                                                    {currencySymbol}{discountPrice.toLocaleString()}
+                                                </span>
                                                 <span className="text-base text-muted-foreground line-through">
                                                     {currencySymbol}{price.toLocaleString()}
                                                 </span>
                                             </div>
                                         );
                                     }
+
                                     if (price > 0) {
                                         return (
                                             <div className="flex items-center gap-x-2 justify-center sm:justify-start">
@@ -209,6 +210,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                                             </div>
                                         );
                                     }
+
                                     return (
                                         <div className="flex items-center gap-x-2 justify-center sm:justify-start">
                                             <Tag className="size-5 text-green-600 flex-shrink-0 relative top-[-2px]" />
@@ -219,6 +221,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                                     );
                                 })()}
                             </div>
+
                             {/* === END: PRICE DISPLAY === */}
 
                             {/* Action Buttons */}
