@@ -55,10 +55,10 @@ const CourseMediaPreview = ({ course }: { course: PublicCourse | AuthCourse }) =
 
     // Fallback to course icon or placeholder image
     const imageSource = course.iconUrl || course.image || getCourseIcon(course.title, course.id);
-    
+
     // Check if the image is from the future directory
     const isFutureImage = typeof imageSource === 'string' && imageSource.includes('/images/future/');
-    
+
     return (
         <Image
             src={imageSource}
@@ -188,14 +188,14 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
                                         return (
                                             <div className="flex items-baseline gap-x-2 justify-center sm:justify-start">
                                                 <Tag className="size-5 text-primary flex-shrink-0 relative top-[-2px]" weight="fill" />
-                                                <span className="text-2xl font-bold text-primary">
-                                                    {currencySymbol}{price.toLocaleString()}
-                                                </span>
                                                 {discountPrice > 0 &&
-                                                    <span className="text-base text-muted-foreground line-through">
+                                                    <span className="text-2xl font-bold text-primary">
                                                         {currencySymbol}{discountPrice.toExponential()}
                                                     </span>
                                                 }
+                                                <span className="text-base text-muted-foreground line-through">
+                                                    {currencySymbol}{price.toLocaleString()}
+                                                </span>
                                             </div>
                                         );
                                     }
