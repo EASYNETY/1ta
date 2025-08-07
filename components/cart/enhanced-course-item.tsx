@@ -234,7 +234,7 @@ export function EnhancedCourseItem({
                           ₦{details.priceNaira.toLocaleString()}
                         </p>
                         <p className="font-semibold text-base sm:text-sm md:text-base">
-                          ₦{details.discountPriceNaira.toLocaleString()}
+                          ₦{(details.priceNaira - details.discountPriceNaira).toLocaleString()}
                         </p>
                       </>
                     ) : (
