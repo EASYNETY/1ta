@@ -2,6 +2,7 @@
 
 // --- Payment Breakdown Types for Enhanced Cart Display ---
 export interface PaymentBreakdownItem {
+  originalAmount: boolean;
 	id: string;
 	category:
 		| "tuition"

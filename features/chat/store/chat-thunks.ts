@@ -148,3 +148,161 @@ const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
 			: undefined,
 	};
 };
+
+
+// Add these thunks to your chat-thunks.ts file
+
+import { createAsyncThunk } from '@reduxjs/toolkit';
+import { apiClient } from '@/lib/api-client';
+
+// Update existing chat room
+export const updateChatRoom = createAsyncThunk(
+  'chat/updateChatRoom',
+  async ({ 
+    roomId, 
+    name, 
+    type, 
+    participantIds 
+  }: { 
+    roomId: string; 
+    name: string; 
+    type: string; 
+    participantIds: string[] 
+  }) => {
+    const response = await apiClient(`/chat/rooms/${roomId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        type,
+        participantIds
+      }),
+      requiresAuth: true
+    });
+    
+    return response;
+  }
+);
+
+// Delete chat room
+export const deleteChatRoom = createAsyncThunk(
+  'chat/deleteChatRoom',
+  async (roomId: string) => {
+    await apiClient(`/chat/rooms/${roomId}`, {
+      method: 'DELETE',
+      requiresAuth: true
+    });
+    
+    return roomId;
+  }
+);
+
+// Mark room as read (updates unread count)
+export const markRoomAsRead = createAsyncThunk(
+  'chat/markRoomAsRead',
+  async ({ roomId, userId }: { roomId: string; userId: string }) => {
+    const response = await apiClient(`/chat/rooms/${roomId}/mark-read`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+      requiresAuth: true
+    });
+    
+    return { roomId, userId };
+  }
+);
+
+// Get unread counts for all rooms
+export const fetchUnreadCounts = createAsyncThunk(
+  'chat/fetchUnreadCounts',
+  async (userId: string) => {
+    const response = await apiClient(`/chat/rooms/unread-counts?userId=${userId}`, {
+      method: 'GET',
+      requiresAuth: true
+    });
+    
+    return response;
+  }
+);
+
+// Add participants to room
+export const addParticipantsToRoom = createAsyncThunk(
+  'chat/addParticipantsToRoom',
+  async ({ roomId, participantIds }: { roomId: string; participantIds: string[] }) => {
+    const response = await apiClient(`/chat/rooms/${roomId}/participants`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ participantIds }),
+      requiresAuth: true
+    });
+    
+    return response;
+  }
+);
+
+// Remove participants from room
+export const removeParticipantsFromRoom = createAsyncThunk(
+  'chat/removeParticipantsFromRoom',
+  async ({ roomId, participantIds }: { roomId: string; participantIds: string[] }) => {
+    const response = await apiClient(`/chat/rooms/${roomId}/participants`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ participantIds }),
+      requiresAuth: true
+    });
+    
+    return response;
+  }
+);
+
+// Update the existing fetchChatRooms to include unread counts
+export const fetchChatRooms = createAsyncThunk(
+  'chat/fetchChatRooms',
+  async (userId: string) => {
+    const response = await apiClient(`/chat/rooms?userId=${userId}&includeUnread=true`, {
+      method: 'GET',
+      requiresAuth: true
+    });
+    
+    // Ensure each room has an unreadCount property
+    return response.map((room: any) => ({
+      ...room,
+      unreadCount: room.unreadCount || 0
+    }));
+  }
+);
+
+// Socket event handlers for real-time unread count updates
+export const handleUnreadCountUpdate = createAsyncThunk(
+  'chat/handleUnreadCountUpdate',
+  async ({ roomId, count }: { roomId: string; count: number }, { dispatch }) => {
+    // This would be called from socket event listeners
+    dispatch(updateRoomUnreadCount({ roomId, count }));
+    return { roomId, count };
+  }
+);
+
+// Batch mark multiple rooms as read
+export const markMultipleRoomsAsRead = createAsyncThunk(
+  'chat/markMultipleRoomsAsRead',
+  async ({ roomIds, userId }: { roomIds: string[]; userId: string }) => {
+    const response = await apiClient('/chat/rooms/mark-read-bulk', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ roomIds, userId }),
+      requiresAuth: true
+    });
+    
+    return roomIds;
+  }
+);
