@@ -1,6 +1,7 @@
 // features/chat/store/chat-thunks.ts
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { apiClient } from '@/lib/api-client';
 import type {
 	ChatRoom,
 	ChatMessage,
@@ -8,28 +9,27 @@ import type {
 	MarkReadResponse,
 } from "../types/chat-types";
 import { get, post } from "@/lib/api-client";
-import { MarkRoomReadPayload } from "@/data/mock-chat-data";
 
-export const fetchChatRooms = createAsyncThunk<
-	ChatRoom[],
-	void,
-	{ rejectValue: string }
->("chat/fetchRooms", async (_, { rejectWithValue }) => {
-	try {
-		const apiClientResponse = await get<any>(`/chat/rooms`);
-		const roomsArray: ChatRoom[] = [];
-		if (apiClientResponse && typeof apiClientResponse === "object") {
-			Object.keys(apiClientResponse).forEach((key) => {
-				if (!isNaN(parseInt(key, 10))) {
-					roomsArray.push(apiClientResponse[key]);
-				}
-			});
-		}
-		return roomsArray;
-	} catch (e: any) {
-		return rejectWithValue(e.message || "Failed to fetch chat rooms");
-	}
-});
+// export const fetchChatRooms = createAsyncThunk<
+// 	ChatRoom[],
+// 	void,
+// 	{ rejectValue: string }
+// >("chat/fetchRooms", async (_, { rejectWithValue }) => {
+// 	try {
+// 		const apiClientResponse = await get<any>(`/chat/rooms`);
+// 		const roomsArray: ChatRoom[] = [];
+// 		if (apiClientResponse && typeof apiClientResponse === "object") {
+// 			Object.keys(apiClientResponse).forEach((key) => {
+// 				if (!isNaN(parseInt(key, 10))) {
+// 					roomsArray.push(apiClientResponse[key]);
+// 				}
+// 			});
+// 		}
+// 		return roomsArray;
+// 	} catch (e: any) {
+// 		return rejectWithValue(e.message || "Failed to fetch chat rooms");
+// 	}
+// });
 
 export interface FetchMessagesParams {
 	roomId: string;
@@ -111,28 +111,28 @@ export const createChatRoom = createAsyncThunk<
 	}
 });
 
-export const markRoomAsRead = createAsyncThunk<
-	{ roomId: string },
-	MarkRoomReadPayload,
-	{ rejectValue: string }
->("chat/markRoomAsRead", async (payload, { rejectWithValue }) => {
-	try {
-		const response = await post<MarkReadResponse>(
-			"/chat/rooms/mark-read",
-			payload
-		);
-		if (response.success) {
-			return { roomId: payload.roomId };
-		} else {
-			return rejectWithValue(
-				response.message || "Failed to mark room as read."
-			);
-		}
-	} catch (e: any) {
-		const errorMessage = e.message || "Failed to mark room as read";
-		return rejectWithValue(errorMessage);
-	}
-});
+// export const markRoomAsRead = createAsyncThunk<
+// 	{ roomId: string },
+// 	MarkRoomReadPayload,
+// 	{ rejectValue: string }
+// >("chat/markRoomAsRead", async (payload, { rejectWithValue }) => {
+// 	try {
+// 		const response = await post<MarkReadResponse>(
+// 			"/chat/rooms/mark-read",
+// 			payload
+// 		);
+// 		if (response.success) {
+// 			return { roomId: payload.roomId };
+// 		} else {
+// 			return rejectWithValue(
+// 				response.message || "Failed to mark room as read."
+// 			);
+// 		}
+// 	} catch (e: any) {
+// 		const errorMessage = e.message || "Failed to mark room as read";
+// 		return rejectWithValue(errorMessage);
+// 	}
+// });
 
 const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
 	return {
@@ -152,8 +152,6 @@ const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
 
 // Add these thunks to your chat-thunks.ts file
 
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import { apiClient } from '@/lib/api-client';
 
 // Update existing chat room
 export const updateChatRoom = createAsyncThunk(
