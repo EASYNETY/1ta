@@ -339,7 +339,7 @@ export default function AnalyticsDashboard() {
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" />
-                            <YAxis tickFormatter={(value) => `₦${Math.round((value as number) / 1000)}k`} />
+                            <YAxis tickFormatter={(value) => `₦${value.toLocaleString()}`} />
                             <ChartTooltip content={<ChartTooltipContent formatter={(v) => formatCurrency(v as number)} />} />
                             <Area type="monotone" dataKey="value" stroke={revenueTrendConfig.value.color} fill={revenueTrendConfig.value.color} fillOpacity={0.12} name="Revenue" />
                           </AreaChart>
@@ -583,7 +583,7 @@ export default function AnalyticsDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={derivedCourseRevenue} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tickFormatter={(v) => `₦${Math.round((v as number) / 1000)}k`} />
+                      <YAxis type="number" tickFormatter={(value) => `₦${value.toLocaleString()}`} />
                       <YAxis dataKey="courseName" type="category" width={150} tick={{ fontSize: 12 }} />
                       <ChartTooltip content={<ChartTooltipContent formatter={(v) => formatCurrency(v as number)} />} />
                       <Bar dataKey="totalRevenue" fill="#3B82F6" name="Revenue" radius={[0, 4, 4, 0]} />
@@ -687,13 +687,19 @@ export default function AnalyticsDashboard() {
                 ) : (
                   <ChartContainer config={{ value: { label: "Attendance Rate", color: "#3B82F6" } }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={attendanceByDay} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <BarChart data={attendanceByDay} barCategoryGap="20%">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" />
+                        <YAxis type="category" dataKey="courseName" width={150} />
+                        <Bar dataKey="totalRevenue" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                      {/* <BarChart data={attendanceByDay} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                         <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
                         <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
+                      </BarChart> */}
                     </ResponsiveContainer>
                   </ChartContainer>
                 )}
