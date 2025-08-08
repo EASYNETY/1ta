@@ -7,7 +7,7 @@ export const fetchAllUsers = createAsyncThunk(
   'users/fetchAllUsers',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient('/users', {
+      const response = await apiClient('/admin/users', {
         method: 'GET',
         requiresAuth: true,
       });
