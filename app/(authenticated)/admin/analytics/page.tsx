@@ -49,7 +49,7 @@ const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280",
 
 // helper
 const ensureArray = (data: any) => (Array.isArray(data) ? data : []);
-const formatCurrency = (v?: number) => (v == null ? "₦0" : `₦${(v / 100).toLocaleString()}`);
+const formatCurrency = (v?: number) => (v == null ? "₦0" : `₦${v.toLocaleString()}`);
 
 // CSV export helper
 function exportToCSV(filename: string, rows: any[]) {
