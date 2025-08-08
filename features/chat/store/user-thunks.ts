@@ -40,18 +40,30 @@ export const fetchAllChatUsers = createAsyncThunk(
   'users/fetchAllUsers',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await apiClient('/admin/users', {
-        method: 'GET',
-        requiresAuth: true,
-      });
+      let allUsers: any[] = [];
+      let page = 1;
+      let totalPages = 1;
 
-      // ✅ Handle both formats: direct array or nested object
-      const usersArray = response?.data?.users || response?.data?.data?.users;
-      if (!Array.isArray(usersArray)) {
-        throw new Error('Invalid response format: expected array of users');
-      }
+      do {
+        const response = await apiClient(`/admin/users?page=${page}&limit=50`, {
+          method: 'GET',
+          requiresAuth: true,
+        });
 
-      return usersArray.map((user: any) => ({
+        const data = response?.data || response;
+        const usersArray = data?.users || data?.data?.users;
+        const pagination = data?.pagination || data?.data?.pagination;
+
+        if (!Array.isArray(usersArray)) {
+          throw new Error('Invalid response format: expected array of users');
+        }
+
+        allUsers = [...allUsers, ...usersArray];
+        totalPages = pagination?.totalPages || 1;
+        page++;
+      } while (page <= totalPages);
+
+      return allUsers.map((user: any) => ({
         id: user.id || user._id,
         name:
           user.name ||
@@ -64,15 +76,11 @@ export const fetchAllChatUsers = createAsyncThunk(
         isActive: user.isActive !== false,
       }));
     } catch (error: any) {
-      console.error('Failed to fetch users:', error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        'Failed to fetch users';
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.response?.data?.message || error.message);
     }
   }
 );
+
 
 
 
