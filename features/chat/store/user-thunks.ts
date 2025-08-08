@@ -45,8 +45,8 @@ export const fetchAllChatUsers = createAsyncThunk(
         requiresAuth: true,
       });
 
-      // ✅ Unwrap nested "data.users" array
-      const usersArray = response?.data?.users;
+      // ✅ Handle both formats: direct array or nested object
+      const usersArray = response?.data?.users || response?.data?.data?.users;
       if (!Array.isArray(usersArray)) {
         throw new Error('Invalid response format: expected array of users');
       }
@@ -73,6 +73,7 @@ export const fetchAllChatUsers = createAsyncThunk(
     }
   }
 );
+
 
 
 // Alternative: Fetch users with search/filtering
