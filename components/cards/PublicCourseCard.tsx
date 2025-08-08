@@ -105,7 +105,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
             return course.discountPriceNaira ?? (course.discountPriceUSD ? course.discountPriceUSD * 1500 : undefined);
         }
         // For admin/teacher, use USD discount price
-        return course.discountPriceUSD;
+        return course.discountPriceNaira;
     };
 
     const handleEnrolNow = () => {
