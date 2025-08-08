@@ -51,34 +51,6 @@ const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280",
 const ensureArray = (data: any) => (Array.isArray(data) ? data : []);
 const formatCurrency = (v?: number) => (v == null ? "₦0" : `₦${v.toLocaleString()}`);
 
-
-  // This is required by <ChartContainer> to render tooltips and legends correctly.
-  const revenueTrendConfig: ChartConfig = {
-    value: { label: "Revenue", color: "#28A745" },
-  };
-  const popularCoursesConfig: ChartConfig = {
-    value: { label: "Enrolments", color: "#28A745" },
-  };
-  const studentGrowthConfig: ChartConfig = {
-    value: { label: "New Students", color: "#28A745" },
-  };
-  const completionRateConfig: ChartConfig = {
-    value: { label: "Completion %", color: "#28A745" },
-  };
-  const avgGradeConfig: ChartConfig = {
-    value: { label: "Avg. Grade", color: "#3B82F6" },
-  };
-  const revenueByCourseConfig: ChartConfig = {
-    value: { label: "Revenue", color: "#28A745" },
-  };
-  const attendanceTrendConfig: ChartConfig = {
-    value: { label: "Attendance Rate", color: "#28A745" },
-  };
-  const attendanceDayConfig: ChartConfig = {
-    value: { label: "Attendance Rate", color: "#28A745" },
-  };
-
-
 // CSV export helper
 function exportToCSV(filename: string, rows: any[]) {
   if (!rows || rows.length === 0) {
@@ -146,20 +118,85 @@ export default function AnalyticsDashboard() {
   const isLoading = status === "loading" || status === "idle";
 
   // -----------------
-  // Memoized datasets
+  // Memoized datasets with proper data handling
   // -----------------
   const revenueTrends = useMemo(() => ensureArray(stats?.paymentStats?.revenueTrends), [stats]);
-  const topCourses = useMemo(() => ensureArray(stats?.courseStats?.enrolmentsByCourse).slice(0, 5), [stats]);
+  const topCourses = useMemo(() => {
+    const courses = ensureArray(stats?.courseStats?.enrolmentsByCourse);
+    return courses
+      .sort((a, b) => (b.value || 0) - (a.value || 0))
+      .slice(0, 5)
+      .map(course => ({
+        ...course,
+        name: course.name || course.courseName || 'Unknown Course',
+        value: course.value || course.enrolments || 0
+      }));
+  }, [stats]);
+  
   const studentGrowth = useMemo(() => ensureArray(stats?.studentStats?.growth), [stats]);
   const genderData = useMemo(() => ensureArray(stats?.studentStats?.genderDistribution), [stats]);
   const ageData = useMemo(() => ensureArray(stats?.studentStats?.ageDistribution), [stats]);
-  const completionByCourse = useMemo(() => ensureArray(stats?.courseStats?.completionRateByCourse).slice(0, 5), [stats]);
-  const avgGradeByCourse = useMemo(() => ensureArray(stats?.courseStats?.averageGradeByCourse).slice(0, 5), [stats]);
+  const completionByCourse = useMemo(() => {
+    const completion = ensureArray(stats?.courseStats?.completionRateByCourse);
+    return completion
+      .sort((a, b) => (b.value || 0) - (a.value || 0))
+      .slice(0, 5)
+      .map(course => ({
+        ...course,
+        name: course.name || course.courseName || 'Unknown Course',
+        value: Math.round(course.value || course.completionRate || 0)
+      }));
+  }, [stats]);
+  
+  const avgGradeByCourse = useMemo(() => {
+    const grades = ensureArray(stats?.courseStats?.averageGradeByCourse);
+    return grades
+      .sort((a, b) => (b.value || 0) - (a.value || 0))
+      .slice(0, 5)
+      .map(course => ({
+        ...course,
+        name: course.name || course.courseName || 'Unknown Course',
+        value: Math.round(course.value || course.averageGrade || 0)
+      }));
+  }, [stats]);
+  
   const paymentMethods = useMemo(() => ensureArray(stats?.paymentStats?.paymentMethodDistribution), [stats]);
   const paymentStatus = useMemo(() => ensureArray(stats?.paymentStats?.paymentStatusDistribution), [stats]);
-  const attendanceTrends = useMemo(() => ensureArray(stats?.attendanceStats?.rateTrends), [stats]);
-  const attendanceByDay = useMemo(() => ensureArray(stats?.attendanceStats?.byDayOfWeek), [stats]);
+  
+  const attendanceTrends = useMemo(() => {
+    const trends = ensureArray(stats?.attendanceStats?.rateTrends);
+    return trends.map(trend => ({
+      ...trend,
+      value: Math.round(trend.value || trend.attendanceRate || 0),
+      date: trend.date || trend.month || 'Unknown'
+    }));
+  }, [stats]);
+  
+  const attendanceByDay = useMemo(() => {
+    const byDay = ensureArray(stats?.attendanceStats?.byDayOfWeek);
+    return byDay.map(day => ({
+      ...day,
+      name: day.name || day.dayOfWeek || day.day || 'Unknown',
+      value: Math.round(day.value || day.attendanceRate || 0)
+    }));
+  }, [stats]);
+  
   const attendanceStatus = useMemo(() => ensureArray(stats?.attendanceStats?.statusDistribution), [stats]);
+
+  // Fixed Revenue by Course data
+  const revenueByCourseData = useMemo(() => {
+    // Use derivedCourseRevenue if available, otherwise fallback to stats
+    const revenueData = ensureArray(derivedCourseRevenue) || ensureArray(stats?.paymentStats?.revenueByCourse);
+    return revenueData
+      .sort((a, b) => (b.totalRevenue || b.value || 0) - (a.totalRevenue || a.value || 0))
+      .slice(0, 5)
+      .map(course => ({
+        courseName: course.courseName || course.name || 'Unknown Course',
+        totalRevenue: course.totalRevenue || course.value || 0,
+        // Convert to proper number format for display
+        displayRevenue: (course.totalRevenue || course.value || 0) / 100 // if stored in kobo/cents
+      }));
+  }, [derivedCourseRevenue, stats]);
 
   // Derive quick insights (very simple comparisons — replace with server precomputed if available)
   const revenueInsight = useMemo(() => {
@@ -178,10 +215,15 @@ export default function AnalyticsDashboard() {
     return { pct, last, trend: pct >= 0 ? "up" : "down" };
   }, [studentGrowth]);
 
-  // --- Chart configs (kept simple for ChartContainer) ---
+  // --- Chart configs ---
   const revenueTrendConfig: ChartConfig = { value: { label: "Revenue", color: "#3B82F6" } };
   const popularCoursesConfig: ChartConfig = { value: { label: "Enrolments", color: "#10B981" } };
   const studentGrowthConfig: ChartConfig = { value: { label: "New Students", color: "#8B5CF6" } };
+  const completionRateConfig: ChartConfig = { value: { label: "Completion %", color: "#28A745" } };
+  const avgGradeConfig: ChartConfig = { value: { label: "Avg. Grade", color: "#3B82F6" } };
+  const revenueByCourseConfig: ChartConfig = { value: { label: "Revenue", color: "#28A745" } };
+  const attendanceTrendConfig: ChartConfig = { value: { label: "Attendance Rate", color: "#F59E0B" } };
+  const attendanceDayConfig: ChartConfig = { value: { label: "Attendance Rate", color: "#3B82F6" } };
 
   // Drill-down handler — updates local state filter and could be used to call the API for filtered data
   const handleDrillDown = (payload: { type: string; key?: string }) => {
@@ -341,14 +383,6 @@ export default function AnalyticsDashboard() {
                 <Card id="revenue-trend-card">
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle>Revenue Trend (Last 6 Months)</CardTitle>
-                    {/* <div className="flex gap-2 items-center">
-                      <DyraneButton size="sm" onClick={() => exportChartCSV(revenueTrends, "revenue-trends.csv")}>
-                        <Download className="h-4 w-4 mr-1" /> CSV
-                      </DyraneButton>
-                      <DyraneButton size="sm" onClick={() => exportChartPNG("revenue-trend-card", "revenue-trend.png")}>
-                        <Download className="h-4 w-4 mr-1" /> PNG
-                      </DyraneButton>
-                    </div> */}
                   </CardHeader>
                   <CardContent className="h-80">
                     {isLoading ? (
@@ -360,16 +394,30 @@ export default function AnalyticsDashboard() {
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart
                             data={revenueTrends}
-                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                             onClick={(e) => {
                               if (e && (e as any).activeLabel) handleDrillDown({ type: "revenueDate", key: (e as any).activeLabel });
                             }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis tickFormatter={(value) => `₦${value.toLocaleString()}`} />
+                            <XAxis 
+                              dataKey="date" 
+                              tick={{ fontSize: 11 }}
+                              interval="preserveStartEnd"
+                            />
+                            <YAxis 
+                              tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
+                              tick={{ fontSize: 11 }}
+                            />
                             <ChartTooltip content={<ChartTooltipContent formatter={(v) => formatCurrency(v as number)} />} />
-                            <Area type="monotone" dataKey="value" stroke={revenueTrendConfig.value.color} fill={revenueTrendConfig.value.color} fillOpacity={0.12} name="Revenue" />
+                            <Area 
+                              type="monotone" 
+                              dataKey="value" 
+                              stroke={revenueTrendConfig.value.color} 
+                              fill={revenueTrendConfig.value.color} 
+                              fillOpacity={0.12} 
+                              name="Revenue" 
+                            />
                           </AreaChart>
                         </ResponsiveContainer>
                         <p className="mt-2 text-xs text-muted-foreground">
@@ -395,14 +443,6 @@ export default function AnalyticsDashboard() {
                 <Card id="top-courses-card">
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle>Top 5 Most Popular Courses</CardTitle>
-                    {/* <div className="flex gap-2 items-center">
-                      <DyraneButton size="sm" onClick={() => exportChartCSV(topCourses, "top-courses.csv")}>
-                        <Download className="h-4 w-4 mr-1" /> CSV
-                      </DyraneButton>
-                      <DyraneButton size="sm" onClick={() => exportChartPNG("top-courses-card", "top-courses.png")}>
-                        <Download className="h-4 w-4 mr-1" /> PNG
-                      </DyraneButton>
-                    </div> */}
                   </CardHeader>
                   <CardContent className="h-80">
                     {isLoading ? (
@@ -424,10 +464,26 @@ export default function AnalyticsDashboard() {
                             }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" />
-                            <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
-                            <ChartTooltip content={<ChartTooltipContent />} />
-                            <Bar dataKey="value" fill={popularCoursesConfig.value.color} radius={[0, 4, 4, 0]} name="Enrolments" />
+                            <XAxis type="number" tick={{ fontSize: 11 }} />
+                            <YAxis 
+                              dataKey="name" 
+                              type="category" 
+                              width={120} 
+                              tick={{ fontSize: 10 }}
+                              tickFormatter={(value) => value.length > 15 ? value.substring(0, 15) + '...' : value}
+                            />
+                            <ChartTooltip 
+                              content={<ChartTooltipContent 
+                                labelFormatter={(label) => `Course: ${label}`}
+                                formatter={(value, name) => [`${value} enrolments`, name]}
+                              />} 
+                            />
+                            <Bar 
+                              dataKey="value" 
+                              fill={popularCoursesConfig.value.color} 
+                              radius={[0, 4, 4, 0]} 
+                              name="Enrolments" 
+                            />
                           </BarChart>
                         </ResponsiveContainer>
                         <p className="mt-2 text-xs text-muted-foreground">
@@ -447,14 +503,6 @@ export default function AnalyticsDashboard() {
           <Card id="student-growth-card">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Student Growth (Last 6 Months)</CardTitle>
-              {/* <div className="flex gap-2">
-                <DyraneButton size="sm" onClick={() => exportChartCSV(studentGrowth, "student-growth.csv")}>
-                  <Download className="h-4 w-4 mr-1" /> CSV
-                </DyraneButton>
-                <DyraneButton size="sm" onClick={() => exportChartPNG("student-growth-card", "student-growth.png")}>
-                  <Download className="h-4 w-4 mr-1" /> PNG
-                </DyraneButton>
-              </div> */}
             </CardHeader>
             <CardContent className="h-80">
               {isLoading ? (
@@ -466,8 +514,8 @@ export default function AnalyticsDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={studentGrowth} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <Area type="monotone" dataKey="value" stroke={studentGrowthConfig.value.color} fill={studentGrowthConfig.value.color} fillOpacity={0.12} name="New Students" />
                     </AreaChart>
@@ -519,8 +567,8 @@ export default function AnalyticsDashboard() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={ageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
+                        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} name="Students" onClick={(d) => handleDrillDown({ type: "ageGroup", key: d?.name })} />
                       </BarChart>
@@ -545,231 +593,17 @@ export default function AnalyticsDashboard() {
                 ) : completionByCourse.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No completion data</div>
                 ) : (
-                  <ChartContainer config={{ value: { label: "Completion %", color: "#10B981" } }}>
+                  <ChartContainer config={completionRateConfig}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={completionByCourse} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" domain={[0, 100]} />
-                        <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 12 }} />
-                        <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
-                        <Bar dataKey="value" fill="#10B981" name="Completion %" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card id="avg-grade-card">
-              <CardHeader>
-                <CardTitle>Average Grades by Course (Top 5)</CardTitle>
-              </CardHeader>
-              <CardContent className="h-96">
-                {isLoading ? (
-                  <Skeleton className="h-full w-full" />
-                ) : avgGradeByCourse.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No grades data</div>
-                ) : (
-                  <ChartContainer config={{ value: { label: "Avg. Grade", color: "#3B82F6" } }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={avgGradeByCourse} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" domain={[0, 100]} />
-                        <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 12 }} />
-                        <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
-                        <Bar dataKey="value" fill="#3B82F6" name="Avg. Grade" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* PAYMENTS */}
-        <TabsContent value="payments" className="space-y-6">
-           <Card>
-            <CardHeader><CardTitle>Revenue by Course (Top 5)</CardTitle></CardHeader>
-            <CardContent className="h-96">
-              {isLoading ? <Skeleton className="h-full w-full" /> : (
-                <ChartContainer config={revenueByCourseConfig}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={ensureArray(selectDerivedCourseRevenue)} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tickFormatter={(value) => `₦${(value / 100 / 1000)}k`} />
-                      <YAxis dataKey="courseName" type="category" width={150} tick={{ fontSize: 12 }} />
-                      <ChartTooltip content={<ChartTooltipContent formatter={(value) => `₦${(value as number / 100).toLocaleString()}`} />} />
-                      <Bar dataKey="totalRevenue" fill={revenueByCourseConfig.value.color} name="Revenue" radius={[0, 4, 4, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card id="payment-method-card">
-              <CardHeader>
-                <CardTitle>Payment Methods</CardTitle>
-              </CardHeader>
-              <CardContent className="h-80">
-                {isLoading ? (
-                  <Skeleton className="h-full w-full" />
-                ) : paymentMethods.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No payment method data</div>
-                ) : (
-                  <ChartContainer config={Object.fromEntries(paymentMethods.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Pie data={paymentMethods} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {paymentMethods.map((entry, i) => <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
-                        </Pie>
-                        <ChartLegend content={<ChartLegendContent />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card id="payment-status-card">
-              <CardHeader>
-                <CardTitle>Payment Status</CardTitle>
-              </CardHeader>
-              <CardContent className="h-80">
-                {isLoading ? (
-                  <Skeleton className="h-full w-full" />
-                ) : paymentStatus.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No payment status data</div>
-                ) : (
-                  <ChartContainer config={Object.fromEntries(paymentStatus.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Pie data={paymentStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {paymentStatus.map((entry, i) => <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
-                        </Pie>
-                        <ChartLegend content={<ChartLegendContent />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* ATTENDANCE */}
-        <TabsContent value="attendance" className="space-y-6">
-          <Card id="attendance-trend-card">
-            <CardHeader>
-              <CardTitle>Attendance Rate Trend (Last 6 Months)</CardTitle>
-            </CardHeader>
-            <CardContent className="h-80">
-              {isLoading ? (
-                <Skeleton className="h-full w-full" />
-              ) : attendanceTrends.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No attendance trends</div>
-              ) : (
-                <ChartContainer config={{ value: { label: "Attendance Rate", color: "#F59E0B" } }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={attendanceTrends} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                      <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
-                      <Line type="monotone" dataKey="value" stroke="#F59E0B" strokeWidth={2} name="Attendance Rate" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card id="attendance-by-day-card">
-              <CardHeader>
-                <CardTitle>Attendance by Day of Week</CardTitle>
-              </CardHeader>
-              <CardContent className="h-80">
-                {isLoading ? (
-                  <Skeleton className="h-full w-full" />
-                ) : attendanceByDay.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No attendance by day</div>
-                ) : (
-                  <ChartContainer config={{ value: { label: "Attendance Rate", color: "#3B82F6" } }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      {/* <BarChart data={attendanceByDay} barCategoryGap="20%">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" />
-                        <YAxis type="category" dataKey="courseName" width={150} />
-                        <Bar dataKey="totalRevenue" radius={[0, 4, 4, 0]} />
-                      </BarChart> */}
-                      <BarChart
-                        data={attendanceByDay}
-                        margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-                        barCategoryGap="20%"
-                        barSize={20}
-                        width={700} // increase width or set via container
-                        height={300} // increase height to avoid squishing
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="name"
-                          interval={0}            // Show all labels but
-                          angle={-45}             // Rotate labels for space
-                          textAnchor="end"        // Align rotated text properly
-                          height={60}             // Extra height for rotated labels
+                        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+                        <YAxis 
+                          dataKey="name" 
+                          type="category" 
+                          width={150} 
+                          tick={{ fontSize: 10 }}
+                          tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
                         />
-                        <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                         <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
-                        <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card id="attendance-status-card">
-              <CardHeader>
-                <CardTitle>Attendance Status Distribution</CardTitle>
-              </CardHeader>
-              <CardContent className="h-80">
-                {isLoading ? (
-                  <Skeleton className="h-full w-full" />
-                ) : attendanceStatus.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No status data</div>
-                ) : (
-                  <ChartContainer config={Object.fromEntries(attendanceStatus.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Pie data={attendanceStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {attendanceStatus.map((entry, i) => <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
-                        </Pie>
-                        <ChartLegend content={<ChartLegendContent />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
-
-// small inline icon shim for refresh (so you don't need to import extra libs)
-function RefreshIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-4.6-7.6" />
-      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 3v6h-6" />
-    </svg>
-  );
-}
+                        <Bar dataKey="value" fill={completionRateConfig.value.color} name="Completion %" radius={[0,
