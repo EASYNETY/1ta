@@ -313,14 +313,14 @@ export default function AnalyticsDashboard() {
                 <Card id="revenue-trend-card">
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle>Revenue Trend (Last 6 Months)</CardTitle>
-                    <div className="flex gap-2 items-center">
+                    {/* <div className="flex gap-2 items-center">
                       <DyraneButton size="sm" onClick={() => exportChartCSV(revenueTrends, "revenue-trends.csv")}>
                         <Download className="h-4 w-4 mr-1" /> CSV
                       </DyraneButton>
                       <DyraneButton size="sm" onClick={() => exportChartPNG("revenue-trend-card", "revenue-trend.png")}>
                         <Download className="h-4 w-4 mr-1" /> PNG
                       </DyraneButton>
-                    </div>
+                    </div> */}
                   </CardHeader>
                   <CardContent className="h-80">
                     {isLoading ? (
@@ -367,14 +367,14 @@ export default function AnalyticsDashboard() {
                 <Card id="top-courses-card">
                   <CardHeader className="flex items-center justify-between">
                     <CardTitle>Top 5 Most Popular Courses</CardTitle>
-                    <div className="flex gap-2 items-center">
+                    {/* <div className="flex gap-2 items-center">
                       <DyraneButton size="sm" onClick={() => exportChartCSV(topCourses, "top-courses.csv")}>
                         <Download className="h-4 w-4 mr-1" /> CSV
                       </DyraneButton>
                       <DyraneButton size="sm" onClick={() => exportChartPNG("top-courses-card", "top-courses.png")}>
                         <Download className="h-4 w-4 mr-1" /> PNG
                       </DyraneButton>
-                    </div>
+                    </div> */}
                   </CardHeader>
                   <CardContent className="h-80">
                     {isLoading ? (
@@ -419,14 +419,14 @@ export default function AnalyticsDashboard() {
           <Card id="student-growth-card">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Student Growth (Last 6 Months)</CardTitle>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <DyraneButton size="sm" onClick={() => exportChartCSV(studentGrowth, "student-growth.csv")}>
                   <Download className="h-4 w-4 mr-1" /> CSV
                 </DyraneButton>
                 <DyraneButton size="sm" onClick={() => exportChartPNG("student-growth-card", "student-growth.png")}>
                   <Download className="h-4 w-4 mr-1" /> PNG
                 </DyraneButton>
-              </div>
+              </div> */}
             </CardHeader>
             <CardContent className="h-80">
               {isLoading ? (
@@ -564,14 +564,14 @@ export default function AnalyticsDashboard() {
           <Card id="revenue-by-course-card">
             <CardHeader className="flex items-center justify-between">
               <CardTitle>Revenue by Course (Top 5)</CardTitle>
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <DyraneButton size="sm" onClick={() => exportChartCSV(derivedCourseRevenue, "revenue-by-course.csv")}>
                   <Download className="h-4 w-4 mr-1" /> CSV
                 </DyraneButton>
                 <DyraneButton size="sm" onClick={() => exportChartPNG("revenue-by-course-card", "revenue-by-course.png")}>
                   <Download className="h-4 w-4 mr-1" /> PNG
                 </DyraneButton>
-              </div>
+              </div> */}
             </CardHeader>
             <CardContent className="h-96">
               {isLoading ? (
@@ -687,19 +687,32 @@ export default function AnalyticsDashboard() {
                 ) : (
                   <ChartContainer config={{ value: { label: "Attendance Rate", color: "#3B82F6" } }}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={attendanceByDay} barCategoryGap="20%">
+                      {/* <BarChart data={attendanceByDay} barCategoryGap="20%">
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" />
                         <YAxis type="category" dataKey="courseName" width={150} />
                         <Bar dataKey="totalRevenue" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                      {/* <BarChart data={attendanceByDay} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      </BarChart> */}
+                      <BarChart
+                        data={attendanceByDay}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
+                        barCategoryGap="20%"
+                        barSize={20}
+                        width={700} // increase width or set via container
+                        height={300} // increase height to avoid squishing
+                      >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
+                        <XAxis
+                          dataKey="name"
+                          interval={0}            // Show all labels but
+                          angle={-45}             // Rotate labels for space
+                          textAnchor="end"        // Align rotated text properly
+                          height={60}             // Extra height for rotated labels
+                        />
                         <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
                         <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
                         <Bar dataKey="value" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                      </BarChart> */}
+                      </BarChart>
                     </ResponsiveContainer>
                   </ChartContainer>
                 )}
