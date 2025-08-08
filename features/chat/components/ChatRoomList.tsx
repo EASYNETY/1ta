@@ -33,7 +33,7 @@ import {
 import { apiClient } from "@/lib/api-client";
 import { ChatRoomForm } from "./ChatRoomForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { fetchAllUsers } from "../store/user-thunks";
+import { fetchAllUsers, fetchAllChatUsers } from "../store/user-thunks";
 import { selectUsers, selectUsersStatus, selectUsersError } from "../store/user-slice";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -142,7 +142,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         setUsersFetchError(null);
         
         try {
-            const result = await dispatch(fetchAllUsers()).unwrap();
+            const result = await dispatch(fetchAllChatUsers()).unwrap();
             setAvailableUsers(result);
             console.log("User fetched for Chats", result);
             setUsersFetchStatus('succeeded');
