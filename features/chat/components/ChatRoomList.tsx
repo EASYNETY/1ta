@@ -46,6 +46,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Chats } from "phosphor-react"
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -136,45 +137,67 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
     // User fetching effect with fallback
     useEffect(() => {
-        const loadUsers = async () => {
-            setUsersFetchStatus('loading');
-            setUsersFetchError(null);
-            
-            try {
-                // Try to dispatch fetchAllUsers
-                const result = await dispatch(fetchAllUsers()).unwrap();
-                setAvailableUsers(result);
-                setUsersFetchStatus('succeeded');
-            } catch (error) {
-                console.warn('Failed to fetch users from API, using room participants fallback:', error);
-                
-                // Use extracted users from rooms as fallback
-                if (extractUsersFromRooms.length > 0) {
-                    setAvailableUsers(extractUsersFromRooms);
-                    setUsersFetchStatus('succeeded');
-                } else {
-                    // Last resort: create some mock users based on current user
-                    const mockUsers = [
-                        ...(currentUser ? [{
-                            id: currentUser.id,
-                            name: currentUser.name || currentUser.email || 'Current User',
-                            email: currentUser.email || '',
-                            role: currentUser.role || 'student'
-                        }] : []),
-                        // Add some default roles
-                        { id: 'mock-admin', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-                        { id: 'mock-teacher', name: 'Teacher User', email: 'teacher@example.com', role: 'teacher' }
-                    ];
-                    setAvailableUsers(mockUsers);
-                    setUsersFetchStatus('succeeded');
-                }
-            }
-        };
-
-        if (usersFetchStatus === 'idle') {
-            loadUsers();
+    const loadUsers = async () => {
+        setUsersFetchStatus('loading');
+        setUsersFetchError(null);
+        
+        try {
+            const result = await dispatch(fetchAllUsers()).unwrap();
+            setAvailableUsers(result);
+            console.log("User fetched for Chats", result);
+            setUsersFetchStatus('succeeded');
+        } catch (error: any) {
+            console.error('Failed to fetch users from API:', error);
+            setUsersFetchError(error.message || 'Unable to fetch users');
+            setAvailableUsers([]); // No fallback users
+            setUsersFetchStatus('failed');
         }
-    }, [dispatch, usersFetchStatus, extractUsersFromRooms, currentUser]);
+    };
+
+    if (usersFetchStatus === 'idle') {
+        loadUsers();
+    }
+}, [dispatch, usersFetchStatus]);
+    // useEffect(() => {
+    //     const loadUsers = async () => {
+    //         setUsersFetchStatus('loading');
+    //         setUsersFetchError(null);
+            
+    //         try {
+    //             // Try to dispatch fetchAllUsers
+    //             const result = await dispatch(fetchAllUsers()).unwrap();
+    //             setAvailableUsers(result);
+    //             setUsersFetchStatus('succeeded');
+    //         } catch (error) {
+    //             console.warn('Failed to fetch users from API, using room participants fallback:', error);
+                
+    //             // Use extracted users from rooms as fallback
+    //             if (extractUsersFromRooms.length > 0) {
+    //                 setAvailableUsers(extractUsersFromRooms);
+    //                 setUsersFetchStatus('succeeded');
+    //             } else {
+    //                 // Last resort: create some mock users based on current user
+    //                 const mockUsers = [
+    //                     ...(currentUser ? [{
+    //                         id: currentUser.id,
+    //                         name: currentUser.name || currentUser.email || 'Current User',
+    //                         email: currentUser.email || '',
+    //                         role: currentUser.role || 'student'
+    //                     }] : []),
+    //                     // Add some default roles
+    //                     { id: 'mock-admin', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
+    //                     { id: 'mock-teacher', name: 'Teacher User', email: 'teacher@example.com', role: 'teacher' }
+    //                 ];
+    //                 setAvailableUsers(mockUsers);
+    //                 setUsersFetchStatus('succeeded');
+    //             }
+    //         }
+    //     };
+
+    //     if (usersFetchStatus === 'idle') {
+    //         loadUsers();
+    //     }
+    // }, [dispatch, usersFetchStatus, extractUsersFromRooms, currentUser]);
 
 
     // Filter rooms based on search query and type filter
