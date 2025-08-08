@@ -25,6 +25,7 @@ import scheduleReducer from "@/features/schedule/store/schedule-slice";
 import classesReducer from "@/features/classes/store/classes-slice";
 import classSessionReducer from "@/features/classes/store/classSessionSlice";
 import chatReducer from "@/features/chat/store/chatSlice";
+import userReducer from '@/features/chat/store/user-slice';
 import settingsReducer from "@/features/settings/store/settingsSlice";
 import supportReducer from "@/features/support/store/supportSlice";
 import checkoutReducer from "@/features/checkout/store/checkoutSlice";
@@ -115,6 +116,7 @@ const rootReducer = combineReducers({
 	schedule: scheduleReducer,
 	classes: classesReducer,
 	chat: chatReducer,
+	users: userReducer,
 	settings: settingsReducer,
 	support: supportReducer,
 	corporate: corporateReducer,

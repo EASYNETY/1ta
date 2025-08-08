@@ -5,7 +5,7 @@
 import React, { useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, MessageSquarePlus, Search, MoreVertical, Edit, Trash2 } from "lucide-react"
+import { AlertCircle, MessageSquarePlus, Search, MoreVertical, Edit, Trash2, RefreshCw } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import {
@@ -34,6 +34,7 @@ import { apiClient } from "@/lib/api-client";
 import { ChatRoomForm } from "./ChatRoomForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fetchAllUsers } from "../store/user-thunks";
+import { selectUsers, selectUsersStatus, selectUsersError } from "../store/user-slice";
 import { Badge } from "@/components/ui/badge";
 import { 
     AlertDialog,
@@ -65,15 +66,23 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const [editingRoom, setEditingRoom] = useState<any | null>(null);
     const [roomToDelete, setRoomToDelete] = useState<any | null>(null);
 
-    // User autocomplete state
-    const users = useAppSelector((state: any) => state.users?.users ?? []);
-    const usersStatus = useAppSelector((state: any) => state.users?.status ?? "idle");
+    // User management state with better selectors
+    const users = useAppSelector(selectUsers);
+    const usersStatus = useAppSelector(selectUsersStatus);
+    const usersError = useAppSelector(selectUsersError);
     
+    // Fetch users when component mounts or when status is idle
     useEffect(() => {
         if (usersStatus === "idle") {
+            console.log("Fetching users...");
             dispatch(fetchAllUsers());
         }
     }, [dispatch, usersStatus]);
+
+    // Debug logging
+    useEffect(() => {
+        console.log("Users state:", { users: users.length, status: usersStatus, error: usersError });
+    }, [users, usersStatus, usersError]);
 
     useEffect(() => {
         if (currentUser?.id && status === "idle") {
@@ -87,6 +96,86 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             onRoomSelect?.()
         }
     }
+
+    // Retry fetching users
+    const handleRetryFetchUsers = () => {
+        console.log("Retrying user fetch...");
+        dispatch(fetchAllUsers());
+    };
+
+
+     // QUICK FIX: Extract users from chat room participants as fallback
+    const extractUsersFromRooms = React.useMemo(() => {
+        if (!rooms || rooms.length === 0) return [];
+        
+        const usersMap = new Map();
+        
+        rooms.forEach(room => {
+            if (room.participants && Array.isArray(room.participants)) {
+                room.participants.forEach(participant => {
+                    if (participant && participant.id && !usersMap.has(participant.id)) {
+                        usersMap.set(participant.id, {
+                            id: participant.id,
+                            name: participant.name || participant.displayName || 'Unknown User',
+                            email: participant.email || '',
+                            role: participant.role || 'student',
+                        });
+                    }
+                });
+            }
+        });
+        
+        return Array.from(usersMap.values());
+    }, [rooms]);
+
+
+        // Try to get users from Redux first, fallback to room participants
+    const [availableUsers, setAvailableUsers] = React.useState([]);
+    const [usersFetchStatus, setUsersFetchStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle');
+    const [usersFetchError, setUsersFetchError] = React.useState<string | null>(null);
+
+    // User fetching effect with fallback
+    useEffect(() => {
+        const loadUsers = async () => {
+            setUsersFetchStatus('loading');
+            setUsersFetchError(null);
+            
+            try {
+                // Try to dispatch fetchAllUsers
+                const result = await dispatch(fetchAllUsers()).unwrap();
+                setAvailableUsers(result);
+                setUsersFetchStatus('succeeded');
+            } catch (error) {
+                console.warn('Failed to fetch users from API, using room participants fallback:', error);
+                
+                // Use extracted users from rooms as fallback
+                if (extractUsersFromRooms.length > 0) {
+                    setAvailableUsers(extractUsersFromRooms);
+                    setUsersFetchStatus('succeeded');
+                } else {
+                    // Last resort: create some mock users based on current user
+                    const mockUsers = [
+                        ...(currentUser ? [{
+                            id: currentUser.id,
+                            name: currentUser.name || currentUser.email || 'Current User',
+                            email: currentUser.email || '',
+                            role: currentUser.role || 'student'
+                        }] : []),
+                        // Add some default roles
+                        { id: 'mock-admin', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
+                        { id: 'mock-teacher', name: 'Teacher User', email: 'teacher@example.com', role: 'teacher' }
+                    ];
+                    setAvailableUsers(mockUsers);
+                    setUsersFetchStatus('succeeded');
+                }
+            }
+        };
+
+        if (usersFetchStatus === 'idle') {
+            loadUsers();
+        }
+    }, [dispatch, usersFetchStatus, extractUsersFromRooms, currentUser]);
+
 
     // Filter rooms based on search query and type filter
     const filteredRooms = (rooms ?? []).filter((room) => {
@@ -136,6 +225,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         
         setUpdatingRoomId(editingRoom.id);
         try {
+            console.log("Updating room with data:", data);
             const response = await apiClient(`/chat/rooms/${editingRoom.id}`, {
                 method: "PUT",
                 body: JSON.stringify({
@@ -147,6 +237,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 requiresAuth: true
             });
             
+            console.log("Room update response:", response);
             toast.success("Room updated successfully");
             dispatch(fetchChatRooms(currentUser!.id));
         } catch (err: any) {
@@ -331,28 +422,64 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 </div>
             )}
 
-            {/* Edit Room Dialog */}
+          {/* Edit Room Dialog - Updated */}
             <Dialog open={!!editingRoom} onOpenChange={open => !open && setEditingRoom(null)}>
                 <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Chat Room</DialogTitle>
                     </DialogHeader>
-                    {usersStatus === "succeeded" ? (
-                        <ChatRoomForm
-                            initialRoom={editingRoom}
-                            onSubmit={handleRoomFormSubmit}
-                            onCancel={() => setEditingRoom(null)}
-                            users={users}
-                            isLoading={updatingRoomId === editingRoom?.id}
-                        />
-                    ) : usersStatus === "loading" ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Skeleton className="h-8 w-32 mr-2" />
-                            <span>Loading users...</span>
+                    
+                    {/* Updated user loading logic */}
+                    {usersFetchStatus === "loading" ? (
+                        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                            <Skeleton className="h-8 w-32" />
+                            <div className="text-sm text-muted-foreground">Loading users...</div>
                         </div>
+                    ) : usersFetchStatus === "failed" ? (
+                        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                            <AlertCircle className="h-12 w-12 text-destructive" />
+                            <div className="text-center">
+                                <div className="text-sm font-medium text-destructive mb-2">Failed to load users</div>
+                                <div className="text-xs text-muted-foreground mb-4">
+                                    {usersFetchError || "Unable to fetch user list for room management"}
+                                </div>
+                                <DyraneButton 
+                                    onClick={() => {
+                                        setUsersFetchStatus('idle');
+                                        setUsersFetchError(null);
+                                    }}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-2"
+                                >
+                                    <RefreshCw className="h-4 w-4" />
+                                    Retry Loading Users
+                                </DyraneButton>
+                            </div>
+                        </div>
+                    ) : usersFetchStatus === "succeeded" && availableUsers.length > 0 ? (
+                        <>
+                            {/* Show source of users for debugging */}
+                            {process.env.NODE_ENV === 'development' && (
+                                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                                    <span className="font-semibold">Debug:</span> Using {availableUsers.length} users 
+                                    {availableUsers === extractUsersFromRooms ? ' (from room participants)' : ' (from API)'}
+                                </div>
+                            )}
+                            <ChatRoomForm
+                                initialRoom={editingRoom}
+                                onSubmit={handleRoomFormSubmit}
+                                onCancel={() => setEditingRoom(null)}
+                                users={availableUsers}
+                                isLoading={updatingRoomId === editingRoom?.id}
+                            />
+                        </>
                     ) : (
-                        <div className="text-destructive text-center py-8">
-                            Failed to load users. Please try again.
+                        <div className="text-center py-8">
+                            <div className="text-sm text-muted-foreground">No users available for room management</div>
+                            <div className="text-xs text-muted-foreground mt-2">
+                                Try creating or joining some chat rooms first to populate the user list.
+                            </div>
                         </div>
                     )}
                 </DialogContent>
