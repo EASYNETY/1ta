@@ -51,6 +51,34 @@ const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280",
 const ensureArray = (data: any) => (Array.isArray(data) ? data : []);
 const formatCurrency = (v?: number) => (v == null ? "₦0" : `₦${v.toLocaleString()}`);
 
+
+  // This is required by <ChartContainer> to render tooltips and legends correctly.
+  const revenueTrendConfig: ChartConfig = {
+    value: { label: "Revenue", color: "#28A745" },
+  };
+  const popularCoursesConfig: ChartConfig = {
+    value: { label: "Enrolments", color: "#28A745" },
+  };
+  const studentGrowthConfig: ChartConfig = {
+    value: { label: "New Students", color: "#28A745" },
+  };
+  const completionRateConfig: ChartConfig = {
+    value: { label: "Completion %", color: "#28A745" },
+  };
+  const avgGradeConfig: ChartConfig = {
+    value: { label: "Avg. Grade", color: "#3B82F6" },
+  };
+  const revenueByCourseConfig: ChartConfig = {
+    value: { label: "Revenue", color: "#28A745" },
+  };
+  const attendanceTrendConfig: ChartConfig = {
+    value: { label: "Attendance Rate", color: "#28A745" },
+  };
+  const attendanceDayConfig: ChartConfig = {
+    value: { label: "Attendance Rate", color: "#28A745" },
+  };
+
+
 // CSV export helper
 function exportToCSV(filename: string, rows: any[]) {
   if (!rows || rows.length === 0) {
@@ -561,32 +589,18 @@ export default function AnalyticsDashboard() {
 
         {/* PAYMENTS */}
         <TabsContent value="payments" className="space-y-6">
-          <Card id="revenue-by-course-card">
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>Revenue by Course (Top 5)</CardTitle>
-              {/* <div className="flex gap-2">
-                <DyraneButton size="sm" onClick={() => exportChartCSV(derivedCourseRevenue, "revenue-by-course.csv")}>
-                  <Download className="h-4 w-4 mr-1" /> CSV
-                </DyraneButton>
-                <DyraneButton size="sm" onClick={() => exportChartPNG("revenue-by-course-card", "revenue-by-course.png")}>
-                  <Download className="h-4 w-4 mr-1" /> PNG
-                </DyraneButton>
-              </div> */}
-            </CardHeader>
+           <Card>
+            <CardHeader><CardTitle>Revenue by Course (Top 5)</CardTitle></CardHeader>
             <CardContent className="h-96">
-              {isLoading ? (
-                <Skeleton className="h-full w-full" />
-              ) : (derivedCourseRevenue || []).length === 0 ? (
-                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No revenue by course</div>
-              ) : (
-                <ChartContainer config={{ value: { label: "Revenue", color: "#3B82F6" } }}>
+              {isLoading ? <Skeleton className="h-full w-full" /> : (
+                <ChartContainer config={revenueByCourseConfig}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={derivedCourseRevenue} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <BarChart data={ensureArray(selectDerivedCourseRevenue)} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <YAxis type="number" tickFormatter={(value) => `₦${value.toLocaleString()}`} />
+                      <XAxis type="number" tickFormatter={(value) => `₦${(value / 100 / 1000)}k`} />
                       <YAxis dataKey="courseName" type="category" width={150} tick={{ fontSize: 12 }} />
-                      <ChartTooltip content={<ChartTooltipContent formatter={(v) => formatCurrency(v as number)} />} />
-                      <Bar dataKey="totalRevenue" fill="#3B82F6" name="Revenue" radius={[0, 4, 4, 0]} />
+                      <ChartTooltip content={<ChartTooltipContent formatter={(value) => `₦${(value as number / 100).toLocaleString()}`} />} />
+                      <Bar dataKey="totalRevenue" fill={revenueByCourseConfig.value.color} name="Revenue" radius={[0, 4, 4, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
