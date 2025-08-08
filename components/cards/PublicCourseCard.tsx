@@ -96,7 +96,7 @@ export function PublicCourseCard({ course, className, onClick, isModal = false, 
             return course.priceNaira ?? (course.priceUSD ? course.priceUSD * 1500 : 0);
         }
         // For admin/teacher, use USD price
-        return course.priceUSD ?? 0;
+        return course.priceNaira ?? 0;
     };
 
     const getDiscountPrice = () => {
