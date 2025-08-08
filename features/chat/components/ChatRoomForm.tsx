@@ -18,22 +18,22 @@ interface ChatRoomFormProps {
   isLoading?: boolean;
 }
 
-export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({ 
-  initialRoom, 
-  onSubmit, 
-  onCancel, 
+export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
+  initialRoom,
+  onSubmit,
+  onCancel,
   users,
-  isLoading = false 
+  isLoading = false
 }) => {
   function extractParticipantObjs(participants: any): { id: string; name: string; email?: string; role?: string }[] {
     if (!participants) return [];
     if (Array.isArray(participants)) {
       if (typeof participants[0] === "object" && participants[0] !== null) {
-        return participants.map((p: any) => ({ 
-          id: p.id, 
+        return participants.map((p: any) => ({
+          id: p.id,
           name: p.name || p.id,
           email: p.email,
-          role: p.role 
+          role: p.role
         }));
       }
       // If only IDs, map to user objects
@@ -61,7 +61,7 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
   }, [initialRoom, users]);
 
   // Filter available users (exclude already selected ones)
-  const availableUsers = users.filter(user => 
+  const availableUsers = users.filter(user =>
     !selectedUsers.some(selected => selected.id === user.id) &&
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -83,10 +83,10 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
       alert("Room name is required");
       return;
     }
-    onSubmit({ 
-      name: name.trim(), 
-      type, 
-      participantIds: selectedUsers.map(u => u.id) 
+    onSubmit({
+      name: name.trim(),
+      type,
+      participantIds: selectedUsers.map(u => u.id)
     });
   };
 
@@ -106,21 +106,26 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
   };
 
   return (
-    <div className="space-y-6 p-6 max-w-2xl mx-auto">
-      <div className="space-y-4">
+    <div className="flex flex-col h-full max-h-[calc(90vh-8rem)]">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 pb-4">
         <h2 className="text-xl font-semibold">
           {initialRoom ? "Update Chat Room" : "Create Chat Room"}
         </h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
+      </div>
+
+      {/* Scrollable Content */}
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto pr-1 pb-28">
+        <div className="space-y-6">
           {/* Room Name */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">Room Name</label>
-            <Input 
-              value={name} 
-              onChange={e => setName(e.target.value)} 
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
               placeholder="Enter room name"
-              required 
+              required
               disabled={isLoading}
             />
           </div>
@@ -156,7 +161,7 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
             {selectedUsers.length > 0 && (
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-muted-foreground">Current Participants</h4>
-                <ScrollArea className="max-h-48 border rounded-md p-2">
+                <div className="max-h-48 border rounded-md p-2 overflow-y-auto">
                   <div className="space-y-2">
                     {selectedUsers.map((user) => (
                       <div key={user.id} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
@@ -186,7 +191,7 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
                       </div>
                     ))}
                   </div>
-                </ScrollArea>
+                </div>
               </div>
             )}
 
@@ -202,7 +207,7 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
                 onChange={e => setSearchQuery(e.target.value)}
                 disabled={isLoading}
               />
-              
+
               {/* Available Users */}
               {searchQuery && availableUsers.length > 0 && (
                 <div className="border rounded-md bg-background max-h-40 overflow-y-auto">
@@ -251,27 +256,31 @@ export const ChatRoomForm: React.FC<ChatRoomFormProps> = ({
               )}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Form Actions */}
-          <div className="flex gap-3 pt-4">
-            <DyraneButton 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading || !name.trim()}
-            >
-              {isLoading ? "Saving..." : (initialRoom ? "Update Room" : "Create Room")}
-            </DyraneButton>
-            <DyraneButton 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel} 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              Cancel
-            </DyraneButton>
-          </div>
-        </form>
+
+      {/* Fixed Footer with Form Actions */}
+      <div className="flex-shrink-0 pt-6 mt-4 border-t bg-background/95 backdrop-blur-sm">
+        <div className="flex gap-3">
+          <DyraneButton
+            type="submit"
+            onClick={handleSubmit}
+            className="flex-1"
+            disabled={isLoading || !name.trim()}
+          >
+            {isLoading ? "Saving..." : (initialRoom ? "Update Room" : "Create Room")}
+          </DyraneButton>
+          <DyraneButton
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+            disabled={isLoading}
+          >
+            Cancel
+          </DyraneButton>
+        </div>
       </div>
     </div>
   );
