@@ -1,176 +1,196 @@
 // features/chat/components/ChatRoomItem.tsx
 
-"use client"
+"use client";
 
-import type React from "react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { formatDistanceToNowStrict } from "date-fns"
-import { parseISO } from "date-fns"
-import { type ChatRoom, ChatRoomType } from "../types/chat-types"
-import { BookOpen, Calendar, Users, Bell } from "lucide-react"
+import React from "react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, Users, Calendar, Megaphone, BookOpen, GraduationCap } from "lucide-react";
+import { ChatRoomType } from "../types/chat-types";
+import { formatDistanceToNow } from "date-fns";
 
 interface ChatRoomItemProps {
-  room: ChatRoom
-  isSelected: boolean
-  onClick: () => void
+  room: {
+    id: string;
+    name: string;
+    type: ChatRoomType;
+    lastMessageAt?: string;
+    lastMessage?: {
+      content: string;
+      sender?: {
+        name: string;
+      };
+    };
+    participants?: Array<{
+      id: string;
+      name: string;
+      avatar?: string;
+    }>;
+    unreadCount?: number; // Add this to your room type
+  };
+  isSelected: boolean;
+  onClick: () => void;
 }
 
-export const ChatRoomItem: React.FC<ChatRoomItemProps> = ({ room, isSelected, onClick }) => {
-  const formatLastMessageTime = (timestamp?: string): string => {
-    if (!timestamp) return ""
+export const ChatRoomItem: React.FC<ChatRoomItemProps> = ({
+  room,
+  isSelected,
+  onClick,
+}) => {
+  const getTypeIcon = (type: ChatRoomType) => {
+    switch (type) {
+      case ChatRoomType.CLASS:
+        return <GraduationCap className="h-4 w-4" />;
+      case ChatRoomType.COURSE:
+        return <BookOpen className="h-4 w-4" />;
+      case ChatRoomType.EVENT:
+        return <Calendar className="h-4 w-4" />;
+      case ChatRoomType.ANNOUNCEMENT:
+        return <Megaphone className="h-4 w-4" />;
+      default:
+        return <MessageSquare className="h-4 w-4" />;
+    }
+  };
+
+  const getTypeColor = (type: ChatRoomType) => {
+    switch (type) {
+      case ChatRoomType.CLASS:
+        return "text-blue-500";
+      case ChatRoomType.COURSE:
+        return "text-green-500";
+      case ChatRoomType.EVENT:
+        return "text-purple-500";
+      case ChatRoomType.ANNOUNCEMENT:
+        return "text-orange-500";
+      default:
+        return "text-gray-500";
+    }
+  };
+
+  const formatLastMessageTime = (timestamp?: string) => {
+    if (!timestamp) return "";
     try {
-      const date = parseISO(timestamp)
-      return formatDistanceToNowStrict(date, { addSuffix: false })
+      return formatDistanceToNow(new Date(timestamp), { addSuffix: true });
     } catch {
-      return ""
+      return "";
     }
-  }
+  };
 
-  // Get the appropriate icon based on room type
-  const getRoomIcon = () => {
-    const iconClass = "h-4 w-4"
-    switch (room.type) {
-      case ChatRoomType.COURSE:
-        return <BookOpen className={iconClass} />
-      case ChatRoomType.CLASS:
-        return <Users className={iconClass} />
-      case ChatRoomType.EVENT:
-        return <Calendar className={iconClass} />
-      case ChatRoomType.ANNOUNCEMENT:
-        return <Bell className={iconClass} />
-      default:
-        return <Users className={iconClass} />
-    }
-  }
+  const truncateMessage = (content: string, maxLength: number = 50) => {
+    if (content.length <= maxLength) return content;
+    return content.substring(0, maxLength) + "...";
+  };
 
-  // Get the appropriate color based on room type
-  const getRoomColor = () => {
-    switch (room.type) {
-      case ChatRoomType.COURSE:
-        return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-      case ChatRoomType.CLASS:
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-      case ChatRoomType.EVENT:
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-      case ChatRoomType.ANNOUNCEMENT:
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-      default:
-        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
-    }
-  }
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map(word => word[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
-  // Format unread count for display
-  const getUnreadDisplay = () => {
-    if (!room.unreadCount || room.unreadCount === 0) return null
-    if (room.unreadCount > 99) return "99+"
-    return room.unreadCount.toString()
-  }
+  // Determine if this room has unread messages
+  const hasUnread = (room.unreadCount ?? 0) > 0;
 
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg p-3 text-left transition-all duration-200 cursor-pointer relative",
-        isSelected 
-          ? "bg-primary/10 text-primary ring-2 ring-primary/20 shadow-sm" 
-          : "bg-card/65 text-foreground/80 hover:bg-muted/70 hover:text-foreground hover:shadow-sm",
-        room.unreadCount && room.unreadCount > 0 && !isSelected && "bg-primary/5 border-l-2 border-l-primary/30"
+        "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-all hover:bg-accent/50",
+        isSelected && "bg-accent shadow-sm border",
+        hasUnread && !isSelected && "bg-primary/5 border border-primary/20"
       )}
-      aria-current={isSelected ? "page" : undefined}
     >
-      {/* Avatar with room type icon */}
-      <Avatar className={cn(
-        "h-10 w-10 border transition-colors", 
-        isSelected ? "border-primary/30 ring-2 ring-primary/10" : "border-border"
-      )}>
-        <AvatarFallback
-          className={cn(
-            "flex items-center justify-center transition-colors", 
-            isSelected ? "bg-primary/15 text-primary" : getRoomColor()
-          )}
-        >
-          {getRoomIcon()}
-        </AvatarFallback>
-      </Avatar>
-
-      {/* Room Content */}
-      <div className="flex-1 overflow-hidden min-w-0">
-        <div className="flex items-center justify-between mb-1">
-          <p className={cn(
-            "truncate font-medium text-sm transition-colors", 
-            isSelected ? "text-primary" : "text-foreground",
-            room.unreadCount && room.unreadCount > 0 && !isSelected && "font-semibold"
+      {/* Room Avatar/Icon */}
+      <div className="relative flex-shrink-0">
+        {room.participants && room.participants.length > 0 ? (
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={room.participants[0]?.avatar} alt={room.participants[0]?.name} />
+            <AvatarFallback className="text-xs font-medium">
+              {getInitials(room.participants[0]?.name || room.name)}
+            </AvatarFallback>
+          </Avatar>
+        ) : (
+          <div className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-full bg-muted",
+            getTypeColor(room.type)
           )}>
-            {room.name}
-          </p>
-          {/* Timestamp */}
-          {room.lastMessage?.timestamp && (
-            <span className={cn(
-              "text-[10px] whitespace-nowrap ml-2 transition-colors",
-              isSelected ? "text-primary/70" : "text-muted-foreground"
-            )}>
-              {formatLastMessageTime(room.lastMessage.timestamp)}
-            </span>
-          )}
-        </div>
-        
-        {/* Last Message */}
-        {room.lastMessage && (
-          <div className="flex items-center justify-between">
-            <p className={cn(
-              "truncate text-xs leading-relaxed transition-colors", 
-              isSelected ? "text-primary/80" : "text-muted-foreground",
-              room.unreadCount && room.unreadCount > 0 && !isSelected && "font-medium text-foreground/90"
-            )}>
-              {room.lastMessage.senderName && room.isGroupChat ? (
-                <span className="font-medium">
-                  {room.lastMessage.senderName}: 
-                </span>
-              ) : null}
-              <span className={room.lastMessage.senderName && room.isGroupChat ? "ml-1" : ""}>
-                {room.lastMessage.content}
-              </span>
-            </p>
+            {getTypeIcon(room.type)}
           </div>
         )}
-
-        {/* Room Type Badge (only shown when not selected and has space) */}
-        {!isSelected && !room.lastMessage && (
-          <div className="mt-1">
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-              {room.type === ChatRoomType.COURSE ? "Course" :
-               room.type === ChatRoomType.CLASS ? "Class" :
-               room.type === ChatRoomType.EVENT ? "Event" :
-               room.type === ChatRoomType.ANNOUNCEMENT ? "Announcement" : "Group"}
-            </Badge>
-          </div>
+        
+        {/* Unread indicator dot */}
+        {hasUnread && (
+          <div className="absolute -top-1 -right-1 h-3 w-3 bg-primary rounded-full border-2 border-background" />
         )}
       </div>
 
-      {/* Unread Count Badge */}
-      {getUnreadDisplay() && (
-        <div className="flex flex-col items-end justify-center ml-2">
-          <Badge 
-            className={cn(
-              "h-5 min-w-[20px] px-1.5 flex items-center justify-center text-[10px] font-semibold transition-all",
-              isSelected 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-primary text-primary-foreground animate-pulse"
+      {/* Room Info */}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between mb-1">
+          <p className={cn(
+            "text-sm font-medium truncate",
+            hasUnread && "font-semibold"
+          )}>
+            {room.name}
+          </p>
+          
+          {/* Unread Count Badge */}
+          {hasUnread && (
+            <Badge 
+              variant="default" 
+              className="h-5 min-w-[20px] px-1.5 text-xs font-semibold bg-primary text-primary-foreground ml-2 flex-shrink-0"
+            >
+              {room.unreadCount! > 99 ? "99+" : room.unreadCount}
+            </Badge>
+          )}
+        </div>
+
+        {/* Last Message Preview */}
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex-1 min-w-0">
+            {room.lastMessage ? (
+              <p className={cn(
+                "truncate",
+                hasUnread && "font-medium text-foreground/80"
+              )}>
+                {room.lastMessage.sender && (
+                  <span className="font-medium">
+                    {room.lastMessage.sender.name}:{" "}
+                  </span>
+                )}
+                {truncateMessage(room.lastMessage.content)}
+              </p>
+            ) : (
+              <p className="truncate text-muted-foreground/60">
+                No messages yet
+              </p>
             )}
-          >
-            {getUnreadDisplay()}
+          </div>
+          
+          {/* Last Message Time */}
+          {room.lastMessageAt && (
+            <span className="ml-2 flex-shrink-0 text-xs text-muted-foreground/70">
+              {formatLastMessageTime(room.lastMessageAt)}
+            </span>
+          )}
+        </div>
+
+        {/* Participants Count */}
+        <div className="flex items-center gap-1 mt-1">
+          <Users className="h-3 w-3 text-muted-foreground/60" />
+          <span className="text-xs text-muted-foreground/70">
+            {room.participants?.length || 0} members
+          </span>
+          
+          {/* Room Type Badge */}
+          <Badge variant="secondary" className="ml-auto text-xs px-1.5 py-0.5 h-auto">
+            {room.type}
           </Badge>
         </div>
-      )}
-
-      {/* Online Indicator (if room has active participants) */}
-      {room.activeParticipants && room.activeParticipants > 0 && (
-        <div className="absolute top-2 right-2">
-          <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-        </div>
-      )}
+      </div>
     </button>
-  )
-}
+  );
+};
