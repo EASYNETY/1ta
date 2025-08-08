@@ -12,6 +12,39 @@ export const fetchAllUsers = createAsyncThunk(
         requiresAuth: true,
       });
 
+      // Ensure the response is an array and has the expected structure
+      if (!Array.isArray(response)) {
+        throw new Error('Invalid response format: expected array of users');
+      }
+
+      // Transform the response to ensure consistent structure
+      return response.map((user: any) => ({
+        id: user.id || user._id, // Handle both id formats
+        name: user.name || user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User',
+        email: user.email || '',
+        role: user.role || 'student',
+        avatar: user.avatar || user.avatarUrl || null,
+        isActive: user.isActive !== false, // Default to true if not specified
+      }));
+    } catch (error: any) {
+      console.error('Failed to fetch users:', error);
+      
+      // Return a more descriptive error message
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch users';
+      return rejectWithValue(errorMessage);
+    }
+  }
+);
+
+export const fetchAllChatUsers = createAsyncThunk(
+  'users/fetchAllUsers',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await apiClient('/admin/users', {
+        method: 'GET',
+        requiresAuth: true,
+      });
+
       // ✅ Unwrap nested "data.users" array
       const usersArray = response?.data?.users;
       if (!Array.isArray(usersArray)) {
