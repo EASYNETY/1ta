@@ -37,28 +37,28 @@ export default function AnalyticsDashboard() {
   // --- Define Chart Configs ---
   // This is required by <ChartContainer> to render tooltips and legends correctly.
   const revenueTrendConfig: ChartConfig = {
-    value: { label: "Revenue", color: "#28A745" },
+    value: { label: "Revenue", color: "oklch(0.7 0.15 77.5)" },
   };
   const popularCoursesConfig: ChartConfig = {
-    value: { label: "Enrolments", color: "#28A745" },
+    value: { label: "Enrolments", color: "oklch(0.7 0.15 77.5)" },
   };
   const studentGrowthConfig: ChartConfig = {
-    value: { label: "New Students", color: "#28A745" },
+    value: { label: "New Students", color: "oklch(0.7 0.15 77.5)" },
   };
   const completionRateConfig: ChartConfig = {
-    value: { label: "Completion %", color: "#28A745" },
+    value: { label: "Completion %", color: "oklch(0.7 0.15 77.5)" },
   };
   const avgGradeConfig: ChartConfig = {
     value: { label: "Avg. Grade", color: "#3B82F6" },
   };
   const revenueByCourseConfig: ChartConfig = {
-    value: { label: "Revenue", color: "#28A745" },
+    value: { label: "Revenue", color: "oklch(0.7 0.15 77.5)" },
   };
   const attendanceTrendConfig: ChartConfig = {
-    value: { label: "Attendance Rate", color: "#28A745" },
+    value: { label: "Attendance Rate", color: "oklch(0.7 0.15 77.5)" },
   };
   const attendanceDayConfig: ChartConfig = {
-    value: { label: "Attendance Rate", color: "#28A745" },
+    value: { label: "Attendance Rate", color: "oklch(0.7 0.15 77.5)" },
   };
 
 
@@ -73,7 +73,7 @@ export default function AnalyticsDashboard() {
 
   const ageData = ensureArray(stats?.studentStats?.ageDistribution);
   const ageConfig: ChartConfig = {
-    value: { label: "Students", color: "#28A745" },
+    value: { label: "Students", color: "oklch(0.7 0.15 77.5)" },
   }
 
   const paymentMethodData = ensureArray(stats?.paymentStats?.paymentMethodDistribution);
