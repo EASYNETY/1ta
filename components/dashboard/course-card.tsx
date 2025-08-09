@@ -31,12 +31,21 @@ export function CourseCard({ course, index }: CourseCardProps) {
 
     console.log(`[CourseCard] ${course.title} image:`, course.image);
 
-    // Enhanced image URL handling
+    // Enhanced image URL handling with better fallbacks
     const getImageUrl = () => {
-        // If we had an error, use fallback
+        // If we had an error, use fallback chain
         if (imageError) {
-            console.log(`[CourseCard] Using generated icon due to error for: ${course.title}`);
-            return getCourseIcon(course.title, course.id);
+            console.log(`[CourseCard] Using fallback due to error for: ${course.title}`);
+            
+            // Try the generated icon first
+            const generatedIcon = getCourseIcon(course.title, course.id);
+            
+            // If generated icon looks like a placeholder path that might not exist, use data URL
+            if (generatedIcon.includes('placeholder') || generatedIcon.startsWith('/course-')) {
+                return createFallbackImage();
+            }
+            
+            return generatedIcon;
         }
 
         // Use direct API image if available
@@ -53,7 +62,14 @@ export function CourseCard({ course, index }: CourseCardProps) {
 
         // Final fallback to generated icon
         console.log(`[CourseCard] Using generated icon for: ${course.title}`);
-        return getCourseIcon(course.title, course.id);
+        const generatedIcon = getCourseIcon(course.title, course.id);
+        
+        // If generated icon looks like a placeholder path that might not exist, use data URL
+        if (generatedIcon.includes('placeholder') || generatedIcon.startsWith('/course-')) {
+            return createFallbackImage();
+        }
+        
+        return generatedIcon;
     };
 
     const imageUrl = getImageUrl();
@@ -69,6 +85,18 @@ export function CourseCard({ course, index }: CourseCardProps) {
     const handleImageLoad = () => {
         console.log(`[CourseCard] Image loaded successfully: ${imageUrl}`);
         setImageLoaded(true);
+        setImageError(false); // Reset error state on successful load
+    };
+
+    // Create a data URL fallback for when all else fails
+    const createFallbackImage = () => {
+        const svg = `<svg width="400" height="225" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="#f1f5f9"/>
+            <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" dy=".3em" fill="#64748b">
+                ${course.title || 'Course'}
+            </text>
+        </svg>`;
+        return `data:image/svg+xml;base64,${btoa(svg)}`;
     };
 
     return (
@@ -83,6 +111,8 @@ export function CourseCard({ course, index }: CourseCardProps) {
                         onError={handleImageError}
                         onLoad={handleImageLoad}
                         loading={index < 4 ? "eager" : "lazy"}
+                        crossOrigin="anonymous"
+                        referrerPolicy="no-referrer"
                     />
                     
                     {/* Loading state */}
