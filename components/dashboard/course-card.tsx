@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import Image from "next/image"
+import { useState } from "react"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
@@ -16,6 +17,9 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course, index }: CourseCardProps) {
+    const [imageError, setImageError] = useState(false)
+    const [imageLoaded, setImageLoaded] = useState(false)
+    
     // Animation variants
     const item = {
         hidden: { opacity: 0, y: 20 },
@@ -27,9 +31,15 @@ export function CourseCard({ course, index }: CourseCardProps) {
 
     console.log(`[CourseCard] ${course.title} image:`, course.image);
 
-    // Enhanced image URL handling - direct use of API image
+    // Enhanced image URL handling
     const getImageUrl = () => {
-        // Since the console shows the image URL is already complete, use it directly
+        // If we had an error, use fallback
+        if (imageError) {
+            console.log(`[CourseCard] Using generated icon due to error for: ${course.title}`);
+            return getCourseIcon(course.title, course.id);
+        }
+
+        // Use direct API image if available
         if (course.image && course.image.startsWith("http") && !course.image.includes('placeholder')) {
             console.log(`[CourseCard] Using direct image URL: ${course.image}`);
             return course.image;
@@ -47,32 +57,54 @@ export function CourseCard({ course, index }: CourseCardProps) {
     };
 
     const imageUrl = getImageUrl();
+    const isExternalImage = imageUrl.includes('api.onetechacademy.com');
+
+    const handleImageError = () => {
+        console.log(`[CourseCard] Image failed to load: ${imageUrl}`);
+        if (!imageError) {
+            setImageError(true);
+        }
+    };
+
+    const handleImageLoad = () => {
+        console.log(`[CourseCard] Image loaded successfully: ${imageUrl}`);
+        setImageLoaded(true);
+    };
 
     return (
         <motion.div variants={item}>
             <DyraneCard className="overflow-hidden h-full flex flex-col group">
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                    <Image
-                        src={imageUrl}
-                        alt={course.title || "Course"}
-                        fill
-                        sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                        unoptimized={imageUrl.includes('api.onetechacademy.com')} // Disable Next.js optimization for external API images
-                        onError={(e) => {
-                            console.log(`[CourseCard] Image failed to load: ${imageUrl}`);
-                            const target = e.currentTarget as HTMLImageElement;
-                            // Only fallback if we haven't already tried the generated icon
-                            if (!target.src.includes('generated-icon') && !target.dataset.fallbackAttempted) {
-                                target.dataset.fallbackAttempted = 'true';
-                                target.src = getCourseIcon(course.title, course.id);
-                            }
-                        }}
-                        onLoad={() => {
-                            console.log(`[CourseCard] Image loaded successfully: ${imageUrl}`);
-                        }}
-                        priority={index < 4} // Prioritize loading for first 4 images
-                    />
+                    {isExternalImage && !imageError ? (
+                        // Use regular img for external images to avoid Next.js issues
+                        <img
+                            src={imageUrl}
+                            alt={course.title || "Course"}
+                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105 absolute inset-0"
+                            onError={handleImageError}
+                            onLoad={handleImageLoad}
+                            loading={index < 4 ? "eager" : "lazy"}
+                        />
+                    ) : (
+                        // Use Next.js Image for internal/fallback images
+                        <Image
+                            src={imageUrl}
+                            alt={course.title || "Course"}
+                            fill
+                            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                            onError={handleImageError}
+                            onLoad={handleImageLoad}
+                            priority={index < 4}
+                        />
+                    )}
+                    
+                    {/* Loading state */}
+                    {!imageLoaded && !imageError && (
+                        <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
+                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    )}
                     
                     {/* Progress overlay */}
                     {progressPercentage > 0 && (
