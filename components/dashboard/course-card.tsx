@@ -1,11 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Image from "next/image"
 import { DyraneCard } from "@/components/dyrane-ui/dyrane-card"
 import { CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { Clock } from "lucide-react"
+import { Clock, Layers } from "lucide-react"
 import Link from "next/link"
+import { getCourseIcon } from "@/utils/course-icon-mapping"
 import type { AuthCourse } from "@/features/auth-course/types/auth-course-interface"
 
 interface CourseCardProps {
@@ -25,75 +27,94 @@ export function CourseCard({ course, index }: CourseCardProps) {
 
     console.log(`[CourseCard] ${course.title} image:`, course.image);
 
-    // Determine the correct image URL, handling placeholders correctly.
-    // This prevents trying to fetch placeholder images from the API server.
-
+    // Enhanced image URL handling similar to AuthCourseCard
     const getImageUrl = () => {
-  const baseUrl = "https://api.onetechacademy.com";
+        const baseUrl = "https://api.onetechacademy.com";
 
-  if (!course.image || course.image.includes('placeholder')) {
-    return "/course-placeholder.png";
-  }
+        // Priority order: iconUrl, image, fallback to generated icon
+        if (course.iconUrl) {
+            return course.iconUrl.startsWith("http") ? course.iconUrl : `${baseUrl}${course.iconUrl}`;
+        }
 
-  const trimmedImage = course.image.trim();
+        if (!course.image || course.image.includes('placeholder')) {
+            return getCourseIcon(course.title, course.id);
+        }
 
-  if (trimmedImage.startsWith("http")) {
-    return trimmedImage;
-  }
+        const trimmedImage = course.image.trim();
 
-  return `${baseUrl}${trimmedImage.startsWith("/") ? trimmedImage : `/${trimmedImage}`}`;
-};
+        if (trimmedImage.startsWith("http")) {
+            return trimmedImage;
+        }
 
+        return `${baseUrl}${trimmedImage.startsWith("/") ? trimmedImage : `/${trimmedImage}`}`;
+    };
 
-
-    // const getImageUrl = () => {
-    //     const baseUrl = "https://api.onetechacademy.com";
-
-    //     if (!course.image || course.image.includes('placeholder')) {
-    //         return "/course-placeholder.png"; // fallback
-    //     }
-
-    //     if (course.image.startsWith("http")) {
-    //         return course.image;
-    //     }
-
-    //     // If it starts with '/', assume it's a relative path from the API
-    //     return `${baseUrl}${course.image}`;
-    // };
+    const imageUrl = getImageUrl();
 
     return (
         <motion.div variants={item}>
-            <DyraneCard className="overflow-hidden h-full flex flex-col">
+            <DyraneCard className="overflow-hidden h-full flex flex-col group">
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                    <img
-                        src={course.image ? getImageUrl() : "/course-placeholder.png"}
+                    <Image
+                        src={imageUrl}
                         alt={course.title || "Course"}
-                        className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                        fill
+                        sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                         onError={(e) => {
-                            // Prevent an infinite loop if the placeholder itself fails to load
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = "/course-placeholder.png";
+                            // Prevent infinite loop and fallback to generated icon
+                            const target = e.currentTarget as HTMLImageElement;
+                            if (!target.src.includes('course-placeholder.png') && !target.src.includes('generated-icon')) {
+                                target.src = getCourseIcon(course.title, course.id);
+                            }
                         }}
+                        priority={index < 4} // Prioritize loading for first 4 images
                     />
+                    
+                    {/* Progress overlay */}
+                    {progressPercentage > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm p-2">
+                            <div className="flex justify-between text-xs mb-1">
+                                <span>Progress</span>
+                                <span>{progressPercentage}%</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-1.5">
+                                <div 
+                                    className="bg-primary h-full rounded-full transition-all duration-300" 
+                                    style={{ width: `${progressPercentage}%` }} 
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <CardHeader>
-                    <CardTitle className="line-clamp-1">{course.title || "Untitled Course"}</CardTitle>
+                
+                <CardHeader className="pb-3">
+                    <CardTitle className="line-clamp-2 text-base leading-tight">
+                        {course.title || "Untitled Course"}
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow">
-                    <div className="flex items-center text-sm text-muted-foreground">
-                        <Clock className="mr-1 h-4 w-4" />
+                
+                <CardContent className="flex-grow pt-0">
+                    <div className="flex items-center text-sm text-muted-foreground mb-3">
+                        <Clock className="mr-2 h-4 w-4" />
                         <span>{course.totalVideoDuration || `${(index + 1) * 5 + 10} hours`}</span>
                         <span className="mx-2">•</span>
-                        <span>{course.level || (index % 2 === 0 ? "Intermediate" : "Beginner")}</span>
+                        <Layers className="mr-1 h-4 w-4" />
+                        <span>{course.lessonCount || 'Multiple'} lessons</span>
                     </div>
-                    <div className="mt-2 h-2 w-full rounded-full bg-primary/20">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${progressPercentage}%` }} />
+                    
+                    <div className="flex items-center text-sm text-muted-foreground">
+                        <span className="px-2 py-1 bg-muted rounded-full text-xs">
+                            {course.level || (index % 2 === 0 ? "Intermediate" : "Beginner")}
+                        </span>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{`${progressPercentage}% complete`}</p>
                 </CardContent>
-                <CardFooter>
+                
+                <CardFooter className="pt-0">
                     <DyraneButton variant="outline" size="sm" className="w-full" asChild>
-                        <Link href={`/courses/${course.slug}`}>Continue Learning</Link>
+                        <Link href={`/courses/${course.slug}`}>
+                            {progressPercentage > 0 ? "Continue Learning" : "Start Learning"}
+                        </Link>
                     </DyraneButton>
                 </CardFooter>
             </DyraneCard>
