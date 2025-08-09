@@ -44,7 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import html2canvas from "html2canvas";
-import { fetchLiveAttendanceByDay } from "@/lib/api-client"; // Adjust import path if different
+import { fetchLiveAttendanceStats } from "@/lib/api-client";
 
 
 const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280", "#EF4444"];
@@ -188,13 +188,16 @@ export default function AnalyticsDashboard() {
   // -----------------
   // Attendance direct fetch (Option 1)
   // -----------------
-  const [liveAttendanceByDay, setLiveAttendanceByDay] = useState<any[]>([]);
+  const [liveAttendanceStats, setLiveAttendanceStats] = useState({
+    rateTrends: [],
+    byDayOfWeek: [],
+    statusDistribution: []
+  });
 
 
   useEffect(() => {
-    fetchLiveAttendanceByDay().then(setLiveAttendanceByDay);
+    fetchLiveAttendanceStats().then(setLiveAttendanceStats);
   }, []);
-
 
 
   const attendanceStatus = useMemo(() => ensureArray(stats?.attendanceStats?.statusDistribution), [stats]);
@@ -782,7 +785,7 @@ export default function AnalyticsDashboard() {
                 <ChartContainer config={attendanceTrendConfig}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                      data={attendanceTrends}
+                      data={liveAttendanceStats.rateTrends.length ? liveAttendanceStats.rateTrends : attendanceTrends}
                       margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
@@ -826,13 +829,19 @@ export default function AnalyticsDashboard() {
               <CardContent className="h-80">
                 {isLoading ? (
                   <Skeleton className="h-full w-full" />
-                ) : (liveAttendanceByDay.length || attendanceByDay.length) === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No attendance by day</div>
+                ) : (liveAttendanceStats.byDayOfWeek.length || attendanceByDay.length) === 0 ? (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    No attendance by day
+                  </div>
                 ) : (
                   <ChartContainer config={attendanceDayConfig}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={liveAttendanceByDay.length ? liveAttendanceByDay : attendanceByDay}
+                        data={
+                          liveAttendanceStats.byDayOfWeek.length
+                            ? liveAttendanceStats.byDayOfWeek
+                            : attendanceByDay
+                        }
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
@@ -850,10 +859,12 @@ export default function AnalyticsDashboard() {
                           tick={{ fontSize: 11 }}
                         />
                         <ChartTooltip
-                          content={<ChartTooltipContent
-                            formatter={(v) => [`${v}%`, "Attendance Rate"]}
-                            labelFormatter={(label) => `Day: ${label}`}
-                          />}
+                          content={
+                            <ChartTooltipContent
+                              formatter={(v) => [`${v}%`, "Attendance Rate"]}
+                              labelFormatter={(label) => `Day: ${label}`}
+                            />
+                          }
                         />
                         <Bar
                           dataKey="value"
@@ -866,6 +877,7 @@ export default function AnalyticsDashboard() {
                   </ChartContainer>
                 )}
               </CardContent>
+
             </Card>
 
             <Card id="attendance-status-card">
@@ -887,7 +899,7 @@ export default function AnalyticsDashboard() {
                           />}
                         />
                         <Pie
-                          data={attendanceStatus}
+                          data={liveAttendanceStats.statusDistribution.length ? liveAttendanceStats.statusDistribution : attendanceStatus}
                           dataKey="value"
                           nameKey="name"
                           cx="50%"
