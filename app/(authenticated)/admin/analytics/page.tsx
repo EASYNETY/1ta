@@ -1,4 +1,4 @@
-// app/(authenticated)/admin/analytics/page.tsx
+// app(authenticated)/admin/analytics/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState, useRef } from "react";
@@ -37,15 +37,13 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { Users, BookOpen, CreditCard, Calendar, Download, Clock, UserCheck } from "lucide-react";
+import { Users, BookOpen, CreditCard, Calendar, Download } from "lucide-react";
 import Link from "next/link";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import html2canvas from "html2canvas";
-// Import the attendance analytics utilities
-import { useAttendanceAnalytics, integrateAttendanceIntoAnalytics } from "@/utils/attendance-analytics";
 
 const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280", "#EF4444"];
 
@@ -104,23 +102,6 @@ export default function AnalyticsDashboard() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch attendance analytics - you'll need to get these from your auth state or context
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
-  const authToken = ''; // Get this from your auth state/context
-  
-  const { 
-    data: attendanceAnalytics, 
-    loading: attendanceLoading, 
-    error: attendanceError,
-    refetch: refetchAttendance 
-  } = useAttendanceAnalytics(baseUrl, authToken);
-
-  // Integrate attendance data with existing stats
-  const enhancedStats = useMemo(() => {
-    if (!attendanceAnalytics) return stats;
-    return integrateAttendanceIntoAnalytics(stats, attendanceAnalytics);
-  }, [stats, attendanceAnalytics]);
-
   useEffect(() => {
     if (status === "idle" || status === "failed") {
       dispatch(fetchAnalyticsDashboard());
@@ -130,21 +111,19 @@ export default function AnalyticsDashboard() {
   // Auto refresh every 60s when enabled
   useEffect(() => {
     if (!autoRefresh) return;
-    const id = setInterval(() => {
-      dispatch(fetchAnalyticsDashboard());
-      refetchAttendance();
-    }, 60_000);
+    const id = setInterval(() => dispatch(fetchAnalyticsDashboard()), 60_000);
     return () => clearInterval(id);
-  }, [autoRefresh, dispatch, refetchAttendance]);
+  }, [autoRefresh, dispatch]);
 
-  const isLoading = status === "loading" || status === "idle" || attendanceLoading;
+
+  const isLoading = status === "loading" || status === "idle";
 
   // -----------------
-  // Memoized datasets with proper data handling (existing code)
+  // Memoized datasets with proper data handling
   // -----------------
-  const revenueTrends = useMemo(() => ensureArray(enhancedStats?.paymentStats?.revenueTrends), [enhancedStats]);
+  const revenueTrends = useMemo(() => ensureArray(stats?.paymentStats?.revenueTrends), [stats]);
   const topCourses = useMemo(() => {
-    const courses = ensureArray(enhancedStats?.courseStats?.enrolmentsByCourse);
+    const courses = ensureArray(stats?.courseStats?.enrolmentsByCourse);
     return courses
       .sort((a, b) => (b.value || 0) - (a.value || 0))
       .slice(0, 5)
@@ -153,13 +132,13 @@ export default function AnalyticsDashboard() {
         name: course.name || course.courseName || 'Unknown Course',
         value: course.value || course.enrolments || 0
       }));
-  }, [enhancedStats]);
+  }, [stats]);
   
-  const studentGrowth = useMemo(() => ensureArray(enhancedStats?.studentStats?.growth), [enhancedStats]);
-  const genderData = useMemo(() => ensureArray(enhancedStats?.studentStats?.genderDistribution), [enhancedStats]);
-  const ageData = useMemo(() => ensureArray(enhancedStats?.studentStats?.ageDistribution), [enhancedStats]);
+  const studentGrowth = useMemo(() => ensureArray(stats?.studentStats?.growth), [stats]);
+  const genderData = useMemo(() => ensureArray(stats?.studentStats?.genderDistribution), [stats]);
+  const ageData = useMemo(() => ensureArray(stats?.studentStats?.ageDistribution), [stats]);
   const completionByCourse = useMemo(() => {
-    const completion = ensureArray(enhancedStats?.courseStats?.completionRateByCourse);
+    const completion = ensureArray(stats?.courseStats?.completionRateByCourse);
     return completion
       .sort((a, b) => (b.value || 0) - (a.value || 0))
       .slice(0, 5)
@@ -168,10 +147,10 @@ export default function AnalyticsDashboard() {
         name: course.name || course.courseName || 'Unknown Course',
         value: Math.round(course.value || course.completionRate || 0)
       }));
-  }, [enhancedStats]);
+  }, [stats]);
   
   const avgGradeByCourse = useMemo(() => {
-    const grades = ensureArray(enhancedStats?.courseStats?.averageGradeByCourse);
+    const grades = ensureArray(stats?.courseStats?.averageGradeByCourse);
     return grades
       .sort((a, b) => (b.value || 0) - (a.value || 0))
       .slice(0, 5)
@@ -180,43 +159,90 @@ export default function AnalyticsDashboard() {
         name: course.name || course.courseName || 'Unknown Course',
         value: Math.round(course.value || course.averageGrade || 0)
       }));
-  }, [enhancedStats]);
+  }, [stats]);
   
-  const paymentMethods = useMemo(() => ensureArray(enhancedStats?.paymentStats?.paymentMethodDistribution), [enhancedStats]);
-  const paymentStatus = useMemo(() => ensureArray(enhancedStats?.paymentStats?.paymentStatusDistribution), [enhancedStats]);
+  const paymentMethods = useMemo(() => ensureArray(stats?.paymentStats?.paymentMethodDistribution), [stats]);
+  const paymentStatus = useMemo(() => ensureArray(stats?.paymentStats?.paymentStatusDistribution), [stats]);
   
-  // Updated attendance data from new API
   const attendanceTrends = useMemo(() => {
-    return ensureArray(enhancedStats?.attendanceStats?.rateTrends);
-  }, [enhancedStats]);
+    const trends = ensureArray(stats?.attendanceStats?.rateTrends);
+    return trends.map(trend => ({
+      ...trend,
+      value: Math.round(trend.value || trend.attendanceRate || 0),
+      date: trend.date || trend.month || 'Unknown'
+    }));
+  }, [stats]);
   
   const attendanceByDay = useMemo(() => {
-    return ensureArray(enhancedStats?.attendanceStats?.byDayOfWeek);
-  }, [enhancedStats]);
+    const byDay = ensureArray(stats?.attendanceStats?.byDayOfWeek);
+    return byDay.map(day => ({
+      ...day,
+      name: day.name || day.dayOfWeek || day.day || 'Unknown',
+      value: Math.round(day.value || day.attendanceRate || 0)
+    }));
+  }, [stats]);
+
+// -----------------
+// Attendance direct fetch (Option 1)
+// -----------------
+const [liveAttendanceByDay, setLiveAttendanceByDay] = useState<any[]>([]);
+
+useEffect(() => {
+  const fetchLiveAttendance = async () => {
+    try {
+      const res = await fetch("http://34.249.241.206:5000/api/attendance/", {
+        headers: {
+          Authorization:
+            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlMDM5NjAxLWQ1NGMtNDViOC1hNjgwLTU4YzZiMTAyNzE1MSIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImlhdCI6MTc1NDc2NzY4NywiZXhwIjoxNzU0NzcxMjg3fQ.WpgR5thoXzFh4m2v0EClvKdddBjFIKPmB44vHjdQFOA"
+        }
+      });
+      const json = await res.json();
+
+      if (json.success && json.data?.records?.length) {
+        const byDayMap: Record<string, number> = {};
+
+        json.data.records.forEach((rec: any) => {
+          const dayName = new Date(rec.date).toLocaleDateString("en-US", {
+            weekday: "long"
+          });
+          byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
+        });
+
+        const transformed = Object.entries(byDayMap).map(([name, value]) => ({
+          name,
+          value
+        }));
+
+        setLiveAttendanceByDay(transformed);
+      }
+    } catch (err) {
+      console.error("Error fetching live attendance:", err);
+    }
+  };
+
+  fetchLiveAttendance();
+}, []);
+
+
   
-  const attendanceStatus = useMemo(() => {
-    return ensureArray(enhancedStats?.attendanceStats?.statusDistribution);
-  }, [enhancedStats]);
+  const attendanceStatus = useMemo(() => ensureArray(stats?.attendanceStats?.statusDistribution), [stats]);
 
-  const attendanceByClass = useMemo(() => {
-    const byClass = ensureArray(enhancedStats?.attendanceStats?.byClass);
-    return byClass.slice(0, 5); // Top 5 classes
-  }, [enhancedStats]);
-
-  // Fixed Revenue by Course data (existing code)
+  // Fixed Revenue by Course data
   const revenueByCourseData = useMemo(() => {
-    const revenueData = ensureArray(derivedCourseRevenue) || ensureArray(enhancedStats?.paymentStats?.revenueByCourse);
+    // Use derivedCourseRevenue if available, otherwise fallback to stats
+    const revenueData = ensureArray(derivedCourseRevenue) || ensureArray(stats?.paymentStats?.revenueByCourse);
     return revenueData
       .sort((a, b) => (b.totalRevenue || b.value || 0) - (a.totalRevenue || a.value || 0))
       .slice(0, 5)
       .map(course => ({
         courseName: course.courseName || course.name || 'Unknown Course',
         totalRevenue: course.totalRevenue || course.value || 0,
-        displayRevenue: (course.totalRevenue || course.value || 0) / 100
+        // Convert to proper number format for display
+        displayRevenue: (course.totalRevenue || course.value || 0) / 100 // if stored in kobo/cents
       }));
-  }, [derivedCourseRevenue, enhancedStats]);
+  }, [derivedCourseRevenue, stats]);
 
-  // Derive quick insights (existing code)
+  // Derive quick insights (very simple comparisons — replace with server precomputed if available)
   const revenueInsight = useMemo(() => {
     const last = revenueTrends[revenueTrends.length - 1]?.value ?? 0;
     const prev = revenueTrends[revenueTrends.length - 2]?.value ?? 0;
@@ -233,16 +259,6 @@ export default function AnalyticsDashboard() {
     return { pct, last, trend: pct >= 0 ? "up" : "down" };
   }, [studentGrowth]);
 
-  // New attendance insight
-  const attendanceInsight = useMemo(() => {
-    if (!attendanceTrends.length) return null;
-    const last = attendanceTrends[attendanceTrends.length - 1]?.value ?? 0;
-    const prev = attendanceTrends[attendanceTrends.length - 2]?.value ?? 0;
-    if (last === 0 && prev === 0) return null;
-    const diff = last - prev;
-    return { diff, last, trend: diff >= 0 ? "up" : "down" };
-  }, [attendanceTrends]);
-
   // --- Chart configs ---
   const revenueTrendConfig: ChartConfig = { value: { label: "Revenue", color: "#3B82F6" } };
   const popularCoursesConfig: ChartConfig = { value: { label: "Enrolments", color: "#10B981" } };
@@ -252,14 +268,14 @@ export default function AnalyticsDashboard() {
   const revenueByCourseConfig: ChartConfig = { value: { label: "Revenue", color: "#28A745" } };
   const attendanceTrendConfig: ChartConfig = { value: { label: "Attendance Rate", color: "#F59E0B" } };
   const attendanceDayConfig: ChartConfig = { value: { label: "Attendance Rate", color: "#3B82F6" } };
-  const attendanceClassConfig: ChartConfig = { attendanceRate: { label: "Attendance Rate", color: "#10B981" } };
 
-  // Drill-down handler
+  // Drill-down handler — updates local state filter and could be used to call the API for filtered data
   const handleDrillDown = (payload: { type: string; key?: string }) => {
     setFilter((prev) => (prev?.type === payload.type && prev?.key === payload.key ? null : payload));
+    // Optionally: dispatch fetchAnalyticsDashboard({ filter: payload }) to get server-side filtered data
   };
 
-  // Chart export helpers
+  // Chart export helpers (scoped per chart area)
   const exportChartCSV = (rows: any[], filename = "chart.csv") => exportToCSV(filename, rows);
   const exportChartPNG = (domId: string, filename = "chart.png") => {
     const el = document.getElementById(domId);
@@ -276,13 +292,7 @@ export default function AnalyticsDashboard() {
         subheading="View key metrics and performance indicators for your academy"
         actions={
           <div className="flex gap-2 items-center">
-            <DyraneButton 
-              onClick={() => {
-                dispatch(fetchAnalyticsDashboard());
-                refetchAttendance();
-              }} 
-              size="sm"
-            >
+            <DyraneButton onClick={() => dispatch(fetchAnalyticsDashboard())} size="sm">
               <RefreshIcon />
               Refresh
             </DyraneButton>
@@ -295,16 +305,6 @@ export default function AnalyticsDashboard() {
           </div>
         }
       />
-
-      {attendanceError && (
-        <Card className="border-destructive">
-          <CardContent className="pt-4">
-            <div className="text-sm text-destructive">
-              <strong>Attendance Data Error:</strong> {attendanceError}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Tabs defaultValue="overview">
         <ScrollArea className="w-full whitespace-nowrap pb-0">
@@ -335,13 +335,13 @@ export default function AnalyticsDashboard() {
                     ) : (
                       <>
                         <div className="text-2xl font-bold">
-                          <CountUp end={enhancedStats?.studentStats?.total ?? 0} duration={1.2} separator="," />
+                          <CountUp end={stats?.studentStats?.total ?? 0} duration={1.2} separator="," />
                         </div>
                         <p className="text-xs text-muted-foreground">
                           <span className={studentInsight?.trend === "up" ? "text-green-500" : "text-destructive"}>
                             {studentInsight ? `${studentInsight.pct}%` : "—"}
                           </span>{" "}
-                          from previous period • {enhancedStats?.studentStats?.newThisMonth ?? 0} new this month
+                          from previous period • {stats?.studentStats?.newThisMonth ?? 0} new this month
                         </p>
                       </>
                     )}
@@ -361,8 +361,8 @@ export default function AnalyticsDashboard() {
                       <Skeleton className="h-12 w-32" />
                     ) : (
                       <>
-                        <div className="text-2xl font-bold">{enhancedStats?.courseStats?.total ?? 0}</div>
-                        <p className="text-xs text-muted-foreground">{enhancedStats?.courseStats?.averageCompletion ?? 0}% avg. completion</p>
+                        <div className="text-2xl font-bold">{stats?.courseStats?.total ?? 0}</div>
+                        <p className="text-xs text-muted-foreground">{stats?.courseStats?.averageCompletion ?? 0}% avg. completion</p>
                       </>
                     )}
                   </CardContent>
@@ -381,11 +381,11 @@ export default function AnalyticsDashboard() {
                       <Skeleton className="h-12 w-32" />
                     ) : (
                       <>
-                        <div className="text-2xl font-bold">{formatCurrency(enhancedStats?.paymentStats?.totalRevenue)}</div>
+                        <div className="text-2xl font-bold">{formatCurrency(stats?.paymentStats?.totalRevenue)}</div>
                         <p className="text-xs text-muted-foreground">
-                          {enhancedStats?.paymentStats?.revenueThisMonth ? (
+                          {stats?.paymentStats?.revenueThisMonth ? (
                             <>
-                              +{formatCurrency(enhancedStats.paymentStats.revenueThisMonth)} this month •{" "}
+                              +{formatCurrency(stats.paymentStats.revenueThisMonth)} this month •{" "}
                               <span className={revenueInsight?.trend === "up" ? "text-green-500" : "text-destructive"}>
                                 {revenueInsight ? `${revenueInsight.pct}%` : "—"}
                               </span>
@@ -400,37 +400,20 @@ export default function AnalyticsDashboard() {
                 </Card>
               </motion.div>
 
-              {/* Avg Attendance - Updated with real data */}
+              {/* Avg Attendance */}
               <motion.div variants={containerVariant}>
                 <Card>
                   <CardHeader className="flex items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Avg. Attendance</CardTitle>
-                    <UserCheck className="h-4 w-4 text-muted-foreground" />
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     {isLoading ? (
                       <Skeleton className="h-12 w-32" />
                     ) : (
                       <>
-                        <div className="text-2xl font-bold">
-                          <CountUp 
-                            end={enhancedStats?.attendanceStats?.averageRate ?? 0} 
-                            duration={1.2} 
-                            suffix="%" 
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {attendanceInsight ? (
-                            <>
-                              <span className={attendanceInsight.trend === "up" ? "text-green-500" : "text-destructive"}>
-                                {attendanceInsight.diff > 0 ? '+' : ''}{attendanceInsight.diff}%
-                              </span>{" "}
-                              from last month
-                            </>
-                          ) : (
-                            "Overall attendance rate"
-                          )}
-                        </p>
+                        <div className="text-2xl font-bold">{stats?.attendanceStats?.averageRate ?? 0}%</div>
+                        <p className="text-xs text-muted-foreground">Overall attendance rate</p>
                       </>
                     )}
                   </CardContent>
@@ -812,88 +795,11 @@ export default function AnalyticsDashboard() {
           </div>
         </TabsContent>
 
-        {/* ATTENDANCE - Enhanced with real data */}
+        {/* ATTENDANCE */}
         <TabsContent value="attendance" className="space-y-6">
-          {/* Summary Cards Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <UserCheck className="h-4 w-4 mr-2 text-green-500" />
-                  Present
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {enhancedStats?.attendanceStats?.recentSummary?.present ?? 0}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-yellow-500" />
-                  Late
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {enhancedStats?.attendanceStats?.recentSummary?.late ?? 0}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-red-500" />
-                  Absent
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {enhancedStats?.attendanceStats?.recentSummary?.absent ?? 0}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                  Total Records
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {enhancedStats?.attendanceStats?.totalRecords ?? 0}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           <Card id="attendance-trend-card">
-            <CardHeader className="flex items-center justify-between">
+            <CardHeader>
               <CardTitle>Attendance Rate Trend (Last 6 Months)</CardTitle>
-              <div className="flex gap-2">
-                <DyraneButton 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => exportChartCSV(attendanceTrends, "attendance-trends.csv")}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  CSV
-                </DyraneButton>
-                <DyraneButton 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => exportChartPNG("attendance-trend-card", "attendance-trends.png")}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  PNG
-                </DyraneButton>
-              </div>
             </CardHeader>
             <CardContent className="h-80">
               {isLoading ? (
@@ -935,19 +841,6 @@ export default function AnalyticsDashboard() {
                       />
                     </LineChart>
                   </ResponsiveContainer>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {attendanceInsight ? (
-                      <>
-                        {attendanceInsight.trend === "up" ? "📈" : "📉"} Attendance{" "}
-                        <strong className={attendanceInsight.trend === "up" ? "text-green-500" : "text-destructive"}>
-                          {attendanceInsight.diff > 0 ? '+' : ''}{attendanceInsight.diff}%
-                        </strong>{" "}
-                        compared to previous period.
-                      </>
-                    ) : (
-                      "Click on data points to view detailed information."
-                    )}
-                  </p>
                 </ChartContainer>
               )}
             </CardContent>
@@ -955,27 +848,19 @@ export default function AnalyticsDashboard() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card id="attendance-by-day-card">
-              <CardHeader className="flex items-center justify-between">
+              <CardHeader>
                 <CardTitle>Attendance by Day of Week</CardTitle>
-                <DyraneButton 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => exportChartCSV(attendanceByDay, "attendance-by-day.csv")}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Export
-                </DyraneButton>
               </CardHeader>
               <CardContent className="h-80">
                 {isLoading ? (
                   <Skeleton className="h-full w-full" />
-                ) : attendanceByDay.length === 0 ? (
+                ) : (liveAttendanceByDay.length || attendanceByDay.length) === 0 ? (
                   <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No attendance by day</div>
                 ) : (
                   <ChartContainer config={attendanceDayConfig}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={attendanceByDay}
+                        data={liveAttendanceByDay.length ? liveAttendanceByDay : attendanceByDay}
                         margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
@@ -1012,16 +897,8 @@ export default function AnalyticsDashboard() {
             </Card>
 
             <Card id="attendance-status-card">
-              <CardHeader className="flex items-center justify-between">
+              <CardHeader>
                 <CardTitle>Attendance Status Distribution</CardTitle>
-                <DyraneButton 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => exportChartCSV(attendanceStatus, "attendance-status.csv")}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Export
-                </DyraneButton>
               </CardHeader>
               <CardContent className="h-80">
                 {isLoading ? (
@@ -1061,108 +938,13 @@ export default function AnalyticsDashboard() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Attendance by Class */}
-          <Card id="attendance-by-class-card">
-            <CardHeader className="flex items-center justify-between">
-              <CardTitle>Attendance Rate by Class (Top 10)</CardTitle>
-              <DyraneButton 
-                size="sm" 
-                variant="outline"
-                onClick={() => exportChartCSV(attendanceByClass, "attendance-by-class.csv")}
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Export
-              </DyraneButton>
-            </CardHeader>
-            <CardContent className="h-96">
-              {isLoading ? (
-                <Skeleton className="h-full w-full" />
-              ) : attendanceByClass.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No class attendance data</div>
-              ) : (
-                <ChartContainer config={attendanceClassConfig}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={attendanceByClass} 
-                      layout="vertical" 
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        type="number" 
-                        domain={[0, 100]} 
-                        tickFormatter={(v) => `${v}%`}
-                        tick={{ fontSize: 11 }}
-                      />
-                      <YAxis 
-                        dataKey="className" 
-                        type="category" 
-                        width={150} 
-                        tick={{ fontSize: 10 }}
-                        tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
-                      />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent 
-                          formatter={(value) => [`${value}%`, "Attendance Rate"]}
-                          labelFormatter={(label) => `Class: ${label}`}
-                        />} 
-                      />
-                      <Bar 
-                        dataKey="attendanceRate" 
-                        fill={attendanceClassConfig.attendanceRate.color} 
-                        name="Attendance Rate" 
-                        radius={[0, 4, 4, 0]}
-                        onClick={(data) => handleDrillDown({ type: "class", key: data?.classId })}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Click on a class bar to filter other analytics by that class.
-                  </p>
-                </ChartContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Student Attendance Patterns */}
-          {attendanceAnalytics?.studentPatterns && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Top 10 Students by Attendance Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {attendanceAnalytics.studentPatterns.slice(0, 10).map((student, index) => (
-                    <div key={student.studentId} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-bold">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <p className="font-medium">{student.studentName}</p>
-                          <p className="text-sm text-muted-foreground">{student.studentEmail}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-green-600">{student.attendanceRate}%</p>
-                        <p className="text-xs text-muted-foreground">
-                          {student.presentSessions}/{student.totalSessions} sessions
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-// Small inline icon shim for refresh
+// small inline icon shim for refresh (so you don't need to import extra libs)
 function RefreshIcon() {
   return (
     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
