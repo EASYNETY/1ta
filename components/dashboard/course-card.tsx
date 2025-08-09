@@ -27,26 +27,23 @@ export function CourseCard({ course, index }: CourseCardProps) {
 
     console.log(`[CourseCard] ${course.title} image:`, course.image);
 
-    // Enhanced image URL handling similar to AuthCourseCard
+    // Enhanced image URL handling - direct use of API image
     const getImageUrl = () => {
-        const baseUrl = "https://api.onetechacademy.com";
-
-        // Priority order: iconUrl, image, fallback to generated icon
-        if (course.iconUrl) {
-            return course.iconUrl.startsWith("http") ? course.iconUrl : `${baseUrl}${course.iconUrl}`;
+        // Since the console shows the image URL is already complete, use it directly
+        if (course.image && course.image.startsWith("http") && !course.image.includes('placeholder')) {
+            console.log(`[CourseCard] Using direct image URL: ${course.image}`);
+            return course.image;
         }
 
-        if (!course.image || course.image.includes('placeholder')) {
-            return getCourseIcon(course.title, course.id);
+        // Fallback to iconUrl if available
+        if (course.iconUrl && course.iconUrl.startsWith("http")) {
+            console.log(`[CourseCard] Using iconUrl: ${course.iconUrl}`);
+            return course.iconUrl;
         }
 
-        const trimmedImage = course.image.trim();
-
-        if (trimmedImage.startsWith("http")) {
-            return trimmedImage;
-        }
-
-        return `${baseUrl}${trimmedImage.startsWith("/") ? trimmedImage : `/${trimmedImage}`}`;
+        // Final fallback to generated icon
+        console.log(`[CourseCard] Using generated icon for: ${course.title}`);
+        return getCourseIcon(course.title, course.id);
     };
 
     const imageUrl = getImageUrl();
@@ -61,12 +58,18 @@ export function CourseCard({ course, index }: CourseCardProps) {
                         fill
                         sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
                         className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                        unoptimized={imageUrl.includes('api.onetechacademy.com')} // Disable Next.js optimization for external API images
                         onError={(e) => {
-                            // Prevent infinite loop and fallback to generated icon
+                            console.log(`[CourseCard] Image failed to load: ${imageUrl}`);
                             const target = e.currentTarget as HTMLImageElement;
-                            if (!target.src.includes('course-placeholder.png') && !target.src.includes('generated-icon')) {
+                            // Only fallback if we haven't already tried the generated icon
+                            if (!target.src.includes('generated-icon') && !target.dataset.fallbackAttempted) {
+                                target.dataset.fallbackAttempted = 'true';
                                 target.src = getCourseIcon(course.title, course.id);
                             }
+                        }}
+                        onLoad={() => {
+                            console.log(`[CourseCard] Image loaded successfully: ${imageUrl}`);
                         }}
                         priority={index < 4} // Prioritize loading for first 4 images
                     />
