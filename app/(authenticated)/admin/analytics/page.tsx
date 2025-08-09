@@ -606,4 +606,306 @@ export default function AnalyticsDashboard() {
                           tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
                         />
                         <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
-                        <Bar dataKey="value" fill={completionRateConfig.value.color} name="Completion %" radius={[0,
+                        <Bar dataKey="value" fill={completionRateConfig.value.color} name="Completion %" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card id="avg-grade-card">
+              <CardHeader>
+                <CardTitle>Average Grades by Course (Top 5)</CardTitle>
+              </CardHeader>
+              <CardContent className="h-96">
+                {isLoading ? (
+                  <Skeleton className="h-full w-full" />
+                ) : avgGradeByCourse.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No grades data</div>
+                ) : (
+                  <ChartContainer config={avgGradeConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={avgGradeByCourse} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
+                        <YAxis 
+                          dataKey="name" 
+                          type="category" 
+                          width={150} 
+                          tick={{ fontSize: 10 }}
+                          tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent formatter={(v) => `${v}%`} />} />
+                        <Bar dataKey="value" fill={avgGradeConfig.value.color} name="Avg. Grade" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* PAYMENTS */}
+        <TabsContent value="payments" className="space-y-6">
+          <Card id="revenue-by-course-card">
+            <CardHeader>
+              <CardTitle>Revenue by Course (Top 5)</CardTitle>
+            </CardHeader>
+            <CardContent className="h-96">
+              {isLoading ? (
+                <Skeleton className="h-full w-full" />
+              ) : revenueByCourseData.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No revenue by course data</div>
+              ) : (
+                <ChartContainer config={revenueByCourseConfig}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart 
+                      data={revenueByCourseData} 
+                      layout="vertical" 
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        type="number" 
+                        tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
+                        tick={{ fontSize: 11 }}
+                      />
+                      <YAxis 
+                        dataKey="courseName" 
+                        type="category" 
+                        width={150} 
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
+                      />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent 
+                          formatter={(value) => [`₦${(value as number).toLocaleString()}`, "Revenue"]}
+                          labelFormatter={(label) => `Course: ${label}`}
+                        />} 
+                      />
+                      <Bar 
+                        dataKey="totalRevenue" 
+                        fill={revenueByCourseConfig.value.color} 
+                        name="Revenue" 
+                        radius={[0, 4, 4, 0]} 
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card id="payment-method-card">
+              <CardHeader>
+                <CardTitle>Payment Methods</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <Skeleton className="h-full w-full" />
+                ) : paymentMethods.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No payment method data</div>
+                ) : (
+                  <ChartContainer config={Object.fromEntries(paymentMethods.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={paymentMethods} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {paymentMethods.map((entry, i) => <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card id="payment-status-card">
+              <CardHeader>
+                <CardTitle>Payment Status</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <Skeleton className="h-full w-full" />
+                ) : paymentStatus.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No payment status data</div>
+                ) : (
+                  <ChartContainer config={Object.fromEntries(paymentStatus.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Pie data={paymentStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                          {paymentStatus.map((entry, i) => <Cell key={`cell-${entry.name}`} fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} />)}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ATTENDANCE */}
+        <TabsContent value="attendance" className="space-y-6">
+          <Card id="attendance-trend-card">
+            <CardHeader>
+              <CardTitle>Attendance Rate Trend (Last 6 Months)</CardTitle>
+            </CardHeader>
+            <CardContent className="h-80">
+              {isLoading ? (
+                <Skeleton className="h-full w-full" />
+              ) : attendanceTrends.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No attendance trends</div>
+              ) : (
+                <ChartContainer config={attendanceTrendConfig}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart 
+                      data={attendanceTrends} 
+                      margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 11 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis 
+                        domain={[0, 100]} 
+                        tickFormatter={(v) => `${v}%`}
+                        tick={{ fontSize: 11 }}
+                      />
+                      <ChartTooltip 
+                        content={<ChartTooltipContent 
+                          formatter={(v) => [`${v}%`, "Attendance Rate"]}
+                          labelFormatter={(label) => `Date: ${label}`}
+                        />} 
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke={attendanceTrendConfig.value.color} 
+                        strokeWidth={3} 
+                        name="Attendance Rate"
+                        dot={{ r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card id="attendance-by-day-card">
+              <CardHeader>
+                <CardTitle>Attendance by Day of Week</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <Skeleton className="h-full w-full" />
+                ) : attendanceByDay.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No attendance by day</div>
+                ) : (
+                  <ChartContainer config={attendanceDayConfig}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={attendanceByDay}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis
+                          dataKey="name"
+                          interval={0}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <YAxis 
+                          domain={[0, 100]} 
+                          tickFormatter={(v) => `${v}%`}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <ChartTooltip 
+                          content={<ChartTooltipContent 
+                            formatter={(v) => [`${v}%`, "Attendance Rate"]}
+                            labelFormatter={(label) => `Day: ${label}`}
+                          />} 
+                        />
+                        <Bar 
+                          dataKey="value" 
+                          fill={attendanceDayConfig.value.color} 
+                          radius={[4, 4, 0, 0]}
+                          name="Attendance Rate"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card id="attendance-status-card">
+              <CardHeader>
+                <CardTitle>Attendance Status Distribution</CardTitle>
+              </CardHeader>
+              <CardContent className="h-80">
+                {isLoading ? (
+                  <Skeleton className="h-full w-full" />
+                ) : attendanceStatus.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No status data</div>
+                ) : (
+                  <ChartContainer config={Object.fromEntries(attendanceStatus.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <ChartTooltip 
+                          content={<ChartTooltipContent 
+                            formatter={(value, name) => [`${value}`, name]}
+                          />} 
+                        />
+                        <Pie 
+                          data={attendanceStatus} 
+                          dataKey="value" 
+                          nameKey="name" 
+                          cx="50%" 
+                          cy="50%" 
+                          outerRadius={80} 
+                          label={({value, percent}) => `${(percent * 100).toFixed(1)}%`}
+                        >
+                          {attendanceStatus.map((entry, i) => (
+                            <Cell 
+                              key={`cell-${entry.name}`} 
+                              fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} 
+                            />
+                          ))}
+                        </Pie>
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// small inline icon shim for refresh (so you don't need to import extra libs)
+function RefreshIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-4.6-7.6" />
+      <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 3v6h-6" />
+    </svg>
+  );
+}
