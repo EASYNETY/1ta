@@ -75,29 +75,15 @@ export function CourseCard({ course, index }: CourseCardProps) {
         <motion.div variants={item}>
             <DyraneCard className="overflow-hidden h-full flex flex-col group">
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                    {isExternalImage && !imageError ? (
-                        // Use regular img for external images to avoid Next.js issues
-                        <img
-                            src={imageUrl}
-                            alt={course.title || "Course"}
-                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105 absolute inset-0"
-                            onError={handleImageError}
-                            onLoad={handleImageLoad}
-                            loading={index < 4 ? "eager" : "lazy"}
-                        />
-                    ) : (
-                        // Use Next.js Image for internal/fallback images
-                        <Image
-                            src={imageUrl}
-                            alt={course.title || "Course"}
-                            fill
-                            sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                            onError={handleImageError}
-                            onLoad={handleImageLoad}
-                            priority={index < 4}
-                        />
-                    )}
+                    {/* Always use regular img tag to avoid Next.js external image issues */}
+                    <img
+                        src={imageUrl}
+                        alt={course.title || "Course"}
+                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105 absolute inset-0"
+                        onError={handleImageError}
+                        onLoad={handleImageLoad}
+                        loading={index < 4 ? "eager" : "lazy"}
+                    />
                     
                     {/* Loading state */}
                     {!imageLoaded && !imageError && (
