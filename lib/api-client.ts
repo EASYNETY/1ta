@@ -2877,40 +2877,67 @@ export const togglePlanActive = async (
 	return post<PricingPlan>(`/plans/${planId}/toggle-active`, {});
 };
 
-export async function fetchLiveAttendanceByDay(): Promise<{ name: string; value: number }[]> {
+// api-client.ts
+export async function fetchLiveAttendanceStats() {
   try {
     const token = getAuthToken();
     if (!token) {
       console.warn("No auth token available for live attendance fetch");
-      return [];
+      return { rateTrends: [], byDayOfWeek: [], statusDistribution: [] };
     }
 
-    const res = await fetch(`${API_BASE_URL}/attendance/`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const res = await fetch(`${API_BASE_URL.replace(/\/$/, "")}/attendance/`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-
     const json = await res.json();
 
-    if (json.success && json.data?.records?.length) {
-      const byDayMap: Record<string, number> = {};
-
-      json.data.records.forEach((rec: any) => {
-        const dayName = new Date(rec.date).toLocaleDateString("en-US", {
-          weekday: "long"
-        });
-        byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
-      });
-
-      return Object.entries(byDayMap).map(([name, value]) => ({ name, value }));
+    if (!json.success || !json.data?.records) {
+      return { rateTrends: [], byDayOfWeek: [], statusDistribution: [] };
     }
-    return [];
+
+    const records = json.data.records;
+
+    // 1. Rate Trends by date
+    const trendsMap: Record<string, number> = {};
+    records.forEach(rec => {
+      trendsMap[rec.date] = (trendsMap[rec.date] || 0) + 1;
+    });
+    const rateTrends = Object.entries(trendsMap)
+      .map(([date, count]) => ({
+        date,
+        value: Math.round((count / json.data.summary.total) * 100)
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // 2. By Day of Week
+    const byDayMap: Record<string, number> = {};
+    records.forEach(rec => {
+      const dayName = new Date(rec.date).toLocaleDateString("en-US", { weekday: "long" });
+      byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
+    });
+    const byDayOfWeek = Object.entries(byDayMap).map(([name, value]) => ({
+      name,
+      value: Math.round((value / json.data.summary.total) * 100)
+    }));
+
+    // 3. Status Distribution
+    const statusMap: Record<string, number> = {};
+    records.forEach(rec => {
+      statusMap[rec.status] = (statusMap[rec.status] || 0) + 1;
+    });
+    const statusDistribution = Object.entries(statusMap).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    return { rateTrends, byDayOfWeek, statusDistribution };
+
   } catch (err) {
-    console.error("Error fetching live attendance:", err);
-    return [];
+    console.error("Error fetching live attendance stats:", err);
+    return { rateTrends: [], byDayOfWeek: [], statusDistribution: [] };
   }
 }
+
 
 // --- Export ---
 export { apiClient, IS_LIVE_API };
