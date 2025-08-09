@@ -2877,5 +2877,40 @@ export const togglePlanActive = async (
 	return post<PricingPlan>(`/plans/${planId}/toggle-active`, {});
 };
 
+export async function fetchLiveAttendanceByDay(): Promise<{ name: string; value: number }[]> {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      console.warn("No auth token available for live attendance fetch");
+      return [];
+    }
+
+    const res = await fetch(`${API_BASE_URL}/attendance/`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const json = await res.json();
+
+    if (json.success && json.data?.records?.length) {
+      const byDayMap: Record<string, number> = {};
+
+      json.data.records.forEach((rec: any) => {
+        const dayName = new Date(rec.date).toLocaleDateString("en-US", {
+          weekday: "long"
+        });
+        byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
+      });
+
+      return Object.entries(byDayMap).map(([name, value]) => ({ name, value }));
+    }
+    return [];
+  } catch (err) {
+    console.error("Error fetching live attendance:", err);
+    return [];
+  }
+}
+
 // --- Export ---
 export { apiClient, IS_LIVE_API };

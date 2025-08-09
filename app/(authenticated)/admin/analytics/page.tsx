@@ -44,6 +44,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import html2canvas from "html2canvas";
+import { fetchLiveAttendanceByDay } from "@/lib/api-client"; // Adjust import path if different
+
 
 const PIE_CHART_COLORS = ["#3B82F6", "#EC4899", "#10B981", "#F59E0B", "#6B7280", "#EF4444"];
 
@@ -133,7 +135,7 @@ export default function AnalyticsDashboard() {
         value: course.value || course.enrolments || 0
       }));
   }, [stats]);
-  
+
   const studentGrowth = useMemo(() => ensureArray(stats?.studentStats?.growth), [stats]);
   const genderData = useMemo(() => ensureArray(stats?.studentStats?.genderDistribution), [stats]);
   const ageData = useMemo(() => ensureArray(stats?.studentStats?.ageDistribution), [stats]);
@@ -148,7 +150,7 @@ export default function AnalyticsDashboard() {
         value: Math.round(course.value || course.completionRate || 0)
       }));
   }, [stats]);
-  
+
   const avgGradeByCourse = useMemo(() => {
     const grades = ensureArray(stats?.courseStats?.averageGradeByCourse);
     return grades
@@ -160,10 +162,10 @@ export default function AnalyticsDashboard() {
         value: Math.round(course.value || course.averageGrade || 0)
       }));
   }, [stats]);
-  
+
   const paymentMethods = useMemo(() => ensureArray(stats?.paymentStats?.paymentMethodDistribution), [stats]);
   const paymentStatus = useMemo(() => ensureArray(stats?.paymentStats?.paymentStatusDistribution), [stats]);
-  
+
   const attendanceTrends = useMemo(() => {
     const trends = ensureArray(stats?.attendanceStats?.rateTrends);
     return trends.map(trend => ({
@@ -172,7 +174,7 @@ export default function AnalyticsDashboard() {
       date: trend.date || trend.month || 'Unknown'
     }));
   }, [stats]);
-  
+
   const attendanceByDay = useMemo(() => {
     const byDay = ensureArray(stats?.attendanceStats?.byDayOfWeek);
     return byDay.map(day => ({
@@ -182,49 +184,19 @@ export default function AnalyticsDashboard() {
     }));
   }, [stats]);
 
-// -----------------
-// Attendance direct fetch (Option 1)
-// -----------------
-const [liveAttendanceByDay, setLiveAttendanceByDay] = useState<any[]>([]);
 
-useEffect(() => {
-  const fetchLiveAttendance = async () => {
-    try {
-      const res = await fetch("http://34.249.241.206:5000/api/attendance/", {
-        headers: {
-          Authorization:
-            "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFlMDM5NjAxLWQ1NGMtNDViOC1hNjgwLTU4YzZiMTAyNzE1MSIsInJvbGUiOiJzdXBlcl9hZG1pbiIsImlhdCI6MTc1NDc2NzY4NywiZXhwIjoxNzU0NzcxMjg3fQ.WpgR5thoXzFh4m2v0EClvKdddBjFIKPmB44vHjdQFOA"
-        }
-      });
-      const json = await res.json();
-
-      if (json.success && json.data?.records?.length) {
-        const byDayMap: Record<string, number> = {};
-
-        json.data.records.forEach((rec: any) => {
-          const dayName = new Date(rec.date).toLocaleDateString("en-US", {
-            weekday: "long"
-          });
-          byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
-        });
-
-        const transformed = Object.entries(byDayMap).map(([name, value]) => ({
-          name,
-          value
-        }));
-
-        setLiveAttendanceByDay(transformed);
-      }
-    } catch (err) {
-      console.error("Error fetching live attendance:", err);
-    }
-  };
-
-  fetchLiveAttendance();
-}, []);
+  // -----------------
+  // Attendance direct fetch (Option 1)
+  // -----------------
+  const [liveAttendanceByDay, setLiveAttendanceByDay] = useState<any[]>([]);
 
 
-  
+  useEffect(() => {
+    fetchLiveAttendanceByDay().then(setLiveAttendanceByDay);
+  }, []);
+
+
+
   const attendanceStatus = useMemo(() => ensureArray(stats?.attendanceStats?.statusDistribution), [stats]);
 
   // Fixed Revenue by Course data
@@ -444,23 +416,23 @@ useEffect(() => {
                             }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="date" 
+                            <XAxis
+                              dataKey="date"
                               tick={{ fontSize: 11 }}
                               interval="preserveStartEnd"
                             />
-                            <YAxis 
+                            <YAxis
                               tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
                               tick={{ fontSize: 11 }}
                             />
                             <ChartTooltip content={<ChartTooltipContent formatter={(v) => formatCurrency(v as number)} />} />
-                            <Area 
-                              type="monotone" 
-                              dataKey="value" 
-                              stroke={revenueTrendConfig.value.color} 
-                              fill={revenueTrendConfig.value.color} 
-                              fillOpacity={0.12} 
-                              name="Revenue" 
+                            <Area
+                              type="monotone"
+                              dataKey="value"
+                              stroke={revenueTrendConfig.value.color}
+                              fill={revenueTrendConfig.value.color}
+                              fillOpacity={0.12}
+                              name="Revenue"
                             />
                           </AreaChart>
                         </ResponsiveContainer>
@@ -509,24 +481,24 @@ useEffect(() => {
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis type="number" tick={{ fontSize: 11 }} />
-                            <YAxis 
-                              dataKey="name" 
-                              type="category" 
-                              width={120} 
+                            <YAxis
+                              dataKey="name"
+                              type="category"
+                              width={120}
                               tick={{ fontSize: 10 }}
                               tickFormatter={(value) => value.length > 15 ? value.substring(0, 15) + '...' : value}
                             />
-                            <ChartTooltip 
-                              content={<ChartTooltipContent 
+                            <ChartTooltip
+                              content={<ChartTooltipContent
                                 labelFormatter={(label) => `Course: ${label}`}
                                 formatter={(value, name) => [`${value} enrolments`, name]}
-                              />} 
+                              />}
                             />
-                            <Bar 
-                              dataKey="value" 
-                              fill={popularCoursesConfig.value.color} 
-                              radius={[0, 4, 4, 0]} 
-                              name="Enrolments" 
+                            <Bar
+                              dataKey="value"
+                              fill={popularCoursesConfig.value.color}
+                              radius={[0, 4, 4, 0]}
+                              name="Enrolments"
                             />
                           </BarChart>
                         </ResponsiveContainer>
@@ -642,10 +614,10 @@ useEffect(() => {
                       <BarChart data={completionByCourse} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
-                          width={150} 
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          width={150}
                           tick={{ fontSize: 10 }}
                           tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
                         />
@@ -673,10 +645,10 @@ useEffect(() => {
                       <BarChart data={avgGradeByCourse} layout="vertical" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11 }} />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
-                          width={150} 
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          width={150}
                           tick={{ fontSize: 10 }}
                           tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
                         />
@@ -705,35 +677,35 @@ useEffect(() => {
               ) : (
                 <ChartContainer config={revenueByCourseConfig}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart 
-                      data={revenueByCourseData} 
-                      layout="vertical" 
+                    <BarChart
+                      data={revenueByCourseData}
+                      layout="vertical"
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        type="number" 
+                      <XAxis
+                        type="number"
                         tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
                         tick={{ fontSize: 11 }}
                       />
-                      <YAxis 
-                        dataKey="courseName" 
-                        type="category" 
-                        width={150} 
+                      <YAxis
+                        dataKey="courseName"
+                        type="category"
+                        width={150}
                         tick={{ fontSize: 10 }}
                         tickFormatter={(value) => value.length > 18 ? value.substring(0, 18) + '...' : value}
                       />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent 
+                      <ChartTooltip
+                        content={<ChartTooltipContent
                           formatter={(value) => [`₦${(value as number).toLocaleString()}`, "Revenue"]}
                           labelFormatter={(label) => `Course: ${label}`}
-                        />} 
+                        />}
                       />
-                      <Bar 
-                        dataKey="totalRevenue" 
-                        fill={revenueByCourseConfig.value.color} 
-                        name="Revenue" 
-                        radius={[0, 4, 4, 0]} 
+                      <Bar
+                        dataKey="totalRevenue"
+                        fill={revenueByCourseConfig.value.color}
+                        name="Revenue"
+                        radius={[0, 4, 4, 0]}
                       />
                     </BarChart>
                   </ResponsiveContainer>
@@ -809,32 +781,32 @@ useEffect(() => {
               ) : (
                 <ChartContainer config={attendanceTrendConfig}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart 
-                      data={attendanceTrends} 
+                    <LineChart
+                      data={attendanceTrends}
                       margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="date" 
+                      <XAxis
+                        dataKey="date"
                         tick={{ fontSize: 11 }}
                         interval="preserveStartEnd"
                       />
-                      <YAxis 
-                        domain={[0, 100]} 
+                      <YAxis
+                        domain={[0, 100]}
                         tickFormatter={(v) => `${v}%`}
                         tick={{ fontSize: 11 }}
                       />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent 
+                      <ChartTooltip
+                        content={<ChartTooltipContent
                           formatter={(v) => [`${v}%`, "Attendance Rate"]}
                           labelFormatter={(label) => `Date: ${label}`}
-                        />} 
+                        />}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke={attendanceTrendConfig.value.color} 
-                        strokeWidth={3} 
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke={attendanceTrendConfig.value.color}
+                        strokeWidth={3}
                         name="Attendance Rate"
                         dot={{ r: 4 }}
                         activeDot={{ r: 6 }}
@@ -872,20 +844,20 @@ useEffect(() => {
                           height={80}
                           tick={{ fontSize: 10 }}
                         />
-                        <YAxis 
-                          domain={[0, 100]} 
+                        <YAxis
+                          domain={[0, 100]}
                           tickFormatter={(v) => `${v}%`}
                           tick={{ fontSize: 11 }}
                         />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             formatter={(v) => [`${v}%`, "Attendance Rate"]}
                             labelFormatter={(label) => `Day: ${label}`}
-                          />} 
+                          />}
                         />
-                        <Bar 
-                          dataKey="value" 
-                          fill={attendanceDayConfig.value.color} 
+                        <Bar
+                          dataKey="value"
+                          fill={attendanceDayConfig.value.color}
                           radius={[4, 4, 0, 0]}
                           name="Attendance Rate"
                         />
@@ -909,24 +881,24 @@ useEffect(() => {
                   <ChartContainer config={Object.fromEntries(attendanceStatus.map((e, i) => [e.name, { label: e.name, color: PIE_CHART_COLORS[i % PIE_CHART_COLORS.length] }]))}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             formatter={(value, name) => [`${value}`, name]}
-                          />} 
+                          />}
                         />
-                        <Pie 
-                          data={attendanceStatus} 
-                          dataKey="value" 
-                          nameKey="name" 
-                          cx="50%" 
-                          cy="50%" 
-                          outerRadius={80} 
-                          label={({value, percent}) => `${(percent * 100).toFixed(1)}%`}
+                        <Pie
+                          data={attendanceStatus}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label={({ value, percent }) => `${(percent * 100).toFixed(1)}%`}
                         >
                           {attendanceStatus.map((entry, i) => (
-                            <Cell 
-                              key={`cell-${entry.name}`} 
-                              fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]} 
+                            <Cell
+                              key={`cell-${entry.name}`}
+                              fill={PIE_CHART_COLORS[i % PIE_CHART_COLORS.length]}
                             />
                           ))}
                         </Pie>
