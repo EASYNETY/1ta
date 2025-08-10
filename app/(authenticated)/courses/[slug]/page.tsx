@@ -26,6 +26,7 @@ import { ClassAssignmentLink } from "@/components/courses/ClassAssignmentLink"
 import { ClassQuizLink } from "@/components/courses/ClassQuizLink"
 import { ClassGradeLink } from "@/components/courses/ClassGradeLink"
 import { PageHeader } from "@/components/layout/auth/page-header"
+import { AwsS3VideoPlayer } from "@/components/video/AwsS3VideoPlayer" // Add this import
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -113,11 +114,32 @@ export default function CourseDetailPage() {
         }
     }
 
+
+
     // Handle lesson selection
+    // const handleLessonSelect = (moduleId: string, lessonId: string) => {
+    //     dispatch(setCurrentModule(moduleId))
+    //     dispatch(setCurrentLesson(lessonId))
+    // }
+
+    {/* Also make sure your lesson selection logic is working correctly */ }
+    {/* Update handleLessonSelect function to ensure proper lesson selection */ }
     const handleLessonSelect = (moduleId: string, lessonId: string) => {
+        console.log('Selecting lesson:', { moduleId, lessonId })
+
         dispatch(setCurrentModule(moduleId))
         dispatch(setCurrentLesson(lessonId))
+
+        // Debug: Log the selected lesson
+        const module = currentCourse.modules.find(m => m.id === moduleId)
+        const lesson = module?.lessons.find(l => l.id === lessonId)
+        console.log('Selected lesson object:', lesson)
+
+        if (lesson?.type === 'video') {
+            console.log('Video URL found:', lesson.content?.videoUrl || lesson.videoUrl)
+        }
     }
+
 
     // Handle lesson completion
     const handleMarkLessonComplete = (lessonId: string, completed: boolean) => {
@@ -415,15 +437,17 @@ export default function CourseDetailPage() {
                         {/* Current Lesson Content */}
                         <DyraneCard>
                             <CardContent className="p-0">
-                                {currentLessonObj?.type === "video" && currentLessonObj?.videoUrl ? (
-                                    <div className="aspect-video w-full">
-                                        <video
-                                            src={currentLessonObj.videoUrl}
-                                            controls
-                                            className="w-full h-full"
-                                            poster={currentCourse.image}
-                                        />
-                                    </div>
+                                {currentLessonObj?.type === "video" ? (
+                                    <AwsS3VideoPlayer
+                                        videoUrl={currentLessonObj.content?.videoUrl || currentLessonObj.videoUrl || ""}
+                                        poster={currentCourse.image}
+                                        lesson={{
+                                            id: currentLessonObj.id,
+                                            title: currentLessonObj.title,
+                                            duration: currentLessonObj.duration
+                                        }}
+                                        className="w-full"
+                                    />
                                 ) : (
                                     <div className="aspect-video w-full bg-muted flex items-center justify-center">
                                         <div className="text-center">
@@ -433,13 +457,33 @@ export default function CourseDetailPage() {
                                                     ? "Quiz content will be displayed here"
                                                     : currentLessonObj?.type === "assignment"
                                                         ? "Assignment content will be displayed here"
-                                                        : "Lesson content will be displayed here"}
+                                                        : currentLessonObj?.type === "text"
+                                                            ? "Text lesson content will be displayed here"
+                                                            : "Lesson content will be displayed here"}
                                             </p>
+                                            {currentLessonObj && (
+                                                <div className="mt-4 text-xs text-muted-foreground space-y-1">
+                                                    <div>Type: {currentLessonObj.type}</div>
+                                                    <div>Lesson: {currentLessonObj.title}</div>
+                                                    {/* Debug info for development */}
+                                                    {process.env.NODE_ENV === 'development' && (
+                                                        <div className="mt-2 p-2 bg-gray-100 rounded text-left">
+                                                            <div>ID: {currentLessonObj.id}</div>
+                                                            <div>Duration: {currentLessonObj.duration}</div>
+                                                            <div>Has Content: {currentLessonObj.content ? 'Yes' : 'No'}</div>
+                                                            {currentLessonObj.content && (
+                                                                <div>Video URL: {currentLessonObj.content.videoUrl || 'null'}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
                             </CardContent>
                         </DyraneCard>
+
 
                         {/* Lesson Navigation and Actions */}
                         <div className="flex flex-col sm:flex-row justify-between gap-4">
