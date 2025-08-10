@@ -26,7 +26,7 @@ import { ClassAssignmentLink } from "@/components/courses/ClassAssignmentLink"
 import { ClassQuizLink } from "@/components/courses/ClassQuizLink"
 import { ClassGradeLink } from "@/components/courses/ClassGradeLink"
 import { PageHeader } from "@/components/layout/auth/page-header"
-import { AwsS3VideoPlayer } from "@/components/video/AwsS3VideoPlayer" // Add this import
+import { AwsS3VideoPlayer } from "@/components/video/AwsS3VideoPlayer"
 
 export default function CourseDetailPage() {
     const params = useParams()
@@ -56,9 +56,7 @@ export default function CourseDetailPage() {
 
                     // Fetch student grades if student
                     if (user.role === 'student') {
-                        dispatch(fetchStudentGrades(
-                            user.id
-                        ))
+                        dispatch(fetchStudentGrades(user.id))
                     }
                 })
         }
@@ -103,43 +101,20 @@ export default function CourseDetailPage() {
         )
     }
 
-    // Handle module selection
+    // Handle module selection - don't auto-select first lesson
     const handleModuleSelect = (moduleId: string) => {
+        console.log('Module selected:', moduleId)
         dispatch(setCurrentModule(moduleId))
-
-        // Find the first lesson in the module
-        const module = currentCourse.modules.find((m) => m.id === moduleId)
-        if (module && module.lessons.length > 0) {
-            dispatch(setCurrentLesson(module.lessons[0].id))
-        }
+        // Don't auto-select lesson - let user choose
+        dispatch(setCurrentLesson(null))
     }
-
-
 
     // Handle lesson selection
-    // const handleLessonSelect = (moduleId: string, lessonId: string) => {
-    //     dispatch(setCurrentModule(moduleId))
-    //     dispatch(setCurrentLesson(lessonId))
-    // }
-
-    {/* Also make sure your lesson selection logic is working correctly */ }
-    {/* Update handleLessonSelect function to ensure proper lesson selection */ }
     const handleLessonSelect = (moduleId: string, lessonId: string) => {
-        console.log('Selecting lesson:', { moduleId, lessonId })
-
+        console.log('Lesson selected:', { moduleId, lessonId })
         dispatch(setCurrentModule(moduleId))
         dispatch(setCurrentLesson(lessonId))
-
-        // Debug: Log the selected lesson
-        const module = currentCourse.modules.find(m => m.id === moduleId)
-        const lesson = module?.lessons.find(l => l.id === lessonId)
-        console.log('Selected lesson object:', lesson)
-
-        if (lesson?.type === 'video') {
-            console.log('Video URL found:', lesson.content?.videoUrl || lesson.videoUrl)
-        }
     }
-
 
     // Handle lesson completion
     const handleMarkLessonComplete = (lessonId: string, completed: boolean) => {
@@ -170,9 +145,9 @@ export default function CourseDetailPage() {
     }
 
     // Get current module and lesson
-    const currentModuleObj = currentCourse.modules.find((m) => m.id === currentModuleId) || currentCourse.modules[0]
-    const currentLessonObj =
-        currentModuleObj?.lessons.find((l) => l.id === currentLessonId) || currentModuleObj?.lessons[0]
+    const currentModuleObj = currentModuleId ? currentCourse.modules.find((m) => m.id === currentModuleId) : null
+    const currentLessonObj = currentModuleObj && currentLessonId ? 
+        currentModuleObj.lessons.find((l) => l.id === currentLessonId) : null
 
     // Get lesson icon based on type
     const getLessonIcon = (type: string) => {
@@ -194,49 +169,32 @@ export default function CourseDetailPage() {
 
     // Format duration
     const formatDuration = (duration: string) => {
-        if (duration.includes(":")) return duration; // Already formatted
+        if (!duration) return "--"
+        if (duration.includes(":")) return duration // Already formatted
 
-        const numeric = Number.parseInt(duration);
-        if (isNaN(numeric)) return "--"; // Invalid input
+        const numeric = Number.parseInt(duration)
+        if (isNaN(numeric)) return "--"
 
-        const hours = Math.floor(numeric / 60);
-        const minutes = numeric % 60;
+        const hours = Math.floor(numeric / 60)
+        const minutes = numeric % 60
 
         if (hours > 0) {
-            return `${hours}h ${minutes}m`;
+            return `${hours}h ${minutes}m`
         }
-        return `${minutes}m`;
-    };
+        return `${minutes}m`
+    }
 
     // Helper function to check if course is available for enrolment
     const isAvailableForEnrolment = () => {
-        return !(currentCourse.isAvailableForEnrolment === false || currentCourse.available_for_enrolment === false);
-    };
-
+        return !(currentCourse.isAvailableForEnrolment === false || currentCourse.available_for_enrolment === false)
+    }
 
     // Role-specific actions
     const getRoleActions = () => {
-        // Check if course is available for enrolment
-        const isAvailable = isAvailableForEnrolment();
+        const isAvailable = isAvailableForEnrolment()
 
         switch (user.role) {
             case "admin":
-                return (
-                    <div className="flex gap-2">
-                        <DyraneButton variant="outline" size="sm" asChild>
-                            <Link href={`/courses/${slug}/edit`}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Course
-                            </Link>
-                        </DyraneButton>
-                        {!isAvailable && (
-                            <DyraneButton variant="outline" size="sm" className="text-green-600 border-green-300 hover:bg-green-50">
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Enable Enrolment
-                            </DyraneButton>
-                        )}
-                    </div>
-                )
             case "super_admin":
                 return (
                     <div className="flex gap-2">
@@ -263,12 +221,6 @@ export default function CourseDetailPage() {
                                 Edit Content
                             </Link>
                         </DyraneButton>
-                        {!isAvailable && (
-                            <DyraneButton variant="outline" size="sm" disabled className="cursor-not-allowed opacity-60">
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Request Enrolment Activation
-                            </DyraneButton>
-                        )}
                     </div>
                 )
             default:
@@ -282,15 +234,88 @@ export default function CourseDetailPage() {
                             <Share2 className="mr-2 h-4 w-4" />
                             Share
                         </DyraneButton>
-                        {!isAvailable && (
-                            <DyraneButton variant="outline" size="sm" className="text-blue-600 border-blue-300 hover:bg-blue-50">
-                                <Bell className="mr-2 h-4 w-4" />
-                                Notify When Available
-                            </DyraneButton>
-                        )}
                     </div>
                 )
         }
+    }
+
+    // Render main content area
+    const renderMainContent = () => {
+        // If no lesson is selected, show course overview/thumbnail
+        if (!currentLessonObj) {
+            return (
+                <div className="aspect-video w-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border rounded-lg">
+                    <div className="text-center p-8">
+                        {currentCourse.image ? (
+                            <img 
+                                src={currentCourse.image} 
+                                alt={currentCourse.title}
+                                className="max-h-32 mx-auto mb-4 rounded-lg shadow-md"
+                            />
+                        ) : (
+                            <div className="w-32 h-32 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                                <PlayCircle className="h-16 w-16 text-primary" />
+                            </div>
+                        )}
+                        <h3 className="text-lg font-semibold mb-2">Welcome to {currentCourse.title}</h3>
+                        <p className="text-muted-foreground mb-4">
+                            Select a lesson from the course content sidebar to start learning.
+                        </p>
+                        <div className="flex justify-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{currentCourse.totalVideoDuration}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <BookOpen className="h-4 w-4" />
+                                <span>{currentCourse.lessonCount} lessons</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        }
+
+        // If lesson is selected and it's a video
+        if (currentLessonObj.type === "video") {
+            const videoUrl = currentLessonObj.content?.videoUrl || currentLessonObj.videoUrl
+            
+            if (videoUrl) {
+                return (
+                    <AwsS3VideoPlayer
+                        videoUrl={videoUrl}
+                        poster={currentCourse.image}
+                        lesson={{
+                            id: currentLessonObj.id,
+                            title: currentLessonObj.title,
+                            duration: currentLessonObj.duration
+                        }}
+                        className="w-full"
+                    />
+                )
+            }
+        }
+
+        // For other lesson types or videos without URL
+        return (
+            <div className="aspect-video w-full bg-muted flex items-center justify-center">
+                <div className="text-center">
+                    {getLessonIcon(currentLessonObj.type)}
+                    <p className="text-muted-foreground mt-2">
+                        {currentLessonObj.type === "quiz"
+                            ? "Quiz content will be displayed here"
+                            : currentLessonObj.type === "assignment"
+                                ? "Assignment content will be displayed here"
+                                : currentLessonObj.type === "text"
+                                    ? "Text lesson content will be displayed here"
+                                    : "Lesson content will be displayed here"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                        {currentLessonObj.title} • {currentLessonObj.type}
+                    </p>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -315,11 +340,17 @@ export default function CourseDetailPage() {
                                 {currentCourse.modules.map((module) => (
                                     <AccordionItem key={module.id} value={module.id}>
                                         <AccordionTrigger
-                                            className={cn("text-sm hover:no-underline", currentModuleId === module.id ? "font-medium" : "")}
+                                            className={cn(
+                                                "text-sm hover:no-underline",
+                                                currentModuleId === module.id ? "font-medium text-primary" : ""
+                                            )}
                                             onClick={() => handleModuleSelect(module.id)}
                                         >
                                             <div className="flex items-start text-left">
                                                 <span>{module.title}</span>
+                                                <Badge variant="outline" className="ml-2 text-xs">
+                                                    {module.lessons.length}
+                                                </Badge>
                                             </div>
                                         </AccordionTrigger>
                                         <AccordionContent>
@@ -328,11 +359,11 @@ export default function CourseDetailPage() {
                                                     <button
                                                         key={lesson.id}
                                                         className={cn(
-                                                            "flex items-center gap-2 w-full text-left text-sm py-1 px-2 rounded-md",
+                                                            "flex items-center gap-2 w-full text-left text-sm py-2 px-3 rounded-md transition-colors",
                                                             currentLessonId === lesson.id
-                                                                ? "bg-primary/10 text-primary font-medium"
+                                                                ? "bg-primary/10 text-primary font-medium border border-primary/20"
                                                                 : "hover:bg-muted",
-                                                            lesson.isCompleted ? "text-muted-foreground" : "",
+                                                            lesson.isCompleted ? "opacity-75" : ""
                                                         )}
                                                         onClick={() => handleLessonSelect(module.id, lesson.id)}
                                                     >
@@ -375,13 +406,8 @@ export default function CourseDetailPage() {
                         </DyraneCard>
                     )}
 
-                    {/* Assignments Link */}
                     <ClassAssignmentLink courseId={currentCourse.id} />
-
-                    {/* Quizzes Link */}
                     <ClassQuizLink courseSlug={currentCourse.slug} />
-
-                    {/* Grades Link */}
                     <ClassGradeLink courseId={currentCourse.id} />
                 </div>
 
@@ -404,14 +430,13 @@ export default function CourseDetailPage() {
                                 <Badge variant="outline" className="bg-primary/10 text-primary">
                                     {currentCourse.category}
                                 </Badge>
-                                {/* Enrolment Status Badge */}
-                                {!isAvailableForEnrolment() ? (
-                                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
-                                        Not Available for Enrolment
-                                    </Badge>
-                                ) : (
+                                {isAvailableForEnrolment() ? (
                                     <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
                                         Available for Enrolment
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                                        Not Available for Enrolment
                                     </Badge>
                                 )}
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -422,13 +447,8 @@ export default function CourseDetailPage() {
                                     <BookOpen className="h-4 w-4" />
                                     <span>{currentCourse.lessonCount} lessons</span>
                                 </div>
-                                {/* Student count removed as requested */}
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <Star className="h-4 w-4 text-yellow-500" />
-                                    <Star className="h-4 w-4 text-yellow-500" />
-                                    <Star className="h-4 w-4 text-yellow-500" />
-                                    <Star className="h-4 w-4 text-yellow-500" />
-                                    <Star className="h-4 w-4 text-yellow-500" />
+                                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
                                     <span className="ml-1">5.0</span>
                                 </div>
                             </div>
@@ -437,345 +457,130 @@ export default function CourseDetailPage() {
                         {/* Current Lesson Content */}
                         <DyraneCard>
                             <CardContent className="p-0">
-                                {currentLessonObj?.type === "video" ? (
-                                    <AwsS3VideoPlayer
-                                        videoUrl={currentLessonObj.content?.videoUrl || currentLessonObj.videoUrl || ""}
-                                        poster={currentCourse.image}
-                                        lesson={{
-                                            id: currentLessonObj.id,
-                                            title: currentLessonObj.title,
-                                            duration: currentLessonObj.duration
-                                        }}
-                                        className="w-full"
-                                    />
-                                ) : (
-                                    <div className="aspect-video w-full bg-muted flex items-center justify-center">
-                                        <div className="text-center">
-                                            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                                            <p className="text-muted-foreground">
-                                                {currentLessonObj?.type === "quiz"
-                                                    ? "Quiz content will be displayed here"
-                                                    : currentLessonObj?.type === "assignment"
-                                                        ? "Assignment content will be displayed here"
-                                                        : currentLessonObj?.type === "text"
-                                                            ? "Text lesson content will be displayed here"
-                                                            : "Lesson content will be displayed here"}
-                                            </p>
-                                            {currentLessonObj && (
-                                                <div className="mt-4 text-xs text-muted-foreground space-y-1">
-                                                    <div>Type: {currentLessonObj.type}</div>
-                                                    <div>Lesson: {currentLessonObj.title}</div>
-                                                    {/* Debug info for development */}
-                                                    {process.env.NODE_ENV === 'development' && (
-                                                        <div className="mt-2 p-2 bg-gray-100 rounded text-left">
-                                                            <div>ID: {currentLessonObj.id}</div>
-                                                            <div>Duration: {currentLessonObj.duration}</div>
-                                                            <div>Has Content: {currentLessonObj.content ? 'Yes' : 'No'}</div>
-                                                            {currentLessonObj.content && (
-                                                                <div>Video URL: {currentLessonObj.content.videoUrl || 'null'}</div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
+                                {renderMainContent()}
                             </CardContent>
                         </DyraneCard>
 
-
-                        {/* Lesson Navigation and Actions */}
-                        <div className="flex flex-col sm:flex-row justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-xl font-semibold">{currentLessonObj?.title}</h2>
-                                <Badge variant="outline" className="capitalize">
-                                    {currentLessonObj?.type}
-                                </Badge>
+                        {/* Lesson Navigation and Actions - Only show when lesson is selected */}
+                        {currentLessonObj && (
+                            <div className="flex flex-col sm:flex-row justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-xl font-semibold">{currentLessonObj.title}</h2>
+                                    <Badge variant="outline" className="capitalize">
+                                        {currentLessonObj.type}
+                                    </Badge>
+                                </div>
+                                <div className="flex gap-2">
+                                    <DyraneButton
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleMarkLessonComplete(currentLessonObj.id, !currentLessonObj.isCompleted)}
+                                    >
+                                        {currentLessonObj.isCompleted ? (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                                                Completed
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="mr-2 h-4 w-4" />
+                                                Mark as Complete
+                                            </>
+                                        )}
+                                    </DyraneButton>
+                                    <DyraneButton variant="outline" size="sm">
+                                        <MessageSquare className="mr-2 h-4 w-4" />
+                                        Discussion
+                                    </DyraneButton>
+                                </div>
                             </div>
-                            <div className="flex gap-2">
-                                <DyraneButton
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        if (currentLessonObj) {
-                                            handleMarkLessonComplete(currentLessonObj.id, !currentLessonObj.isCompleted)
-                                        }
-                                    }}
-                                >
-                                    {currentLessonObj?.isCompleted ? (
-                                        <>
-                                            <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                                            Completed
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CheckCircle className="mr-2 h-4 w-4" />
-                                            Mark as Complete
-                                        </>
-                                    )}
-                                </DyraneButton>
-                                <DyraneButton variant="outline" size="sm">
-                                    <MessageSquare className="mr-2 h-4 w-4" />
-                                    Discussion
-                                </DyraneButton>
-                            </div>
-                        </div>
+                        )}
 
-                        {/* Lesson Details Tabs */}
-                        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-                            <TabsList className="mb-4">
-                                <TabsTrigger value="overview">Overview</TabsTrigger>
-                                <TabsTrigger value="notes">Notes</TabsTrigger>
-                                <TabsTrigger value="resources">Resources</TabsTrigger>
-                                <TabsTrigger value="discussion">Discussion</TabsTrigger>
-                            </TabsList>
+                        {/* Lesson Details Tabs - Only show when lesson is selected */}
+                        {currentLessonObj && (
+                            <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
+                                <TabsList className="mb-4">
+                                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                                    <TabsTrigger value="notes">Notes</TabsTrigger>
+                                    <TabsTrigger value="resources">Resources</TabsTrigger>
+                                    <TabsTrigger value="discussion">Discussion</TabsTrigger>
+                                </TabsList>
 
-                            <TabsContent value="overview">
-                                <DyraneCard>
-                                    <CardContent className="p-6">
-                                        <div className="prose max-w-none">
-                                            <h3>About this lesson</h3>
-                                            <p>{currentLessonObj?.description || "No description available for this lesson."}</p>
+                                <TabsContent value="overview">
+                                    <DyraneCard>
+                                        <CardContent className="p-6">
+                                            <div className="prose max-w-none">
+                                                <h3>About this lesson</h3>
+                                                <p>{currentLessonObj.content?.videoDescription || currentLessonObj.description || "No description available for this lesson."}</p>
 
-                                            {/* Enrolment Status Alert */}
-                                            {!isAvailableForEnrolment() && (
-                                                <div className="mt-6 p-4 border border-red-200 bg-red-50 text-red-800 rounded-md">
-                                                    <h4 className="font-semibold flex items-center">
-                                                        <Bell className="mr-2 h-5 w-5" />
-                                                        Enrolment Notice
-                                                    </h4>
-                                                    <p className="mt-1">
-                                                        This course is currently not available for new enrolments.
-                                                        {user.role === "student" && " You can request to be notified when enrolment opens."}
-                                                        {user.role === "teacher" && " Please contact an administrator to enable enrolment."}
-                                                        {(user.role === "admin" || user.role === "super_admin") && " You can enable enrolment from the course settings."}
-                                                    </p>
-                                                </div>
-                                            )}
+                                                <h3 className="mt-6">Course Description</h3>
+                                                <div dangerouslySetInnerHTML={{ __html: currentCourse.description }} />
 
-                                            <h3 className="mt-6">Course Description</h3>
-                                            <div dangerouslySetInnerHTML={{ __html: currentCourse.description }} />
-
-                                            {
-                                                currentCourse.learningOutcomes &&
-                                                (Array.isArray(currentCourse.learningOutcomes) ? currentCourse.learningOutcomes : (() => {
-                                                    try {
-                                                        const parsed = JSON.parse(currentCourse.learningOutcomes);
-                                                        return Array.isArray(parsed) ? parsed : [];
-                                                    } catch {
-                                                        return [];
-                                                    }
-                                                })()).length > 0 && (
+                                                {currentCourse.learningOutcomes && (
+                                                    Array.isArray(currentCourse.learningOutcomes) ? currentCourse.learningOutcomes : (() => {
+                                                        try {
+                                                            const parsed = JSON.parse(currentCourse.learningOutcomes)
+                                                            return Array.isArray(parsed) ? parsed : []
+                                                        } catch {
+                                                            return []
+                                                        }
+                                                    })()
+                                                ).length > 0 && (
                                                     <>
                                                         <h3 className="mt-6">What you'll learn</h3>
                                                         <ul>
                                                             {(Array.isArray(currentCourse.learningOutcomes) ? currentCourse.learningOutcomes : (() => {
                                                                 try {
-                                                                    const parsed = JSON.parse(currentCourse.learningOutcomes);
-                                                                    return Array.isArray(parsed) ? parsed : [];
+                                                                    const parsed = JSON.parse(currentCourse.learningOutcomes)
+                                                                    return Array.isArray(parsed) ? parsed : []
                                                                 } catch {
-                                                                    return [];
+                                                                    return []
                                                                 }
                                                             })()).map((outcome, index) => (
                                                                 <li key={index}>{outcome}</li>
                                                             ))}
                                                         </ul>
                                                     </>
-                                                )
-                                            }
-
-                                            {
-                                                currentCourse.prerequisites &&
-                                                (Array.isArray(currentCourse.prerequisites) ? currentCourse.prerequisites : (() => {
-                                                    try {
-                                                        const parsed = JSON.parse(currentCourse.prerequisites);
-                                                        return Array.isArray(parsed) ? parsed : [];
-                                                    } catch {
-                                                        return [];
-                                                    }
-                                                })()).length > 0 && (
-                                                    <>
-                                                        <h3 className="mt-6">Prerequisites</h3>
-                                                        <ul>
-                                                            {(Array.isArray(currentCourse.prerequisites) ? currentCourse.prerequisites : (() => {
-                                                                try {
-                                                                    const parsed = JSON.parse(currentCourse.prerequisites);
-                                                                    return Array.isArray(parsed) ? parsed : [];
-                                                                } catch {
-                                                                    return [];
-                                                                }
-                                                            })()).map((prerequisite, index) => (
-                                                                <li key={index}>{prerequisite}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </>
-                                                )
-                                            }
-
-                                        </div>
-                                    </CardContent>
-                                </DyraneCard>
-                            </TabsContent>
-
-                            <TabsContent value="notes">
-                                <DyraneCard>
-                                    <CardContent className="p-6">
-                                        <div className="flex flex-col gap-4">
-                                            <h3 className="text-lg font-medium">Your Notes</h3>
-
-                                            {currentCourse.notes && currentCourse.notes.length > 0 ? (
-                                                <div className="space-y-4">
-                                                    {currentCourse.notes
-                                                        .filter((note) => note.lessonId === currentLessonId)
-                                                        .map((note) => (
-                                                            <div key={note.id} className="p-4 border rounded-lg">
-                                                                <div className="flex justify-between items-start mb-2">
-                                                                    <div className="font-medium">
-                                                                        {note.timestamp
-                                                                            ? `${Math.floor(note.timestamp / 60)}:${(note.timestamp % 60).toString().padStart(2, "0")}`
-                                                                            : ""}
-                                                                    </div>
-                                                                    <div className="text-xs text-muted-foreground">
-                                                                        {new Date(note.createdAt).toLocaleDateString()}
-                                                                    </div>
-                                                                </div>
-                                                                <p>{note.content}</p>
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            ) : (
-                                                <div className="text-center py-8">
-                                                    <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                                                    <p className="text-muted-foreground mb-4">You haven't added any notes for this lesson yet.</p>
-                                                    <DyraneButton>Add Note</DyraneButton>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </CardContent>
-                                </DyraneCard>
-                            </TabsContent>
-
-                            <TabsContent value="resources">
-                                <DyraneCard>
-                                    <CardContent className="p-6">
-                                        <h3 className="text-lg font-medium mb-4">Lesson Resources</h3>
-
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className="h-5 w-5 text-primary" />
-                                                    <span>Lesson Slides</span>
-                                                </div>
-                                                <DyraneButton variant="outline" size="sm">
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    Download
-                                                </DyraneButton>
+                                                )}
                                             </div>
+                                        </CardContent>
+                                    </DyraneCard>
+                                </TabsContent>
 
-                                            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className="h-5 w-5 text-primary" />
-                                                    <span>Exercise Files</span>
-                                                </div>
-                                                <DyraneButton variant="outline" size="sm">
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    Download
-                                                </DyraneButton>
+                                <TabsContent value="notes">
+                                    <DyraneCard>
+                                        <CardContent className="p-6">
+                                            <div className="text-center py-8">
+                                                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                                <p className="text-muted-foreground mb-4">Notes feature coming soon...</p>
                                             </div>
+                                        </CardContent>
+                                    </DyraneCard>
+                                </TabsContent>
 
-                                            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className="h-5 w-5 text-primary" />
-                                                    <span>Additional Reading</span>
-                                                </div>
-                                                <DyraneButton variant="outline" size="sm">
-                                                    <Download className="mr-2 h-4 w-4" />
-                                                    Download
-                                                </DyraneButton>
+                                <TabsContent value="resources">
+                                    <DyraneCard>
+                                        <CardContent className="p-6">
+                                            <div className="text-center py-8">
+                                                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                                <p className="text-muted-foreground mb-4">Resources will be displayed here...</p>
                                             </div>
-                                        </div>
-                                    </CardContent>
-                                </DyraneCard>
-                            </TabsContent>
+                                        </CardContent>
+                                    </DyraneCard>
+                                </TabsContent>
 
-                            <TabsContent value="discussion">
-                                <DyraneCard>
-                                    <CardContent className="p-6">
-                                        <h3 className="text-lg font-medium mb-4">Lesson Discussion</h3>
-
-                                        <div className="space-y-4">
-                                            <div className="p-4 border rounded-lg">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <Users className="h-5 w-5 text-primary" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium">John Smith</span>
-                                                            <span className="text-xs text-muted-foreground">2 days ago</span>
-                                                        </div>
-                                                        <p className="mt-1">
-                                                            Great explanation! I was confused about the concept until watching this video.
-                                                        </p>
-                                                        <div className="flex items-center gap-4 mt-2">
-                                                            <button className="text-xs text-muted-foreground hover:text-foreground">Reply</button>
-                                                            <button className="text-xs text-muted-foreground hover:text-foreground">Like</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                <TabsContent value="discussion">
+                                    <DyraneCard>
+                                        <CardContent className="p-6">
+                                            <div className="text-center py-8">
+                                                <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                                <p className="text-muted-foreground mb-4">Discussion feature coming soon...</p>
                                             </div>
-
-                                            <div className="p-4 border rounded-lg">
-                                                <div className="flex items-start gap-3">
-                                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                                                        <Users className="h-5 w-5 text-primary" />
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-medium">Sarah Johnson</span>
-                                                            <span className="text-xs text-muted-foreground">1 week ago</span>
-                                                        </div>
-                                                        <p className="mt-1">
-                                                            I'm having trouble with the exercise at 12:45. Can someone help me understand what I'm
-                                                            doing wrong?
-                                                        </p>
-                                                        <div className="flex items-center gap-4 mt-2">
-                                                            <button className="text-xs text-muted-foreground hover:text-foreground">Reply</button>
-                                                            <button className="text-xs text-muted-foreground hover:text-foreground">Like</button>
-                                                        </div>
-
-                                                        {/* Reply */}
-                                                        <div className="mt-4 ml-6 p-3 border rounded-lg bg-muted/30">
-                                                            <div className="flex items-start gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                                    <Users className="h-4 w-4 text-primary" />
-                                                                </div>
-                                                                <div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="font-medium">Michael Chen</span>
-                                                                        <Badge variant="outline" className="text-xs">
-                                                                            Instructor
-                                                                        </Badge>
-                                                                        <span className="text-xs text-muted-foreground">5 days ago</span>
-                                                                    </div>
-                                                                    <p className="mt-1">
-                                                                        Hi Sarah, make sure you're initializing the variable correctly. Check the example at
-                                                                        10:30 for reference.
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <DyraneButton className="w-full">Add Comment</DyraneButton>
-                                        </div>
-                                    </CardContent>
-                                </DyraneCard>
-                            </TabsContent>
-                        </Tabs>
+                                        </CardContent>
+                                    </DyraneCard>
+                                </TabsContent>
+                            </Tabs>
+                        )}
                     </div>
                 </div>
             </div>
