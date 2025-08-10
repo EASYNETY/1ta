@@ -401,7 +401,7 @@ export function EnhancedTechnologyIcons() {
       const isoOrder = {
         "ISO 9001": 1,
         "ISO 27001": 2,
-        "ISO 20000": 3
+        "ISO 20000": 4
       }
 
       // Extract ISO number from name
