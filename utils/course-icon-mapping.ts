@@ -102,6 +102,8 @@ export const courseIconMapping: CourseIconMapping = {
   "DevOps Engineering Automation": "/images/future/DEVOPS ENGINEERING.jpeg",
 
   // ISO courses
+  "iso-20000": "/images/future/ISO 20000.jpeg",
+  "ISO 20000 IT Service Management": "/images/future/ISO 20000.jpeg",
   "iso": "/images/future/ISO 27001.jpeg",
   "iso-27001": "/images/future/ISO 27001.jpeg",
   "ISO 27001 Information Security": "/images/future/ISO 27001.jpeg",
@@ -125,13 +127,13 @@ export function getCourseIcon(courseName?: string, courseId?: string): string {
         if (courseIconMapping[courseId]) {
           return courseIconMapping[courseId];
         }
-        
+
         // Try partial matching with course ID
         try {
           const lowerCourseId = String(courseId).toLowerCase();
           for (const [key, iconPath] of Object.entries(courseIconMapping)) {
-            if (lowerCourseId.includes(String(key).toLowerCase()) || 
-                String(key).toLowerCase().includes(lowerCourseId)) {
+            if (lowerCourseId.includes(String(key).toLowerCase()) ||
+              String(key).toLowerCase().includes(lowerCourseId)) {
               return iconPath;
             }
           }
@@ -139,7 +141,7 @@ export function getCourseIcon(courseName?: string, courseId?: string): string {
           console.error("Error in getCourseIcon with courseId:", error);
         }
       }
-      
+
       // If no course name or ID match, return default
       return "/course-placeholder.png";
     }
@@ -158,8 +160,8 @@ export function getCourseIcon(courseName?: string, courseId?: string): string {
     try {
       const lowerCourseName = String(courseName).toLowerCase();
       for (const [key, iconPath] of Object.entries(courseIconMapping)) {
-        if (lowerCourseName.includes(String(key).toLowerCase()) || 
-            String(key).toLowerCase().includes(lowerCourseName)) {
+        if (lowerCourseName.includes(String(key).toLowerCase()) ||
+          String(key).toLowerCase().includes(lowerCourseName)) {
           return iconPath;
         }
       }
@@ -172,8 +174,8 @@ export function getCourseIcon(courseName?: string, courseId?: string): string {
       try {
         const lowerCourseId = String(courseId).toLowerCase();
         for (const [key, iconPath] of Object.entries(courseIconMapping)) {
-          if (lowerCourseId.includes(String(key).toLowerCase()) || 
-              String(key).toLowerCase().includes(lowerCourseId)) {
+          if (lowerCourseId.includes(String(key).toLowerCase()) ||
+            String(key).toLowerCase().includes(lowerCourseId)) {
             return iconPath;
           }
         }
