@@ -1,3 +1,4 @@
+// Create this as a separate component: components/video/AwsS3VideoPlayer.tsx
 "use client"
 
 import { useState, useRef, useEffect } from "react"
@@ -22,10 +23,26 @@ export function AwsS3VideoPlayer({ videoUrl, poster, className = "", lesson }: A
     const [isLoading, setIsLoading] = useState(true)
     const [errorMessage, setErrorMessage] = useState("")
     const [loadAttempts, setLoadAttempts] = useState(0)
+    const [actualDuration, setActualDuration] = useState<number | null>(null)
+    const [currentTime, setCurrentTime] = useState(0)
 
     // Clean and validate the video URL
     const cleanVideoUrl = videoUrl?.trim()
     const isValidUrl = cleanVideoUrl && (cleanVideoUrl.startsWith('http') || cleanVideoUrl.startsWith('https'))
+
+    // Format duration helper
+    const formatTime = (seconds: number) => {
+        if (isNaN(seconds) || seconds < 0) return "0:00"
+        
+        const hours = Math.floor(seconds / 3600)
+        const minutes = Math.floor((seconds % 3600) / 60)
+        const secs = Math.floor(seconds % 60)
+        
+        if (hours > 0) {
+            return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+        }
+        return `${minutes}:${secs.toString().padStart(2, '0')}`
+    }
 
     useEffect(() => {
         if (!isValidUrl) {
@@ -42,6 +59,8 @@ export function AwsS3VideoPlayer({ videoUrl, poster, className = "", lesson }: A
         setHasError(false)
         setIsLoading(true)
         setLoadAttempts(0)
+        setActualDuration(null)
+        setCurrentTime(0)
 
         const handleLoadStart = () => {
             console.log('Video load started for:', cleanVideoUrl)
@@ -57,6 +76,26 @@ export function AwsS3VideoPlayer({ videoUrl, poster, className = "", lesson }: A
         const handleLoadedData = () => {
             console.log('Video data loaded')
             setIsLoading(false)
+        }
+
+        const handleLoadedMetadata = () => {
+            if (video.duration && !isNaN(video.duration)) {
+                setActualDuration(video.duration)
+                console.log('Video duration loaded:', video.duration, 'seconds')
+                console.log('Formatted duration:', formatTime(video.duration))
+                
+                // Compare with lesson duration if provided
+                if (lesson?.duration) {
+                    console.log('Lesson duration from API:', lesson.duration)
+                    console.log('Actual video duration:', formatTime(video.duration))
+                }
+            }
+        }
+
+        const handleTimeUpdate = () => {
+            if (video.currentTime) {
+                setCurrentTime(video.currentTime)
+            }
         }
 
         const handleError = (e: Event) => {
@@ -99,6 +138,8 @@ export function AwsS3VideoPlayer({ videoUrl, poster, className = "", lesson }: A
         video.addEventListener('loadstart', handleLoadStart)
         video.addEventListener('canplay', handleCanPlay)
         video.addEventListener('loadeddata', handleLoadedData)
+        video.addEventListener('loadedmetadata', handleLoadedMetadata)
+        video.addEventListener('timeupdate', handleTimeUpdate)
         video.addEventListener('error', handleError)
         video.addEventListener('play', handlePlay)
         video.addEventListener('pause', handlePause)
@@ -110,6 +151,8 @@ export function AwsS3VideoPlayer({ videoUrl, poster, className = "", lesson }: A
             video.removeEventListener('loadstart', handleLoadStart)
             video.removeEventListener('canplay', handleCanPlay)
             video.removeEventListener('loadeddata', handleLoadedData)
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+            video.removeEventListener('timeupdate', handleTimeUpdate)
             video.removeEventListener('error', handleError)
             video.removeEventListener('play', handlePlay)
             video.removeEventListener('pause', handlePause)
@@ -221,6 +264,40 @@ export function AwsS3VideoPlayer({ videoUrl, poster, className = "", lesson }: A
                 <source src={cleanVideoUrl} type="video/ogg" />
                 Your browser does not support the video tag.
             </video>
+
+            {/* Duration info overlay - for debugging */}
+            {process.env.NODE_ENV === 'development' && actualDuration && (
+                <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded">
+                    <div>API Duration: {lesson?.duration || 'N/A'}</div>
+                    <div>Actual Duration: {formatTime(actualDuration)}</div>
+                    <div>Current Time: {formatTime(currentTime)}</div>
+                </div>
+            )}
         </div>
     )
 }
+//                 <source src={cleanVideoUrl} type="video/mp4" />
+//                 <source src={cleanVideoUrl} type="video/webm" />
+//                 <source src={cleanVideoUrl} type="video/ogg" />
+//                 Your browser does not support the video tag.
+//             </video>
+
+//             {/* Duration info overlay - for debugging */}
+//             {process.env.NODE_ENV === 'development' && actualDuration && (
+//                 <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs p-2 rounded">
+//                     <div>API Duration: {lesson?.duration || 'N/A'}</div>
+//                     <div>Actual Duration: {formatTime(actualDuration)}</div>
+//                     <div>Current Time: {formatTime(currentTime)}</div>
+//                 </div>
+//             )}
+//         </div>
+//     )
+// }
+//                 <source src={cleanVideoUrl} type="video/mp4" />
+//                 <source src={cleanVideoUrl} type="video/webm" />
+//                 <source src={cleanVideoUrl} type="video/ogg" />
+//                 Your browser does not support the video tag.
+//             </video>
+//         </div>
+//     )
+// }
