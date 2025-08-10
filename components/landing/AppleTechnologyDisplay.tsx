@@ -138,13 +138,13 @@ const fallbackListings: CourseListing[] = [
     }
   },
   {
-    id: "is02000",
+    id: "iso-20000",
     name: "ISO 20000 – IT Service Management",
     description: "Develop expertise in managing IT services",
     category: "future",
     waitlistCount: 0,
-    imageUrl: "/images/future/ISO 20000 – IT Service Management.jpg",
-    iconUrl: "/images/future/ISO 20000 – IT Service Management.jpg",
+    imageUrl: "/images/future/ISO 20000.jpeg",
+    iconUrl: "/images/future/ISO 20000.jpeg",
     gradientColors: {
       to: "to-red-600",
       from: "from-rose-500"
