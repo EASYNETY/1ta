@@ -31,6 +31,17 @@ export function CourseCard({ course, index }: CourseCardProps) {
 
     console.log(`[CourseCard] ${course.title} image:`, course.image);
 
+        // Create a data URL fallback for when all else fails
+    const createFallbackImage = () => {
+        const svg = `<svg width="400" height="225" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="#f1f5f9"/>
+            <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" dy=".3em" fill="#64748b">
+                ${course.title || 'Course'}
+            </text>
+        </svg>`;
+        return `data:image/svg+xml;base64,${btoa(svg)}`;
+    };
+
     // Enhanced image URL handling with better fallbacks
     const getImageUrl = () => {
         // If we had an error, use fallback chain
@@ -88,16 +99,7 @@ export function CourseCard({ course, index }: CourseCardProps) {
         setImageError(false); // Reset error state on successful load
     };
 
-    // Create a data URL fallback for when all else fails
-    const createFallbackImage = () => {
-        const svg = `<svg width="400" height="225" xmlns="http://www.w3.org/2000/svg">
-            <rect width="100%" height="100%" fill="#f1f5f9"/>
-            <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" dy=".3em" fill="#64748b">
-                ${course.title || 'Course'}
-            </text>
-        </svg>`;
-        return `data:image/svg+xml;base64,${btoa(svg)}`;
-    };
+
 
     return (
         <motion.div variants={item}>
