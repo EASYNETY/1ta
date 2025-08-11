@@ -153,188 +153,165 @@ export default function CartPage() {
         });
     };
 
-    const handleCheckout = async () => {
-        if (isInitiatingCheckout) {
-            console.warn("CartPage: handleCheckout - Already initiating.");
-            return;
-        }
-        setIsInitiatingCheckout(true);
-        // currentAttemptInvoiceIdRef.current is reset more conditionally below or after successful creation
-        // Calculate the discounted total here (including tax if needed)
-        const discountedTotalWithTax = cart.items.reduce((acc, item) => {
-            return acc + ((item.discountPriceNaira ?? item.priceNaira) * item.quantity);
-        }, 0);
-        let proceedWithNewInvoiceFlow = true;
+  const handleCheckout = async () => {
+    if (isInitiatingCheckout) {
+        console.warn("CartPage: handleCheckout - Already initiating.");
+        return;
+    }
+    setIsInitiatingCheckout(true);
 
-        // Pre-checks for user, profile, cart items (these should run regardless of reset logic)
-        if (!user) {
-            toast({ title: "Error", description: "User not found.", variant: "destructive" });
+    // Safely calculate total with discount and optional tax
+    const discountedTotalWithTax = cart.items.reduce((acc, item) => {
+        const price = Number(item.discountPriceNaira ?? item.priceNaira ?? 0);
+        const qty = Number(item.quantity ?? 1);
+        return acc + price * qty;
+    }, 0);
+    let proceedWithNewInvoiceFlow = true;
+
+    // --- Pre-checks ---
+    if (!user) {
+        toast({ title: "Error", description: "User not found.", variant: "destructive" });
+        setIsInitiatingCheckout(false);
+        return;
+    }
+    if (!profileComplete && !skipOnboarding) {
+        toast({ title: "Profile Incomplete", description: "Please complete your profile.", variant: "default" });
+        router.push("/profile");
+        setIsInitiatingCheckout(false);
+        return;
+    }
+    if (!hasItems) {
+        toast({ title: "Cart Empty", description: "Your cart is empty.", variant: "default" });
+        setIsInitiatingCheckout(false);
+        return;
+    }
+
+    // --- Enrollment check ---
+    try {
+        const { checkExistingEnrollments } = await import("@/features/checkout/utils/enrollment-check");
+        const courseIds = cart.items.map(item => item.courseId);
+        const { alreadyEnrolled, canProceed } = await checkExistingEnrollments(
+            user.id,
+            courseIds,
+            token || ""
+        );
+
+        if (!canProceed) {
+            const alreadyEnrolledTitles = cart.items
+                .filter(item => alreadyEnrolled.includes(item.courseId))
+                .map(item => item.title);
+
+            toast({
+                title: "Already Enrolled",
+                description: `You are already enrolled in: ${alreadyEnrolledTitles.join(", ")}`,
+                variant: "destructive"
+            });
             setIsInitiatingCheckout(false);
             return;
         }
-        if (!profileComplete && !skipOnboarding) {
-            toast({ title: "Profile Incomplete", description: "Please complete your profile.", variant: "default" });
-            router.push("/profile");
-            setIsInitiatingCheckout(false);
-            return;
-        }
-        if (!hasItems) {
-            toast({ title: "Cart Empty", description: "Your cart is empty.", variant: "default" });
-            setIsInitiatingCheckout(false);
-            return;
-        }
+    } catch (error) {
+        console.error("Error checking enrollment status:", error);
+        // Continue even if enrollment check fails
+    }
 
-        // Check if user is already enrolled in any of the courses in the cart
-        try {
-            // Import the enrollment check utility
-            const { checkExistingEnrollments } = await import("@/features/checkout/utils/enrollment-check");
+    // --- Conditional Reset and Reuse Logic ---
+    if (
+        existingCurrentInvoice &&
+        existingInvoiceCreationStatus === "succeeded" &&
+        existingCheckoutPreparationStatus === "ready" &&
+        existingPreparedInvoiceIdFromCheckoutSlice === existingCurrentInvoice.id
+    ) {
+        console.log("CartPage: Found a previously prepared invoice:", existingCurrentInvoice.id);
 
-            // Get the course IDs from the cart
-            const courseIds = cart.items.map(item => item.courseId);
+        const currentCartInvoiceItems: InvoiceItem[] = cart.items.map(item => ({
+            description: item.title,
+            amount: Number(item.discountPriceNaira ?? item.priceNaira ?? 0),
+            quantity: Number(item.quantity ?? 1),
+            courseId: item.courseId,
+        }));
 
-            // Check if user is already enrolled in any of these courses
-            const { alreadyEnrolled, canProceed } = await checkExistingEnrollments(
-                user.id,
-                courseIds,
-                token || ""
-            );
+        const isCartEffectivelyIdentical =
+            existingCurrentInvoice.studentId === user.id &&
+            Number(existingCurrentInvoice.amount) === discountedTotalWithTax &&
+            areCartInvoiceItemsEffectivelyEqual(currentCartInvoiceItems, existingCurrentInvoice.items);
 
-            if (!canProceed) {
-                // User is already enrolled in one or more courses
-                const alreadyEnrolledTitles = cart.items
-                    .filter(item => alreadyEnrolled.includes(item.courseId))
-                    .map(item => item.title);
-
-                toast({
-                    title: "Already Enrolled",
-                    description: `You are already enrolled in: ${alreadyEnrolledTitles.join(", ")}`,
-                    variant: "destructive"
-                });
-                setIsInitiatingCheckout(false);
-                return;
-            }
-        } catch (error) {
-            console.error("Error checking enrollment status:", error);
-            // Continue with checkout even if enrollment check fails
-            // The backend will still perform the check
-        }
-
-        // --- Conditional Reset and Reuse Logic ---
-        if (
-            existingCurrentInvoice &&
-            existingInvoiceCreationStatus === "succeeded" &&
-            existingCheckoutPreparationStatus === "ready" &&
-            existingPreparedInvoiceIdFromCheckoutSlice === existingCurrentInvoice.id
-        ) {
-            console.log("CartPage: Found a previously prepared invoice:", existingCurrentInvoice.id);
-            // An invoice was successfully created and checkout was prepared.
-            // Now, check if it's for the *current* cart contents.
-
-            const currentCartInvoiceItems: InvoiceItem[] = cart.items.map(item => ({
-                description: item.title,
-                amount: item.discountPriceNaira ?? item.priceNaira,
-                quantity: 1, courseId: item.courseId,
-            }));
-
-            // Compare key aspects: studentId, total amount, due date (might need care if generated on the fly), and items.
-            // Due date comparison can be tricky if it's always "today + 7 days".
-            // For simplicity, let's focus on amount and items primarily for cart identity.
-            const isCartEffectivelyIdentical =
-                existingCurrentInvoice.studentId === user.id && // Should always match if same user
-                existingCurrentInvoice.amount === discountedTotalWithTax &&
-                // existingCurrentInvoice.amount === totalWithTax && // Compare current cart total with existing invoice total
-                areCartInvoiceItemsEffectivelyEqual(currentCartInvoiceItems, existingCurrentInvoice.items);
-
-            if (isCartEffectivelyIdentical) {
-                console.log("CartPage: Cart is identical to the previously prepared invoice. Attempting to reuse.");
-                currentAttemptInvoiceIdRef.current = existingCurrentInvoice.id; // Signal useEffect to use this ID
-                proceedWithNewInvoiceFlow = false;
-                // No need to dispatch resets or create new invoice/prepare checkout.
-                // The useEffect will handle navigation.
-            } else {
-                console.log("CartPage: Cart has changed or details mismatch. Resetting and creating new invoice.");
-                console.log(
-                    `Comparison details: existingAmount=${existingCurrentInvoice.amount}, currentTotalWithTax=${totalWithTax}, studentIdMatch=${existingCurrentInvoice.studentId === user.id}`
-                );
-                console.log("Existing items:", JSON.stringify(existingCurrentInvoice.items));
-                console.log("Current cart items for payload:", JSON.stringify(currentCartInvoiceItems));
-                await dispatch(resetPaymentState());
-                await dispatch(resetCheckout());
-                currentAttemptInvoiceIdRef.current = null; // Clear ref for new invoice
-            }
+        if (isCartEffectivelyIdentical) {
+            console.log("CartPage: Cart is identical to the previously prepared invoice. Attempting to reuse.");
+            currentAttemptInvoiceIdRef.current = existingCurrentInvoice.id;
+            proceedWithNewInvoiceFlow = false;
         } else {
-            // No fully prepared invoice, or some state is not 'succeeded'/'ready'.
-            // Or this is the very first attempt. Reset for a fresh start.
-            console.log("CartPage: No fully prepared identical invoice found, or states not ready. Resetting for new flow.");
-            console.log(`Relevant states: existingInvoiceCreationStatus=${existingInvoiceCreationStatus}, existingCheckoutPreparationStatus=${existingCheckoutPreparationStatus}, existingPreparedInvoiceIdFromCheckoutSlice=${existingPreparedInvoiceIdFromCheckoutSlice}, existingCurrentInvoiceId=${existingCurrentInvoice?.id}`);
+            console.log("CartPage: Cart changed or details mismatch. Resetting and creating new invoice.");
             await dispatch(resetPaymentState());
             await dispatch(resetCheckout());
-            currentAttemptInvoiceIdRef.current = null; // Clear ref for new invoice
+            currentAttemptInvoiceIdRef.current = null;
         }
+    } else {
+        console.log("CartPage: No prepared identical invoice found, resetting for new flow.");
+        await dispatch(resetPaymentState());
+        await dispatch(resetCheckout());
+        currentAttemptInvoiceIdRef.current = null;
+    }
 
+    // --- Create new invoice if needed ---
+    if (proceedWithNewInvoiceFlow) {
+        console.log("CartPage: Proceeding with new invoice creation flow...");
 
-        // --- Proceed with new invoice creation if decided ---
-        if (proceedWithNewInvoiceFlow) {
-            console.log("CartPage: Proceeding with new invoice creation flow...");
+        const invoiceItems: InvoiceItem[] = cart.items.map(item => ({
+            description: item.title,
+            amount: Number(item.discountPriceNaira ?? item.priceNaira ?? 0),
+            quantity: Number(item.quantity ?? 1),
+            courseId: item.courseId,
+        }));
 
-            const invoiceItems: InvoiceItem[] = cart.items.map(item => ({
-                description: item.title,
-                amount: item.discountPriceNaira ?? item.priceNaira,
-                quantity: 1, courseId: item.courseId,
-            }));
-            const today = new Date();
-            const dueDate = new Date(today.setDate(today.getDate() + 7)); // Creates a new date object
-            const formattedDueDate = dueDate.toISOString().split('T')[0];
+        const today = new Date();
+        const dueDate = new Date(today.setDate(today.getDate() + 7));
+        const formattedDueDate = dueDate.toISOString().split('T')[0];
 
-            // const invoicePayload: CreateInvoicePayload = {
-            //     studentId: user.id, // User is confirmed not null above
-            //     amount: totalWithTax,
-            //     description: cart.items.map(i => i.title).join(', '), // Removed 'Course enrolment:' prefix
-            //     dueDate: formattedDueDate,
-            //     items: invoiceItems,
-            // };
+        const invoicePayload: CreateInvoicePayload = {
+            studentId: user.id,
+            amount: discountedTotalWithTax,
+            description: cart.items.map(i => i.title).join(', '),
+            dueDate: formattedDueDate,
+            items: invoiceItems,
+        };
 
+        try {
+            console.log("CartPage: Dispatching createInvoiceThunk...");
+            const createdInvoice = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
+            currentAttemptInvoiceIdRef.current = createdInvoice.id;
+            console.log("CartPage: Invoice created successfully, ID:", createdInvoice.id);
 
-            const invoicePayload: CreateInvoicePayload = {
-                studentId: user.id,
-                amount: discountedTotalWithTax, // <-- Now uses discount
-                description: cart.items.map(i => i.title).join(', '),
-                dueDate: formattedDueDate,
-                items: invoiceItems,
-            };
+            toast({
+                title: "Invoice Created",
+                description: `Invoice ${createdInvoice.id} ready. Preparing checkout...`,
+                variant: "success"
+            });
 
-            try {
-                console.log("CartPage: Dispatching createInvoiceThunk...");
-                const createdInvoice = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
-                currentAttemptInvoiceIdRef.current = createdInvoice.id; // Set ref for new invoice
-                console.log("CartPage: Invoice created successfully, ID:", createdInvoice.id);
-                toast({ title: "Invoice Created", description: `Invoice ${createdInvoice.id} ready. Preparing checkout...`, variant: "success" });
-
-                console.log("CartPage: Dispatching prepareCheckout with invoiceId:", createdInvoice.id);
-                dispatch(
-                    prepareCheckout({
-                        cartItems: cart.items,
-                        coursesData: [], // Assuming this is correct for your setup
-                        user: user as User, // User is confirmed not null
-                        totalAmountFromCart: totalWithTax,
-                        invoiceId: createdInvoice.id,
-                    })
-                );
-                // useEffect will handle navigation and final reset of isInitiatingCheckout
-            } catch (error: any) {
-                console.error("CartPage: Error during createInvoiceThunk:", error);
-                toast({ title: "Checkout Initiation Failed", description: typeof error === 'string' ? error : error?.message || "Could not create an invoice.", variant: "destructive" });
-                setIsInitiatingCheckout(false); // Reset flag on error
-                currentAttemptInvoiceIdRef.current = null; // Clear ref on error
-            }
-        } else {
-            // Not proceeding with new invoice flow because we are reusing.
-            // isInitiatingCheckout is already true.
-            // currentAttemptInvoiceIdRef.current is set to the existing invoice ID.
-            // The useEffect should now pick this up and navigate.
-            console.log("CartPage: Reusing existing prepared invoice ID:", currentAttemptInvoiceIdRef.current, ". Relying on useEffect for navigation.");
+            console.log("CartPage: Dispatching prepareCheckout with invoiceId:", createdInvoice.id);
+            dispatch(
+                prepareCheckout({
+                    cartItems: cart.items,
+                    coursesData: [],
+                    user: user as User,
+                    totalAmountFromCart: discountedTotalWithTax,
+                    invoiceId: createdInvoice.id,
+                })
+            );
+        } catch (error: any) {
+            console.error("CartPage: Error during createInvoiceThunk:", error);
+            toast({
+                title: "Checkout Initiation Failed",
+                description: typeof error === 'string' ? error : error?.message || "Could not create an invoice.",
+                variant: "destructive"
+            });
+            setIsInitiatingCheckout(false);
+            currentAttemptInvoiceIdRef.current = null;
         }
-    };
+    } else {
+        console.log("CartPage: Reusing existing prepared invoice ID:", currentAttemptInvoiceIdRef.current);
+    }
+};
+
 
     // useEffect to handle navigation AFTER Redux state is updated
     useEffect(() => {
