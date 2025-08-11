@@ -160,7 +160,10 @@ export default function CartPage() {
         }
         setIsInitiatingCheckout(true);
         // currentAttemptInvoiceIdRef.current is reset more conditionally below or after successful creation
-
+        // Calculate the discounted total here (including tax if needed)
+        const discountedTotalWithTax = cart.items.reduce((acc, item) => {
+            return acc + ((item.discountPriceNaira ?? item.priceNaira) * item.quantity);
+        }, 0);
         let proceedWithNewInvoiceFlow = true;
 
         // Pre-checks for user, profile, cart items (these should run regardless of reset logic)
@@ -180,32 +183,32 @@ export default function CartPage() {
             setIsInitiatingCheckout(false);
             return;
         }
-        
+
         // Check if user is already enrolled in any of the courses in the cart
         try {
             // Import the enrollment check utility
             const { checkExistingEnrollments } = await import("@/features/checkout/utils/enrollment-check");
-            
+
             // Get the course IDs from the cart
             const courseIds = cart.items.map(item => item.courseId);
-            
+
             // Check if user is already enrolled in any of these courses
             const { alreadyEnrolled, canProceed } = await checkExistingEnrollments(
                 user.id,
                 courseIds,
                 token || ""
             );
-            
+
             if (!canProceed) {
                 // User is already enrolled in one or more courses
                 const alreadyEnrolledTitles = cart.items
                     .filter(item => alreadyEnrolled.includes(item.courseId))
                     .map(item => item.title);
-                
-                toast({ 
-                    title: "Already Enrolled", 
-                    description: `You are already enrolled in: ${alreadyEnrolledTitles.join(", ")}`, 
-                    variant: "destructive" 
+
+                toast({
+                    title: "Already Enrolled",
+                    description: `You are already enrolled in: ${alreadyEnrolledTitles.join(", ")}`,
+                    variant: "destructive"
                 });
                 setIsInitiatingCheckout(false);
                 return;
@@ -238,7 +241,8 @@ export default function CartPage() {
             // For simplicity, let's focus on amount and items primarily for cart identity.
             const isCartEffectivelyIdentical =
                 existingCurrentInvoice.studentId === user.id && // Should always match if same user
-                existingCurrentInvoice.amount === totalWithTax && // Compare current cart total with existing invoice total
+                existingCurrentInvoice.amount === discountedTotalWithTax &&
+                // existingCurrentInvoice.amount === totalWithTax && // Compare current cart total with existing invoice total
                 areCartInvoiceItemsEffectivelyEqual(currentCartInvoiceItems, existingCurrentInvoice.items);
 
             if (isCartEffectivelyIdentical) {
@@ -282,10 +286,19 @@ export default function CartPage() {
             const dueDate = new Date(today.setDate(today.getDate() + 7)); // Creates a new date object
             const formattedDueDate = dueDate.toISOString().split('T')[0];
 
+            // const invoicePayload: CreateInvoicePayload = {
+            //     studentId: user.id, // User is confirmed not null above
+            //     amount: totalWithTax,
+            //     description: cart.items.map(i => i.title).join(', '), // Removed 'Course enrolment:' prefix
+            //     dueDate: formattedDueDate,
+            //     items: invoiceItems,
+            // };
+
+
             const invoicePayload: CreateInvoicePayload = {
-                studentId: user.id, // User is confirmed not null above
-                amount: totalWithTax,
-                description: cart.items.map(i => i.title).join(', '), // Removed 'Course enrolment:' prefix
+                studentId: user.id,
+                amount: discountedTotalWithTax, // <-- Now uses discount
+                description: cart.items.map(i => i.title).join(', '),
                 dueDate: formattedDueDate,
                 items: invoiceItems,
             };
