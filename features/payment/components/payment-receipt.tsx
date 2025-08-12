@@ -150,7 +150,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
               <tbody className="bg-none">
                 {Array.isArray(itemsToDisplay) && itemsToDisplay.map((item, index) => (
                   <tr key={item.courseId || `item-${index}-${item.description.slice(0, 5)}`}>
-                    <td className="px-4 py-3 whitespace-normal break-words">
+                    <td className="px-4 py-3 whitespace-normal">
                       {/* Description (cleaned & truncated) */}
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {(() => {
@@ -165,9 +165,7 @@ export const PaymentReceipt: React.FC<PaymentReceiptProps> = ({ receiptData, cla
                           const cleaned = raw.replace(/^Course\s+enrolment:\s*/i, '').trim();
 
                           // Truncate to 30 chars
-                          return cleaned.length > 30
-                            ? `${cleaned.substring(0, 30)}…`
-                            : cleaned;
+                          return cleaned;
                         })()}
                       </div>
 
