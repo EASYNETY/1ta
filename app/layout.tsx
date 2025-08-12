@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/providers/error-boundary";
 import { Toaster } from "sonner";
 import { cacheManager } from "@/lib/cache-manager";
 import { UpdateDetector } from "@/components/app/UpdateDetector";
+import useSocketListeners from "@/hooks/useSocketListeners";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -161,6 +162,7 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
+          <SocketInit /> 
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -189,4 +191,10 @@ export default function RootLayout({
       </body>
     </html>
   );
+}
+
+
+function SocketInit() {
+  useSocketListeners();
+  return null;
 }
