@@ -290,6 +290,8 @@ export function CourseCard({ course, className, onClick, isModal = false }: Cour
         // animate={{ opacity: 1, y: 0 }}
         // exit={{ opacity: 0 }}
         // transition={{ /* ... */ }}
+
+        
         >
             {/* Image Container */}
             <div className="aspect-[16/10] relative overflow-hidden">
