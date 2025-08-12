@@ -60,7 +60,7 @@ export const ChatLayout: React.FC = () => {
                         <DyraneButton variant="secondary" size="icon" className="h-9 w-9 shadow-md relative">
                             <Menu className="h-5 w-5" />
                             {totalUnreadCount > 0 && (
-                                <Badge 
+                                <Badge
                                     className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px] bg-primary text-primary-foreground"
                                 >
                                     {totalUnreadCount > 9 ? "9+" : totalUnreadCount}
@@ -118,16 +118,19 @@ export const ChatLayout: React.FC = () => {
                 </div>
             </div>
 
-            {/* 
-                Main Chat Area:
-                - Takes up the remaining space.
-                - Displays either the selected chat or a prompt.
-            */}
+            {/* Main Chat Area */}
             <div className="flex flex-1 flex-col overflow-hidden">
                 {selectedRoomId && selectedRoom ? (
                     <>
+                        {/* Header */}
                         <ChatRoomHeader room={selectedRoom} isMobileView={isMobileView} />
-                        <ChatMessageList />
+
+                        {/* Scrollable Messages */}
+                        <div className="flex-1 overflow-y-auto">
+                            <ChatMessageList />
+                        </div>
+
+                        {/* Input */}
                         <ChatMessageInput />
                     </>
                 ) : (
