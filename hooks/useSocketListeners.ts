@@ -1,3 +1,4 @@
+"use client"
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import socket from "@/lib/socket"; // Your socket.io client instance
