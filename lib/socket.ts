@@ -1,8 +1,10 @@
-import { io } from "socket.io-client";
+// lib/socket.ts
+'use client'; // This ensures it's only run in the browser
 
-const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
-  withCredentials: true,
-  transports: ["websocket"], // Ensures better real-time performance
+import { io } from 'socket.io-client';
+
+const socket = io('https://api.onetechacademy.com', {
+  transports: ['websocket'], // optional for performance
 });
 
 export default socket;
