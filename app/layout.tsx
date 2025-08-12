@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 import { cacheManager } from "@/lib/cache-manager";
 import { UpdateDetector } from "@/components/app/UpdateDetector";
 import useSocketListeners from "@/hooks/useSocketListeners";
+import SocketInit from "@/components/SocketInit"; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -191,10 +192,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
-
-
-function SocketInit() {
-  useSocketListeners();
-  return null;
 }
