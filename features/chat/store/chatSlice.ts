@@ -8,11 +8,19 @@ interface ChatState {
     selectedRoomId: string | null;
     roomStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
     roomError: string | null;
+    
+    // Room creation status
+    createRoomStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+    createRoomError: string | null;
 
     // Messages
     messagesByRoom: Record<string, ChatMessage[]>;
     messageStatus: Record<string, 'idle' | 'loading' | 'succeeded' | 'failed'>;
     messageErrors: Record<string, string | null>;
+    
+    // Send message status
+    sendMessageStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+    sendMessageError: string | null;
     
     // Real-time features
     typingUsers: Record<string, TypingUser[]>; // roomId -> typing users
@@ -40,9 +48,15 @@ const initialState: ChatState = {
     roomStatus: 'idle',
     roomError: null,
     
+    createRoomStatus: 'idle',
+    createRoomError: null,
+    
     messagesByRoom: {},
     messageStatus: {},
     messageErrors: {},
+    
+    sendMessageStatus: 'idle',
+    sendMessageError: null,
     
     typingUsers: {},
     onlineUsers: {},
@@ -87,6 +101,40 @@ const chatSlice = createSlice({
         setRooms: (state, action: PayloadAction<ChatRoom[]>) => {
             state.rooms = action.payload;
             state.roomStatus = 'succeeded';
+        },
+
+        // Create room status actions
+        setCreateRoomStatus: (state, action: PayloadAction<'idle' | 'loading' | 'succeeded' | 'failed'>) => {
+            state.createRoomStatus = action.payload;
+        },
+
+        setCreateRoomError: (state, action: PayloadAction<string | null>) => {
+            state.createRoomError = action.payload;
+            if (action.payload) {
+                state.createRoomStatus = 'failed';
+            }
+        },
+
+        clearCreateRoomStatus: (state) => {
+            state.createRoomStatus = 'idle';
+            state.createRoomError = null;
+        },
+
+        // Send message status actions
+        setSendMessageStatus: (state, action: PayloadAction<'idle' | 'loading' | 'succeeded' | 'failed'>) => {
+            state.sendMessageStatus = action.payload;
+        },
+
+        setSendMessageError: (state, action: PayloadAction<string | null>) => {
+            state.sendMessageError = action.payload;
+            if (action.payload) {
+                state.sendMessageStatus = 'failed';
+            }
+        },
+
+        clearSendMessageStatus: (state) => {
+            state.sendMessageStatus = 'idle';
+            state.sendMessageError = null;
         },
 
         // Message management
@@ -336,6 +384,12 @@ export const {
     selectChatRoom,
     setRoomStatus,
     setRooms,
+    setCreateRoomStatus,
+    setCreateRoomError,
+    clearCreateRoomStatus,
+    setSendMessageStatus,
+    setSendMessageError,
+    clearSendMessageStatus,
     setMessages,
     messageReceived,
     messageSent,
@@ -371,6 +425,15 @@ export const selectCurrentRoomMessages = (state: any) => {
 };
 
 export const selectRoomStatus = (state: any) => state.chat.roomStatus;
+
+// Create room selectors
+export const selectCreateRoomStatus = (state: any) => state.chat.createRoomStatus;
+export const selectCreateRoomError = (state: any) => state.chat.createRoomError;
+
+// Send message selectors
+export const selectSendMessageStatus = (state: any) => state.chat.sendMessageStatus;
+export const selectSendMessageError = (state: any) => state.chat.sendMessageError;
+
 export const selectMessageStatusForRoom = (state: any, roomId: string) => 
     state.chat.messageStatus[roomId] || 'idle';
 
