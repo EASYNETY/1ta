@@ -215,3 +215,17 @@ export const markMultipleRoomsAsRead = createAsyncThunk(
     return roomIds;
   }
 );
+
+
+// Delete a specific chat message
+export const deleteChatMessage = createAsyncThunk(
+  'chat/deleteChatMessage',
+  async ({ messageId, roomId }: { messageId: string; roomId: string }) => {
+    await apiClient(`/chat/messages/${messageId}`, {
+      method: 'DELETE',
+      requiresAuth: true
+    });
+
+    return { messageId, roomId };
+  }
+);
