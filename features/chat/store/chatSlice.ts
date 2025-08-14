@@ -1,322 +1,402 @@
-// features/chat/store/chatSlice.ts
+// store/chatSlice.ts - Enhanced with real-time features
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ChatRoom, ChatMessage, MessageStatus, TypingUser, ConnectionStatus } from '../types/chat-types';
 
-import {
-	createSlice,
-	type PayloadAction,
-	createSelector,
-} from "@reduxjs/toolkit";
-import type { RootState } from "@/store";
-import type { ChatState, ChatRoom, ChatMessage } from "../types/chat-types";
-import {
-	fetchChatRooms,
-	fetchChatMessages,
-	sendChatMessage,
-	createChatRoom,
-	markRoomAsRead,
-} from "./chat-thunks";
+interface ChatState {
+    // Rooms
+    rooms: ChatRoom[];
+    selectedRoomId: string | null;
+    roomStatus: 'idle' | 'loading' | 'succeeded' | 'failed';
+    roomError: string | null;
 
-// Initial state
+    // Messages
+    messagesByRoom: Record<string, ChatMessage[]>;
+    messageStatus: Record<string, 'idle' | 'loading' | 'succeeded' | 'failed'>;
+    messageErrors: Record<string, string | null>;
+    
+    // Real-time features
+    typingUsers: Record<string, TypingUser[]>; // roomId -> typing users
+    onlineUsers: Record<string, any>; // userId -> user info
+    connectionStatus: ConnectionStatus;
+    
+    // Message status tracking
+    deliveryStatus: Record<string, MessageStatus>; // messageId -> status
+    readReceipts: Record<string, { readBy: string[], readAt: string }[]>; // messageId -> read info
+    
+    // Unread counts
+    unreadCounts: Record<string, number>; // roomId -> count
+    
+    // Drafts
+    messageDrafts: Record<string, string>; // roomId -> draft text
+    
+    // UI state
+    isTyping: Record<string, boolean>; // roomId -> is current user typing
+    lastSeen: Record<string, string>; // userId -> last seen timestamp
+}
+
 const initialState: ChatState = {
-	rooms: [],
-	messagesByRoom: {},
-	selectedRoomId: null,
-	roomStatus: "idle",
-	createRoomStatus: "idle",
-	messageStatus: {},
-	sendMessageStatus: "idle",
-	error: null,
-	createRoomError: null,
+    rooms: [],
+    selectedRoomId: null,
+    roomStatus: 'idle',
+    roomError: null,
+    
+    messagesByRoom: {},
+    messageStatus: {},
+    messageErrors: {},
+    
+    typingUsers: {},
+    onlineUsers: {},
+    connectionStatus: {
+        status: 'disconnected',
+        timestamp: Date.now(),
+        error: null
+    },
+    
+    deliveryStatus: {},
+    readReceipts: {},
+    unreadCounts: {},
+    messageDrafts: {},
+    isTyping: {},
+    lastSeen: {}
 };
 
-// Slice definition
 const chatSlice = createSlice({
-	name: "chat",
-	initialState,
-	reducers: {
-		selectChatRoom: (state, action: PayloadAction<string | null>) => {
-			const previouslySelectedRoomId = state.selectedRoomId;
-			state.selectedRoomId = action.payload;
-			state.error = null;
+    name: 'chat',
+    initialState,
+    reducers: {
+        // Room management
+        selectChatRoom: (state, action: PayloadAction<string | null>) => {
+            const previousRoomId = state.selectedRoomId;
+            state.selectedRoomId = action.payload;
+            
+            // Clear unread count when selecting room
+            if (action.payload) {
+                state.unreadCounts[action.payload] = 0;
+            }
+            
+            // Clear typing status for previous room
+            if (previousRoomId) {
+                state.isTyping[previousRoomId] = false;
+            }
+        },
 
-			// Defensive check for messageStatus
-			if (!state.messageStatus) {
-				state.messageStatus = {};
-			}
-			if (action.payload && !state.messageStatus[action.payload]) {
-				state.messageStatus[action.payload] = "idle";
-			}
+        setRoomStatus: (state, action: PayloadAction<'idle' | 'loading' | 'succeeded' | 'failed'>) => {
+            state.roomStatus = action.payload;
+        },
 
-			if (action.payload && action.payload !== previouslySelectedRoomId) {
-				// Defensive check for rooms array
-				if (!Array.isArray(state.rooms)) {
-					state.rooms = [];
-				}
-				const room = state.rooms.find((r) => r.id === action.payload);
-				if (room && room.unreadCount && room.unreadCount > 0) {
-					room.unreadCount = 0;
-				}
-			}
-		},
+        setRooms: (state, action: PayloadAction<ChatRoom[]>) => {
+            state.rooms = action.payload;
+            state.roomStatus = 'succeeded';
+        },
 
-		clearChatError: (state) => {
-			state.error = null;
-		},
+        // Message management
+        setMessages: (state, action: PayloadAction<{ roomId: string; messages: ChatMessage[]; append?: boolean }>) => {
+            const { roomId, messages, append = false } = action.payload;
+            
+            if (append) {
+                const existing = state.messagesByRoom[roomId] || [];
+                // Avoid duplicates
+                const newMessages = messages.filter(msg => 
+                    !existing.some(existing => existing.id === msg.id)
+                );
+                state.messagesByRoom[roomId] = [...existing, ...newMessages];
+            } else {
+                state.messagesByRoom[roomId] = messages;
+            }
+            
+            state.messageStatus[roomId] = 'succeeded';
+        },
 
-		clearRoomStatus: (state) => {
-			state.roomStatus = "idle";
-			state.error = null;
-		},
+        messageReceived: (state, action: PayloadAction<ChatMessage>) => {
+            const message = action.payload;
+            const roomId = message.roomId;
+            
+            if (!state.messagesByRoom[roomId]) {
+                state.messagesByRoom[roomId] = [];
+            }
+            
+            // Avoid duplicates
+            const exists = state.messagesByRoom[roomId].some(m => m.id === message.id);
+            if (!exists) {
+                state.messagesByRoom[roomId].push(message);
+                
+                // Update room's last message
+                const room = state.rooms.find(r => r.id === roomId);
+                if (room) {
+                    room.lastMessage = {
+                        content: message.content,
+                        sender: { name: message.senderName || 'Unknown' },
+                        timestamp: message.timestamp
+                    };
+                    room.lastMessageAt = message.timestamp;
+                }
+                
+                // Increment unread count if not current room or user is not sender
+                const currentUserId = getCurrentUserId(); // You'll need to implement this
+                if (roomId !== state.selectedRoomId && message.senderId !== currentUserId) {
+                    state.unreadCounts[roomId] = (state.unreadCounts[roomId] || 0) + 1;
+                }
+            }
+        },
 
-		messageReceived: (state, action: PayloadAction<ChatMessage>) => {
-			const message = action.payload;
-			const roomId = message.roomId;
+        messageSent: (state, action: PayloadAction<{ tempId: string; message: ChatMessage }>) => {
+            const { tempId, message } = action.payload;
+            const roomId = message.roomId;
+            
+            if (state.messagesByRoom[roomId]) {
+                // Replace temp message with real message
+                const tempIndex = state.messagesByRoom[roomId].findIndex(m => m.id === tempId);
+                if (tempIndex !== -1) {
+                    state.messagesByRoom[roomId][tempIndex] = message;
+                } else {
+                    state.messagesByRoom[roomId].push(message);
+                }
+            }
+        },
 
-			// Defensive check for messagesByRoom object
-			if (!state.messagesByRoom) {
-				state.messagesByRoom = {};
-			}
-			if (!state.messagesByRoom[roomId]) {
-				state.messagesByRoom[roomId] = [];
-			}
+        addOptimisticMessage: (state, action: PayloadAction<ChatMessage & { tempId: string }>) => {
+            const message = action.payload;
+            const roomId = message.roomId;
+            
+            if (!state.messagesByRoom[roomId]) {
+                state.messagesByRoom[roomId] = [];
+            }
+            
+            // Add optimistic message with temp ID
+            state.messagesByRoom[roomId].push({
+                ...message,
+                isOptimistic: true,
+                status: MessageStatus.SENDING
+            });
+        },
 
-			if (!state.messagesByRoom[roomId].some((m) => m.id === message.id)) {
-				state.messagesByRoom[roomId].push(message);
-			}
+        updateMessageStatus: (state, action: PayloadAction<{ messageId: string; status: MessageStatus; error?: string }>) => {
+            const { messageId, status, error } = action.payload;
+            
+            // Find and update message in all rooms
+            Object.values(state.messagesByRoom).forEach(messages => {
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    message.status = status;
+                    if (error) message.error = error;
+                    if (status === MessageStatus.SENT) {
+                        message.isOptimistic = false;
+                    }
+                }
+            });
+            
+            state.deliveryStatus[messageId] = status;
+        },
 
-			// Defensive check for rooms array
-			if (!Array.isArray(state.rooms)) {
-				state.rooms = [];
-			}
-			const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
-			if (roomIndex !== -1) {
-				state.rooms[roomIndex].lastMessage = {
-					content: message.content,
-					timestamp: message.timestamp,
-					senderId: message.senderId,
-					senderName: message.sender?.name,
-				};
-				if (state.selectedRoomId !== roomId) {
-					state.rooms[roomIndex].unreadCount =
-						(state.rooms[roomIndex].unreadCount || 0) + 1;
-				}
-			}
-		},
-		clearCreateRoomStatus: (state) => {
-			state.createRoomStatus = "idle";
-			state.createRoomError = null;
-		},
-		clearSendMessageStatus: (state) => {
-			state.sendMessageStatus = "idle";
-		},
-	},
-	extraReducers: (builder) => {
-		// Fetch Rooms
-		builder
-			.addCase(fetchChatRooms.pending, (state) => {
-				state.roomStatus = "loading";
-				state.error = null;
-			})
-			.addCase(fetchChatRooms.fulfilled, (state, action) => {
-				state.roomStatus = "succeeded";
-				state.rooms = action.payload; // This is a safe assignment
-			})
-			.addCase(fetchChatRooms.rejected, (state, action) => {
-				state.roomStatus = "failed";
-				state.error = action.payload ?? "Failed to fetch rooms";
-			});
+        // Real-time features
+        connectionStatusChanged: (state, action: PayloadAction<ConnectionStatus>) => {
+            state.connectionStatus = action.payload;
+        },
 
-		// Fetch Messages
-		builder
-			.addCase(fetchChatMessages.pending, (state, action) => {
-				const roomId = action.meta.arg.roomId;
-				// Defensive check for messageStatus
-				if (!state.messageStatus) {
-					state.messageStatus = {};
-				}
-				state.messageStatus[roomId] = "loading";
-				state.error = null;
-			})
-			.addCase(fetchChatMessages.fulfilled, (state, action) => {
-				const roomId = action.meta.arg.roomId;
-				if (!state.messageStatus) state.messageStatus = {};
-				state.messageStatus[roomId] = "succeeded";
+        userJoined: (state, action: PayloadAction<{ userId: string; userName: string; roomId: string }>) => {
+            const { userId, userName, roomId } = action.payload;
+            state.onlineUsers[userId] = {
+                id: userId,
+                name: userName,
+                status: 'online',
+                lastSeen: new Date().toISOString()
+            };
+        },
 
-				// Defensive check for messagesByRoom
-				if (!state.messagesByRoom) state.messagesByRoom = {};
-				if (!state.messagesByRoom[roomId]) {
-					state.messagesByRoom[roomId] = [];
-				}
+        userLeft: (state, action: PayloadAction<{ userId: string; roomId: string }>) => {
+            const { userId } = action.payload;
+            if (state.onlineUsers[userId]) {
+                state.onlineUsers[userId].status = 'offline';
+                state.onlineUsers[userId].lastSeen = new Date().toISOString();
+            }
+        },
 
-				const existingIds = new Set(
-					state.messagesByRoom[roomId].map((m) => m.id)
-				);
-				const newMessages = action.payload.filter(
-					(m) => !existingIds.has(m.id)
-				);
-				state.messagesByRoom[roomId] = [
-					...state.messagesByRoom[roomId],
-					...newMessages,
-				];
-				state.messagesByRoom[roomId].sort((a, b) => {
-					return (
-						new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-					);
-				});
-			})
-			.addCase(fetchChatMessages.rejected, (state, action) => {
-				const roomId = action.meta.arg.roomId;
-				if (!state.messageStatus) state.messageStatus = {};
-				state.messageStatus[roomId] = "failed";
-				state.error =
-					action.payload ?? `Failed to fetch messages for room ${roomId}`;
-			});
+        userTyping: (state, action: PayloadAction<{ roomId: string; userId: string; userName: string; isTyping: boolean }>) => {
+            const { roomId, userId, userName, isTyping } = action.payload;
+            
+            if (!state.typingUsers[roomId]) {
+                state.typingUsers[roomId] = [];
+            }
+            
+            const typingUserIndex = state.typingUsers[roomId].findIndex(u => u.userId === userId);
+            
+            if (isTyping) {
+                if (typingUserIndex === -1) {
+                    state.typingUsers[roomId].push({
+                        userId,
+                        userName,
+                        isTyping: true,
+                        timestamp: Date.now()
+                    });
+                } else {
+                    state.typingUsers[roomId][typingUserIndex].timestamp = Date.now();
+                }
+            } else {
+                if (typingUserIndex !== -1) {
+                    state.typingUsers[roomId].splice(typingUserIndex, 1);
+                }
+            }
+        },
 
-		// Send Message
-		builder
-			.addCase(sendChatMessage.pending, (state) => {
-				state.sendMessageStatus = "loading";
-				state.error = null;
-			})
-			.addCase(sendChatMessage.fulfilled, (state, action) => {
-				state.sendMessageStatus = "succeeded";
-				const roomId = action.payload.roomId;
+        setCurrentUserTyping: (state, action: PayloadAction<{ roomId: string; isTyping: boolean }>) => {
+            const { roomId, isTyping } = action.payload;
+            state.isTyping[roomId] = isTyping;
+        },
 
-				if (!state.messagesByRoom) state.messagesByRoom = {};
-				if (!state.messagesByRoom[roomId]) {
-					state.messagesByRoom[roomId] = [];
-				}
-				if (
-					!state.messagesByRoom[roomId].some((m) => m.id === action.payload.id)
-				) {
-					state.messagesByRoom[roomId].push(action.payload);
-				}
+        // Message status tracking
+        messageDelivered: (state, action: PayloadAction<{ messageId: string; roomId: string; deliveredAt: string }>) => {
+            const { messageId, deliveredAt } = action.payload;
+            state.deliveryStatus[messageId] = MessageStatus.DELIVERED;
+            
+            // Update message in room
+            Object.values(state.messagesByRoom).forEach(messages => {
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    message.status = MessageStatus.DELIVERED;
+                    message.deliveredAt = deliveredAt;
+                }
+            });
+        },
 
-				// Defensive check for rooms array
-				if (!Array.isArray(state.rooms)) {
-					state.rooms = [];
-				}
-				const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
-				if (roomIndex !== -1) {
-					state.rooms[roomIndex].lastMessage = {
-						content: action.payload.content,
-						timestamp: action.payload.timestamp,
-						senderId: action.payload.senderId,
-						senderName: action.payload.sender?.name,
-					};
-				}
-			})
-			.addCase(sendChatMessage.rejected, (state, action) => {
-				state.sendMessageStatus = "failed";
-				state.error = action.payload ?? "Failed to send message";
-			});
+        messageRead: (state, action: PayloadAction<{ messageId: string; roomId: string; readAt: string; readBy: string }>) => {
+            const { messageId, readAt, readBy } = action.payload;
+            state.deliveryStatus[messageId] = MessageStatus.READ;
+            
+            if (!state.readReceipts[messageId]) {
+                state.readReceipts[messageId] = [];
+            }
+            
+            const readInfo = { readBy: [readBy], readAt };
+            state.readReceipts[messageId].push(readInfo);
+            
+            // Update message in room
+            Object.values(state.messagesByRoom).forEach(messages => {
+                const message = messages.find(m => m.id === messageId);
+                if (message) {
+                    message.status = MessageStatus.READ;
+                    message.readAt = readAt;
+                }
+            });
+        },
 
-		// Create Chat Room
-		builder
-			.addCase(createChatRoom.pending, (state) => {
-				state.createRoomStatus = "loading";
-				state.createRoomError = null;
-			})
-			.addCase(
-				createChatRoom.fulfilled,
-				(state, action: PayloadAction<ChatRoom>) => {
-					state.createRoomStatus = "succeeded";
-					// Defensive check for rooms array
-					if (!Array.isArray(state.rooms)) {
-						state.rooms = [];
-					}
-					// Add the new room to the list, avoid duplicates
-					if (!state.rooms.some((room) => room.id === action.payload.id)) {
-						state.rooms.unshift(action.payload); // Add to the beginning
-					}
-				}
-			)
-			.addCase(createChatRoom.rejected, (state, action) => {
-				state.createRoomStatus = "failed";
-				state.createRoomError = action.payload ?? "Unknown error creating room";
-			});
+        // Draft management
+        updateMessageDraft: (state, action: PayloadAction<{ roomId: string; draft: string }>) => {
+            const { roomId, draft } = action.payload;
+            if (draft.trim()) {
+                state.messageDrafts[roomId] = draft;
+            } else {
+                delete state.messageDrafts[roomId];
+            }
+        },
 
-		// Mark Room as Read
-		builder
-			.addCase(markRoomAsRead.fulfilled, (state, action) => {
-				// The payload is now just { roomId: string }
-				const { roomId } = action.payload;
+        clearMessageDraft: (state, action: PayloadAction<string>) => {
+            const roomId = action.payload;
+            delete state.messageDrafts[roomId];
+        },
 
-				if (!Array.isArray(state.rooms)) {
-					state.rooms = [];
-				}
+        // Unread counts
+        setUnreadCount: (state, action: PayloadAction<{ roomId: string; count: number }>) => {
+            const { roomId, count } = action.payload;
+            state.unreadCounts[roomId] = count;
+        },
 
-				const roomIndex = state.rooms.findIndex((r) => r.id === roomId);
+        markRoomAsRead: (state, action: PayloadAction<string>) => {
+            const roomId = action.payload;
+            state.unreadCounts[roomId] = 0;
+        },
 
-				if (roomIndex !== -1) {
-					state.rooms[roomIndex].unreadCount = 0;
-				}
-			})
-			.addCase(markRoomAsRead.rejected, (state, action) => {
-				console.error("Failed to mark room as read on server:", action.payload);
-			});
-	},
+        // Error handling
+        setRoomError: (state, action: PayloadAction<string | null>) => {
+            state.roomError = action.payload;
+            state.roomStatus = action.payload ? 'failed' : state.roomStatus;
+        },
+
+        setMessageError: (state, action: PayloadAction<{ roomId: string; error: string | null }>) => {
+            const { roomId, error } = action.payload;
+            state.messageErrors[roomId] = error;
+            state.messageStatus[roomId] = error ? 'failed' : state.messageStatus[roomId];
+        },
+
+        // Clean up
+        clearChatData: (state) => {
+            return initialState;
+        }
+    }
 });
 
-// Actions & Selectors
+// Helper function to get current user ID
+// You'll need to implement this based on your auth system
+function getCurrentUserId(): string | null {
+    // This should return the current user's ID
+    // You might get it from the auth slice or localStorage
+    return null; // Implement this
+}
+
 export const {
-	selectChatRoom,
-	clearChatError,
-	messageReceived,
-	clearCreateRoomStatus,
-	clearSendMessageStatus,
+    selectChatRoom,
+    setRoomStatus,
+    setRooms,
+    setMessages,
+    messageReceived,
+    messageSent,
+    addOptimisticMessage,
+    updateMessageStatus,
+    connectionStatusChanged,
+    userJoined,
+    userLeft,
+    userTyping,
+    setCurrentUserTyping,
+    messageDelivered,
+    messageRead,
+    updateMessageDraft,
+    clearMessageDraft,
+    setUnreadCount,
+    markRoomAsRead,
+    setRoomError,
+    setMessageError,
+    clearChatData
 } = chatSlice.actions;
 
-// Basic selectors
-// This selector is now safe and performant because the reducers guarantee state.chat.rooms is an array.
-export const selectChatRooms = (state: RootState) => state.chat.rooms;
-export const selectMessagesByRoom = (state: RootState) =>
-	state.chat.messagesByRoom;
-export const selectSelectedRoomId = (state: RootState) =>
-	state.chat.selectedRoomId;
-export const selectRoomStatus = (state: RootState) => state.chat.roomStatus;
-export const selectSendMessageStatus = (state: RootState) =>
-	state.chat.sendMessageStatus;
-export const selectChatError = (state: RootState) => state.chat.error;
-export const selectCreateRoomStatus = (state: RootState) =>
-	state.chat.createRoomStatus;
-export const selectCreateRoomError = (state: RootState) =>
-	state.chat.createRoomError;
-
-// Derived selectors
-export const selectCurrentRoomMessages = createSelector(
-	[selectMessagesByRoom, selectSelectedRoomId],
-	(messagesByRoom, selectedRoomId): ChatMessage[] => {
-		// Defensive check: if messagesByRoom is not an object, return empty array.
-		if (!messagesByRoom || typeof messagesByRoom !== "object") return [];
-		return selectedRoomId ? messagesByRoom[selectedRoomId] || [] : [];
-	}
-);
-
-export const selectMessageStatusForRoom = (
-	state: RootState,
-	roomId: string | null
-) => {
-	// Defensive check
-	if (!state.chat.messageStatus) return "idle";
-	return roomId ? state.chat.messageStatus[roomId] || "idle" : "idle";
+// Enhanced selectors
+export const selectChatRooms = (state: any) => state.chat.rooms;
+export const selectSelectedRoomId = (state: any) => state.chat.selectedRoomId;
+export const selectSelectedRoom = (state: any) => {
+    const selectedRoomId = state.chat.selectedRoomId;
+    return selectedRoomId ? state.chat.rooms.find((room: ChatRoom) => room.id === selectedRoomId) : null;
 };
 
-export const selectSelectedRoom = createSelector(
-	[selectChatRooms, selectSelectedRoomId],
-	(rooms, selectedRoomId): ChatRoom | undefined => {
-		// Selector is already safe because selectChatRooms will return an array.
-		if (!rooms) return undefined;
-		return rooms.find((room) => room.id === selectedRoomId);
-	}
-);
+export const selectCurrentRoomMessages = (state: any) => {
+    const selectedRoomId = state.chat.selectedRoomId;
+    return selectedRoomId ? state.chat.messagesByRoom[selectedRoomId] || [] : [];
+};
 
-export const selectChatUnreadCount = createSelector(
-	[selectChatRooms],
-	(rooms): number => {
-		// Defensive check
-		if (!Array.isArray(rooms)) return 0;
-		return rooms.reduce((total, room) => total + (room.unreadCount || 0), 0);
-	}
-);
+export const selectRoomStatus = (state: any) => state.chat.roomStatus;
+export const selectMessageStatusForRoom = (state: any, roomId: string) => 
+    state.chat.messageStatus[roomId] || 'idle';
+
+export const selectTypingUsersForRoom = (state: any, roomId: string) => 
+    state.chat.typingUsers[roomId] || [];
+
+export const selectConnectionStatus = (state: any) => state.chat.connectionStatus;
+
+export const selectUnreadCountForRoom = (state: any, roomId: string) => 
+    state.chat.unreadCounts[roomId] || 0;
+
+export const selectChatUnreadCount = (state: any) => 
+    Object.values(state.chat.unreadCounts).reduce((sum: number, count: number) => sum + count, 0);
+
+export const selectMessageDraftForRoom = (state: any, roomId: string) => 
+    state.chat.messageDrafts[roomId] || '';
+
+export const selectIsUserTypingInRoom = (state: any, roomId: string) => 
+    state.chat.isTyping[roomId] || false;
+
+export const selectOnlineUsers = (state: any) => state.chat.onlineUsers;
+
+export const selectMessageStatus = (state: any, messageId: string) => 
+    state.chat.deliveryStatus[messageId] || MessageStatus.SENDING;
+
+export const selectReadReceipts = (state: any, messageId: string) => 
+    state.chat.readReceipts[messageId] || [];
 
 export default chatSlice.reducer;
