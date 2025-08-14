@@ -10,27 +10,6 @@ import type {
 } from "../types/chat-types";
 import { get, post } from "@/lib/api-client";
 
-// export const fetchChatRooms = createAsyncThunk<
-// 	ChatRoom[],
-// 	void,
-// 	{ rejectValue: string }
-// >("chat/fetchRooms", async (_, { rejectWithValue }) => {
-// 	try {
-// 		const apiClientResponse = await get<any>(`/chat/rooms`);
-// 		const roomsArray: ChatRoom[] = [];
-// 		if (apiClientResponse && typeof apiClientResponse === "object") {
-// 			Object.keys(apiClientResponse).forEach((key) => {
-// 				if (!isNaN(parseInt(key, 10))) {
-// 					roomsArray.push(apiClientResponse[key]);
-// 				}
-// 			});
-// 		}
-// 		return roomsArray;
-// 	} catch (e: any) {
-// 		return rejectWithValue(e.message || "Failed to fetch chat rooms");
-// 	}
-// });
-
 export interface FetchMessagesParams {
 	roomId: string;
 	page?: number;
@@ -45,23 +24,21 @@ export const fetchChatMessages = createAsyncThunk<
 	"chat/fetchMessages",
 	async ({ roomId, page = 1, limit = 30 }, { rejectWithValue }) => {
 		try {
-			const apiClientResponse = await get<any[]>( // Expect an array of any
+			const apiClientResponse = await get<any[]>(
 				`/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`
 			);
 
 			const messagesArray: ChatMessage[] = [];
 			if (Array.isArray(apiClientResponse)) {
-				// Your api-client might just return the array directly
 				apiClientResponse.forEach((msg) => {
-					messagesArray.push(mapApiMessageToChatMessage(msg)); // Use the mapper
+					messagesArray.push(mapApiMessageToChatMessage(msg));
 				});
 			} else if (apiClientResponse && typeof apiClientResponse === "object") {
-				// Handle the spread object case
 				Object.keys(apiClientResponse).forEach((key) => {
 					if (!isNaN(parseInt(key, 10))) {
 						messagesArray.push(
 							mapApiMessageToChatMessage(apiClientResponse[key])
-						); // Use the mapper
+						);
 					}
 				});
 			}
@@ -86,8 +63,6 @@ export const sendChatMessage = createAsyncThunk<
 >("chat/sendMessage", async (payload, { rejectWithValue }) => {
 	try {
 		const newApiMessage = await post<any>("/chat/messages", payload);
-
-		// Use the mapper to ensure the object has the `timestamp` property
 		return mapApiMessageToChatMessage(newApiMessage);
 	} catch (e: any) {
 		return rejectWithValue(e.message || "Failed to send message");
@@ -111,29 +86,6 @@ export const createChatRoom = createAsyncThunk<
 	}
 });
 
-// export const markRoomAsRead = createAsyncThunk<
-// 	{ roomId: string },
-// 	MarkRoomReadPayload,
-// 	{ rejectValue: string }
-// >("chat/markRoomAsRead", async (payload, { rejectWithValue }) => {
-// 	try {
-// 		const response = await post<MarkReadResponse>(
-// 			"/chat/rooms/mark-read",
-// 			payload
-// 		);
-// 		if (response.success) {
-// 			return { roomId: payload.roomId };
-// 		} else {
-// 			return rejectWithValue(
-// 				response.message || "Failed to mark room as read."
-// 			);
-// 		}
-// 	} catch (e: any) {
-// 		const errorMessage = e.message || "Failed to mark room as read";
-// 		return rejectWithValue(errorMessage);
-// 	}
-// });
-
 const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
 	return {
 		...apiMessage,
@@ -144,42 +96,21 @@ const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
 					name: apiMessage.user.name,
 					avatarUrl: apiMessage.user.avatarUrl,
 					role: apiMessage.user.role,
-				}
+			  }
 			: undefined,
 	};
 };
 
-
-// Add these thunks to your chat-thunks.ts file
-
-
 // Update existing chat room
 export const updateChatRoom = createAsyncThunk(
   'chat/updateChatRoom',
-  async ({ 
-    roomId, 
-    name, 
-    type, 
-    participantIds 
-  }: { 
-    roomId: string; 
-    name: string; 
-    type: string; 
-    participantIds: string[] 
-  }) => {
+  async ({ roomId, name, type, participantIds }: { roomId: string; name: string; type: string; participantIds: string[] }) => {
     const response = await apiClient(`/chat/rooms/${roomId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name,
-        type,
-        participantIds
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, type, participantIds }),
       requiresAuth: true
     });
-    
     return response;
   }
 );
@@ -192,29 +123,25 @@ export const deleteChatRoom = createAsyncThunk(
       method: 'DELETE',
       requiresAuth: true
     });
-    
     return roomId;
   }
 );
 
-// Mark room as read (updates unread count)
+// Mark room as read
 export const markRoomAsRead = createAsyncThunk(
   'chat/markRoomAsRead',
   async ({ roomId, userId }: { roomId: string; userId: string }) => {
-    const response = await apiClient(`/chat/rooms/${roomId}/mark-read`, {
+    await apiClient(`/chat/rooms/${roomId}/mark-read`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
       requiresAuth: true
     });
-    
     return { roomId, userId };
   }
 );
 
-// Get unread counts for all rooms
+// Get unread counts
 export const fetchUnreadCounts = createAsyncThunk(
   'chat/fetchUnreadCounts',
   async (userId: string) => {
@@ -222,46 +149,39 @@ export const fetchUnreadCounts = createAsyncThunk(
       method: 'GET',
       requiresAuth: true
     });
-    
     return response;
   }
 );
 
-// Add participants to room
+// Add participants
 export const addParticipantsToRoom = createAsyncThunk(
   'chat/addParticipantsToRoom',
   async ({ roomId, participantIds }: { roomId: string; participantIds: string[] }) => {
     const response = await apiClient(`/chat/rooms/${roomId}/participants`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ participantIds }),
       requiresAuth: true
     });
-    
     return response;
   }
 );
 
-// Remove participants from room
+// Remove participants
 export const removeParticipantsFromRoom = createAsyncThunk(
   'chat/removeParticipantsFromRoom',
   async ({ roomId, participantIds }: { roomId: string; participantIds: string[] }) => {
     const response = await apiClient(`/chat/rooms/${roomId}/participants`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ participantIds }),
       requiresAuth: true
     });
-    
     return response;
   }
 );
 
-// Update the existing fetchChatRooms to include unread counts
+// Fetch chat rooms with unread counts
 export const fetchChatRooms = createAsyncThunk(
   'chat/fetchChatRooms',
   async (userId: string) => {
@@ -269,38 +189,29 @@ export const fetchChatRooms = createAsyncThunk(
       method: 'GET',
       requiresAuth: true
     });
-    
-    // Ensure each room has an unreadCount property
-    return response.map((room: any) => ({
-      ...room,
-      unreadCount: room.unreadCount || 0
-    }));
+    return response.map((room: any) => ({ ...room, unreadCount: room.unreadCount || 0 }));
   }
 );
 
-// Socket event handlers for real-time unread count updates
+// Handle unread count update
 export const handleUnreadCountUpdate = createAsyncThunk(
   'chat/handleUnreadCountUpdate',
   async ({ roomId, count }: { roomId: string; count: number }, { dispatch }) => {
-    // This would be called from socket event listeners
     dispatch(updateRoomUnreadCount({ roomId, count }));
     return { roomId, count };
   }
 );
 
-// Batch mark multiple rooms as read
+// Batch mark rooms as read
 export const markMultipleRoomsAsRead = createAsyncThunk(
   'chat/markMultipleRoomsAsRead',
   async ({ roomIds, userId }: { roomIds: string[]; userId: string }) => {
-    const response = await apiClient('/chat/rooms/mark-read-bulk', {
+    await apiClient('/chat/rooms/mark-read-bulk', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ roomIds, userId }),
       requiresAuth: true
     });
-    
     return roomIds;
   }
 );
