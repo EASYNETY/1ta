@@ -267,13 +267,13 @@ export default function AnalyticsDashboard() {
         subheading="View key metrics and performance indicators for your academy"
         actions={
           <div className="flex gap-2 items-center">
-            <DyraneButton onClick={() => dispatch(fetchAnalyticsDashboard())} size="sm">
+            {/* <DyraneButton onClick={() => dispatch(fetchAnalyticsDashboard())} size="sm">
               <RefreshIcon />
               Refresh
             </DyraneButton>
             <DyraneButton variant={autoRefresh ? "default" : "ghost"} size="sm" onClick={() => setAutoRefresh((s) => !s)}>
               {autoRefresh ? "Auto-refresh: ON" : "Auto-refresh: OFF"}
-            </DyraneButton>
+            </DyraneButton> */}
             <DyraneButton asChild size="sm">
               <Link href="/admin/analytics/reports">View Reports</Link>
             </DyraneButton>
