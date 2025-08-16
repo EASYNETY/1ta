@@ -228,70 +228,36 @@ function ProgressCard({
   href: string
   color?: 'primary' | 'blue' | 'green' | 'amber' | 'red'
 }) {
-  // Get color classes based on color prop
   const getColorClasses = () => {
     switch (color) {
       case 'primary':
-        return {
-          bg: 'bg-primary/10',
-          text: 'text-primary',
-          progress: 'bg-primary'
-        }
+        return { bg: 'bg-primary/10', text: 'text-primary', progress: 'bg-primary' }
       case 'blue':
-        return {
-          bg: 'bg-blue-100',
-          text: 'text-blue-600',
-          progress: 'bg-blue-500'
-        }
+        return { bg: 'bg-blue-100', text: 'text-blue-600', progress: 'bg-blue-500' }
       case 'green':
-        return {
-          bg: 'bg-green-100',
-          text: 'text-green-600',
-          progress: 'bg-green-500'
-        }
+        return { bg: 'bg-green-100', text: 'text-green-600', progress: 'bg-green-500' }
       case 'amber':
-        return {
-          bg: 'bg-amber-100',
-          text: 'text-amber-600',
-          progress: 'bg-amber-500'
-        }
+        return { bg: 'bg-amber-100', text: 'text-amber-600', progress: 'bg-amber-500' }
       case 'red':
-        return {
-          bg: 'bg-red-100',
-          text: 'text-red-600',
-          progress: 'bg-red-500'
-        }
+        return { bg: 'bg-red-100', text: 'text-red-600', progress: 'bg-red-500' }
       default:
-        return {
-          bg: 'bg-primary/10',
-          text: 'text-primary',
-          progress: 'bg-primary'
-        }
+        return { bg: 'bg-primary/10', text: 'text-primary', progress: 'bg-primary' }
     }
   }
 
   const colorClasses = getColorClasses()
 
   return (
-    <Card style={{ height: 'auto' }}>
-      <CardHeader className="pb-2">
+    <Card className="flex flex-col h-full">
+      <CardHeader className="pb-2 min-h-[56px]">
         <div className="flex items-center justify-between">
-          <CardHeader className="pb-2 min-h-[56px]">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm sm:text-base flex items-center gap-2 w-full">
-                <div className={cn("p-1.5 rounded-md", colorClasses.bg)}>
-                  <div className={colorClasses.text}>{icon}</div>
-                </div>
-                <span className="truncate whitespace-nowrap">{title}</span>
-              </CardTitle>
-              <span className={cn("text-lg font-bold", colorClasses.text)}>
-                {value}%
-              </span>
+          <CardTitle className="text-sm sm:text-base flex items-center gap-2 w-full">
+            <div className={cn('p-1.5 rounded-md', colorClasses.bg)}>
+              <div className={colorClasses.text}>{icon}</div>
             </div>
-          </CardHeader>
-          <span className={cn("text-lg font-bold", colorClasses.text)}>
-            {value}%
-          </span>
+            <span className="truncate whitespace-nowrap">{title}</span>
+          </CardTitle>
+          <span className={cn('text-lg font-bold', colorClasses.text)}>{value}%</span>
         </div>
       </CardHeader>
 
@@ -304,7 +270,7 @@ function ProgressCard({
         />
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="mt-auto">
         <DyraneButton variant="ghost" size="sm" className="w-full" asChild>
           <Link href={href}>
             <span className="truncate">View Details</span>
@@ -315,3 +281,4 @@ function ProgressCard({
     </Card>
   )
 }
+
