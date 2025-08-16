@@ -134,21 +134,21 @@ export function ProgressOverview() {
           color="primary"
         />
 
-        <ProgressCard
+        {/* <ProgressCard
           title="Assignments"
           value={assignmentCompletion}
           icon={<FileText className="h-5 w-5" />}
           href="/assignments"
           color="blue"
-        />
+        /> */}
 
-        <ProgressCard
+        {/* <ProgressCard
           title="Quiz Performance"
           value={quizPerformance}
           icon={<GraduationCap className="h-5 w-5" />}
           href="/courses"
           color="amber"
-        />
+        /> */}
 
         <ProgressCard
           title="Overall Grade"
