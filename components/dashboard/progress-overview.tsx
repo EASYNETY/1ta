@@ -274,13 +274,13 @@ function ProgressCard({
 
   return (
     <Card style={{ height: 'auto' }}>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 min-h-[56px]">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+          <CardTitle className="text-sm sm:text-base flex items-center gap-2 w-full">
             <div className={cn("p-1.5 rounded-md", colorClasses.bg)}>
               <div className={colorClasses.text}>{icon}</div>
             </div>
-            <span className="truncate">{title}</span>
+            <span className="truncate whitespace-nowrap">{title}</span>
           </CardTitle>
           <span className={cn("text-lg font-bold", colorClasses.text)}>
             {value}%
