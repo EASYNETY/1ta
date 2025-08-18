@@ -111,10 +111,8 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             // Handle file attachments
             if (attachmentFiles.length > 0) {
                 setIsUploading(true);
-                
                 for (const file of attachmentFiles) {
                     const tempId = `temp_${Date.now()}_${Math.random()}`;
-                    
                     try {
                         // Determine message type based on file
                         let messageType = MessageType.FILE;
@@ -155,20 +153,18 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
 
                         // Upload file and send message
                         const uploadedFile = await uploadFile(file, selectedRoomId);
-                        
+
                         dispatch(sendChatMessage({
                             roomId: selectedRoomId,
                             content: file.name,
                             type: messageType,
                             tempId
                         }));
-                        
                     } catch (error) {
                         console.error('Failed to upload file:', error);
                         toast.error(`Failed to upload ${file.name}`);
                     }
                 }
-                
                 setIsUploading(false);
             }
 
