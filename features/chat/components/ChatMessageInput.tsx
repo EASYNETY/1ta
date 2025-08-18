@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,6 @@ import {
     Image as ImageIcon, 
     FileText, 
     X,
-    Camera,
     Video
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -27,14 +26,11 @@ import {
     setCurrentUserTyping,
     addOptimisticMessage
 } from "../store/chatSlice";
-import { useSocket } from "../services/socketService";
 import { sendChatMessage } from "../store/chat-thunks";
 import { MessageType, MessageStatus } from "../types/chat-types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
-// import EmojiPicker from '@emoji-mart/react';
-// import data from '@emoji-mart/data';
 
 interface ChatMessageInputProps {
     replyToMessage?: any;
@@ -45,7 +41,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     replyToMessage,
     onCancelReply
 }) => {
-    // All refs, handlers, and stubs go here, inside the function body
     const dispatch = useAppDispatch();
     const selectedRoomId = useAppSelector(selectSelectedRoomId);
     const currentUser = useAppSelector((state) => state.auth.user);
@@ -62,11 +57,15 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
     const mediaRecorderRef = useRef<any>(null);
     const recordingTimerRef = useRef<any>(null);
     const typingTimeoutRef = useRef<any>(null);
-    const videoInputRef = useRef<HTMLInputElement>(null);
+
+    // Connection status (stub)
     const isConnected = true;
+
+    // Emoji picker stub (replace with actual if available)
     const EmojiPicker = () => null;
     const data = {};
 
@@ -74,6 +73,7 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         setMessage(e.target.value);
         handleTypingStart();
     };
+
     const handleTypingStart = () => {
         dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: true }));
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -81,51 +81,7 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             handleTypingStop();
         }, 3000);
     };
-    const handleTypingStop = () => {
-        dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: false }));
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = null;
-        }
-    };
-    const uploadFile = async (file: File, roomId: string) => {
-        await new Promise(res => setTimeout(res, 500));
-        return { metadata: { fileName: file.name, fileSize: file.size, fileType: file.type, fileUrl: URL.createObjectURL(file) } };
-    };
 
-    // ...existing code continues...
-    onCancelReply
-}) => {
-    // Add missing refs, handlers, and stubs here
-    const mediaRecorderRef = useRef<any>(null);
-    const recordingTimerRef = useRef<any>(null);
-    const typingTimeoutRef = useRef<any>(null);
-    const videoInputRef = useRef<HTMLInputElement>(null);
-
-    // Connection status (stub, replace with actual logic if needed)
-    const isConnected = true;
-
-    // Emoji picker stub
-    // If you have EmojiPicker and data, import them properly
-    const EmojiPicker = () => null;
-    const data = {};
-
-    // Input change handler
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setMessage(e.target.value);
-        // Optionally trigger typing indicator
-        handleTypingStart();
-    };
-
-    // Typing indicator handlers (stub, replace with actual logic)
-    const handleTypingStart = () => {
-        dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: true }));
-        // Optionally set a timeout to stop typing
-        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-        typingTimeoutRef.current = setTimeout(() => {
-            handleTypingStop();
-        }, 3000);
-    };
     const handleTypingStop = () => {
         dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: false }));
         if (typingTimeoutRef.current) {
@@ -134,42 +90,19 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         }
     };
 
-    // File upload stub (replace with actual implementation)
     const uploadFile = async (file: File, roomId: string) => {
-        // Simulate upload delay
         await new Promise(res => setTimeout(res, 500));
         return { metadata: { fileName: file.name, fileSize: file.size, fileType: file.type, fileUrl: URL.createObjectURL(file) } };
     };
-    const dispatch = useAppDispatch();
-    const selectedRoomId = useAppSelector(selectSelectedRoomId);
-    const currentUser = useAppSelector((state) => state.auth.user);
-    const draft = useAppSelector(state => 
-        selectedRoomId ? selectMessageDraftForRoom(state, selectedRoomId) : ""
-    );
-    const isUserTyping = useAppSelector(state =>
-        selectedRoomId ? selectIsUserTypingInRoom(state, selectedRoomId) : false
-    );
 
-    const [message, setMessage] = useState(draft);
-    const [isRecording, setIsRecording] = useState(false);
-    const [recordingDuration, setRecordingDuration] = useState(0);
-    const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
-    const [isUploading, setIsUploading] = useState(false);
-    const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
-
-    const inputRef = useRef<HTMLInputElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const imageInputRef = useRef<HTMLInputElement>(null);
     const handleSendMessage = async () => {
         if ((!message.trim() && attachmentFiles.length === 0) || !selectedRoomId || !currentUser) {
             return;
         }
 
-        // Stop typing indicator
         handleTypingStop();
 
         try {
-            // Handle text message
             if (message.trim()) {
                 const tempId = `temp_${Date.now()}_${Math.random()}`;
                 const optimisticMessage = {
@@ -190,10 +123,7 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                     }
                 };
 
-                // Add optimistic message immediately
                 dispatch(addOptimisticMessage(optimisticMessage));
-
-                // Send via API
                 dispatch(sendChatMessage({
                     roomId: selectedRoomId,
                     content: message.trim(),
@@ -202,22 +132,15 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                 }));
             }
 
-            // Handle file attachments
             if (attachmentFiles.length > 0) {
                 setIsUploading(true);
                 for (const file of attachmentFiles) {
                     const tempId = `temp_${Date.now()}_${Math.random()}`;
-                    // Determine message type based on file
                     let messageType = MessageType.FILE;
-                    if (file.type.startsWith('image/')) {
-                        messageType = MessageType.IMAGE;
-                    } else if (file.type.startsWith('video/')) {
-                        messageType = MessageType.VIDEO;
-                    } else if (file.type.startsWith('audio/')) {
-                        messageType = MessageType.AUDIO;
-                    }
+                    if (file.type.startsWith('image/')) messageType = MessageType.IMAGE;
+                    else if (file.type.startsWith('video/')) messageType = MessageType.VIDEO;
+                    else if (file.type.startsWith('audio/')) messageType = MessageType.AUDIO;
 
-                    // Create optimistic message for file
                     const fileMessage = {
                         id: tempId,
                         tempId,
@@ -244,7 +167,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
 
                     dispatch(addOptimisticMessage(fileMessage));
 
-                    // Upload file and send message
                     try {
                         await uploadFile(file, selectedRoomId);
                         dispatch(sendChatMessage({
@@ -261,7 +183,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                 setIsUploading(false);
             }
 
-            // Clear input and draft
             setMessage("");
             setAttachmentFiles([]);
             dispatch(clearMessageDraft(selectedRoomId));
@@ -283,12 +204,10 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         }
     };
 
-    // File handling
-    const handleFileSelect = (files: FileList | null, type?: 'image' | 'video' | 'file') => {
+    const handleFileSelect = (files: FileList | null) => {
         if (!files) return;
 
         const newFiles = Array.from(files).filter(file => {
-            // Validate file size (10MB max)
             if (file.size > 10 * 1024 * 1024) {
                 toast.error(`File ${file.name} is too large (max 10MB)`);
                 return false;
@@ -303,7 +222,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         setAttachmentFiles(prev => prev.filter((_, i) => i !== index));
     };
 
-    // Voice recording
     const startRecording = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -318,8 +236,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                 const audioFile = new File([audioBlob], `voice_${Date.now()}.wav`, { type: 'audio/wav' });
                 setAttachmentFiles(prev => [...prev, audioFile]);
-                
-                // Stop all tracks
                 stream.getTracks().forEach(track => track.stop());
             };
 
@@ -328,7 +244,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             setIsRecording(true);
             setRecordingDuration(0);
 
-            // Start timer
             recordingTimerRef.current = setInterval(() => {
                 setRecordingDuration(prev => prev + 1);
             }, 1000);
@@ -343,7 +258,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
-            
             if (recordingTimerRef.current) {
                 clearInterval(recordingTimerRef.current);
                 recordingTimerRef.current = null;
@@ -361,25 +275,18 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         const newMessage = message + emoji.native;
         setMessage(newMessage);
         setEmojiPickerOpen(false);
-        
-        // Trigger typing if not already typing
         if (newMessage.trim()) {
             handleTypingStart();
         }
     };
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             handleTypingStop();
-            if (recordingTimerRef.current) {
-                clearInterval(recordingTimerRef.current);
-            }
-            if (typingTimeoutRef.current) {
-                clearTimeout(typingTimeoutRef.current);
-            }
+            if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         };
-    }, [handleTypingStop]);
+    }, []);
 
     if (!selectedRoomId) {
         return null;
@@ -510,7 +417,7 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                     type="file"
                     multiple
                     className="hidden"
-                    onChange={(e) => handleFileSelect(e.target.files, 'file')}
+                    onChange={(e) => handleFileSelect(e.target.files)}
                     accept=".pdf,.doc,.docx,.txt,.zip,.rar"
                 />
                 <input
@@ -518,14 +425,14 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                     type="file"
                     multiple
                     className="hidden"
-                    onChange={(e) => handleFileSelect(e.target.files, 'image')}
+                    onChange={(e) => handleFileSelect(e.target.files)}
                     accept="image/*"
                 />
                 <input
                     ref={videoInputRef}
                     type="file"
                     className="hidden"
-                    onChange={(e) => handleFileSelect(e.target.files, 'video')}
+                    onChange={(e) => handleFileSelect(e.target.files)}
                     accept="video/*"
                 />
 
