@@ -1,4 +1,4 @@
-// features/chat/components/ChatLayout.tsx
+// features/chat/components/ChatLayout.tsx - FIXED VERSION
 
 "use client";
 
@@ -15,8 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Menu, MessageSquare } from "lucide-react";
 import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount } from "../store/chatSlice";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
+import { fetchChatMessages } from "../store/chat-thunks";
 
 export const ChatLayout: React.FC = () => {
+    const dispatch = useAppDispatch();
     const selectedRoomId = useAppSelector(selectSelectedRoomId);
     const selectedRoom = useAppSelector(selectSelectedRoom);
     const allRooms = useAppSelector(selectChatRooms);
@@ -42,12 +44,16 @@ export const ChatLayout: React.FC = () => {
         return () => window.removeEventListener("resize", checkMobileView);
     }, []);
 
-    // NEW: Ensure messages are fetched for selected room
-    const dispatch = useAppDispatch();
+    // FIXED: Proper message fetching for selected room
     useEffect(() => {
         if (selectedRoomId) {
-            // Always fetch messages for the selected room
-            dispatch({ type: "chat/fetchChatMessages/pending", meta: { arg: { roomId: selectedRoomId, page: 1, limit: 30 } } });
+            console.log(`📥 Fetching messages for room: ${selectedRoomId}`);
+            // Use proper Redux thunk dispatch
+            dispatch(fetchChatMessages({ 
+                roomId: selectedRoomId, 
+                page: 1, 
+                limit: 30 
+            }));
         }
     }, [selectedRoomId, dispatch]);
 

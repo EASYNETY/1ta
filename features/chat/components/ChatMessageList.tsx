@@ -1,4 +1,4 @@
-// features/chat/components/ChatMessageList.tsx - Enhanced with real-time features
+// features/chat/components/ChatMessageList.tsx - FIXED VERSION
 
 "use client";
 
@@ -57,42 +57,52 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
     const { joinRoom, leaveRoom, markRoomAsRead: socketMarkAsRead } = useSocket();
 
+    // Debug logging
+    useEffect(() => {
+        console.log('📨 ChatMessageList State:', {
+            selectedRoomId,
+            messagesCount: messages?.length || 0,
+            messageLoadingStatus,
+            messages: messages?.slice(0, 3) // First 3 messages for debugging
+        });
+    }, [selectedRoomId, messages, messageLoadingStatus]);
+
     // Join/leave room when selectedRoomId changes
     useEffect(() => {
         if (selectedRoomId) {
-            console.log(`Joining room: ${selectedRoomId}`);
+            console.log(`🔄 Joining room: ${selectedRoomId}`);
             joinRoom(selectedRoomId);
             
             // Mark room as read when entering
             if (currentUser?.id) {
                 dispatch(markRoomAsRead(selectedRoomId));
-                socketMarkAsRead(selectedRoomId);
+                socketMarkAsRead?.(selectedRoomId);
             }
         }
 
         return () => {
             if (selectedRoomId) {
-                console.log(`Leaving room: ${selectedRoomId}`);
+                console.log(`🚪 Leaving room: ${selectedRoomId}`);
                 leaveRoom(selectedRoomId);
             }
         };
     }, [selectedRoomId, joinRoom, leaveRoom, dispatch, currentUser?.id, socketMarkAsRead]);
 
-    // Fetch messages when room changes
+    // FIXED: Ensure messages are always fetched when room changes or status is idle
     useEffect(() => {
-        if (selectedRoomId && messageLoadingStatus === "idle") {
-            console.log(`Fetching messages for room ${selectedRoomId}`);
+        if (selectedRoomId && (messageLoadingStatus === "idle" || messages.length === 0)) {
+            console.log(`📥 Fetching messages for room ${selectedRoomId}, status: ${messageLoadingStatus}`);
             dispatch(fetchChatMessages({ 
                 roomId: selectedRoomId, 
                 page: 1, 
-                limit: 30 
+                limit: 50 
             }));
             setPage(1);
             setHasScrolledToBottom(false);
             setShouldAutoScroll(true);
             setHasMore(true);
         }
-    }, [selectedRoomId, messageLoadingStatus, dispatch]);
+    }, [selectedRoomId, messageLoadingStatus, messages.length, dispatch]);
 
     // Auto-scroll logic
     const checkScrollPosition = useCallback(() => {
@@ -129,7 +139,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         if (!selectedRoomId || messageLoadingStatus === "loading" || !hasMore) return;
 
         const nextPage = page + 1;
-        console.log(`Loading more messages for room ${selectedRoomId}, page ${nextPage}`);
+        console.log(`📖 Loading more messages for room ${selectedRoomId}, page ${nextPage}`);
         
         const result = await dispatch(fetchChatMessages({
             roomId: selectedRoomId,
@@ -160,8 +170,10 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         }
     }, [selectedRoomId, dispatch]);
 
-    // Group messages by sender and time
+    // FIXED: Better message grouping with proper sender info
     const groupedMessages = useMemo(() => {
+        if (!messages || messages.length === 0) return [];
+        
         return messages.reduce((groups: any[][], message: any, index: number) => {
             const prevMessage = messages[index - 1];
             const nextMessage = messages[index + 1];
@@ -176,23 +188,34 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                 nextMessage.senderId !== message.senderId ||
                 new Date(nextMessage.timestamp).getTime() - new Date(message.timestamp).getTime() > 5 * 60 * 1000;
 
+            // FIXED: Ensure sender information is available
+            const messageWithSender = {
+                ...message,
+                isLastInGroup,
+                sender: message.sender || {
+                    id: message.senderId,
+                    name: message.senderName || 'Unknown User',
+                    avatarUrl: message.senderAvatarUrl || null
+                }
+            };
+
             if (shouldStartNewGroup) {
-                groups.push([{ ...message, isLastInGroup }]);
+                groups.push([messageWithSender]);
             } else {
                 const currentGroup = groups[groups.length - 1];
                 // Update previous message to not be last in group
                 if (currentGroup.length > 0) {
                     currentGroup[currentGroup.length - 1].isLastInGroup = false;
                 }
-                currentGroup.push({ ...message, isLastInGroup });
+                currentGroup.push(messageWithSender);
             }
             return groups;
         }, []);
     }, [messages]);
 
-    // Typing indicator component
+    // FIXED: Typing indicator with proper fallback for user names
     const TypingIndicator = () => {
-        if (typingUsers.length === 0) return null;
+        if (!typingUsers || typingUsers.length === 0) return null;
 
         const displayUsers = typingUsers.slice(0, 3);
         const moreCount = Math.max(0, typingUsers.length - 3);
@@ -201,15 +224,18 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
                 <div className="flex -space-x-1">
                     {displayUsers.map((user: { userId: string; userName: string }) => {
+                        const userName = user.userName || 'Unknown';
                         const bgColor = generateColorFromString(user.userId);
                         const textColor = getContrastColor(bgColor);
+                        const initials = getInitials(userName);
+                        
                         return (
                             <Avatar key={user.userId} className="h-6 w-6 border-2 border-background">
                                 <AvatarFallback 
                                     style={{ backgroundColor: bgColor, color: textColor }}
-                                    className="text-xs"
+                                    className="text-xs font-medium"
                                 >
-                                    {getInitials(user.userName)}
+                                    {initials}
                                 </AvatarFallback>
                             </Avatar>
                         );
@@ -217,7 +243,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                 </div>
                 <div className="flex items-center gap-1">
                     <span className="text-sm">
-                        {displayUsers.map((u: { userName: string }) => u.userName).join(', ')}
+                        {displayUsers.map((u: { userName: string }) => u.userName || 'Unknown').join(', ')}
                         {moreCount > 0 && ` and ${moreCount} more`}
                         {typingUsers.length === 1 ? ' is' : ' are'} typing
                     </span>
@@ -237,6 +263,8 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
     // Connection status indicator
     const ConnectionIndicator = () => {
+        if (!connectionStatus) return null;
+        
         const { status, error } = connectionStatus;
         
         if (status === 'connected') return null;
@@ -284,7 +312,14 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     };
 
     if (!selectedRoomId) {
-        return null;
+        return (
+            <div className="flex-1 flex items-center justify-center">
+                <div className="text-center text-muted-foreground">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Select a chat room to start messaging</p>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -299,7 +334,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                         <span>
                             {selectedRoom.participants?.length || 0} member{selectedRoom.participants?.length !== 1 ? 's' : ''}
                         </span>
-                        {connectionStatus.status === 'connected' && (
+                        {connectionStatus?.status === 'connected' && (
                             <Badge variant="secondary" className="text-xs">
                                 Online
                             </Badge>
@@ -366,7 +401,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                                         dispatch(fetchChatMessages({ 
                                             roomId: selectedRoomId, 
                                             page: 1, 
-                                            limit: 30 
+                                            limit: 50 
                                         }));
                                     }
                                 }}
@@ -380,7 +415,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                     {messageLoadingStatus === "succeeded" && messages.length === 0 && (
                         <div className="text-center py-12">
                             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                                <Users className="h-8 w-8 text-muted-foreground" />
+                                <MessageSquare className="h-8 w-8 text-muted-foreground" />
                             </div>
                             <h3 className="font-medium mb-2">No messages yet</h3>
                             <p className="text-sm text-muted-foreground">
@@ -391,9 +426,9 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
                     {/* Message groups */}
                     {groupedMessages.map((group: any[], groupIndex: number) => (
-                        <div key={`group-${groupIndex}-${group[0]?.id}`} className="mb-6">
+                        <div key={`group-${groupIndex}-${group[0]?.id || groupIndex}`} className="mb-6">
                             {group.map((message: any, messageIndex: number) => (
-                                <div key={message.id} className="mb-1">
+                                <div key={message.id || `msg-${groupIndex}-${messageIndex}`} className="mb-1">
                                     <ChatMessage
                                         message={message}
                                         showSenderInfo={messageIndex === 0}
