@@ -200,10 +200,9 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         return (
             <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
                 <div className="flex -space-x-1">
-                    {displayUsers.map((user) => {
+                    {displayUsers.map((user: { userId: string; userName: string }) => {
                         const bgColor = generateColorFromString(user.userId);
                         const textColor = getContrastColor(bgColor);
-                        
                         return (
                             <Avatar key={user.userId} className="h-6 w-6 border-2 border-background">
                                 <AvatarFallback 
@@ -218,12 +217,12 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                 </div>
                 <div className="flex items-center gap-1">
                     <span className="text-sm">
-                        {displayUsers.map(u => u.userName).join(', ')}
+                        {displayUsers.map((u: { userName: string }) => u.userName).join(', ')}
                         {moreCount > 0 && ` and ${moreCount} more`}
                         {typingUsers.length === 1 ? ' is' : ' are'} typing
                     </span>
                     <div className="flex gap-0.5">
-                        {[0, 1, 2].map(i => (
+                        {[0, 1, 2].map((i: number) => (
                             <div
                                 key={i}
                                 className="h-1 w-1 bg-current rounded-full animate-bounce"
@@ -391,9 +390,9 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                     )}
 
                     {/* Message groups */}
-                    {groupedMessages.map((group, groupIndex) => (
+                    {groupedMessages.map((group: any[], groupIndex: number) => (
                         <div key={`group-${groupIndex}-${group[0]?.id}`} className="mb-6">
-                            {group.map((message, messageIndex) => (
+                            {group.map((message: any, messageIndex: number) => (
                                 <div key={message.id} className="mb-1">
                                     <ChatMessage
                                         message={message}

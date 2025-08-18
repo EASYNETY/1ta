@@ -503,10 +503,6 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                             isSelected={room.id === selectedRoomId}
                                             onClick={() => handleSelectRoom(room.id)}
                                         />
-                                        {/* Show participants for debug */}
-                                        <div className="text-xs text-muted-foreground mt-1">
-                                            Participants: {Array.isArray(room.participants) ? room.participants.map(p => p.name).join(", ") : "None"}
-                                        </div>
                                     </div>
                                     {canManageRoom(room) && (
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
