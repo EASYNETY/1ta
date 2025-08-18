@@ -1,4 +1,4 @@
-// features/chat/store/chat-thunks.ts - IMPROVED VERSION WITH DEBUGGING
+// features/chat/store/chat-thunks.ts - FIXED VERSION FOR API RESPONSE FORMAT
 
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from '@/lib/api-client';
@@ -16,7 +16,7 @@ export interface FetchMessagesParams {
 	limit?: number;
 }
 
-// IMPROVED fetchChatRooms with comprehensive error handling and debugging
+// FIXED fetchChatRooms with proper API response format handling
 export const fetchChatRooms = createAsyncThunk(
   'chat/fetchChatRooms',
   async (userId: string, { rejectWithValue }) => {
@@ -45,17 +45,29 @@ export const fetchChatRooms = createAsyncThunk(
         return [];
       }
 
-      // Handle different response formats
+      // Handle the specific API response format: { success: true, data: [...] }
       let rooms = [];
-      if (Array.isArray(response)) {
-        rooms = response;
-      } else if (response.data && Array.isArray(response.data)) {
+      
+      if (response.success && response.data && Array.isArray(response.data)) {
+        // This is the format your API returns: { success: true, data: [...] }
         rooms = response.data;
+        console.log("✅ fetchChatRooms - Found rooms in response.data:", rooms.length);
+      } else if (Array.isArray(response)) {
+        // Direct array response
+        rooms = response;
+        console.log("✅ fetchChatRooms - Found rooms as direct array:", rooms.length);
+      } else if (response.data && Array.isArray(response.data)) {
+        // Response with data property (without success)
+        rooms = response.data;
+        console.log("✅ fetchChatRooms - Found rooms in data property:", rooms.length);
       } else if (response.rooms && Array.isArray(response.rooms)) {
+        // Response with rooms property
         rooms = response.rooms;
+        console.log("✅ fetchChatRooms - Found rooms in rooms property:", rooms.length);
       } else if (typeof response === 'object') {
-        // Handle object with numeric keys
+        // Handle object with numeric keys as fallback
         rooms = Object.values(response).filter(item => item && typeof item === 'object' && item.id);
+        console.log("✅ fetchChatRooms - Extracted rooms from object keys:", rooms.length);
       } else {
         console.warn("⚠️ fetchChatRooms - Unexpected response format:", response);
         rooms = [];
@@ -144,9 +156,15 @@ export const fetchChatMessages = createAsyncThunk<
 			const messagesArray: ChatMessage[] = [];
 			let pagination = null;
 
-			// Handle different response formats
+			// Handle different response formats, including { success: true, data: [...] }
 			if (apiClientResponse && typeof apiClientResponse === "object") {
-				if (Array.isArray(apiClientResponse)) {
+				if (apiClientResponse.success && apiClientResponse.data && Array.isArray(apiClientResponse.data)) {
+					// Handle { success: true, data: [...] } format
+					apiClientResponse.data.forEach((msg: any) => {
+						messagesArray.push(mapApiMessageToChatMessage(msg));
+					});
+					pagination = apiClientResponse.pagination;
+				} else if (Array.isArray(apiClientResponse)) {
 					// Direct array response
 					apiClientResponse.forEach((msg) => {
 						messagesArray.push(mapApiMessageToChatMessage(msg));
@@ -226,7 +244,7 @@ export const createChatRoom = createAsyncThunk<
 	{ rejectValue: string }
 >("chat/createRoom", async (payload, { rejectWithValue }) => {
 	try {
-		console.log("🏗️ createChatRoom - Creating room:", payload);
+		console.log("🗂️ createChatRoom - Creating room:", payload);
 		
 		if (!payload.name?.trim()) {
 			return rejectWithValue("Room name is required");
@@ -275,7 +293,7 @@ const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
 		readAt: apiMessage.readAt
 	};
 
-	console.log("🔄 mapApiMessageToChatMessage - Mapped:", apiMessage.id, "->", mapped.id);
+	console.log("📄 mapApiMessageToChatMessage - Mapped:", apiMessage.id, "->", mapped.id);
 	return mapped;
 };
 
