@@ -33,8 +33,8 @@ import { MessageType, MessageStatus } from "../types/chat-types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
-import EmojiPicker from '@emoji-mart/react';
-import data from '@emoji-mart/data';
+// import EmojiPicker from '@emoji-mart/react';
+// import data from '@emoji-mart/data';
 
 interface ChatMessageInputProps {
     replyToMessage?: any;
@@ -65,80 +65,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const videoInputRef = useRef<HTMLInputElement>(null);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const { 
-        startTyping, 
-        stopTyping, 
-        isConnected, 
-        uploadFile 
-    } = useSocket();
-
-    // Auto-save draft
-    useEffect(() => {
-        if (selectedRoomId && message !== draft) {
-            const timeoutId = setTimeout(() => {
-                dispatch(updateMessageDraft({ roomId: selectedRoomId, draft: message }));
-            }, 500);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [message, draft, selectedRoomId, dispatch]);
-
-    // Load draft when room changes
-    useEffect(() => {
-        setMessage(draft);
-    }, [draft, selectedRoomId]);
-
-    // Focus input when room changes
-    useEffect(() => {
-        if (selectedRoomId && inputRef.current) {
-            inputRef.current.focus();
-        }
-    }, [selectedRoomId]);
-
-    // Handle typing indicators
-    const handleTypingStart = useCallback(() => {
-        if (selectedRoomId && !isUserTyping) {
-            startTyping(selectedRoomId);
-            dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: true }));
-        }
-
-        // Clear existing timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-        }
-
-        // Set new timeout to stop typing after 3 seconds of inactivity
-        typingTimeoutRef.current = setTimeout(() => {
-            handleTypingStop();
-        }, 3000);
-    }, [selectedRoomId, isUserTyping, startTyping, dispatch]);
-
-    const handleTypingStop = useCallback(() => {
-        if (selectedRoomId && isUserTyping) {
-            stopTyping(selectedRoomId);
-            dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: false }));
-        }
-
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = null;
-        }
-    }, [selectedRoomId, isUserTyping, stopTyping, dispatch]);
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setMessage(e.target.value);
-        
-        if (e.target.value.trim()) {
-            handleTypingStart();
-        } else {
-            handleTypingStop();
-        }
-    };
-
     const handleSendMessage = async () => {
         if ((!message.trim() && attachmentFiles.length === 0) || !selectedRoomId || !currentUser) {
             return;
@@ -162,11 +88,11 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                     timestamp: new Date().toISOString(),
                     status: MessageStatus.SENDING,
                     isOptimistic: true,
-                    parentMessageId: replyToMessage?.id || null,
+                    // parentMessageId: replyToMessage?.id || undefined, // Only if type allows
                     sender: {
                         id: currentUser.id,
                         name: currentUser.name || currentUser.email || 'Unknown',
-                        avatarUrl: currentUser.avatarUrl
+                        avatarUrl: currentUser.avatarUrl // Remove null, allow undefined only
                     }
                 };
 
@@ -178,7 +104,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                     roomId: selectedRoomId,
                     content: message.trim(),
                     type: MessageType.TEXT,
-                    parentMessageId: replyToMessage?.id || null,
                     tempId
                 }));
             }
@@ -186,6 +111,79 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             // Handle file attachments
             if (attachmentFiles.length > 0) {
                 setIsUploading(true);
+                
+                for (const file of attachmentFiles) {
+                    const tempId = `temp_${Date.now()}_${Math.random()}`;
+                    
+                    try {
+                        // Determine message type based on file
+                        let messageType = MessageType.FILE;
+                        if (file.type.startsWith('image/')) {
+                            messageType = MessageType.IMAGE;
+                        } else if (file.type.startsWith('video/')) {
+                            messageType = MessageType.VIDEO;
+                        } else if (file.type.startsWith('audio/')) {
+                            messageType = MessageType.AUDIO;
+                        }
+
+                        // Create optimistic message for file
+                        const fileMessage = {
+                            id: tempId,
+                            tempId,
+                            roomId: selectedRoomId,
+                            content: file.name,
+                            senderId: currentUser.id,
+                            senderName: currentUser.name || currentUser.email,
+                            type: messageType,
+                            timestamp: new Date().toISOString(),
+                            status: MessageStatus.SENDING,
+                            isOptimistic: true,
+                            metadata: {
+                                fileName: file.name,
+                                fileSize: file.size,
+                                fileType: file.type,
+                                fileUrl: URL.createObjectURL(file) // Temporary local URL
+                            },
+                            sender: {
+                                id: currentUser.id,
+                                name: currentUser.name || currentUser.email || 'Unknown',
+                                avatarUrl: currentUser.avatarUrl // Remove null, allow undefined only
+                            }
+                        };
+
+                        dispatch(addOptimisticMessage(fileMessage));
+
+                        // Upload file and send message
+                        const uploadedFile = await uploadFile(file, selectedRoomId);
+                        
+                        dispatch(sendChatMessage({
+                            roomId: selectedRoomId,
+                            content: file.name,
+                            type: messageType,
+                            tempId
+                        }));
+                        
+                    } catch (error) {
+                        console.error('Failed to upload file:', error);
+                        toast.error(`Failed to upload ${file.name}`);
+                    }
+                }
+                
+                setIsUploading(false);
+            }
+
+            // Clear input and draft
+            setMessage("");
+            setAttachmentFiles([]);
+            dispatch(clearMessageDraft(selectedRoomId));
+            onCancelReply?.();
+
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            toast.error('Failed to send message');
+            setIsUploading(false);
+        }
+    };
                 
                 for (const file of attachmentFiles) {
                     const tempId = `temp_${Date.now()}_${Math.random()}`;
