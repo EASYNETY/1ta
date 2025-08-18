@@ -1,8 +1,8 @@
-// features/chat/components/ChatRoomList.tsx - FIXED VERSION WITH STATE UPDATE FIX
+// features/chat/components/ChatRoomList.tsx - FIXED VERSION WITH PROPER SORTING AND STATE MANAGEMENT
 
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle, MessageSquarePlus, Search, MoreVertical, Edit, Trash2, RefreshCw, Bug } from "lucide-react"
@@ -52,14 +52,13 @@ interface ChatRoomListProps {
 
 export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const dispatch = useAppDispatch()
-    // Use local state for rooms instead of Redux
-    const [rooms, setRooms] = React.useState([])
-    const [status, setStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle')
+    // Use Redux state for rooms
+    const reduxRooms = useAppSelector(selectChatRooms);
+    const reduxStatus = useAppSelector(selectRoomStatus);
     const selectedRoomId = useAppSelector(selectSelectedRoomId)
     const totalUnreadCount = useAppSelector(selectChatUnreadCount)
     const currentUser = useAppSelector((state) => state.auth.user)
     const [searchQuery, setSearchQuery] = React.useState("")
-    // Always show all rooms by default
     const [filter, setFilter] = React.useState<ChatRoomType | "all">("all")
     const router = useRouter();
     const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
@@ -71,7 +70,6 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const [showDebugInfo, setShowDebugInfo] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [lastFetchTime, setLastFetchTime] = useState<string | null>(null);
-    const [hasFetched, setHasFetched] = useState(false); // NEW: Track if we've already fetched
 
     // User management state
     const [availableUsers, setAvailableUsers] = React.useState([]);
@@ -80,49 +78,33 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
     // ENHANCED DEBUG LOGGING
     useEffect(() => {
-        console.log("🏪 ChatRoomList State Update:");
+        console.log("🪧 ChatRoomList State Update:");
         console.log("- Current User:", currentUser);
-        console.log("- Rooms:", rooms);
-        console.log("- Rooms length:", rooms?.length || 0);
-        console.log("- Status:", status);
+        console.log("- Redux Rooms:", reduxRooms);
+        console.log("- Redux Rooms length:", reduxRooms?.length || 0);
+        console.log("- Redux Status:", reduxStatus);
         console.log("- Selected Room ID:", selectedRoomId);
         console.log("- Total Unread:", totalUnreadCount);
         console.log("- Fetch Error:", fetchError);
-        console.log("- Has Fetched:", hasFetched);
-    }, [rooms, status, currentUser, selectedRoomId, totalUnreadCount, fetchError, hasFetched]);
+    }, [reduxRooms, reduxStatus, currentUser, selectedRoomId, totalUnreadCount, fetchError]);
 
-    // FIXED MAIN FETCH EFFECT - Only fetch once when user is available
+    // FIXED MAIN FETCH EFFECT - Use Redux properly
     useEffect(() => {
-        // Fetch chat rooms directly using apiClient
-        const fetchRoomsDirect = async () => {
-            if (!currentUser?.id) {
-                setFetchError("No user ID available");
-                setStatus('failed');
-                return;
-            }
-            setStatus('loading');
-            setFetchError(null);
+        if (currentUser?.id && reduxStatus === 'idle') {
+            console.log("📥 Fetching chat rooms via Redux thunk");
             setLastFetchTime(new Date().toLocaleTimeString());
-            try {
-                const response = await apiClient("/chat/rooms?userId=" + currentUser.id, {
-                    method: "GET",
-                    requiresAuth: true
+            dispatch(fetchChatRooms(currentUser.id))
+                .unwrap()
+                .then(() => {
+                    setFetchError(null);
+                    console.log("✅ Chat rooms fetched successfully");
+                })
+                .catch((error) => {
+                    setFetchError(error.message || "Failed to fetch chat rooms");
+                    console.error("❌ Failed to fetch chat rooms:", error);
                 });
-                const roomsData = response.data || response;
-                setRooms(roomsData);
-                setStatus('succeeded');
-                setHasFetched(true);
-                setTimeout(() => {
-                    console.log("Rooms from API:", roomsData);
-                }, 1000);
-            } catch (error: any) {
-                setFetchError(error.message || "Failed to fetch chat rooms");
-                setStatus('failed');
-                setHasFetched(false);
-            }
-        };
-        fetchRoomsDirect();
-    }, [dispatch, currentUser?.id, hasFetched]); // Depend on hasFetched instead of status
+        }
+    }, [dispatch, currentUser?.id, reduxStatus]);
 
     // MANUAL REFRESH FUNCTION
     const handleManualRefresh = async () => {
@@ -134,36 +116,24 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         console.log("🔄 Manual refresh triggered");
         setFetchError(null);
         setLastFetchTime(new Date().toLocaleTimeString());
-        setHasFetched(false); // Reset to allow fresh fetch
 
         try {
-            setStatus('loading');
-            setFetchError(null);
-            setLastFetchTime(new Date().toLocaleTimeString());
-            setHasFetched(false);
-            const response = await apiClient("/chat/rooms?userId=" + currentUser.id, {
-                method: "GET",
-                requiresAuth: true
-            });
-            const roomsData = response.data || response;
-            setRooms(roomsData);
-            setStatus('succeeded');
-            setHasFetched(true);
+            await dispatch(fetchChatRooms(currentUser.id)).unwrap();
             toast.success("Chat rooms refreshed");
+            setFetchError(null);
         } catch (error: any) {
             setFetchError(error.message || "Refresh failed");
-            setStatus('failed');
             toast.error("Failed to refresh chat rooms");
         }
     };
 
     // USER FETCHING WITH FALLBACK
     const extractUsersFromRooms = React.useMemo(() => {
-        if (!rooms || rooms.length === 0) return [];
+        if (!reduxRooms || reduxRooms.length === 0) return [];
         
         const usersMap = new Map();
         
-        rooms.forEach(room => {
+        reduxRooms.forEach(room => {
             if (room.participants && Array.isArray(room.participants)) {
                 room.participants.forEach(participant => {
                     if (participant && participant.id && !usersMap.has(participant.id)) {
@@ -179,7 +149,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         });
         
         return Array.from(usersMap.values());
-    }, [rooms]);
+    }, [reduxRooms]);
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -192,7 +162,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 console.log("👥 Users fetched for Chats:", result);
                 setUsersFetchStatus('succeeded');
             } catch (error: any) {
-                console.error('❌ Failed to fetch users from API:', error);
+                console.error('⚠️ Failed to fetch users from API:', error);
                 setUsersFetchError(error.message || 'Unable to fetch users');
                 
                 // Fallback to extracted users
@@ -214,41 +184,56 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
     const handleSelectRoom = (roomId: string) => {
         if (roomId !== selectedRoomId) {
+            console.log(`🎯 Selecting room: ${roomId}`);
             dispatch(selectChatRoom(roomId))
             onRoomSelect?.()
         }
     }
 
-    // Filter rooms based on search query and type filter
-    const filteredRooms = React.useMemo(() => {
-        if (!rooms || !Array.isArray(rooms)) {
-            console.log("⚠️ Rooms is not an array:", typeof rooms, rooms);
+    // FIXED: Sort rooms by latest message timestamp like WhatsApp
+    const sortedRooms = useMemo(() => {
+        if (!reduxRooms || !Array.isArray(reduxRooms)) {
+            console.log("⚠️ Rooms is not an array:", typeof reduxRooms, reduxRooms);
             return [];
         }
 
-        // Always show all rooms regardless of type filter
-        return rooms.filter((room) => {
-            const matchesSearch = room.name?.toLowerCase()?.includes(searchQuery.toLowerCase()) || false;
-            // Ignore type filter for now to show all rooms
-            // const matchesFilter = filter === "all" || room.type === filter;
-            return matchesSearch; // Only filter by search
+        return [...reduxRooms].sort((a, b) => {
+            // Get latest message timestamps
+            const aLatest = a.lastMessage?.timestamp || a.updatedAt || a.createdAt || '0';
+            const bLatest = b.lastMessage?.timestamp || b.updatedAt || b.createdAt || '0';
+            
+            // Sort by latest message (most recent first)
+            return new Date(bLatest).getTime() - new Date(aLatest).getTime();
         });
-    }, [rooms, searchQuery, filter]);
+    }, [reduxRooms]);
 
-    // Group rooms by type for better organization
+    // Filter rooms based on search query and type filter
+    const filteredRooms = React.useMemo(() => {
+        if (!sortedRooms || !Array.isArray(sortedRooms)) {
+            return [];
+        }
+
+        return sortedRooms.filter((room) => {
+            const matchesSearch = room.name?.toLowerCase()?.includes(searchQuery.toLowerCase()) || false;
+            const matchesFilter = filter === "all" || room.type === filter;
+            return matchesSearch && matchesFilter;
+        });
+    }, [sortedRooms, searchQuery, filter]);
+
+    // Group rooms by type for better organization (but maintain sort order)
     const groupedRooms = React.useMemo(() => {
         if (!filteredRooms || filteredRooms.length === 0) return {};
         
         return filteredRooms.reduce(
             (acc, room) => {
-                const type = room.type;
+                const type = room.type || 'OTHER';
                 if (!acc[type]) {
                     acc[type] = [];
                 }
                 acc[type].push(room);
                 return acc;
             },
-            {} as Record<ChatRoomType, typeof rooms>,
+            {} as Record<string, typeof reduxRooms>,
         );
     }, [filteredRooms]);
 
@@ -262,8 +247,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             });
             toast.success("Room deleted successfully");
             if (currentUser?.id) {
-                setHasFetched(false); // Reset to allow fresh fetch
-                dispatch(fetchChatRooms(currentUser.id));
+                await dispatch(fetchChatRooms(currentUser.id));
             }
             if (roomId === selectedRoomId) {
                 dispatch(selectChatRoom(""));
@@ -297,8 +281,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             
             toast.success("Room updated successfully");
             if (currentUser?.id) {
-                setHasFetched(false); // Reset to allow fresh fetch
-                dispatch(fetchChatRooms(currentUser.id));
+                await dispatch(fetchChatRooms(currentUser.id));
             }
         } catch (err: any) {
             console.error("Update room error:", err);
@@ -322,11 +305,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     // DEBUG INFO COMPONENT
     const DebugInfo = () => (
         <div className="p-4 m-2 border-2 border-blue-200 bg-blue-50 rounded-lg text-xs">
-            <div className="font-bold mb-2">🐛 Debug Information</div>
+            <div className="font-bold mb-2">🛠️ Debug Information</div>
             <div><strong>Current User:</strong> {currentUser ? `${currentUser.name || currentUser.email} (${currentUser.id})` : 'None'}</div>
-            <div><strong>Status:</strong> {status}</div>
-            <div><strong>Has Fetched:</strong> {hasFetched ? 'Yes' : 'No'}</div>
-            <div><strong>Rooms Count:</strong> {rooms?.length || 0}</div>
+            <div><strong>Redux Status:</strong> {reduxStatus}</div>
+            <div><strong>Redux Rooms Count:</strong> {reduxRooms?.length || 0}</div>
             <div><strong>Filtered Rooms:</strong> {filteredRooms.length}</div>
             <div><strong>Last Fetch:</strong> {lastFetchTime || 'Never'}</div>
             <div><strong>Fetch Error:</strong> {fetchError || 'None'}</div>
@@ -334,7 +316,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             <div className="mt-2">
                 <strong>Rooms Data Sample:</strong>
                 <pre className="mt-1 p-2 bg-white rounded text-xs overflow-auto max-h-32">
-                    {JSON.stringify(rooms?.slice(0, 3), null, 2)}
+                    {JSON.stringify(reduxRooms?.slice(0, 3), null, 2)}
                 </pre>
             </div>
         </div>
@@ -379,11 +361,11 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                         variant="outline"
                         size="sm"
                         onClick={handleManualRefresh}
-                        disabled={status === "loading"}
+                        disabled={reduxStatus === "loading"}
                         className="flex items-center gap-1"
                     >
-                        <RefreshCw className={`h-3 w-3 ${status === "loading" ? "animate-spin" : ""}`} />
-                        {status === "loading" ? "Loading..." : "Refresh"}
+                        <RefreshCw className={`h-3 w-3 ${reduxStatus === "loading" ? "animate-spin" : ""}`} />
+                        {reduxStatus === "loading" ? "Loading..." : "Refresh"}
                     </DyraneButton>
                 </div>
             </div>
@@ -430,7 +412,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             {/* Room List */}
             <ScrollArea className="flex-1 overflow-y-auto">
                 <nav className="grid gap-1 p-2">
-                    {status === "loading" && (
+                    {reduxStatus === "loading" && (
                         <div className="space-y-2">
                             <div className="text-center text-sm text-muted-foreground py-2">Loading chat rooms...</div>
                             <Skeleton className="h-14 w-full rounded-lg" />
@@ -439,7 +421,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                         </div>
                     )}
 
-                    {status === "failed" && (
+                    {reduxStatus === "failed" && (
                         <div className="p-4 text-center">
                             <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
                             <p className="text-sm font-medium text-destructive mb-1">Failed to load rooms</p>
@@ -458,7 +440,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                         </div>
                     )}
 
-                    {status === "succeeded" && filteredRooms.length === 0 && (
+                    {reduxStatus === "succeeded" && filteredRooms.length === 0 && (
                         <div className="p-4 text-center">
                             <div className="text-6xl mb-2">💬</div>
                             <p className="text-sm font-medium mb-1">
@@ -481,69 +463,121 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                         </div>
                     )}
 
-                    {/* Render rooms grouped by type */}
-                    {Object.entries(groupedRooms).map(([type, typeRooms]) => (
-                        <div key={type} className="mb-4">
-                            <h3 className="text-xs font-medium text-muted-foreground px-2 mb-1 uppercase">
-                                {type === ChatRoomType.COURSE
-                                    ? "Courses"
-                                    : type === ChatRoomType.CLASS
-                                        ? "Classes"
-                                        : type === ChatRoomType.EVENT
-                                            ? "Events"
-                                            : type === ChatRoomType.ANNOUNCEMENT
-                                                ? "Announcements"
-                                                : "Other"}
-                            </h3>
-                            {typeRooms.map((room) => (
-                                <div key={room.id} className="flex items-center group">
-                                    <div className="flex-1">
-                                        <ChatRoomItem
-                                            room={room}
-                                            isSelected={room.id === selectedRoomId}
-                                            onClick={() => handleSelectRoom(room.id)}
-                                        />
-                                    </div>
-                                    {canManageRoom(room) && (
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <DyraneButton
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 w-8 p-0"
-                                                        disabled={updatingRoomId === room.id || deletingRoomId === room.id}
-                                                    >
-                                                        <MoreVertical className="h-4 w-4" />
-                                                        <span className="sr-only">Open menu</span>
-                                                    </DyraneButton>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-48">
-                                                    <DropdownMenuItem
-                                                        onClick={() => setEditingRoom(room)}
-                                                        disabled={updatingRoomId === room.id}
-                                                        className="flex items-center gap-2"
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                        {updatingRoomId === room.id ? "Updating..." : "Edit Room"}
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        onClick={() => setRoomToDelete(room)}
-                                                        disabled={deletingRoomId === room.id}
-                                                        className="flex items-center gap-2 text-destructive focus:text-destructive"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                        {deletingRoomId === room.id ? "Deleting..." : "Delete Room"}
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
-                                    )}
+                    {/* FIXED: Render rooms in sorted order */}
+                    {filter === "all" ? (
+                        // When showing all, display in sorted order without grouping
+                        filteredRooms.map((room) => (
+                            <div key={room.id} className="flex items-center group">
+                                <div className="flex-1">
+                                    <ChatRoomItem
+                                        room={room}
+                                        isSelected={room.id === selectedRoomId}
+                                        onClick={() => handleSelectRoom(room.id)}
+                                    />
                                 </div>
-                            ))}
-                        </div>
-                    ))}
+                                {canManageRoom(room) && (
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <DyraneButton
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0"
+                                                    disabled={updatingRoomId === room.id || deletingRoomId === room.id}
+                                                >
+                                                    <MoreVertical className="h-4 w-4" />
+                                                    <span className="sr-only">Open menu</span>
+                                                </DyraneButton>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48">
+                                                <DropdownMenuItem
+                                                    onClick={() => setEditingRoom(room)}
+                                                    disabled={updatingRoomId === room.id}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                    {updatingRoomId === room.id ? "Updating..." : "Edit Room"}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem
+                                                    onClick={() => setRoomToDelete(room)}
+                                                    disabled={deletingRoomId === room.id}
+                                                    className="flex items-center gap-2 text-destructive focus:text-destructive"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    {deletingRoomId === room.id ? "Deleting..." : "Delete Room"}
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        // When filtering by type, group by type but maintain sort order within groups
+                        Object.entries(groupedRooms).map(([type, typeRooms]) => (
+                            <div key={type} className="mb-4">
+                                <h3 className="text-xs font-medium text-muted-foreground px-2 mb-1 uppercase">
+                                    {type === ChatRoomType.COURSE
+                                        ? "Courses"
+                                        : type === ChatRoomType.CLASS
+                                            ? "Classes"
+                                            : type === ChatRoomType.EVENT
+                                                ? "Events"
+                                                : type === ChatRoomType.ANNOUNCEMENT
+                                                    ? "Announcements"
+                                                    : "Other"}
+                                </h3>
+                                {typeRooms.map((room) => (
+                                    <div key={room.id} className="flex items-center group">
+                                        <div className="flex-1">
+                                            <ChatRoomItem
+                                                room={room}
+                                                isSelected={room.id === selectedRoomId}
+                                                onClick={() => handleSelectRoom(room.id)}
+                                            />
+                                        </div>
+                                        {canManageRoom(room) && (
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <DyraneButton
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            disabled={updatingRoomId === room.id || deletingRoomId === room.id}
+                                                        >
+                                                            <MoreVertical className="h-4 w-4" />
+                                                            <span className="sr-only">Open menu</span>
+                                                        </DyraneButton>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-48">
+                                                        <DropdownMenuItem
+                                                            onClick={() => setEditingRoom(room)}
+                                                            disabled={updatingRoomId === room.id}
+                                                            className="flex items-center gap-2"
+                                                        >
+                                                            <Edit className="h-4 w-4" />
+                                                            {updatingRoomId === room.id ? "Updating..." : "Edit Room"}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onClick={() => setRoomToDelete(room)}
+                                                            disabled={deletingRoomId === room.id}
+                                                            className="flex items-center gap-2 text-destructive focus:text-destructive"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            {deletingRoomId === room.id ? "Deleting..." : "Delete Room"}
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ))
+                    )}
                 </nav>
             </ScrollArea>
 
@@ -632,7 +666,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                             {deletingRoomId === roomToDelete?.id ? "Deleting..." : "Delete Room"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
-                </AlertDialogContent>
+                    </AlertDialogContent>
             </AlertDialog>
         </div>
     )
