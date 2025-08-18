@@ -42,6 +42,15 @@ export const ChatLayout: React.FC = () => {
         return () => window.removeEventListener("resize", checkMobileView);
     }, []);
 
+    // NEW: Ensure messages are fetched for selected room
+    const dispatch = useAppDispatch();
+    useEffect(() => {
+        if (selectedRoomId) {
+            // Always fetch messages for the selected room
+            dispatch({ type: "chat/fetchChatMessages/pending", meta: { arg: { roomId: selectedRoomId, page: 1, limit: 30 } } });
+        }
+    }, [selectedRoomId, dispatch]);
+
     const handleRoomSelectInSheet = () => {
         setMobileSheetOpen(false);
     };
