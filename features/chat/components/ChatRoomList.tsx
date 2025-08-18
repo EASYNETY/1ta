@@ -1,4 +1,4 @@
-// features/chat/components/ChatRoomList.tsx - FIXED VERSION WITH DEBUGGING
+// features/chat/components/ChatRoomList.tsx - FIXED VERSION WITH STATE UPDATE FIX
 
 "use client"
 
@@ -45,7 +45,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Chats } from "phosphor-react"
 
 interface ChatRoomListProps {
     onRoomSelect?: () => void
@@ -70,6 +69,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const [showDebugInfo, setShowDebugInfo] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [lastFetchTime, setLastFetchTime] = useState<string | null>(null);
+    const [hasFetched, setHasFetched] = useState(false); // NEW: Track if we've already fetched
 
     // User management state
     const [availableUsers, setAvailableUsers] = React.useState([]);
@@ -86,9 +86,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         console.log("- Selected Room ID:", selectedRoomId);
         console.log("- Total Unread:", totalUnreadCount);
         console.log("- Fetch Error:", fetchError);
-    }, [rooms, status, currentUser, selectedRoomId, totalUnreadCount, fetchError]);
+        console.log("- Has Fetched:", hasFetched);
+    }, [rooms, status, currentUser, selectedRoomId, totalUnreadCount, fetchError, hasFetched]);
 
-    // MAIN FETCH EFFECT WITH BETTER ERROR HANDLING
+    // FIXED MAIN FETCH EFFECT - Only fetch once when user is available
     useEffect(() => {
         const fetchRooms = async () => {
             if (!currentUser?.id) {
@@ -97,14 +98,16 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 return;
             }
 
-            if (status !== "idle" && status !== "failed") {
-                console.log("⏳ Fetch already in progress or succeeded, status:", status);
+            // FIXED: Only check if we haven't fetched yet, not the status
+            if (hasFetched) {
+                console.log("✅ Rooms already fetched, skipping");
                 return;
             }
 
             console.log("🚀 Starting fetchChatRooms for user:", currentUser.id);
             setFetchError(null);
             setLastFetchTime(new Date().toLocaleTimeString());
+            setHasFetched(true); // Mark as fetched immediately
 
             try {
                 const result = await dispatch(fetchChatRooms(currentUser.id));
@@ -114,15 +117,17 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                     const error = result.payload as string;
                     console.error("❌ fetchChatRooms rejected:", error);
                     setFetchError(error || "Failed to fetch chat rooms");
+                    setHasFetched(false); // Reset on error to allow retry
                 }
             } catch (error: any) {
                 console.error("💥 fetchChatRooms exception:", error);
                 setFetchError(error.message || "Unknown error occurred");
+                setHasFetched(false); // Reset on error to allow retry
             }
         };
 
         fetchRooms();
-    }, [dispatch, currentUser?.id, status]);
+    }, [dispatch, currentUser?.id, hasFetched]); // Depend on hasFetched instead of status
 
     // MANUAL REFRESH FUNCTION
     const handleManualRefresh = async () => {
@@ -134,14 +139,15 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         console.log("🔄 Manual refresh triggered");
         setFetchError(null);
         setLastFetchTime(new Date().toLocaleTimeString());
+        setHasFetched(false); // Reset to allow fresh fetch
 
         try {
-            // Force a fresh fetch by resetting the status first if needed
             const result = await dispatch(fetchChatRooms(currentUser.id));
             console.log("🔄 Manual refresh result:", result);
             
             if (result.meta.requestStatus === 'fulfilled') {
                 toast.success("Chat rooms refreshed");
+                setHasFetched(true);
             } else {
                 const error = result.payload as string;
                 setFetchError(error || "Failed to refresh");
@@ -257,6 +263,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             });
             toast.success("Room deleted successfully");
             if (currentUser?.id) {
+                setHasFetched(false); // Reset to allow fresh fetch
                 dispatch(fetchChatRooms(currentUser.id));
             }
             if (roomId === selectedRoomId) {
@@ -291,6 +298,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             
             toast.success("Room updated successfully");
             if (currentUser?.id) {
+                setHasFetched(false); // Reset to allow fresh fetch
                 dispatch(fetchChatRooms(currentUser.id));
             }
         } catch (err: any) {
@@ -318,15 +326,16 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             <div className="font-bold mb-2">🐛 Debug Information</div>
             <div><strong>Current User:</strong> {currentUser ? `${currentUser.name || currentUser.email} (${currentUser.id})` : 'None'}</div>
             <div><strong>Status:</strong> {status}</div>
+            <div><strong>Has Fetched:</strong> {hasFetched ? 'Yes' : 'No'}</div>
             <div><strong>Rooms Count:</strong> {rooms?.length || 0}</div>
             <div><strong>Filtered Rooms:</strong> {filteredRooms.length}</div>
             <div><strong>Last Fetch:</strong> {lastFetchTime || 'Never'}</div>
             <div><strong>Fetch Error:</strong> {fetchError || 'None'}</div>
             <div><strong>Available Users:</strong> {availableUsers.length}</div>
             <div className="mt-2">
-                <strong>Rooms Data:</strong>
+                <strong>Rooms Data Sample:</strong>
                 <pre className="mt-1 p-2 bg-white rounded text-xs overflow-auto max-h-32">
-                    {JSON.stringify(rooms, null, 2)}
+                    {JSON.stringify(rooms?.slice(0, 3), null, 2)}
                 </pre>
             </div>
         </div>
