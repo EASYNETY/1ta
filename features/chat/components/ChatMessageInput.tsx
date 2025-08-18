@@ -111,64 +111,64 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             // Handle file attachments
             if (attachmentFiles.length > 0) {
                 setIsUploading(true);
-                for (const file of attachmentFiles) {
-                    const tempId = `temp_${Date.now()}_${Math.random()}`;
-                    try {
-                        // Determine message type based on file
-                        let messageType = MessageType.FILE;
-                        if (file.type.startsWith('image/')) {
-                            messageType = MessageType.IMAGE;
-                        } else if (file.type.startsWith('video/')) {
-                            messageType = MessageType.VIDEO;
-                        } else if (file.type.startsWith('audio/')) {
-                            messageType = MessageType.AUDIO;
-                        }
-
-                        // Create optimistic message for file
-                        const fileMessage = {
-                            id: tempId,
-                            tempId,
-                            roomId: selectedRoomId,
-                            content: file.name,
-                            senderId: currentUser.id,
-                            senderName: currentUser.name || currentUser.email,
-                            type: messageType,
-                            timestamp: new Date().toISOString(),
-                            status: MessageStatus.SENDING,
-                            isOptimistic: true,
-                            metadata: {
-                                fileName: file.name,
-                                fileSize: file.size,
-                                fileType: file.type,
-                                fileUrl: URL.createObjectURL(file) // Temporary local URL
-                            },
-                            sender: {
-                                id: currentUser.id,
-                                name: currentUser.name || currentUser.email || 'Unknown',
-                                avatarUrl: currentUser.avatarUrl // Remove null, allow undefined only
+                // Handle file attachments
+                if (attachmentFiles.length > 0) {
+                    setIsUploading(true);
+                    for (const file of attachmentFiles) {
+                        const tempId = `temp_${Date.now()}_${Math.random()}`;
+                        try {
+                            // Determine message type based on file
+                            let messageType = MessageType.FILE;
+                            if (file.type.startsWith('image/')) {
+                                messageType = MessageType.IMAGE;
+                            } else if (file.type.startsWith('video/')) {
+                                messageType = MessageType.VIDEO;
+                            } else if (file.type.startsWith('audio/')) {
+                                messageType = MessageType.AUDIO;
                             }
-                        };
 
-                        dispatch(addOptimisticMessage(fileMessage));
+                            // Create optimistic message for file
+                            const fileMessage = {
+                                id: tempId,
+                                tempId,
+                                roomId: selectedRoomId,
+                                content: file.name,
+                                senderId: currentUser.id,
+                                senderName: currentUser.name || currentUser.email,
+                                type: messageType,
+                                timestamp: new Date().toISOString(),
+                                status: MessageStatus.SENDING,
+                                isOptimistic: true,
+                                metadata: {
+                                    fileName: file.name,
+                                    fileSize: file.size,
+                                    fileType: file.type,
+                                    fileUrl: URL.createObjectURL(file) // Temporary local URL
+                                },
+                                sender: {
+                                    id: currentUser.id,
+                                    name: currentUser.name || currentUser.email || 'Unknown',
+                                    avatarUrl: currentUser.avatarUrl !== null ? currentUser.avatarUrl : undefined
+                                }
+                            };
 
-                        // Upload file and send message
-                        const uploadedFile = await uploadFile(file, selectedRoomId);
+                            dispatch(addOptimisticMessage(fileMessage));
 
-                        dispatch(sendChatMessage({
-                            roomId: selectedRoomId,
-                            content: file.name,
-                            type: messageType,
-                            tempId
-                        }));
-                    } catch (error) {
-                        console.error('Failed to upload file:', error);
-                        toast.error(`Failed to upload ${file.name}`);
+                            // Upload file and send message
+                            await uploadFile(file, selectedRoomId);
+
+                            dispatch(sendChatMessage({
+                                roomId: selectedRoomId,
+                                content: file.name,
+                                type: messageType
+                            }));
+                        } catch (error) {
+                            console.error('Failed to upload file:', error);
+                            toast.error(`Failed to upload ${file.name}`);
+                        }
                     }
+                    setIsUploading(false);
                 }
-                setIsUploading(false);
-            }
-
-            // Clear input and draft
             setMessage("");
             setAttachmentFiles([]);
             dispatch(clearMessageDraft(selectedRoomId));
