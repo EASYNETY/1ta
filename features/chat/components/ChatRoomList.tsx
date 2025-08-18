@@ -1,11 +1,11 @@
-// features/chat/components/ChatRoomList.tsx
+// features/chat/components/ChatRoomList.tsx - FIXED VERSION WITH DEBUGGING
 
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, MessageSquarePlus, Search, MoreVertical, Edit, Trash2, RefreshCw } from "lucide-react"
+import { AlertCircle, MessageSquarePlus, Search, MoreVertical, Edit, Trash2, RefreshCw, Bug } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import {
@@ -21,7 +21,6 @@ import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { fetchChatRooms } from "../store/chat-thunks"
 import Link from "next/link"
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { 
     DropdownMenu, 
@@ -66,46 +65,96 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const [deletingRoomId, setDeletingRoomId] = useState<string | null>(null);
     const [editingRoom, setEditingRoom] = useState<any | null>(null);
     const [roomToDelete, setRoomToDelete] = useState<any | null>(null);
-
-    // User management state with better selectors
-    const users = useAppSelector(selectUsers);
-    const usersStatus = useAppSelector(selectUsersStatus);
-    const usersError = useAppSelector(selectUsersError);
     
-    // Fetch users when component mounts or when status is idle
+    // Debug state
+    const [showDebugInfo, setShowDebugInfo] = useState(false);
+    const [fetchError, setFetchError] = useState<string | null>(null);
+    const [lastFetchTime, setLastFetchTime] = useState<string | null>(null);
+
+    // User management state
+    const [availableUsers, setAvailableUsers] = React.useState([]);
+    const [usersFetchStatus, setUsersFetchStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle');
+    const [usersFetchError, setUsersFetchError] = React.useState<string | null>(null);
+
+    // ENHANCED DEBUG LOGGING
     useEffect(() => {
-        if (usersStatus === "idle") {
-            console.log("Fetching users...");
-            dispatch(fetchAllUsers());
-        }
-    }, [dispatch, usersStatus]);
+        console.log("🏪 ChatRoomList State Update:");
+        console.log("- Current User:", currentUser);
+        console.log("- Rooms:", rooms);
+        console.log("- Rooms length:", rooms?.length || 0);
+        console.log("- Status:", status);
+        console.log("- Selected Room ID:", selectedRoomId);
+        console.log("- Total Unread:", totalUnreadCount);
+        console.log("- Fetch Error:", fetchError);
+    }, [rooms, status, currentUser, selectedRoomId, totalUnreadCount, fetchError]);
 
-    // Debug logging
+    // MAIN FETCH EFFECT WITH BETTER ERROR HANDLING
     useEffect(() => {
-        console.log("Users state:", { users: users.length, status: usersStatus, error: usersError });
-    }, [users, usersStatus, usersError]);
+        const fetchRooms = async () => {
+            if (!currentUser?.id) {
+                console.log("❌ No current user ID available");
+                setFetchError("No user ID available");
+                return;
+            }
 
-    useEffect(() => {
-        if (currentUser?.id && status === "idle") {
-            dispatch(fetchChatRooms(currentUser.id))
+            if (status !== "idle" && status !== "failed") {
+                console.log("⏳ Fetch already in progress or succeeded, status:", status);
+                return;
+            }
+
+            console.log("🚀 Starting fetchChatRooms for user:", currentUser.id);
+            setFetchError(null);
+            setLastFetchTime(new Date().toLocaleTimeString());
+
+            try {
+                const result = await dispatch(fetchChatRooms(currentUser.id));
+                console.log("✅ fetchChatRooms result:", result);
+                
+                if (result.meta.requestStatus === 'rejected') {
+                    const error = result.payload as string;
+                    console.error("❌ fetchChatRooms rejected:", error);
+                    setFetchError(error || "Failed to fetch chat rooms");
+                }
+            } catch (error: any) {
+                console.error("💥 fetchChatRooms exception:", error);
+                setFetchError(error.message || "Unknown error occurred");
+            }
+        };
+
+        fetchRooms();
+    }, [dispatch, currentUser?.id, status]);
+
+    // MANUAL REFRESH FUNCTION
+    const handleManualRefresh = async () => {
+        if (!currentUser?.id) {
+            toast.error("No user ID available");
+            return;
         }
-    }, [dispatch, currentUser?.id, status])
 
-    const handleSelectRoom = (roomId: string) => {
-        if (roomId !== selectedRoomId) {
-            dispatch(selectChatRoom(roomId))
-            onRoomSelect?.()
+        console.log("🔄 Manual refresh triggered");
+        setFetchError(null);
+        setLastFetchTime(new Date().toLocaleTimeString());
+
+        try {
+            // Force a fresh fetch by resetting the status first if needed
+            const result = await dispatch(fetchChatRooms(currentUser.id));
+            console.log("🔄 Manual refresh result:", result);
+            
+            if (result.meta.requestStatus === 'fulfilled') {
+                toast.success("Chat rooms refreshed");
+            } else {
+                const error = result.payload as string;
+                setFetchError(error || "Failed to refresh");
+                toast.error("Failed to refresh chat rooms");
+            }
+        } catch (error: any) {
+            console.error("🔄 Manual refresh error:", error);
+            setFetchError(error.message || "Refresh failed");
+            toast.error("Failed to refresh chat rooms");
         }
-    }
-
-    // Retry fetching users
-    const handleRetryFetchUsers = () => {
-        console.log("Retrying user fetch...");
-        dispatch(fetchAllUsers());
     };
 
-
-     // QUICK FIX: Extract users from chat room participants as fallback
+    // USER FETCHING WITH FALLBACK
     const extractUsersFromRooms = React.useMemo(() => {
         if (!rooms || rooms.length === 0) return [];
         
@@ -129,96 +178,74 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         return Array.from(usersMap.values());
     }, [rooms]);
 
-
-        // Try to get users from Redux first, fallback to room participants
-    const [availableUsers, setAvailableUsers] = React.useState([]);
-    const [usersFetchStatus, setUsersFetchStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle');
-    const [usersFetchError, setUsersFetchError] = React.useState<string | null>(null);
-
-    // User fetching effect with fallback
     useEffect(() => {
-    const loadUsers = async () => {
-        setUsersFetchStatus('loading');
-        setUsersFetchError(null);
-        
-        try {
-            const result = await dispatch(fetchAllChatUsers()).unwrap();
-            setAvailableUsers(result);
-            console.log("User fetched for Chats", result);
-            setUsersFetchStatus('succeeded');
-        } catch (error: any) {
-            console.error('Failed to fetch users from API:', error);
-            setUsersFetchError(error.message || 'Unable to fetch users');
-            setAvailableUsers([]); // No fallback users
-            setUsersFetchStatus('failed');
-        }
-    };
-
-    if (usersFetchStatus === 'idle') {
-        loadUsers();
-    }
-}, [dispatch, usersFetchStatus]);
-    // useEffect(() => {
-    //     const loadUsers = async () => {
-    //         setUsersFetchStatus('loading');
-    //         setUsersFetchError(null);
+        const loadUsers = async () => {
+            setUsersFetchStatus('loading');
+            setUsersFetchError(null);
             
-    //         try {
-    //             // Try to dispatch fetchAllUsers
-    //             const result = await dispatch(fetchAllUsers()).unwrap();
-    //             setAvailableUsers(result);
-    //             setUsersFetchStatus('succeeded');
-    //         } catch (error) {
-    //             console.warn('Failed to fetch users from API, using room participants fallback:', error);
+            try {
+                const result = await dispatch(fetchAllChatUsers()).unwrap();
+                setAvailableUsers(result);
+                console.log("👥 Users fetched for Chats:", result);
+                setUsersFetchStatus('succeeded');
+            } catch (error: any) {
+                console.error('❌ Failed to fetch users from API:', error);
+                setUsersFetchError(error.message || 'Unable to fetch users');
                 
-    //             // Use extracted users from rooms as fallback
-    //             if (extractUsersFromRooms.length > 0) {
-    //                 setAvailableUsers(extractUsersFromRooms);
-    //                 setUsersFetchStatus('succeeded');
-    //             } else {
-    //                 // Last resort: create some mock users based on current user
-    //                 const mockUsers = [
-    //                     ...(currentUser ? [{
-    //                         id: currentUser.id,
-    //                         name: currentUser.name || currentUser.email || 'Current User',
-    //                         email: currentUser.email || '',
-    //                         role: currentUser.role || 'student'
-    //                     }] : []),
-    //                     // Add some default roles
-    //                     { id: 'mock-admin', name: 'Admin User', email: 'admin@example.com', role: 'admin' },
-    //                     { id: 'mock-teacher', name: 'Teacher User', email: 'teacher@example.com', role: 'teacher' }
-    //                 ];
-    //                 setAvailableUsers(mockUsers);
-    //                 setUsersFetchStatus('succeeded');
-    //             }
-    //         }
-    //     };
+                // Fallback to extracted users
+                if (extractUsersFromRooms.length > 0) {
+                    console.log("🔄 Using fallback users from rooms");
+                    setAvailableUsers(extractUsersFromRooms);
+                    setUsersFetchStatus('succeeded');
+                } else {
+                    setAvailableUsers([]);
+                    setUsersFetchStatus('failed');
+                }
+            }
+        };
 
-    //     if (usersFetchStatus === 'idle') {
-    //         loadUsers();
-    //     }
-    // }, [dispatch, usersFetchStatus, extractUsersFromRooms, currentUser]);
+        if (usersFetchStatus === 'idle') {
+            loadUsers();
+        }
+    }, [dispatch, usersFetchStatus, extractUsersFromRooms]);
 
+    const handleSelectRoom = (roomId: string) => {
+        if (roomId !== selectedRoomId) {
+            dispatch(selectChatRoom(roomId))
+            onRoomSelect?.()
+        }
+    }
 
     // Filter rooms based on search query and type filter
-    const filteredRooms = (rooms ?? []).filter((room) => {
-        const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesFilter = filter === "all" || room.type === filter
-        return matchesSearch && matchesFilter
-    })
+    const filteredRooms = React.useMemo(() => {
+        if (!rooms || !Array.isArray(rooms)) {
+            console.log("⚠️ Rooms is not an array:", typeof rooms, rooms);
+            return [];
+        }
+
+        return rooms.filter((room) => {
+            const matchesSearch = room.name?.toLowerCase()?.includes(searchQuery.toLowerCase()) || false;
+            const matchesFilter = filter === "all" || room.type === filter;
+            return matchesSearch && matchesFilter;
+        });
+    }, [rooms, searchQuery, filter]);
 
     // Group rooms by type for better organization
-    const groupedRooms = (filteredRooms ?? []).reduce(
-        (acc, room) => {
-            const type = room.type
-            if (!acc[type]) {
-                acc[type] = []
-            }
-            acc[type].push(room)
-            return acc
-        },
-        {} as Record<ChatRoomType, typeof rooms>,
-    )
+    const groupedRooms = React.useMemo(() => {
+        if (!filteredRooms || filteredRooms.length === 0) return {};
+        
+        return filteredRooms.reduce(
+            (acc, room) => {
+                const type = room.type;
+                if (!acc[type]) {
+                    acc[type] = [];
+                }
+                acc[type].push(room);
+                return acc;
+            },
+            {} as Record<ChatRoomType, typeof rooms>,
+        );
+    }, [filteredRooms]);
 
     // Delete Room handler
     const handleDeleteRoom = async (roomId: string) => {
@@ -229,7 +256,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 requiresAuth: true
             });
             toast.success("Room deleted successfully");
-            dispatch(fetchChatRooms(currentUser!.id));
+            if (currentUser?.id) {
+                dispatch(fetchChatRooms(currentUser.id));
+            }
             if (roomId === selectedRoomId) {
                 dispatch(selectChatRoom(""));
             }
@@ -249,7 +278,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         setUpdatingRoomId(editingRoom.id);
         try {
             console.log("Updating room with data:", data);
-            const response = await apiClient(`/chat/rooms/${editingRoom.id}`, {
+            await apiClient(`/chat/rooms/${editingRoom.id}`, {
                 method: "PUT",
                 body: JSON.stringify({
                     name: data.name,
@@ -260,9 +289,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 requiresAuth: true
             });
             
-            console.log("Room update response:", response);
             toast.success("Room updated successfully");
-            dispatch(fetchChatRooms(currentUser!.id));
+            if (currentUser?.id) {
+                dispatch(fetchChatRooms(currentUser.id));
+            }
         } catch (err: any) {
             console.error("Update room error:", err);
             toast.error(err.message || "Failed to update room");
@@ -273,7 +303,6 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     };
 
     const canManageRoom = (room: any) => {
-        // Allow if user is admin/super_admin or if they're a teacher/instructor in the room
         return (
             currentUser?.role === "admin" || 
             currentUser?.role === "super_admin" ||
@@ -283,28 +312,76 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         );
     };
 
+    // DEBUG INFO COMPONENT
+    const DebugInfo = () => (
+        <div className="p-4 m-2 border-2 border-blue-200 bg-blue-50 rounded-lg text-xs">
+            <div className="font-bold mb-2">🐛 Debug Information</div>
+            <div><strong>Current User:</strong> {currentUser ? `${currentUser.name || currentUser.email} (${currentUser.id})` : 'None'}</div>
+            <div><strong>Status:</strong> {status}</div>
+            <div><strong>Rooms Count:</strong> {rooms?.length || 0}</div>
+            <div><strong>Filtered Rooms:</strong> {filteredRooms.length}</div>
+            <div><strong>Last Fetch:</strong> {lastFetchTime || 'Never'}</div>
+            <div><strong>Fetch Error:</strong> {fetchError || 'None'}</div>
+            <div><strong>Available Users:</strong> {availableUsers.length}</div>
+            <div className="mt-2">
+                <strong>Rooms Data:</strong>
+                <pre className="mt-1 p-2 bg-white rounded text-xs overflow-auto max-h-32">
+                    {JSON.stringify(rooms, null, 2)}
+                </pre>
+            </div>
+        </div>
+    );
+
     return (
         <div className="flex h-full flex-col">
-            {/* Header with Search and Unread Count */}
+            {/* Header with Search, Debug Toggle, and Unread Count */}
             <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="text-lg font-semibold">Messages</h2>
-                    {totalUnreadCount > 0 && (
-                        <Badge variant="default" className="h-6 px-2 text-xs bg-primary text-primary-foreground">
-                            {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
-                        </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {process.env.NODE_ENV === 'development' && (
+                            <DyraneButton
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowDebugInfo(!showDebugInfo)}
+                                className="h-6 w-6 p-0"
+                            >
+                                <Bug className="h-3 w-3" />
+                            </DyraneButton>
+                        )}
+                        {totalUnreadCount > 0 && (
+                            <Badge variant="default" className="h-6 px-2 text-xs bg-primary text-primary-foreground">
+                                {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                            </Badge>
+                        )}
+                    </div>
                 </div>
-                <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search chats..."
-                        className="pl-8"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            placeholder="Search chats..."
+                            className="pl-8"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <DyraneButton
+                        variant="outline"
+                        size="sm"
+                        onClick={handleManualRefresh}
+                        disabled={status === "loading"}
+                        className="flex items-center gap-1"
+                    >
+                        <RefreshCw className={`h-3 w-3 ${status === "loading" ? "animate-spin" : ""}`} />
+                        {status === "loading" ? "Loading..." : "Refresh"}
+                    </DyraneButton>
                 </div>
             </div>
+
+            {/* Debug Info */}
+            {showDebugInfo && process.env.NODE_ENV === 'development' && <DebugInfo />}
 
             {/* Filter Tabs */}
             <div className="flex p-2 gap-1 overflow-x-auto scrollbar-hide bg-muted/15 rounded-lg mx-4">
@@ -346,27 +423,58 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             <ScrollArea className="flex-1 overflow-y-auto">
                 <nav className="grid gap-1 p-2">
                     {status === "loading" && (
-                        <>
+                        <div className="space-y-2">
+                            <div className="text-center text-sm text-muted-foreground py-2">Loading chat rooms...</div>
                             <Skeleton className="h-14 w-full rounded-lg" />
                             <Skeleton className="h-14 w-full rounded-lg" />
                             <Skeleton className="h-14 w-full rounded-lg" />
-                        </>
+                        </div>
                     )}
 
                     {status === "failed" && (
-                        <div className="p-4 text-center text-destructive text-sm flex items-center justify-center gap-2">
-                            <AlertCircle className="h-4 w-4" /> Failed to load rooms.
+                        <div className="p-4 text-center">
+                            <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                            <p className="text-sm font-medium text-destructive mb-1">Failed to load rooms</p>
+                            <p className="text-xs text-muted-foreground mb-3">
+                                {fetchError || "Unable to connect to chat service"}
+                            </p>
+                            <DyraneButton
+                                variant="outline"
+                                size="sm"
+                                onClick={handleManualRefresh}
+                                className="flex items-center gap-2"
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                Try Again
+                            </DyraneButton>
                         </div>
                     )}
 
                     {status === "succeeded" && filteredRooms.length === 0 && (
-                        <p className="p-4 text-center text-sm text-muted-foreground">
-                            {searchQuery ? "No matching chats found." : "No active chats found."}
-                        </p>
+                        <div className="p-4 text-center">
+                            <div className="text-6xl mb-2">💬</div>
+                            <p className="text-sm font-medium mb-1">
+                                {searchQuery ? "No matching chats found" : "No chat rooms yet"}
+                            </p>
+                            <p className="text-xs text-muted-foreground mb-3">
+                                {searchQuery 
+                                    ? "Try adjusting your search terms" 
+                                    : "Create or join a chat room to get started"
+                                }
+                            </p>
+                            {!searchQuery && (currentUser?.role === "teacher" || currentUser?.role === "admin" || currentUser?.role === "super_admin") && (
+                                <DyraneButton variant="outline" size="sm" asChild>
+                                    <Link href="/chat/create">
+                                        <MessageSquarePlus className="mr-2 h-4 w-4" />
+                                        Create Chat Room
+                                    </Link>
+                                </DyraneButton>
+                            )}
+                        </div>
                     )}
 
                     {/* Render rooms grouped by type */}
-                    {Object.entries(groupedRooms).map(([type, rooms]) => (
+                    {Object.entries(groupedRooms).map(([type, typeRooms]) => (
                         <div key={type} className="mb-4">
                             <h3 className="text-xs font-medium text-muted-foreground px-2 mb-1 uppercase">
                                 {type === ChatRoomType.COURSE
@@ -379,7 +487,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                                 ? "Announcements"
                                                 : "Other"}
                             </h3>
-                            {rooms.map((room) => (
+                            {typeRooms.map((room) => (
                                 <div key={room.id} className="flex items-center group">
                                     <div className="flex-1">
                                         <ChatRoomItem
@@ -445,14 +553,13 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 </div>
             )}
 
-          {/* Edit Room Dialog - Updated */}
+            {/* Edit Room Dialog */}
             <Dialog open={!!editingRoom} onOpenChange={open => !open && setEditingRoom(null)}>
                 <DialogContent className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Chat Room</DialogTitle>
                     </DialogHeader>
                     
-                    {/* Updated user loading logic */}
                     {usersFetchStatus === "loading" ? (
                         <div className="flex flex-col items-center justify-center py-8 space-y-4">
                             <Skeleton className="h-8 w-32" />
@@ -481,22 +588,13 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                             </div>
                         </div>
                     ) : usersFetchStatus === "succeeded" && availableUsers.length > 0 ? (
-                        <>
-                            {/* Show source of users for debugging */}
-                            {process.env.NODE_ENV === 'development' && (
-                                <div className="mb-4 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                                    <span className="font-semibold">Debug:</span> Using {availableUsers.length} users 
-                                    {availableUsers === extractUsersFromRooms ? ' (from room participants)' : ' (from API)'}
-                                </div>
-                            )}
-                            <ChatRoomForm
-                                initialRoom={editingRoom}
-                                onSubmit={handleRoomFormSubmit}
-                                onCancel={() => setEditingRoom(null)}
-                                users={availableUsers}
-                                isLoading={updatingRoomId === editingRoom?.id}
-                            />
-                        </>
+                        <ChatRoomForm
+                            initialRoom={editingRoom}
+                            onSubmit={handleRoomFormSubmit}
+                            onCancel={() => setEditingRoom(null)}
+                            users={availableUsers}
+                            isLoading={updatingRoomId === editingRoom?.id}
+                        />
                     ) : (
                         <div className="text-center py-8">
                             <div className="text-sm text-muted-foreground">No users available for room management</div>
