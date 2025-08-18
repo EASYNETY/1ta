@@ -52,8 +52,9 @@ interface ChatRoomListProps {
 
 export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const dispatch = useAppDispatch()
-    const rooms = useAppSelector(selectChatRooms)
-    const status = useAppSelector(selectRoomStatus)
+    // Use local state for rooms instead of Redux
+    const [rooms, setRooms] = React.useState([])
+    const [status, setStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle')
     const selectedRoomId = useAppSelector(selectSelectedRoomId)
     const totalUnreadCount = useAppSelector(selectChatUnreadCount)
     const currentUser = useAppSelector((state) => state.auth.user)
@@ -92,46 +93,35 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
     // FIXED MAIN FETCH EFFECT - Only fetch once when user is available
     useEffect(() => {
-        const fetchRooms = async () => {
+        // Fetch chat rooms directly using apiClient
+        const fetchRoomsDirect = async () => {
             if (!currentUser?.id) {
-                console.log("❌ No current user ID available");
                 setFetchError("No user ID available");
+                setStatus('failed');
                 return;
             }
-
-            // FIXED: Only check if we haven't fetched yet, not the status
-            if (hasFetched) {
-                console.log("✅ Rooms already fetched, skipping");
-                return;
-            }
-
-            console.log("🚀 Starting fetchChatRooms for user:", currentUser.id);
+            setStatus('loading');
             setFetchError(null);
             setLastFetchTime(new Date().toLocaleTimeString());
-            setHasFetched(true); // Mark as fetched immediately
-
             try {
-                const result = await dispatch(fetchChatRooms(currentUser.id));
-                console.log("✅ fetchChatRooms result:", result);
-                
-                if (result.meta.requestStatus === 'rejected') {
-                    const error = result.payload as string;
-                    console.error("❌ fetchChatRooms rejected:", error);
-                    setFetchError(error || "Failed to fetch chat rooms");
-                    setHasFetched(false); // Reset on error to allow retry
-                }
+                const response = await apiClient("/chat/rooms?userId=" + currentUser.id, {
+                    method: "GET",
+                    requiresAuth: true
+                });
+                const roomsData = response.data || response;
+                setRooms(roomsData);
+                setStatus('succeeded');
+                setHasFetched(true);
+                setTimeout(() => {
+                    console.log("Rooms from API:", roomsData);
+                }, 1000);
             } catch (error: any) {
-                console.error("💥 fetchChatRooms exception:", error);
-                setFetchError(error.message || "Unknown error occurred");
-                setHasFetched(false); // Reset on error to allow retry
+                setFetchError(error.message || "Failed to fetch chat rooms");
+                setStatus('failed');
+                setHasFetched(false);
             }
         };
-
-        fetchRooms();
-        // Debug: log rooms after fetch
-        setTimeout(() => {
-            console.log("Rooms from API:", rooms);
-        }, 1000);
+        fetchRoomsDirect();
     }, [dispatch, currentUser?.id, hasFetched]); // Depend on hasFetched instead of status
 
     // MANUAL REFRESH FUNCTION
@@ -147,20 +137,22 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         setHasFetched(false); // Reset to allow fresh fetch
 
         try {
-            const result = await dispatch(fetchChatRooms(currentUser.id));
-            console.log("🔄 Manual refresh result:", result);
-            
-            if (result.meta.requestStatus === 'fulfilled') {
-                toast.success("Chat rooms refreshed");
-                setHasFetched(true);
-            } else {
-                const error = result.payload as string;
-                setFetchError(error || "Failed to refresh");
-                toast.error("Failed to refresh chat rooms");
-            }
+            setStatus('loading');
+            setFetchError(null);
+            setLastFetchTime(new Date().toLocaleTimeString());
+            setHasFetched(false);
+            const response = await apiClient("/chat/rooms?userId=" + currentUser.id, {
+                method: "GET",
+                requiresAuth: true
+            });
+            const roomsData = response.data || response;
+            setRooms(roomsData);
+            setStatus('succeeded');
+            setHasFetched(true);
+            toast.success("Chat rooms refreshed");
         } catch (error: any) {
-            console.error("🔄 Manual refresh error:", error);
             setFetchError(error.message || "Refresh failed");
+            setStatus('failed');
             toast.error("Failed to refresh chat rooms");
         }
     };
