@@ -58,6 +58,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const totalUnreadCount = useAppSelector(selectChatUnreadCount)
     const currentUser = useAppSelector((state) => state.auth.user)
     const [searchQuery, setSearchQuery] = React.useState("")
+    // Always show all rooms by default
     const [filter, setFilter] = React.useState<ChatRoomType | "all">("all")
     const router = useRouter();
     const [updatingRoomId, setUpdatingRoomId] = useState<string | null>(null);
@@ -127,6 +128,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         };
 
         fetchRooms();
+        // Debug: log rooms after fetch
+        setTimeout(() => {
+            console.log("Rooms from API:", rooms);
+        }, 1000);
     }, [dispatch, currentUser?.id, hasFetched]); // Depend on hasFetched instead of status
 
     // MANUAL REFRESH FUNCTION
@@ -229,10 +234,12 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             return [];
         }
 
+        // Always show all rooms regardless of type filter
         return rooms.filter((room) => {
             const matchesSearch = room.name?.toLowerCase()?.includes(searchQuery.toLowerCase()) || false;
-            const matchesFilter = filter === "all" || room.type === filter;
-            return matchesSearch && matchesFilter;
+            // Ignore type filter for now to show all rooms
+            // const matchesFilter = filter === "all" || room.type === filter;
+            return matchesSearch; // Only filter by search
         });
     }, [rooms, searchQuery, filter]);
 
@@ -504,9 +511,11 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                             isSelected={room.id === selectedRoomId}
                                             onClick={() => handleSelectRoom(room.id)}
                                         />
+                                        {/* Show participants for debug */}
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            Participants: {Array.isArray(room.participants) ? room.participants.map(p => p.name).join(", ") : "None"}
+                                        </div>
                                     </div>
-                                    
-                                    {/* Room Management Actions */}
                                     {canManageRoom(room) && (
                                         <div className="opacity-0 group-hover:opacity-100 transition-opacity ml-1">
                                             <DropdownMenu>
