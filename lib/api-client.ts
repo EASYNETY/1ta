@@ -2939,51 +2939,51 @@ export async function handleMockRequest<T>(
 	);
 }
 
-// --- Convenience Methods ---
-export const get = <T>(
-	endpoint: string,
-	options?: Omit<FetchOptions, "method" | "body">
-) => apiClient<T>(endpoint, { ...options, method: "GET" });
+// // --- Convenience Methods ---
+// export const get = <T>(
+// 	endpoint: string,
+// 	options?: Omit<FetchOptions, "method" | "body">
+// ) => apiClient<T>(endpoint, { ...options, method: "GET" });
 
-export const post = <T>(
-	endpoint: string,
-	data: any,
-	options?: Omit<FetchOptions, "method" | "body">
-) => {
-	// **FIX**: Handle FormData properly - don't stringify it
-	const isFormData = data instanceof FormData;
+// export const post = <T>(
+// 	endpoint: string,
+// 	data: any,
+// 	options?: Omit<FetchOptions, "method" | "body">
+// ) => {
+// 	// **FIX**: Handle FormData properly - don't stringify it
+// 	const isFormData = data instanceof FormData;
 
-	return apiClient<T>(endpoint, {
-		...options,
-		method: "POST",
-		body: isFormData ? data : JSON.stringify(data),
-		headers: isFormData
-			? {
-				// Don't set Content-Type for FormData - browser will set it with boundary
-				...options?.headers
-			}
-			: {
-				"Content-Type": "application/json",
-				...options?.headers
-			},
-	});
-};
+// 	return apiClient<T>(endpoint, {
+// 		...options,
+// 		method: "POST",
+// 		body: isFormData ? data : JSON.stringify(data),
+// 		headers: isFormData
+// 			? {
+// 				// Don't set Content-Type for FormData - browser will set it with boundary
+// 				...options?.headers
+// 			}
+// 			: {
+// 				"Content-Type": "application/json",
+// 				...options?.headers
+// 			},
+// 	});
+// };
 
-export const put = <T>(
-	endpoint: string,
-	data: any,
-	options?: Omit<FetchOptions, "method" | "body">
-) =>
-	apiClient<T>(endpoint, {
-		...options,
-		method: "PUT",
-		body: JSON.stringify(data),
-	});
+// export const put = <T>(
+// 	endpoint: string,
+// 	data: any,
+// 	options?: Omit<FetchOptions, "method" | "body">
+// ) =>
+// 	apiClient<T>(endpoint, {
+// 		...options,
+// 		method: "PUT",
+// 		body: JSON.stringify(data),
+// 	});
 
-export const del = <T>(
-	endpoint: string,
-	options?: Omit<FetchOptions, "method" | "body">
-) => apiClient<T>(endpoint, { ...options, method: "DELETE" });
+// export const del = <T>(
+// 	endpoint: string,
+// 	options?: Omit<FetchOptions, "method" | "body">
+// ) => apiClient<T>(endpoint, { ...options, method: "DELETE" });
 
 // --- Pricing API Methods ---
 export const getUserSubscription = async (
