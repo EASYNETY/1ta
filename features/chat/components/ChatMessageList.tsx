@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Wifi, WifiOff, Users } from "lucide-react";
+import { AlertCircle, Wifi, WifiOff, Users, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
