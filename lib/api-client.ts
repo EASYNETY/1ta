@@ -185,189 +185,6 @@ export class ApiError extends Error {
 	}
 }
 
-// lib/api-client.ts - Enhanced version with cache busting
-
-// Cache busting and consistent headers
-const getHeaders = (additionalHeaders?: Record<string, string>) => ({
-  'Content-Type': 'application/json',
-  'Cache-Control': 'no-cache, no-store, must-revalidate',
-  'Pragma': 'no-cache',
-  'Expires': '0',
-  ...additionalHeaders,
-});
-
-// Add cache busting parameter to URLs
-const addCacheBuster = (url: string): string => {
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}_cb=${Date.now()}&_r=${Math.random()}`;
-};
-
-// Request deduplication to prevent multiple identical requests
-const pendingRequests = new Map<string, Promise<any>>();
-
-const deduplicateRequest = async <T>(key: string, requestFn: () => Promise<T>): Promise<T> => {
-  if (pendingRequests.has(key)) {
-    return pendingRequests.get(key);
-  }
-  
-  const promise = requestFn();
-  pendingRequests.set(key, promise);
-  
-  try {
-    const result = await promise;
-    pendingRequests.delete(key);
-    return result;
-  } catch (error) {
-    pendingRequests.delete(key);
-    throw error;
-  }
-};
-
-// Enhanced GET method with cache busting
-export const get = async <T = any>(url: string, options?: RequestInit): Promise<T> => {
-  const fullUrl = `${API_BASE_URL}${url}`;
-  const cacheBustedUrl = addCacheBuster(fullUrl);
-  const requestKey = `GET:${url}`;
-  
-  return deduplicateRequest(requestKey, async () => {
-    try {
-      const response = await fetch(cacheBustedUrl, {
-        method: 'GET',
-        headers: getHeaders(),
-        ...options,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      // Add timestamp to response for debugging
-      if (typeof data === 'object' && data !== null) {
-        data._fetchedAt = Date.now();
-      }
-      
-      return data;
-    } catch (error) {
-      console.error('API GET Error:', { url: cacheBustedUrl, error });
-      throw error;
-    }
-  });
-};
-
-// Enhanced POST method
-export const post = async <T = any>(url: string, body?: any, options?: RequestInit): Promise<T> => {
-  const fullUrl = `${API_BASE_URL}${url}`;
-  
-  try {
-    const response = await fetch(fullUrl, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-      ...options,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Clear related cache entries after successful POST
-    clearCacheForUrl(url);
-    
-    return data;
-  } catch (error) {
-    console.error('API POST Error:', { url: fullUrl, error });
-    throw error;
-  }
-};
-
-// Enhanced PUT method
-export const put = async <T = any>(url: string, body?: any, options?: RequestInit): Promise<T> => {
-  const fullUrl = `${API_BASE_URL}${url}`;
-  
-  try {
-    const response = await fetch(fullUrl, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
-      ...options,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Clear related cache entries after successful PUT
-    clearCacheForUrl(url);
-    
-    return data;
-  } catch (error) {
-    console.error('API PUT Error:', { url: fullUrl, error });
-    throw error;
-  }
-};
-
-// Enhanced DELETE method
-export const del = async <T = any>(url: string, options?: RequestInit): Promise<T> => {
-  const fullUrl = `${API_BASE_URL}${url}`;
-  
-  try {
-    const response = await fetch(fullUrl, {
-      method: 'DELETE',
-      headers: getHeaders(),
-      ...options,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    // Clear related cache entries after successful DELETE
-    clearCacheForUrl(url);
-    
-    return data;
-  } catch (error) {
-    console.error('API DELETE Error:', { url: fullUrl, error });
-    throw error;
-  }
-};
-
-// Utility function to clear cache entries
-const clearCacheForUrl = (url: string) => {
-  // Clear request deduplication cache for related URLs
-  const keysToDelete: string[] = [];
-  
-  pendingRequests.forEach((_, key) => {
-    if (key.includes(url.split('?')[0])) {
-      keysToDelete.push(key);
-    }
-  });
-  
-  keysToDelete.forEach(key => pendingRequests.delete(key));
-};
-
-// Utility to clear all caches
-export const clearAllCaches = () => {
-  pendingRequests.clear();
-};
-
-// Utility to get cache status
-export const getCacheStatus = () => ({
-  pendingRequestsCount: pendingRequests.size,
-  pendingKeys: Array.from(pendingRequests.keys()),
-});
-
 // --- Main API Client ---
 async function apiClient<T>(
 	endpoint: string,
@@ -2939,51 +2756,51 @@ export async function handleMockRequest<T>(
 	);
 }
 
-// // --- Convenience Methods ---
-// export const get = <T>(
-// 	endpoint: string,
-// 	options?: Omit<FetchOptions, "method" | "body">
-// ) => apiClient<T>(endpoint, { ...options, method: "GET" });
+// --- Convenience Methods ---
+export const get = <T>(
+	endpoint: string,
+	options?: Omit<FetchOptions, "method" | "body">
+) => apiClient<T>(endpoint, { ...options, method: "GET" });
 
-// export const post = <T>(
-// 	endpoint: string,
-// 	data: any,
-// 	options?: Omit<FetchOptions, "method" | "body">
-// ) => {
-// 	// **FIX**: Handle FormData properly - don't stringify it
-// 	const isFormData = data instanceof FormData;
+export const post = <T>(
+	endpoint: string,
+	data: any,
+	options?: Omit<FetchOptions, "method" | "body">
+) => {
+	// **FIX**: Handle FormData properly - don't stringify it
+	const isFormData = data instanceof FormData;
 
-// 	return apiClient<T>(endpoint, {
-// 		...options,
-// 		method: "POST",
-// 		body: isFormData ? data : JSON.stringify(data),
-// 		headers: isFormData
-// 			? {
-// 				// Don't set Content-Type for FormData - browser will set it with boundary
-// 				...options?.headers
-// 			}
-// 			: {
-// 				"Content-Type": "application/json",
-// 				...options?.headers
-// 			},
-// 	});
-// };
+	return apiClient<T>(endpoint, {
+		...options,
+		method: "POST",
+		body: isFormData ? data : JSON.stringify(data),
+		headers: isFormData
+			? {
+				// Don't set Content-Type for FormData - browser will set it with boundary
+				...options?.headers
+			}
+			: {
+				"Content-Type": "application/json",
+				...options?.headers
+			},
+	});
+};
 
-// export const put = <T>(
-// 	endpoint: string,
-// 	data: any,
-// 	options?: Omit<FetchOptions, "method" | "body">
-// ) =>
-// 	apiClient<T>(endpoint, {
-// 		...options,
-// 		method: "PUT",
-// 		body: JSON.stringify(data),
-// 	});
+export const put = <T>(
+	endpoint: string,
+	data: any,
+	options?: Omit<FetchOptions, "method" | "body">
+) =>
+	apiClient<T>(endpoint, {
+		...options,
+		method: "PUT",
+		body: JSON.stringify(data),
+	});
 
-// export const del = <T>(
-// 	endpoint: string,
-// 	options?: Omit<FetchOptions, "method" | "body">
-// ) => apiClient<T>(endpoint, { ...options, method: "DELETE" });
+export const del = <T>(
+	endpoint: string,
+	options?: Omit<FetchOptions, "method" | "body">
+) => apiClient<T>(endpoint, { ...options, method: "DELETE" });
 
 // --- Pricing API Methods ---
 export const getUserSubscription = async (
