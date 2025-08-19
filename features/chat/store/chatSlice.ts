@@ -1,7 +1,7 @@
 // store/chatSlice.ts - Enhanced with real-time features
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ChatRoom, ChatMessage, MessageStatus, TypingUser, ConnectionStatus } from '../types/chat-types';
-import { fetchChatMessages, sendChatMessage } from './chat-thunks';
+import { fetchChatMessages, sendChatMessage, createChatRoom } from './chat-thunks';
 
 interface ChatState {
     // Rooms
@@ -408,6 +408,29 @@ const chatSlice = createSlice({
             if (!state.messagesByRoom[roomId].some(m => m.id === message.id)) {
                 state.messagesByRoom[roomId].push(message);
             }
+        });
+        // Create room lifecycle
+        builder.addCase(createChatRoom.pending, (state) => {
+            state.createRoomStatus = 'loading';
+            state.createRoomError = null;
+        });
+
+        builder.addCase(createChatRoom.fulfilled, (state, action) => {
+            state.createRoomStatus = 'succeeded';
+            state.createRoomError = null;
+            const payload = (action.payload && (action.payload as any).data) || action.payload;
+            if (payload) {
+                // Insert new room at top if not present
+                const room = payload;
+                if (!state.rooms.some(r => r.id === room.id)) {
+                    state.rooms.unshift(room as ChatRoom);
+                }
+            }
+        });
+
+        builder.addCase(createChatRoom.rejected, (state, action) => {
+            state.createRoomStatus = 'failed';
+            state.createRoomError = (action.payload as any) || action.error?.message || 'Failed to create room';
         });
     }
 });

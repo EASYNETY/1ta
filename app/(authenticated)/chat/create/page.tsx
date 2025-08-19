@@ -30,7 +30,7 @@ import { useRouter } from "next/navigation";
 // Redux
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { createChatRoom } from "@/features/chat/store/chat-thunks";
-import { ChatRoomType, type ChatParticipant, CreateRoomPayload } from "@/features/chat/types/chat-types";
+import { ChatRoomType } from "@/features/chat/types/chat-types";
 import { clearCreateRoomStatus, selectCreateRoomError, selectCreateRoomStatus } from "@/features/chat/store/chatSlice";
 
 // Context Item Thunks & Selectors
@@ -52,6 +52,26 @@ interface ContextItem {
     id: string;
     name: string;
     participantIds?: string[]; // For pre-selecting participants based on context
+}
+
+// Minimal local types to avoid depending on external type exports
+interface ChatParticipant {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+    role?: string;
+}
+
+interface CreateRoomPayload extends Record<string, any> {
+    name: string;
+    description?: string;
+    type: string;
+    participantIds: string[];
+    createdBy?: string;
+    classId?: string | null;
+    courseId?: string | null;
+    eventId?: string | null;
+    contextId?: string | null;
 }
 
 const createChatRoomSchema = z.object({
@@ -223,7 +243,7 @@ export default function CreateChatRoomPage() {
         }
     }, [createRoomReqStatus, createRoomReqError, reset, dispatch, router, currentUser]);
 
-    const onSubmitHandler = (data: CreateChatRoomFormValues) => {
+    const onSubmitHandler = async (data: CreateChatRoomFormValues) => {
         if (!currentUser?.id) {
             toast.error("User not authenticated.");
             return;
@@ -273,7 +293,11 @@ export default function CreateChatRoomPage() {
         }
 
         console.log("Dispatching final payload:", finalPayload);
-        dispatch(createChatRoom(finalPayload));
+        try {
+            await dispatch(createChatRoom(finalPayload));
+        } catch (err) {
+            console.error('Create room dispatch failed:', err);
+        }
     };
 
 
@@ -507,7 +531,7 @@ export default function CreateChatRoomPage() {
                                                                     >
                                                                         <Check className={`mr-2 h-4 w-4 ${field.value?.includes(user.id) ? "opacity-100" : "opacity-0"}`} />
                                                                         {user.name}
-                                                                        <span className="ml-1 text-xs text-muted-foreground">({user.role.replace("_", " ")})</span>
+                                                                        <span className="ml-1 text-xs text-muted-foreground">({(user.role || '').replace("_", " ")})</span>
                                                                     </CommandItem>
                                                                 ))}
                                                             </CommandGroup>
