@@ -63,7 +63,7 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
         return (
             <Card className="bg-slate-50 dark:bg-slate-950/5">
                 <CardHeader>
-                    <CardTitle>Course Revenue</CardTitle>
+                    <CardTitle>Course Revenue (List)</CardTitle>
                     <CardDescription>Revenue breakdown by course</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -79,7 +79,7 @@ export function CourseRevenueTable({ data, isLoading }: CourseRevenueTableProps)
     return (
         <Card className="bg-slate-50 dark:bg-slate-950/5">
             <CardHeader>
-                <CardTitle>Course Revenue</CardTitle>
+                <CardTitle>Course Revenue (List)</CardTitle>
                 <CardDescription>Revenue breakdown by course</CardDescription>
             </CardHeader>
             <CardContent>

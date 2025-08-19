@@ -151,7 +151,7 @@ export function AdminPaymentStats() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-semibold">Payment Statistics</h2>
+        <h2 className="text-xl font-semibold">Payment Status</h2>
         <DateRangePicker
           from={dateRange.startDate ? parseISO(dateRange.startDate) : subDays(new Date(), 30)}
           to={dateRange.endDate ? parseISO(dateRange.endDate) : new Date()}

@@ -178,8 +178,8 @@ export function DateRangeFilter() {
                 </Popover>
 
                 <div className="flex gap-2">
-                    <Button onClick={handleApplyFilter} className="flex-shrink-0">Apply</Button>
-                    <Button variant="outline" onClick={handleResetFilter} className="flex-shrink-0">
+                    <Button type="button" onClick={handleApplyFilter} className="flex-shrink-0">Apply</Button>
+                    <Button type="button" variant="outline" onClick={handleResetFilter} className="flex-shrink-0">
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Reset
                     </Button>

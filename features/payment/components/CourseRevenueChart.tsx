@@ -33,7 +33,7 @@ export function CourseRevenueChart({ data, isLoading }: CourseRevenueChartProps)
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle>Course Revenue Overview</CardTitle>
+                    <CardTitle>Revenue by Course (Top 5)</CardTitle>
                     <CardDescription>Revenue and enrollment by course</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -79,7 +79,7 @@ export function CourseRevenueChart({ data, isLoading }: CourseRevenueChartProps)
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Course Revenue Overview</CardTitle>
+                <CardTitle>Revenue by Course (Top 5)</CardTitle>
                 <CardDescription>Top performing courses by revenue</CardDescription>
             </CardHeader>
             <CardContent className="min-h-80 h-auto">
