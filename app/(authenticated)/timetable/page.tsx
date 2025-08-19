@@ -59,9 +59,9 @@ export default function TimetablePage() {
             case "teacher":
                 classesTab = <TabsTrigger key="my-classes-teacher" value="my-classes-teacher">My Classes</TabsTrigger>;
                 break;
-            case "student":
-                classesTab = <TabsTrigger key="my-classes-student" value="my-classes-student">My Classes</TabsTrigger>;
-                break;
+            // case "student":
+            //     classesTab = <TabsTrigger key="my-classes-student" value="my-classes-student">My Classes</TabsTrigger>;
+            //     break;
         }
 
         return [scheduleTab, classesTab].filter(Boolean);
