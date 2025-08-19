@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
+import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, CheckCircle, AlertCircle, XCircle, RefreshCw } from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, CreditCard, CheckCircle, XCircle, RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { AccountingStats } from "../types/accounting-types"
 import type { PaymentRecord } from "../types/payment-types"
@@ -45,14 +46,17 @@ function PaymentStatsCard({
         )
     }
 
+    // Consistent currency formatting across all browsers
     const formatValue = (val: number | string, title: string): string => {
         if (typeof val === "number") {
             if (title.includes("Revenue") || title.includes("Payments") || title.includes("Pending")) {
-                // Convert to number to remove any leading zeros
-                const cleanAmount = Number(val);
+                const cleanAmount = Number(val) || 0
                 
-                // For NGN, use the ₦ symbol directly to ensure consistent display
-                return `₦${cleanAmount.toLocaleString('en-NG', { maximumFractionDigits: 0 })}`;
+                // Use consistent formatting to avoid browser differences
+                return `₦${cleanAmount.toLocaleString('en-NG', { 
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0 
+                })}`;
             } else if (title === "Success Rate") {
                 return `${val}%`
             }
@@ -96,128 +100,187 @@ function PaymentStatsCard({
     )
 }
 
-// Calculate stats from payment history
+// Enhanced calculation with better error handling and consistency
 function calculateStatsFromPaymentHistory(payments: PaymentRecord[]): AccountingStats {
-    // Initialize stats object
+    // Initialize stats object with defaults
     const stats: AccountingStats = {
         totalRevenue: 0,
         pendingPaymentsAmount: 0,
         reconciledTransactionCount: 0,
-        totalTransactionCount: payments.length,
+        totalTransactionCount: 0,
         failedTransactionCount: 0,
+        totalRevenueLastPeriod: 0,
     }
 
-    // Get current date and date 30 days ago for last period comparison
+    // Validate input
+    if (!Array.isArray(payments) || payments.length === 0) {
+        return stats
+    }
+
+    // Get current date and date ranges for comparison
     const currentDate = new Date()
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(currentDate.getDate() - 30)
     const sixtyDaysAgo = new Date()
     sixtyDaysAgo.setDate(currentDate.getDate() - 60)
 
-    // Initialize last period revenue
+    // Initialize tracking variables
+    let currentPeriodRevenue = 0
     let lastPeriodRevenue = 0
+    let currentPeriodTransactions = 0
+    let currentPeriodSuccessful = 0
+    let currentPeriodPending = 0
+    let currentPeriodFailed = 0
+    let currentPeriodReconciled = 0
+    let currentPeriodPendingAmount = 0
 
-    // Process each payment
+    // Process each payment with consistent logic
     payments.forEach(payment => {
         try {
+            // Parse date consistently
             const paymentDate = new Date(payment.createdAt)
             
-            // Ensure amount is a number
+            // Validate and parse amount consistently
             let paymentAmount = 0
-            if (typeof payment.amount === 'number') {
-                paymentAmount = payment.amount
-            } else if (typeof payment.amount === 'string') {
-                paymentAmount = parseFloat(payment.amount)
-                if (isNaN(paymentAmount)) paymentAmount = 0
+            const rawAmount = payment.amount
+            if (typeof rawAmount === 'number') {
+                paymentAmount = rawAmount
+            } else if (typeof rawAmount === 'string') {
+                const parsed = parseFloat(rawAmount)
+                paymentAmount = isNaN(parsed) ? 0 : parsed
             }
 
-            // Count total transactions
+            // Normalize status for consistency
+            const status = (payment.status || '').toLowerCase().trim()
+            
+            // Classify transactions by date period
             if (paymentDate >= thirtyDaysAgo) {
                 // Current period (last 30 days)
-                if (payment.status === 'succeeded') {
-                    stats.totalRevenue += paymentAmount
+                currentPeriodTransactions++
+                
+                if (status === 'succeeded' || status === 'success') {
+                    currentPeriodRevenue += paymentAmount
+                    currentPeriodSuccessful++
+                    
                     if (payment.reconciliationStatus === 'reconciled') {
-                        stats.reconciledTransactionCount++
+                        currentPeriodReconciled++
                     }
-                } else if (payment.status === 'pending' || payment.status === 'processing' || payment.status === 'requires_action') {
-                    stats.pendingPaymentsAmount += paymentAmount
-                } else if (payment.status === 'failed') {
-                    stats.failedTransactionCount++
+                } else if (['pending', 'processing', 'requires_action'].includes(status)) {
+                    currentPeriodPending++
+                    currentPeriodPendingAmount += paymentAmount
+                } else if (status === 'failed') {
+                    currentPeriodFailed++
                 }
             } else if (paymentDate >= sixtyDaysAgo && paymentDate < thirtyDaysAgo) {
-                // Last period (30-60 days ago)
-                if (payment.status === 'succeeded') {
+                // Last period (30-60 days ago) - only count successful for revenue comparison
+                if (status === 'succeeded' || status === 'success') {
                     lastPeriodRevenue += paymentAmount
                 }
             }
         } catch (error) {
-            console.error("Error processing payment:", error, payment)
+            console.warn("Error processing payment in calculations:", error, payment)
+            // Continue processing other payments even if one fails
         }
     })
 
-    // Set last period revenue for comparison
+    // Set calculated values
+    stats.totalRevenue = currentPeriodRevenue
     stats.totalRevenueLastPeriod = lastPeriodRevenue
+    stats.pendingPaymentsAmount = currentPeriodPendingAmount
+    stats.reconciledTransactionCount = currentPeriodReconciled
+    stats.totalTransactionCount = currentPeriodTransactions
+    stats.failedTransactionCount = currentPeriodFailed
 
     return stats
 }
 
 export function AccountingDashboardStats({ stats, isLoading, paymentHistory = [] }: AccountingDashboardStatsProps) {
-    // Use provided stats or calculate from payment history
-    const calculatedStats = stats || (paymentHistory.length > 0 ? calculateStatsFromPaymentHistory(paymentHistory) : {
-        totalRevenue: 0,
-        totalRevenueLastPeriod: 0,
-        pendingPaymentsAmount: 0,
-        reconciledTransactionCount: 0,
-        totalTransactionCount: 0,
-        failedTransactionCount: 0,
-    })
+    // Memoize calculations to ensure consistency across renders
+    const calculatedStats = useMemo(() => {
+        // Prefer provided stats, but fallback to calculation if needed
+        if (stats && typeof stats === 'object') {
+            return {
+                ...stats,
+                // Ensure all required fields exist with defaults
+                totalRevenue: Number(stats.totalRevenue) || 0,
+                totalRevenueLastPeriod: Number(stats.totalRevenueLastPeriod) || 0,
+                pendingPaymentsAmount: Number(stats.pendingPaymentsAmount) || 0,
+                reconciledTransactionCount: Number(stats.reconciledTransactionCount) || 0,
+                totalTransactionCount: Number(stats.totalTransactionCount) || 0,
+                failedTransactionCount: Number(stats.failedTransactionCount) || 0,
+            }
+        }
+        
+        if (paymentHistory && paymentHistory.length > 0) {
+            return calculateStatsFromPaymentHistory(paymentHistory)
+        }
+        
+        // Return default stats if no data available
+        return {
+            totalRevenue: 0,
+            totalRevenueLastPeriod: 0,
+            pendingPaymentsAmount: 0,
+            reconciledTransactionCount: 0,
+            totalTransactionCount: 0,
+            failedTransactionCount: 0,
+        }
+    }, [stats, paymentHistory])
     
-    // Calculate percentage change for revenue
-    let revenueChange = "0%"
-    let revenueTrend: "up" | "down" = "up"
+    // Memoize derived calculations
+    const derivedStats = useMemo(() => {
+        // Calculate percentage change for revenue
+        let revenueChange = "0%"
+        let revenueTrend: "up" | "down" = "up"
 
-    if (calculatedStats.totalRevenueLastPeriod && calculatedStats.totalRevenueLastPeriod > 0) {
-        const changePercent = ((calculatedStats.totalRevenue - calculatedStats.totalRevenueLastPeriod) / calculatedStats.totalRevenueLastPeriod) * 100
-        revenueChange = `${Math.abs(changePercent).toFixed(1)}%`
-        revenueTrend = changePercent >= 0 ? "up" : "down"
-    }
+        if (calculatedStats.totalRevenueLastPeriod && calculatedStats.totalRevenueLastPeriod > 0) {
+            const changePercent = ((calculatedStats.totalRevenue - calculatedStats.totalRevenueLastPeriod) / calculatedStats.totalRevenueLastPeriod) * 100
+            revenueChange = `${Math.abs(changePercent).toFixed(1)}%`
+            revenueTrend = changePercent >= 0 ? "up" : "down"
+        }
 
-    // Calculate success rate
-    const successRate =
-        calculatedStats.totalTransactionCount > 0
+        // Calculate success rate
+        const successRate = calculatedStats.totalTransactionCount > 0
             ? Math.round(((calculatedStats.totalTransactionCount - calculatedStats.failedTransactionCount) / calculatedStats.totalTransactionCount) * 100)
             : 0
 
-    // Calculate pending percentage
-    const pendingPercentage =
-        calculatedStats.totalTransactionCount > 0 && calculatedStats.totalRevenue > 0
+        // Calculate pending percentage
+        const pendingPercentage = (calculatedStats.totalTransactionCount > 0 && calculatedStats.totalRevenue > 0)
             ? Math.round((calculatedStats.pendingPaymentsAmount / (calculatedStats.totalRevenue + calculatedStats.pendingPaymentsAmount)) * 100)
             : 0
 
-    // Calculate successful transactions
-    const successfulTransactions = calculatedStats.totalTransactionCount - calculatedStats.failedTransactionCount
+        // Calculate successful transactions
+        const successfulTransactions = calculatedStats.totalTransactionCount - calculatedStats.failedTransactionCount
+
+        return {
+            revenueChange,
+            revenueTrend,
+            successRate,
+            pendingPercentage,
+            successfulTransactions
+        }
+    }, [calculatedStats])
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <PaymentStatsCard
                 title="Total Revenue"
                 value={calculatedStats.totalRevenue}
-                change={revenueChange}
-                trend={revenueTrend}
+                change={derivedStats.revenueChange}
+                trend={derivedStats.revenueTrend}
                 icon={DollarSign}
                 isLoading={isLoading}
             />
             <PaymentStatsCard
                 title="Success Rate"
-                value={successRate}
-                subtitle={`${successfulTransactions} of ${calculatedStats.totalTransactionCount} transactions`}
+                value={derivedStats.successRate}
+                subtitle={`${derivedStats.successfulTransactions} of ${calculatedStats.totalTransactionCount} transactions`}
                 icon={CheckCircle}
                 isLoading={isLoading}
             />
             <PaymentStatsCard 
                 title="Pending Payments" 
                 value={calculatedStats.pendingPaymentsAmount}
-                subtitle={`${pendingPercentage}% of total transaction value`}
+                subtitle={`${derivedStats.pendingPercentage}% of total transaction value`}
                 icon={RefreshCw} 
                 isLoading={isLoading} 
             />
