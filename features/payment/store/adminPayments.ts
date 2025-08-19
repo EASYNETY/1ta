@@ -282,7 +282,8 @@ export const fetchAllAdminPaymentsSequentially = createAsyncThunk<
 >(
 	"adminPayments/fetchAllSequentially",
 	async (params, { dispatch, rejectWithValue }) => {
-		try {
+			try {
+				console.log('[fetchAllAdminPaymentsSequentially] invoked with params:', params)
 			const allPayments: PaymentRecord[] = [];
 			const BATCH_SIZE = 100;
 			

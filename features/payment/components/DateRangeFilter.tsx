@@ -26,8 +26,15 @@ export function DateRangeFilter() {
 
     const [startOpen, setStartOpen] = useState(false)
     const [endOpen, setEndOpen] = useState(false)
+    const [applyStatus, setApplyStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
+    const [applyMessage, setApplyMessage] = useState<string | null>(null)
 
-    const handleApplyFilter = () => {
+    const handleApplyFilter = async () => {
+        console.log('[DateRangeFilter] Apply clicked', { startDate, endDate })
+        // Update UI immediately
+        setApplyStatus('loading')
+        setApplyMessage('Applying filter...')
+
         dispatch(
             setDateRange({
                 startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
@@ -35,13 +42,35 @@ export function DateRangeFilter() {
             }),
         )
 
-        // Fetch data with the new date range
-        dispatch(
-            fetchAccountingData({
-                startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-                endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
-            }),
-        )
+        // Fetch data with the new date range and await result so we can show status
+        try {
+            const action = await dispatch(
+                fetchAccountingData({
+                    startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+                    endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
+                }),
+            )
+
+            if (fetchAccountingData.rejected.match(action)) {
+                console.warn('[DateRangeFilter] fetchAccountingData rejected', action.payload)
+                setApplyStatus('error')
+                setApplyMessage(action.payload ?? 'Failed to apply filter')
+            } else {
+                console.log('[DateRangeFilter] fetchAccountingData fulfilled')
+                setApplyStatus('success')
+                setApplyMessage('Filter applied')
+            }
+        } catch (err: any) {
+            console.error('[DateRangeFilter] apply error', err)
+            setApplyStatus('error')
+            setApplyMessage(err?.message || 'Error applying filter')
+        }
+
+        // Clear message after a short delay
+        setTimeout(() => {
+            setApplyStatus('idle')
+            setApplyMessage(null)
+        }, 3000)
     }
 
     const handleResetFilter = () => {
@@ -183,6 +212,11 @@ export function DateRangeFilter() {
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Reset
                     </Button>
+                </div>
+                <div className="flex items-center ml-3">
+                    {applyStatus === 'loading' && <span className="text-sm text-muted-foreground">Applying...</span>}
+                    {applyStatus === 'success' && <span className="text-sm text-green-600">{applyMessage}</span>}
+                    {applyStatus === 'error' && <span className="text-sm text-red-600">{applyMessage}</span>}
                 </div>
             </div>
         </div>
