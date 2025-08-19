@@ -5,8 +5,6 @@ import { apiClient } from '@/lib/api-client';
 import type {
 	ChatRoom,
 	ChatMessage,
-	CreateRoomPayload,
-	MarkReadResponse,
 } from "../types/chat-types";
 import { get, post } from "@/lib/api-client";
 
@@ -32,7 +30,7 @@ export const fetchChatRooms = createAsyncThunk(
       const url = `/chat/rooms?userId=${userId}&includeUnread=true`;
       console.log("📡 fetchChatRooms - Making API call to:", url);
 
-      const response = await apiClient(url, {
+	const response: any = await apiClient(url, {
         method: 'GET',
         requiresAuth: true
       });
@@ -64,9 +62,9 @@ export const fetchChatRooms = createAsyncThunk(
         // Response with rooms property
         rooms = response.rooms;
         console.log("✅ fetchChatRooms - Found rooms in rooms property:", rooms.length);
-      } else if (typeof response === 'object') {
-        // Handle object with numeric keys as fallback
-        rooms = Object.values(response).filter(item => item && typeof item === 'object' && item.id);
+			} else if (typeof response === 'object') {
+				// Handle object with numeric keys as fallback
+				rooms = Object.values(response).filter((item: any) => item && typeof item === 'object' && (item.id || item._id));
         console.log("✅ fetchChatRooms - Extracted rooms from object keys:", rooms.length);
       } else {
         console.warn("⚠️ fetchChatRooms - Unexpected response format:", response);
@@ -240,7 +238,7 @@ export const sendChatMessage = createAsyncThunk<
 
 export const createChatRoom = createAsyncThunk<
 	ChatRoom,
-	CreateRoomPayload,
+	any,
 	{ rejectValue: string }
 >("chat/createRoom", async (payload, { rejectWithValue }) => {
 	try {

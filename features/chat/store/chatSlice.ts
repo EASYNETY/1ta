@@ -1,6 +1,7 @@
 // store/chatSlice.ts - Enhanced with real-time features
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ChatRoom, ChatMessage, MessageStatus, TypingUser, ConnectionStatus } from '../types/chat-types';
+import { fetchChatMessages, sendChatMessage } from './chat-thunks';
 
 interface ChatState {
     // Rooms
@@ -370,6 +371,45 @@ const chatSlice = createSlice({
             return initialState;
         }
     }
+    ,
+    extraReducers: (builder) => {
+        // Fetch messages lifecycle
+        builder.addCase(fetchChatMessages.pending, (state, action) => {
+            const roomId = action.meta.arg.roomId;
+            if (roomId) state.messageStatus[roomId] = 'loading';
+        });
+
+        builder.addCase(fetchChatMessages.fulfilled, (state, action) => {
+            const roomId = action.meta.arg.roomId;
+            const messages = (action.payload && (action.payload as any).data) || [];
+            if (roomId) {
+                // Replace messages for the room (latest page)
+                state.messagesByRoom[roomId] = messages as ChatMessage[];
+                state.messageStatus[roomId] = 'succeeded';
+                state.messageErrors[roomId] = null;
+            }
+        });
+
+        builder.addCase(fetchChatMessages.rejected, (state, action) => {
+            const roomId = action.meta.arg.roomId;
+            if (roomId) {
+                state.messageStatus[roomId] = 'failed';
+                state.messageErrors[roomId] = (action.payload as any) || action.error?.message || 'Failed to fetch messages';
+            }
+        });
+
+        // Send message lifecycle
+        builder.addCase(sendChatMessage.fulfilled, (state, action) => {
+            const message = action.payload as ChatMessage;
+            if (!message || !message.roomId) return;
+            const roomId = message.roomId;
+            if (!state.messagesByRoom[roomId]) state.messagesByRoom[roomId] = [];
+            // Avoid duplicates
+            if (!state.messagesByRoom[roomId].some(m => m.id === message.id)) {
+                state.messagesByRoom[roomId].push(message);
+            }
+        });
+    }
 });
 
 // Helper function to get current user ID
@@ -446,7 +486,7 @@ export const selectUnreadCountForRoom = (state: any, roomId: string) =>
     state.chat.unreadCounts[roomId] || 0;
 
 export const selectChatUnreadCount = (state: any) => 
-    Object.values(state.chat.unreadCounts).reduce((sum: number, count: number) => sum + count, 0);
+    Object.values(state.chat.unreadCounts as Record<string, number>).reduce((sum: number, count: number) => sum + (count || 0), 0);
 
 export const selectMessageDraftForRoom = (state: any, roomId: string) => 
     state.chat.messageDrafts[roomId] || '';
