@@ -14,9 +14,10 @@ import {
     selectSelectedRoomId,
     selectChatRoom,
     selectChatUnreadCount,
+    setRooms,
 } from "../store/chatSlice"
 import { ChatRoomItem } from "./ChatRoomItem"
-import { ChatRoomType } from "../types/chat-types"
+import { ChatRoomType, ChatRoom, ChatUser } from "../types/chat-types"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
 import { fetchChatRooms } from "../store/chat-thunks"
 import Link from "next/link"
@@ -53,10 +54,11 @@ interface ChatRoomListProps {
 export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const dispatch = useAppDispatch()
     // Use local state for rooms instead of Redux
-    const [rooms, setRooms] = React.useState([])
+    const [localRooms, setLocalRooms] = useState<ChatRoom[]>([])
     const [status, setStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle')
     const selectedRoomId = useAppSelector(selectSelectedRoomId)
     const totalUnreadCount = useAppSelector(selectChatUnreadCount)
+    const unreadCount = Number(totalUnreadCount || 0);
     const currentUser = useAppSelector((state) => state.auth.user)
     const [searchQuery, setSearchQuery] = React.useState("")
     // Always show all rooms by default
@@ -74,7 +76,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     const [hasFetched, setHasFetched] = useState(false); // NEW: Track if we've already fetched
 
     // User management state
-    const [availableUsers, setAvailableUsers] = React.useState([]);
+    const [availableUsers, setAvailableUsers] = React.useState<ChatUser[]>([]);
     const [usersFetchStatus, setUsersFetchStatus] = React.useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle');
     const [usersFetchError, setUsersFetchError] = React.useState<string | null>(null);
 
@@ -82,14 +84,14 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
     useEffect(() => {
         console.log("🏪 ChatRoomList State Update:");
         console.log("- Current User:", currentUser);
-        console.log("- Rooms:", rooms);
-        console.log("- Rooms length:", rooms?.length || 0);
+        console.log("- Rooms:", localRooms);
+        console.log("- Rooms length:", localRooms?.length || 0);
         console.log("- Status:", status);
         console.log("- Selected Room ID:", selectedRoomId);
         console.log("- Total Unread:", totalUnreadCount);
         console.log("- Fetch Error:", fetchError);
         console.log("- Has Fetched:", hasFetched);
-    }, [rooms, status, currentUser, selectedRoomId, totalUnreadCount, fetchError, hasFetched]);
+    }, [localRooms, status, currentUser, selectedRoomId, totalUnreadCount, fetchError, hasFetched]);
 
     // FIXED MAIN FETCH EFFECT - Only fetch once when user is available
     useEffect(() => {
@@ -108,8 +110,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                     method: "GET",
                     requiresAuth: true
                 });
-                const roomsData = response.data || response;
-                setRooms(roomsData);
+                const roomsData = (response as any)?.data || (response as any);
+                setLocalRooms(roomsData as ChatRoom[]);
+                // Keep redux store in sync so selectedRoom selector works
+                dispatch(setRooms(roomsData as ChatRoom[]));
                 setStatus('succeeded');
                 setHasFetched(true);
                 setTimeout(() => {
@@ -145,8 +149,10 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 method: "GET",
                 requiresAuth: true
             });
-            const roomsData = response.data || response;
-            setRooms(roomsData);
+            const roomsData = (response as any)?.data || (response as any);
+            setLocalRooms(roomsData as ChatRoom[]);
+                // Keep redux store in sync after manual refresh
+                dispatch(setRooms(roomsData as ChatRoom[]));
             setStatus('succeeded');
             setHasFetched(true);
             toast.success("Chat rooms refreshed");
@@ -159,11 +165,11 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
     // USER FETCHING WITH FALLBACK
     const extractUsersFromRooms = React.useMemo(() => {
-        if (!rooms || rooms.length === 0) return [];
+        if (!localRooms || localRooms.length === 0) return [];
         
         const usersMap = new Map();
         
-        rooms.forEach(room => {
+    localRooms.forEach(room => {
             if (room.participants && Array.isArray(room.participants)) {
                 room.participants.forEach(participant => {
                     if (participant && participant.id && !usersMap.has(participant.id)) {
@@ -179,7 +185,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
         });
         
         return Array.from(usersMap.values());
-    }, [rooms]);
+    }, [localRooms]);
 
     useEffect(() => {
         const loadUsers = async () => {
@@ -188,7 +194,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             
             try {
                 const result = await dispatch(fetchAllChatUsers()).unwrap();
-                setAvailableUsers(result);
+                    setAvailableUsers(result as ChatUser[]);
                 console.log("👥 Users fetched for Chats:", result);
                 setUsersFetchStatus('succeeded');
             } catch (error: any) {
@@ -198,7 +204,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 // Fallback to extracted users
                 if (extractUsersFromRooms.length > 0) {
                     console.log("🔄 Using fallback users from rooms");
-                    setAvailableUsers(extractUsersFromRooms);
+                    setAvailableUsers(extractUsersFromRooms as ChatUser[]);
                     setUsersFetchStatus('succeeded');
                 } else {
                     setAvailableUsers([]);
@@ -221,26 +227,26 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
 
     // Filter rooms based on search query and type filter
     const filteredRooms = React.useMemo(() => {
-        if (!rooms || !Array.isArray(rooms)) {
-            console.log("⚠️ Rooms is not an array:", typeof rooms, rooms);
+        if (!localRooms || !Array.isArray(localRooms)) {
+            console.log("⚠️ Rooms is not an array:", typeof localRooms, localRooms);
             return [];
         }
 
         // Always show all rooms regardless of type filter
-        return rooms.filter((room) => {
+        return localRooms.filter((room) => {
             const matchesSearch = room.name?.toLowerCase()?.includes(searchQuery.toLowerCase()) || false;
             // Ignore type filter for now to show all rooms
             // const matchesFilter = filter === "all" || room.type === filter;
             return matchesSearch; // Only filter by search
         });
-    }, [rooms, searchQuery, filter]);
+    }, [localRooms, searchQuery, filter]);
 
     // Group rooms by type for better organization
     const groupedRooms = React.useMemo(() => {
-        if (!filteredRooms || filteredRooms.length === 0) return {};
+        if (!filteredRooms || filteredRooms.length === 0) return {} as Record<string, ChatRoom[]>;
         
         return filteredRooms.reduce(
-            (acc, room) => {
+            (acc: Record<string, ChatRoom[]>, room: ChatRoom) => {
                 const type = room.type;
                 if (!acc[type]) {
                     acc[type] = [];
@@ -248,7 +254,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                 acc[type].push(room);
                 return acc;
             },
-            {} as Record<ChatRoomType, typeof rooms>,
+            {} as Record<string, ChatRoom[]>,
         );
     }, [filteredRooms]);
 
@@ -326,7 +332,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             <div><strong>Current User:</strong> {currentUser ? `${currentUser.name || currentUser.email} (${currentUser.id})` : 'None'}</div>
             <div><strong>Status:</strong> {status}</div>
             <div><strong>Has Fetched:</strong> {hasFetched ? 'Yes' : 'No'}</div>
-            <div><strong>Rooms Count:</strong> {rooms?.length || 0}</div>
+            <div><strong>Rooms Count:</strong> {localRooms?.length || 0}</div>
             <div><strong>Filtered Rooms:</strong> {filteredRooms.length}</div>
             <div><strong>Last Fetch:</strong> {lastFetchTime || 'Never'}</div>
             <div><strong>Fetch Error:</strong> {fetchError || 'None'}</div>
@@ -334,7 +340,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
             <div className="mt-2">
                 <strong>Rooms Data Sample:</strong>
                 <pre className="mt-1 p-2 bg-white rounded text-xs overflow-auto max-h-32">
-                    {JSON.stringify(rooms?.slice(0, 3), null, 2)}
+                    {JSON.stringify(localRooms?.slice(0, 3), null, 2)}
                 </pre>
             </div>
         </div>
@@ -357,9 +363,9 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                                 <Bug className="h-3 w-3" />
                             </DyraneButton>
                         )}
-                        {totalUnreadCount > 0 && (
+                        {unreadCount > 0 && (
                             <Badge variant="default" className="h-6 px-2 text-xs bg-primary text-primary-foreground">
-                                {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                                {unreadCount > 99 ? "99+" : unreadCount}
                             </Badge>
                         )}
                     </div>
@@ -399,7 +405,7 @@ export const ChatRoomList: React.FC<ChatRoomListProps> = ({ onRoomSelect }) => {
                     className="rounded-full text-xs px-3 whitespace-nowrap"
                     onClick={() => setFilter("all")}
                 >
-                    All {totalUnreadCount > 0 && filter === "all" && `(${totalUnreadCount})`}
+                    All {unreadCount > 0 && filter === "all" && `(${unreadCount})`}
                 </DyraneButton>
                 <DyraneButton
                     variant={filter === ChatRoomType.COURSE ? "default" : "ghost"}
