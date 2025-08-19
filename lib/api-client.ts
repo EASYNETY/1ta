@@ -2941,3 +2941,19 @@ export async function fetchLiveAttendanceStats() {
 
 // --- Export ---
 export { apiClient, IS_LIVE_API };
+
+// Utility: expose cache clearing for callers that need to force refresh data
+export const clearAllCaches = (): void => {
+	try {
+		// Clear the API response cache
+		apiCache.clear();
+		// If we had other in-memory dedupe maps or pending requests, clear them here as well.
+		// (No-op if not present)
+		// Example: if (typeof (globalThis as any).pendingRequests !== 'undefined') { (globalThis as any).pendingRequests.clear(); }
+		if (process && process.env && process.env.NODE_ENV === 'development') {
+			console.log('[api-client] Cleared all API caches');
+		}
+	} catch (err) {
+		console.error('clearAllCaches failed:', err);
+	}
+};
