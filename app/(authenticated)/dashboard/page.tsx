@@ -487,9 +487,9 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Role-specific content - Takes 1/3 of the space */}
-                        <div className="lg:col-span-1">
+                        {/* <div className="lg:col-span-1">
                             {user.role === "student" ? <ProgressOverview /> : <RoleSpecificContent />}
-                        </div>
+                        </div> */}
                     </div>
                 </TabsContent>
 
