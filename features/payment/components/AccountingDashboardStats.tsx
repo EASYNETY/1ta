@@ -1,17 +1,17 @@
 "use client"
 
-import type React from "react"
-import { useMemo } from "react"
+import React, { useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, DollarSign, CreditCard, CheckCircle, XCircle, RefreshCw } from "lucide-react"
+import { TrendingUp, TrendingDown, DollarSign, CheckCircle, XCircle, RefreshCw } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useAccountingData } from "../components/AccountingDataProvider"
 import type { AccountingStats } from "../types/accounting-types"
-import type { PaymentRecord } from "../types/payment-types"
 
 interface AccountingDashboardStatsProps {
+    // Props are now optional since we get data from the hook
     stats?: AccountingStats
-    isLoading: boolean
-    paymentHistory?: PaymentRecord[]
+    isLoading?: boolean
+    paymentHistory?: any[]
 }
 
 function PaymentStatsCard({
@@ -100,156 +100,67 @@ function PaymentStatsCard({
     )
 }
 
-// Enhanced calculation with better error handling and consistency
-function calculateStatsFromPaymentHistory(payments: PaymentRecord[]): AccountingStats {
-    // Initialize stats object with defaults
-    const stats: AccountingStats = {
-        totalRevenue: 0,
-        pendingPaymentsAmount: 0,
-        reconciledTransactionCount: 0,
-        totalTransactionCount: 0,
-        failedTransactionCount: 0,
-        totalRevenueLastPeriod: 0,
-    }
-
-    // Validate input
-    if (!Array.isArray(payments) || payments.length === 0) {
-        return stats
-    }
-
-    // Get current date and date ranges for comparison
-    const currentDate = new Date()
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(currentDate.getDate() - 30)
-    const sixtyDaysAgo = new Date()
-    sixtyDaysAgo.setDate(currentDate.getDate() - 60)
-
-    // Initialize tracking variables
-    let currentPeriodRevenue = 0
-    let lastPeriodRevenue = 0
-    let currentPeriodTransactions = 0
-    let currentPeriodSuccessful = 0
-    let currentPeriodPending = 0
-    let currentPeriodFailed = 0
-    let currentPeriodReconciled = 0
-    let currentPeriodPendingAmount = 0
-
-    // Process each payment with consistent logic
-    payments.forEach(payment => {
-        try {
-            // Parse date consistently
-            const paymentDate = new Date(payment.createdAt)
-            
-            // Validate and parse amount consistently
-            let paymentAmount = 0
-            const rawAmount = payment.amount
-            if (typeof rawAmount === 'number') {
-                paymentAmount = rawAmount
-            } else if (typeof rawAmount === 'string') {
-                const parsed = parseFloat(rawAmount)
-                paymentAmount = isNaN(parsed) ? 0 : parsed
-            }
-
-            // Normalize status for consistency
-            const status = (payment.status || '').toLowerCase().trim()
-            
-            // Classify transactions by date period
-            if (paymentDate >= thirtyDaysAgo) {
-                // Current period (last 30 days)
-                currentPeriodTransactions++
-                
-                if (status === 'succeeded' || status === 'success') {
-                    currentPeriodRevenue += paymentAmount
-                    currentPeriodSuccessful++
-                    
-                    if (payment.reconciliationStatus === 'reconciled') {
-                        currentPeriodReconciled++
-                    }
-                } else if (['pending', 'processing', 'requires_action'].includes(status)) {
-                    currentPeriodPending++
-                    currentPeriodPendingAmount += paymentAmount
-                } else if (status === 'failed') {
-                    currentPeriodFailed++
-                }
-            } else if (paymentDate >= sixtyDaysAgo && paymentDate < thirtyDaysAgo) {
-                // Last period (30-60 days ago) - only count successful for revenue comparison
-                if (status === 'succeeded' || status === 'success') {
-                    lastPeriodRevenue += paymentAmount
-                }
-            }
-        } catch (error) {
-            console.warn("Error processing payment in calculations:", error, payment)
-            // Continue processing other payments even if one fails
-        }
-    })
-
-    // Set calculated values
-    stats.totalRevenue = currentPeriodRevenue
-    stats.totalRevenueLastPeriod = lastPeriodRevenue
-    stats.pendingPaymentsAmount = currentPeriodPendingAmount
-    stats.reconciledTransactionCount = currentPeriodReconciled
-    stats.totalTransactionCount = currentPeriodTransactions
-    stats.failedTransactionCount = currentPeriodFailed
-
-    return stats
-}
-
-export function AccountingDashboardStats({ stats, isLoading, paymentHistory = [] }: AccountingDashboardStatsProps) {
-    // Memoize calculations to ensure consistency across renders
-    const calculatedStats = useMemo(() => {
-        // Prefer provided stats, but fallback to calculation if needed
-        if (stats && typeof stats === 'object') {
-            return {
-                ...stats,
-                // Ensure all required fields exist with defaults
-                totalRevenue: Number(stats.totalRevenue) || 0,
-                totalRevenueLastPeriod: Number(stats.totalRevenueLastPeriod) || 0,
-                pendingPaymentsAmount: Number(stats.pendingPaymentsAmount) || 0,
-                reconciledTransactionCount: Number(stats.reconciledTransactionCount) || 0,
-                totalTransactionCount: Number(stats.totalTransactionCount) || 0,
-                failedTransactionCount: Number(stats.failedTransactionCount) || 0,
-            }
-        }
-        
-        if (paymentHistory && paymentHistory.length > 0) {
-            return calculateStatsFromPaymentHistory(paymentHistory)
-        }
-        
-        // Return default stats if no data available
-        return {
-            totalRevenue: 0,
-            totalRevenueLastPeriod: 0,
-            pendingPaymentsAmount: 0,
-            reconciledTransactionCount: 0,
-            totalTransactionCount: 0,
-            failedTransactionCount: 0,
-        }
-    }, [stats, paymentHistory])
+export function AccountingDashboardStats({ 
+    stats: propStats, 
+    isLoading: propIsLoading, 
+    paymentHistory: propPaymentHistory 
+}: AccountingDashboardStatsProps = {}) {
+    const { stats: hookStats, isLoading: hookIsLoading, debugInfo, refreshData } = useAccountingData();
     
-    // Memoize derived calculations
-    const derivedStats = useMemo(() => {
+    // Use hook data if props are not provided
+    const stats = propStats !== undefined ? propStats : hookStats;
+    const isLoading = propIsLoading !== undefined ? propIsLoading : hookIsLoading;
+
+    // Debug effect
+    useEffect(() => {
+        console.log('[AccountingDashboardStats] Render with data:', {
+            hasStats: !!stats,
+            statsData: stats,
+            isLoading,
+            debugInfo,
+        });
+
+        // If no stats and not loading, try to refresh
+        if (!isLoading && !stats) {
+            console.log('[AccountingDashboardStats] No stats, attempting refresh...');
+            refreshData();
+        }
+    }, [stats, isLoading, debugInfo, refreshData]);
+    
+    // Calculate derived stats
+    const derivedStats = React.useMemo(() => {
+        if (!stats) {
+            return {
+                revenueChange: "0%",
+                revenueTrend: "up" as const,
+                successRate: 0,
+                pendingPercentage: 0,
+                successfulTransactions: 0,
+            };
+        }
+
         // Calculate percentage change for revenue
         let revenueChange = "0%"
         let revenueTrend: "up" | "down" = "up"
 
-        if (calculatedStats.totalRevenueLastPeriod && calculatedStats.totalRevenueLastPeriod > 0) {
-            const changePercent = ((calculatedStats.totalRevenue - calculatedStats.totalRevenueLastPeriod) / calculatedStats.totalRevenueLastPeriod) * 100
+        if (stats.totalRevenueLastPeriod && stats.totalRevenueLastPeriod > 0) {
+            const changePercent = ((stats.totalRevenue - stats.totalRevenueLastPeriod) / stats.totalRevenueLastPeriod) * 100
             revenueChange = `${Math.abs(changePercent).toFixed(1)}%`
             revenueTrend = changePercent >= 0 ? "up" : "down"
         }
 
         // Calculate success rate
-        const successRate = calculatedStats.totalTransactionCount > 0
-            ? Math.round(((calculatedStats.totalTransactionCount - calculatedStats.failedTransactionCount) / calculatedStats.totalTransactionCount) * 100)
+        const successRate = stats.totalTransactionCount > 0
+            ? Math.round(((stats.totalTransactionCount - stats.failedTransactionCount) / stats.totalTransactionCount) * 100)
             : 0
 
         // Calculate pending percentage
-        const pendingPercentage = (calculatedStats.totalTransactionCount > 0 && calculatedStats.totalRevenue > 0)
-            ? Math.round((calculatedStats.pendingPaymentsAmount / (calculatedStats.totalRevenue + calculatedStats.pendingPaymentsAmount)) * 100)
+        const pendingPercentage = (stats.totalTransactionCount > 0 && stats.totalRevenue > 0)
+            ? Math.round((stats.pendingPaymentsAmount / (stats.totalRevenue + stats.pendingPaymentsAmount)) * 100)
             : 0
 
         // Calculate successful transactions
-        const successfulTransactions = calculatedStats.totalTransactionCount - calculatedStats.failedTransactionCount
+        const successfulTransactions = stats.totalTransactionCount - stats.failedTransactionCount
 
         return {
             revenueChange,
@@ -258,13 +169,35 @@ export function AccountingDashboardStats({ stats, isLoading, paymentHistory = []
             pendingPercentage,
             successfulTransactions
         }
-    }, [calculatedStats])
+    }, [stats])
+
+    // Show empty state if no stats and not loading
+    if (!isLoading && !stats) {
+        return (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {[1, 2, 3, 4].map((index) => (
+                    <Card key={index}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">No Data</CardTitle>
+                            <div className="h-4 w-4 bg-muted rounded" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">₦0</div>
+                            <div className="text-xs text-muted-foreground">
+                                No payment data available yet
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        );
+    }
 
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <PaymentStatsCard
                 title="Total Revenue"
-                value={calculatedStats.totalRevenue}
+                value={stats?.totalRevenue || 0}
                 change={derivedStats.revenueChange}
                 trend={derivedStats.revenueTrend}
                 icon={DollarSign}
@@ -273,21 +206,21 @@ export function AccountingDashboardStats({ stats, isLoading, paymentHistory = []
             <PaymentStatsCard
                 title="Success Rate"
                 value={derivedStats.successRate}
-                subtitle={`${derivedStats.successfulTransactions} of ${calculatedStats.totalTransactionCount} transactions`}
+                subtitle={`${derivedStats.successfulTransactions} of ${stats?.totalTransactionCount || 0} transactions`}
                 icon={CheckCircle}
                 isLoading={isLoading}
             />
             <PaymentStatsCard 
                 title="Pending Payments" 
-                value={calculatedStats.pendingPaymentsAmount}
+                value={stats?.pendingPaymentsAmount || 0}
                 subtitle={`${derivedStats.pendingPercentage}% of total transaction value`}
                 icon={RefreshCw} 
                 isLoading={isLoading} 
             />
             <PaymentStatsCard
                 title="Failed Transactions"
-                value={calculatedStats.failedTransactionCount}
-                subtitle={`${calculatedStats.totalTransactionCount > 0 ? Math.round((calculatedStats.failedTransactionCount / calculatedStats.totalTransactionCount) * 100) : 0}% of all transactions`}
+                value={stats?.failedTransactionCount || 0}
+                subtitle={`${(stats?.totalTransactionCount || 0) > 0 ? Math.round(((stats?.failedTransactionCount || 0) / (stats?.totalTransactionCount || 1)) * 100) : 0}% of all transactions`}
                 icon={XCircle}
                 isLoading={isLoading}
             />

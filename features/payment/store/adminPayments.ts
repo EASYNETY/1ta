@@ -70,8 +70,44 @@ export const fetchUnifiedPaymentData = createAsyncThunk<
 				};
 			}
 
+			// Normalize raw payments payload to a consistent array of PaymentRecord
+			let rawPayments: any[] = [];
+
+			// The dispatched thunk may return different shapes depending on which
+			// underlying path fulfilled. Handle common variants explicitly.
+			if (fetchAllAdminPaymentsSequentially.fulfilled.match(rawDataResult)) {
+				rawPayments = rawDataResult.payload as any[];
+			} else if (rawDataResult.payload && Array.isArray((rawDataResult.payload as any).payments)) {
+				rawPayments = (rawDataResult.payload as any).payments;
+			} else if (rawDataResult.payload && Array.isArray((rawDataResult.payload as any).data)) {
+				rawPayments = (rawDataResult.payload as any).data;
+			} else if (Array.isArray(rawDataResult.payload)) {
+				rawPayments = rawDataResult.payload as any[];
+			}
+
+			// Ensure we always return a PaymentRecord[] with normalized fields
+			const normalizedPayments: PaymentRecord[] = (rawPayments || []).map((p: any): PaymentRecord => {
+				const amount = parseFloat(p.amount) || 0;
+				return {
+					...p,
+					id: p.id || p.invoiceId || `missing-id-${Math.random()}`,
+					userId: p.userId || p.user_id || "N/A",
+					userName: p.userName || p.user_name || "N/A",
+					amount: amount,
+					currency: p.currency || "NGN",
+					status: p.status || "unknown",
+					provider: p.provider || "unknown",
+					createdAt: p.createdAt || p.created_at || new Date().toISOString(),
+					description: p.description || p.invoice?.description || "No description",
+					invoiceId: p.invoiceId || p.invoice_id || p.invoice?.id || null,
+					metadata: p.metadata || {},
+					relatedItemIds: Array.isArray(p.relatedItemIds) ? p.relatedItemIds : [],
+					reconciliationStatus: p.reconciliationStatus || "pending",
+				} as PaymentRecord;
+			});
+
 			const unifiedData: UnifiedPaymentData = {
-				payments: rawDataResult.payload,
+				payments: normalizedPayments,
 				stats: statsData,
 				timestamp: Date.now(),
 			};

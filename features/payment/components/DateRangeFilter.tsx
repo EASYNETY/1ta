@@ -14,17 +14,18 @@ import {
     setDateRange as setAccountingDateRange,
     selectDateRange as selectAccountingDateRange,
     fetchAccountingData,
+    syncPaymentsFromAdmin,
 } from "../store/accounting-slice"
+import { selectAdminPayments } from "../store/adminPayments"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { setDateRange as setAdminDateRange } from "../store/adminPayments"
-
 
 export function DateRangeFilter() {
     const dispatch = useAppDispatch()
     const currentDateRange = useAppSelector(selectAccountingDateRange)
 
     const [startDate, setStartDate] = useState<Date | undefined>(
-    currentDateRange.startDate ? new Date(currentDateRange.startDate) : undefined,
+        currentDateRange.startDate ? new Date(currentDateRange.startDate) : undefined,
     )
     const [endDate, setEndDate] = useState<Date | undefined>(
         currentDateRange.endDate ? new Date(currentDateRange.endDate) : undefined,
@@ -34,8 +35,9 @@ export function DateRangeFilter() {
     const [endOpen, setEndOpen] = useState(false)
     const [applyStatus, setApplyStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
     const [applyMessage, setApplyMessage] = useState<string | null>(null)
+    const adminPayments = useAppSelector(selectAdminPayments)
 
-    // On mount, initialize from URL query params if present so filter persists across refresh
+    // Initialize from URL query params
     useEffect(() => {
         try {
             const search = typeof window !== 'undefined' ? window.location.search : '';
@@ -50,111 +52,135 @@ export function DateRangeFilter() {
                 setEndDate(parsedEnd);
 
                 // Synchronize store and trigger fetch
-                dispatch(
-                    setAccountingDateRange({
-                        startDate: s || null,
-                        endDate: e || null,
-                    }),
-                );
-                dispatch(
-                    setAdminDateRange({
-                        startDate: s || null,
-                        endDate: e || null,
-                    }),
-                );
+                dispatch(setAccountingDateRange({
+                    startDate: s || null,
+                    endDate: e || null,
+                }));
+                dispatch(setAdminDateRange({
+                    startDate: s || null,
+                    endDate: e || null,
+                }));
 
                 dispatch(fetchAccountingData({ startDate: s || undefined, endDate: e || undefined }));
             }
         } catch (err) {
-            console.warn('[DateRangeFilter] failed to initialize from URL', err)
+            console.warn('[DateRangeFilter] Failed to initialize from URL', err)
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [dispatch])
 
     const handleApplyFilter = async () => {
         console.log('[DateRangeFilter] Apply clicked', { startDate, endDate })
+        
         // Update UI immediately
         setApplyStatus('loading')
         setApplyMessage('Applying filter...')
 
-        dispatch(
-            setAccountingDateRange({
-                startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
-                endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
-            }),
-        )
-        dispatch(
-            setAdminDateRange({
-                startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
-                endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
-            }),
-        )
-
-        // Fetch data with the new date range and await result so we can show status
         try {
-            const action = await dispatch(
-                fetchAccountingData({
-                    startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-                    endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
-                }),
-            )
+            // Update both slices' date ranges
+            const startDateStr = startDate ? format(startDate, "yyyy-MM-dd") : null;
+            const endDateStr = endDate ? format(endDate, "yyyy-MM-dd") : null;
 
-            // Persist to URL so refresh keeps the filter
+            dispatch(setAccountingDateRange({
+                startDate: startDateStr,
+                endDate: endDateStr,
+            }))
+            dispatch(setAdminDateRange({
+                startDate: startDateStr,
+                endDate: endDateStr,
+            }))
+
+            // Fetch fresh accounting data
+            const action = await dispatch(fetchAccountingData({
+                startDate: startDateStr || undefined,
+                endDate: endDateStr || undefined,
+            }))
+
+            // Update URL
             try {
                 if (typeof window !== 'undefined') {
                     const params = new URLSearchParams(window.location.search);
-                    if (startDate) params.set('startDate', format(startDate, 'yyyy-MM-dd'));
+                    if (startDateStr) params.set('startDate', startDateStr);
                     else params.delete('startDate');
-                    if (endDate) params.set('endDate', format(endDate, 'yyyy-MM-dd'));
+                    if (endDateStr) params.set('endDate', endDateStr);
                     else params.delete('endDate');
 
                     const newUrl = `${window.location.pathname}?${params.toString()}`;
                     window.history.replaceState({}, '', newUrl);
                 }
             } catch (err) {
-                console.warn('[DateRangeFilter] failed to persist date range to URL', err)
+                console.warn('[DateRangeFilter] Failed to update URL', err)
             }
 
+            // Check if fetch was successful
             if (fetchAccountingData.rejected.match(action)) {
                 console.warn('[DateRangeFilter] fetchAccountingData rejected', action.payload)
                 setApplyStatus('error')
                 setApplyMessage(action.payload ?? 'Failed to apply filter')
             } else {
                 console.log('[DateRangeFilter] fetchAccountingData fulfilled')
+                
+                // Additional sync: ensure adminPayments data is synced to accounting slice
+                const currentAdminPayments = adminPayments || [];
+                if (currentAdminPayments.length > 0) {
+                    // Filter admin payments by the new date range and sync
+                    const filteredPayments = currentAdminPayments.filter((payment) => {
+                        if (!startDateStr && !endDateStr) return true;
+                        
+                        try {
+                            const paymentDate = new Date(payment.createdAt);
+                            const start = startDateStr ? new Date(startDateStr) : null;
+                            if (start) start.setHours(0, 0, 0, 0);
+                            const end = endDateStr ? new Date(endDateStr) : null;
+                            if (end) end.setHours(23, 59, 59, 999);
+
+                            if (start && paymentDate < start) return false;
+                            if (end && paymentDate > end) return false;
+                            return true;
+                        } catch (e) {
+                            return false;
+                        }
+                    });
+                    
+                    console.log('[DateRangeFilter] Syncing filtered payments to accounting slice:', filteredPayments.length);
+                    dispatch(syncPaymentsFromAdmin(filteredPayments));
+                }
+                
                 setApplyStatus('success')
-                setApplyMessage('Filter applied')
+                setApplyMessage('Filter applied successfully')
             }
         } catch (err: any) {
-            console.error('[DateRangeFilter] apply error', err)
+            console.error('[DateRangeFilter] Apply error', err)
             setApplyStatus('error')
             setApplyMessage(err?.message || 'Error applying filter')
         }
 
-        // Clear message after a short delay
+        // Clear message after delay
         setTimeout(() => {
             setApplyStatus('idle')
             setApplyMessage(null)
         }, 3000)
     }
 
-    const handleResetFilter = () => {
+    const handleResetFilter = async () => {
         setStartDate(undefined)
         setEndDate(undefined)
-        dispatch(
-            setAccountingDateRange({
-                startDate: null,
-                endDate: null,
-            }),
-        )
-        dispatch(
-            setAdminDateRange({
-                startDate: null,
-                endDate: null,
-            }),
-        )
+        
+        dispatch(setAccountingDateRange({
+            startDate: null,
+            endDate: null,
+        }))
+        dispatch(setAdminDateRange({
+            startDate: null,
+            endDate: null,
+        }))
 
         // Fetch data with no date range
-        dispatch(fetchAccountingData({}))
+        await dispatch(fetchAccountingData({}))
+
+        // Sync all admin payments to accounting slice
+        if (adminPayments && adminPayments.length > 0) {
+            dispatch(syncPaymentsFromAdmin(adminPayments));
+        }
 
         // Remove date range from URL
         try {
@@ -162,15 +188,17 @@ export function DateRangeFilter() {
                 const params = new URLSearchParams(window.location.search);
                 params.delete('startDate');
                 params.delete('endDate');
-                const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+                const newUrl = params.toString() ? 
+                    `${window.location.pathname}?${params.toString()}` : 
+                    window.location.pathname;
                 window.history.replaceState({}, '', newUrl);
             }
         } catch (err) {
-            console.warn('[DateRangeFilter] failed to clear date range from URL', err)
+            console.warn('[DateRangeFilter] Failed to clear URL params', err)
         }
     }
 
-    const handleQuickSelect = (value: string) => {
+    const handleQuickSelect = async (value: string) => {
         const today = new Date()
         let start: Date | undefined
         let end: Date = today
@@ -197,7 +225,6 @@ export function DateRangeFilter() {
                 end = new Date(today.getFullYear(), today.getMonth(), 0)
                 break
             case "custom":
-                // Do nothing, let user select custom dates
                 return
             default:
                 return
@@ -208,19 +235,42 @@ export function DateRangeFilter() {
 
         // Auto-apply the filter
         if (start && end) {
-            dispatch(
-                setAccountingDateRange({
-                    startDate: format(start, "yyyy-MM-dd"),
-                    endDate: format(end, "yyyy-MM-dd"),
-                }),
-            )
+            const startStr = format(start, "yyyy-MM-dd");
+            const endStr = format(end, "yyyy-MM-dd");
+            
+            dispatch(setAccountingDateRange({
+                startDate: startStr,
+                endDate: endStr,
+            }))
+            dispatch(setAdminDateRange({
+                startDate: startStr,
+                endDate: endStr,
+            }))
 
-            dispatch(
-                fetchAccountingData({
-                    startDate: format(start, "yyyy-MM-dd"),
-                    endDate: format(end, "yyyy-MM-dd"),
-                }),
-            )
+            const action = await dispatch(fetchAccountingData({
+                startDate: startStr,
+                endDate: endStr,
+            }))
+
+            // Sync filtered data
+            if (fetchAccountingData.fulfilled.match(action)) {
+                // Filter and sync admin payments
+                const filteredPayments = (adminPayments || []).filter((payment) => {
+                    try {
+                        const paymentDate = new Date(payment.createdAt);
+                        const startDate = new Date(start);
+                        startDate.setHours(0, 0, 0, 0);
+                        const endDate = new Date(end);
+                        endDate.setHours(23, 59, 59, 999);
+
+                        return paymentDate >= startDate && paymentDate <= endDate;
+                    } catch (e) {
+                        return false;
+                    }
+                });
+                
+                dispatch(syncPaymentsFromAdmin(filteredPayments));
+            }
         }
     }
 
@@ -290,17 +340,37 @@ export function DateRangeFilter() {
                 </Popover>
 
                 <div className="flex gap-2">
-                    <Button type="button" onClick={handleApplyFilter} className="flex-shrink-0">Apply</Button>
-                    <Button type="button" variant="outline" onClick={handleResetFilter} className="flex-shrink-0">
+                    <Button 
+                        type="button" 
+                        onClick={handleApplyFilter} 
+                        className="flex-shrink-0"
+                        disabled={applyStatus === 'loading'}
+                    >
+                        {applyStatus === 'loading' ? 'Applying...' : 'Apply'}
+                    </Button>
+                    <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={handleResetFilter} 
+                        className="flex-shrink-0"
+                    >
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Reset
                     </Button>
                 </div>
-                <div className="flex items-center ml-3">
-                    {applyStatus === 'loading' && <span className="text-sm text-muted-foreground">Applying...</span>}
-                    {applyStatus === 'success' && <span className="text-sm text-green-600">{applyMessage}</span>}
-                    {applyStatus === 'error' && <span className="text-sm text-red-600">{applyMessage}</span>}
-                </div>
+                
+                {applyMessage && (
+                    <div className="flex items-center ml-3">
+                        <span className={cn(
+                            "text-sm",
+                            applyStatus === 'loading' && "text-muted-foreground",
+                            applyStatus === 'success' && "text-green-600",
+                            applyStatus === 'error' && "text-red-600"
+                        )}>
+                            {applyMessage}
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     )
