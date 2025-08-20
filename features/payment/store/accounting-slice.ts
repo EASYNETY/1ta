@@ -24,33 +24,40 @@ import {
 
 // This is the restored "wrapper" thunk. Components call this single action.
 export const fetchAccountingData = createAsyncThunk<
-	// This thunk will return void because its only job is to trigger other actions
-	// and reflect their status. The actual data is handled by the other slice.
 	void,
-	void, // It accepts no arguments
+	{ startDate?: string; endDate?: string } | void,
 	{ state: RootState; rejectValue: string }
->("accounting/fetchData", async (_, { dispatch, rejectWithValue }) => {
-	try {
-		// Dispatch the REAL data-fetching thunk from the adminPayments slice.
-		// The `await` here is crucial to wait for the operation to complete.
-		const resultAction = await dispatch(fetchAllAdminPaymentsSequentially({}));
+>(
+	"accounting/fetchData",
+	async (params, { dispatch, rejectWithValue }) => {
+		try {
+			console.log('[fetchAccountingData] invoked with params:', params)
+			// Use provided params or fall back to empty
+			const payload = params || {};
 
-		// Check if the underlying thunk was rejected. If so, this thunk will also be rejected.
-		// This ensures the error bubbles up correctly.
-		if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
-			return rejectWithValue(resultAction.payload as string);
+			// Dispatch the REAL data-fetching thunk from the adminPayments slice with date filters.
+			const resultAction = await dispatch(
+				fetchAllAdminPaymentsSequentially({
+					startDate: payload.startDate,
+					endDate: payload.endDate,
+				})
+			);
+
+			if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
+				console.warn('[fetchAccountingData] underlying fetchAllAdminPaymentsSequentially rejected', resultAction.payload)
+				return rejectWithValue(resultAction.payload as string);
+			}
+
+			console.log('[fetchAccountingData] underlying fetchAllAdminPaymentsSequentially fulfilled')
+
+			return;
+		} catch (error: any) {
+			return rejectWithValue(
+				error.message || "An unknown error occurred while fetching accounting data"
+			);
 		}
-
-		// If the underlying thunk was fulfilled, this thunk is also considered fulfilled.
-		// We don't need to return a payload as the data is already in the adminPayments slice.
-		return;
-	} catch (error: any) {
-		return rejectWithValue(
-			error.message ||
-				"An unknown error occurred while fetching accounting data"
-		);
 	}
-});
+);
 
 const initialState: AccountingState = {
 	dateRange: {
