@@ -75,14 +75,15 @@ export const fetchUnifiedPaymentData = createAsyncThunk<
 
 			// The dispatched thunk may return different shapes depending on which
 			// underlying path fulfilled. Handle common variants explicitly.
+			const rawPayload = (rawDataResult as any).payload;
 			if (fetchAllAdminPaymentsSequentially.fulfilled.match(rawDataResult)) {
-				rawPayments = rawDataResult.payload as any[];
-			} else if (rawDataResult.payload && Array.isArray((rawDataResult.payload as any).payments)) {
-				rawPayments = (rawDataResult.payload as any).payments;
-			} else if (rawDataResult.payload && Array.isArray((rawDataResult.payload as any).data)) {
-				rawPayments = (rawDataResult.payload as any).data;
-			} else if (Array.isArray(rawDataResult.payload)) {
-				rawPayments = rawDataResult.payload as any[];
+				rawPayments = rawPayload as any[];
+			} else if (rawPayload && Array.isArray((rawPayload as any).payments)) {
+				rawPayments = (rawPayload as any).payments;
+			} else if (rawPayload && Array.isArray((rawPayload as any).data)) {
+				rawPayments = (rawPayload as any).data;
+			} else if (Array.isArray(rawPayload)) {
+				rawPayments = rawPayload as any[];
 			}
 
 			// Ensure we always return a PaymentRecord[] with normalized fields
@@ -143,11 +144,21 @@ const fetchPaymentStatsOnly = createAsyncThunk<
 
 			const query = queryParams.toString();
 			const url = `/admin/payments/stats${query ? `?${query}` : ""}`;
-			const response = await get(url);
+	const response = await get(url);
+	const respAny: any = response;
+			// Debug: log raw response from API client to diagnose empty results
+			try {
+				// Avoid noisy logs in prod; only log during development
+				if (process.env.NODE_ENV !== 'production') {
+					console.log(`[DEBUG fetchAdminPayments] raw response for ${url}:`, response);
+				}
+			} catch (e) {
+				/* ignore logging errors */
+			}
 
 			let statsData: AdminPaymentStats;
-			if (response && response.success === true && response.data) {
-				const data = response.data;
+			if (respAny && respAny.success === true && respAny.data) {
+				const data = respAny.data;
 				statsData = {
 					totalRevenue: data.totalRevenue || [],
 					statusCounts: data.statusCounts || [],
@@ -159,12 +170,13 @@ const fetchPaymentStatsOnly = createAsyncThunk<
 					},
 				};
 			} else if (response && typeof response === "object") {
+				const respObj: any = response;
 				statsData = {
-					totalRevenue: response.totalRevenue || [],
-					statusCounts: response.statusCounts || [],
-					providerCounts: response.providerCounts || [],
-					dailyRevenue: response.dailyRevenue || [],
-					dateRange: response.dateRange || {
+					totalRevenue: respObj.totalRevenue || [],
+					statusCounts: respObj.statusCounts || [],
+					providerCounts: respObj.providerCounts || [],
+					dailyRevenue: respObj.dailyRevenue || [],
+					dateRange: respObj.dateRange || {
 						start: startDate || "",
 						end: endDate || "",
 					},
@@ -206,7 +218,7 @@ export const fetchAdminPayments = createAsyncThunk<
 		let paginationData: any = null;
 
 		// Enhanced response parsing with better error handling
-		if (response && typeof response === "object") {
+	if (respAny && typeof respAny === "object") {
 			// Try different possible data structures
 			const possiblePaymentKeys = [
 				"data",
@@ -217,26 +229,26 @@ export const fetchAdminPayments = createAsyncThunk<
 			];
 			
 			for (const key of possiblePaymentKeys) {
-				if (Array.isArray(response[key])) {
-					payments = response[key];
+				if (Array.isArray((respAny as any)[key])) {
+					payments = (respAny as any)[key];
 					break;
 				}
-				if (response.data && Array.isArray(response.data[key])) {
-					payments = response.data[key];
+				if (respAny.data && Array.isArray((respAny.data as any)[key])) {
+					payments = (respAny.data as any)[key];
 					break;
 				}
 			}
 			
 			// If still no payments found, check if response itself is an array
-			if (payments.length === 0 && Array.isArray(response)) {
-				payments = response;
+			if (payments.length === 0 && Array.isArray(respAny)) {
+				payments = respAny;
 			}
-			
+
 			// Extract pagination data
 			paginationData =
-				response.pagination ||
-				response.meta ||
-				(response.data && response.data.pagination);
+				respAny.pagination ||
+				respAny.meta ||
+				(respAny.data && respAny.data.pagination);
 		}
 
 		// Ensure payments is an array
@@ -275,7 +287,7 @@ export const fetchAdminPayments = createAsyncThunk<
 		};
 
 		// Normalize payment records with consistent data types
-		const normalizedPayments = payments.map((p: any): PaymentRecord => {
+	const normalizedPayments = payments.map((p: any): PaymentRecord => {
 			const amount = parseFloat(p.amount) || 0;
 			return {
 				...p,
@@ -404,8 +416,8 @@ export const updatePayment = createAsyncThunk<
 >("adminPayments/update", async (payload, { rejectWithValue }) => {
 	try {
 		const { id, ...updateData } = payload;
-		const response = await put(`/admin/payments/${id}`, updateData);
-		return response;
+	const response = await put(`/admin/payments/${id}`, updateData);
+	return response as PaymentRecord;
 	} catch (error: any) {
 		return rejectWithValue(
 			error.response?.data?.message || error.message || "Failed to update payment"
@@ -434,7 +446,7 @@ export const generateReceipt = createAsyncThunk<
 	{ rejectValue: string }
 >("adminPayments/generateReceipt", async (id, { rejectWithValue }) => {
 	try {
-		await post(`/admin/payments/${id}/receipt`);
+	await post(`/admin/payments/${id}/receipt`, {});
 	} catch (error: any) {
 		return rejectWithValue(
 			error.response?.data?.message || error.message || "Failed to generate receipt"
