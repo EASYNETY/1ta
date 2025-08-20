@@ -61,6 +61,8 @@ function PaymentStatsCard({
         return val
     }
 
+
+
     // Get background color based on title
     const getCardClassName = (title: string) => {
         if (title.includes("Revenue")) return "bg-green-50 dark:bg-green-950/5"
@@ -99,6 +101,8 @@ function PaymentStatsCard({
 // Calculate stats from payment history
 function calculateStatsFromPaymentHistory(payments: PaymentRecord[]): AccountingStats {
     // Initialize stats object
+    console.log("Payment History in Account STAT:", payments);
+
     const stats: AccountingStats = {
         totalRevenue: 0,
         pendingPaymentsAmount: 0,
