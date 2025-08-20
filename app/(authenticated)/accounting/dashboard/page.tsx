@@ -18,6 +18,8 @@ import { PaymentMethodsChart } from "@/features/payment/components/PaymentMethod
 import { RecentPaymentsWidget } from "@/features/payment/components/RecentPaymentsWidget"
 import { AccountingQuickActions } from "@/features/payment/components/AccountingQuickActions"
 import { DateRangeFilter } from "@/features/payment/components/DateRangeFilter"
+import {AccountingDashboardStats } from "@/features/payment/components/AccountingDashboardStats"
+
 
 // Import accounting store
 import {
@@ -89,7 +91,7 @@ export default function AccountingDashboard() {
         <DateRangeFilter />
 
         {/* Stats Cards */}
-        <AdminPaymentStats />
+        <AccountingDashboardStats />
 
         {/* Payment History Table */}
         <RecentPaymentsWidget />
