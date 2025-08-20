@@ -10,14 +10,18 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format, subDays } from "date-fns"
 import { CalendarIcon, RefreshCw, Filter } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { setDateRange, selectDateRange, fetchAccountingData } from "../store/accounting-slice"
+import {
+    setDateRange as setAccountingDateRange,
+    selectDateRange as selectAccountingDateRange,
+    fetchAccountingData,
+} from "../store/accounting-slice"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { setDateRange as setAdminDateRange } from "../store/adminPayments"
 
 
 export function DateRangeFilter() {
     const dispatch = useAppDispatch()
-    const currentDateRange = useAppSelector(selectDateRange)
+    const currentDateRange = useAppSelector(selectAccountingDateRange)
 
     const [startDate, setStartDate] = useState<Date | undefined>(
     currentDateRange.startDate ? new Date(currentDateRange.startDate) : undefined,
