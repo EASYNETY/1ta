@@ -19,21 +19,26 @@ import {
   selectAdminPaymentsError,
 } from "../store/adminPayments"
 
+import { selectDateRange } from "../store/accounting-slice"
+
 import type { PaymentRecord } from "../types/payment-types"
 import type { AdminPaymentParams } from "../types/admin-payment-types"
 
-// Helper to safely format date
 const safeFormatDateTime = (dateString?: string): string => {
   if (!dateString) return "N/A"
   try {
     const date = parseISO(dateString)
-    return isValid(date) ? format(date, "MMM d, yyyy p") : "Invalid Date" // Include time
+    return isValid(date) ? format(date, "MMM d, yyyy p") : "Invalid Date"
   } catch {
     return "Error"
   }
 }
 
-// Helper for status badge
+// Reset to first page when filter changes
+useEffect(() => {
+  setCurrentPage(1)
+}, [currentDateRange.startDate, currentDateRange.endDate])
+
 const getStatusBadge = (status: PaymentRecord["status"]) => {
   switch (status) {
     case "succeeded":
@@ -82,64 +87,62 @@ const getStatusBadge = (status: PaymentRecord["status"]) => {
 
 export function RecentPaymentsWidget() {
   const dispatch = useAppDispatch()
-  const payments = useAppSelector(selectAdminPayments)
-  const pagination = useAppSelector(selectAdminPaymentsPagination)
-  const status = useAppSelector(selectAdminPaymentsStatus)
-  const error = useAppSelector(selectAdminPaymentsError)
+  const payments       = useAppSelector(selectAdminPayments)
+  const pagination     = useAppSelector(selectAdminPaymentsPagination)
+  const status         = useAppSelector(selectAdminPaymentsStatus)
+  const error          = useAppSelector(selectAdminPaymentsError)
+  const currentDateRange = useAppSelector(selectDateRange) // ← read filter
 
   const isLoading = status === "loading"
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage]   = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
 
-  // Fetch data based on filters/pagination
   const fetchData = useCallback(() => {
     const params: AdminPaymentParams = {
       page: currentPage,
       limit: itemsPerPage,
       sortBy: "createdAt",
       sortOrder: "DESC",
+      startDate: currentDateRange.startDate ?? undefined,
+      endDate:   currentDateRange.endDate   ?? undefined,
     }
     dispatch(fetchAdminPayments(params))
-  }, [dispatch, currentPage, itemsPerPage])
+  }, [
+    dispatch,
+    currentPage,
+    itemsPerPage,
+    currentDateRange.startDate,
+    currentDateRange.endDate,
+  ])
 
-  // Initial fetch and refetch on filter/page changes
   useEffect(() => {
     fetchData()
   }, [fetchData])
 
   const handlePageChange = (newPage: number) => {
-    if (pagination) {
-      const totalPages = pagination.totalPages || Math.ceil((pagination.totalItems || 0) / itemsPerPage)
-      if (newPage >= 1 && newPage <= totalPages) {
-        setCurrentPage(newPage)
-      }
-    } else {
-      if (newPage >= 1) {
-        setCurrentPage(newPage)
-      }
+    const totalPages =
+      pagination?.totalPages ??
+      Math.ceil((pagination?.totalItems || 0) / itemsPerPage)
+
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage)
     }
   }
 
-  // Format amount helper
   const formatAmount = (amount: number, currency: string): string => {
     try {
-      // Remove leading zeros by converting to number first
       const cleanAmount = Number(amount)
-
       if (currency === "NGN") {
-        // For NGN, use the ₦ symbol directly to ensure consistent display
         return `₦${cleanAmount.toLocaleString()}`
       } else {
         return new Intl.NumberFormat("en-NG", {
           style: "currency",
-          currency: currency,
+          currency,
           maximumFractionDigits: 0,
         }).format(cleanAmount)
       }
     } catch {
-      // Fallback for unknown currency
       return `${currency === "NGN" ? "₦" : currency} ${Number(amount).toLocaleString()}`
     }
   }
@@ -151,7 +154,6 @@ export function RecentPaymentsWidget() {
         <CardDescription>Recent payment transactions</CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Loading Skeleton for Table */}
         {isLoading && (
           <div className="space-y-2">
             <Skeleton className="h-8 w-full" />
@@ -161,7 +163,6 @@ export function RecentPaymentsWidget() {
           </div>
         )}
 
-        {/* Error Display */}
         {status === "failed" && error && !isLoading && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
@@ -170,7 +171,6 @@ export function RecentPaymentsWidget() {
           </Alert>
         )}
 
-        {/* Table */}
         {status === "succeeded" && !isLoading && (
           <div className="border rounded-md bg-card/5 backdrop-blur-sm">
             <Table>
@@ -196,56 +196,24 @@ export function RecentPaymentsWidget() {
                 )}
                 {payments && payments.map((payment) => (
                   <TableRow key={payment.id}>
-                    {/* Name */}
-                    <TableCell>
-                      <div className="font-medium">{payment.userName || "N/A"}</div>
-                    </TableCell>
-
-                    {/* Email */}
-                    <TableCell>
-                      <div className="text-xs">{payment.userEmail || "N/A"}</div>
-                    </TableCell>
-
-                    {/* Role */}
-                    <TableCell>
-                      <div className="text-xs capitalize">{payment.userRole || "N/A"}</div>
-                    </TableCell>
-
-                    {/* Amount */}
+                    <TableCell><div className="font-medium">{payment.userName || "N/A"}</div></TableCell>
+                    <TableCell><div className="text-xs">{payment.userEmail || "N/A"}</div></TableCell>
+                    <TableCell><div className="text-xs capitalize">{payment.userRole || "N/A"}</div></TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       {formatAmount(payment.amount, payment.currency)}
                     </TableCell>
-
-                    {/* Description */}
-                    {/* <TableCell className="max-w-[150px] truncate text-xs">
-                      {payment.invoice?.description || payment.description || "N/A"}
-                    </TableCell> */}
                     <TableCell className="max-w-[150px] truncate">
                       {(() => {
-                        // Use the invoice description as the course name, with a fallback
-                        const courseName = payment.invoice?.description || payment.description || "Unknown Course";
-
-                        // Clean up the course name by removing "Course enrolment:" prefix
-                        const cleanedName = courseName.replace(/^Course enrolment:\s*/, '').trim();
-
-                        return cleanedName.length > 30 ? `${cleanedName.substring(0, 30)}...` : cleanedName;
+                        const courseName = payment.invoice?.description || payment.description || "Unknown Course"
+                        const cleanedName = courseName.replace(/^Course enrolment:\s*/, '').trim()
+                        return cleanedName.length > 30 ? `${cleanedName.substring(0, 30)}...` : cleanedName
                       })()}
                     </TableCell>
-
-                    {/* Status */}
                     <TableCell>{getStatusBadge(payment.status)}</TableCell>
-
-                    {/* Provider */}
                     <TableCell>
-                      <Badge variant="outline" className="capitalize text-xs">
-                        {payment.provider}
-                      </Badge>
+                      <Badge variant="outline" className="capitalize text-xs">{payment.provider}</Badge>
                     </TableCell>
-
-                    {/* Created At */}
-                    <TableCell className="text-xs whitespace-nowrap">
-                      {safeFormatDateTime(payment.createdAt)}
-                    </TableCell>
+                    <TableCell className="text-xs whitespace-nowrap">{safeFormatDateTime(payment.createdAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -253,7 +221,6 @@ export function RecentPaymentsWidget() {
           </div>
         )}
 
-        {/* Pagination Controls */}
         {status === "succeeded" && !isLoading && payments && payments.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 w-full border border-border/25 bg-card/5 backdrop-blur-sm p-2 rounded-md">
             <PaginationInfo
