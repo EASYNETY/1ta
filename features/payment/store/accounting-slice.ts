@@ -5,7 +5,7 @@ import {
 	createSelector,
 	createAsyncThunk,
 } from "@reduxjs/toolkit";
-import type { RootState } from "@/store";
+import type { RootState, AppDispatch } from "@/store";
 import { fetchAllAdminPaymentsSequentially, fetchUnifiedPaymentData } from "@/features/payment/store/adminPayments";
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
 import type {
@@ -26,7 +26,7 @@ import {
 export const fetchAccountingData = createAsyncThunk<
 	{ payments: PaymentRecord[]; timestamp: number },
 	{ startDate?: string; endDate?: string } | void,
-	{ state: RootState; rejectValue: string }
+	{ state: RootState; dispatch: AppDispatch; rejectValue: string }
 >(
 	"accounting/fetchData",
 	async (params, { dispatch, rejectWithValue }) => {
