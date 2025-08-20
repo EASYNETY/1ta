@@ -53,6 +53,8 @@ export interface AdminPaymentState {
     startDate: string | null;
     endDate: string | null;
   };
+  lastFetchTimestamp?: number | null;
+  isDataStale?: boolean;
 }
 
 // Admin payment filter options

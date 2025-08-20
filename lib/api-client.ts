@@ -1022,10 +1022,25 @@ export async function handleMockRequest<T>(
 			// Always use mock function regardless of IS_LIVE_API to ensure it works in development
 			const result = await mockFetchAllPaymentsAdmin(status, page, limit, search);
 
+			// Debug: log the raw mock result to help diagnose empty responses
+			try {
+				console.log(`%cMOCK DEBUG: mockFetchAllPaymentsAdmin returned total=${result.total}, payments.length=${Array.isArray(result.payments) ? result.payments.length : 'N/A'}`, "color: teal;");
+				if (Array.isArray(result.payments) && result.payments.length > 0) {
+					console.log("%cMOCK DEBUG: first payment sample:", "color: teal;", result.payments[0]);
+				}
+			} catch (e) {
+				/* ignore logging errors */
+			}
+
 			// Ensure payments is always an array and filter out null values
 			const validPayments = Array.isArray(result.payments)
 				? result.payments.filter(payment => payment !== null && payment !== undefined)
 				: [];
+
+			// Debug: log validPayments count
+			if (Array.isArray(validPayments)) {
+				console.log(`%cMOCK DEBUG: validPayments.length=${validPayments.length}`, "color: teal;");
+			}
 
 			return {
 				success: true,
@@ -2899,9 +2914,9 @@ export async function fetchLiveAttendanceStats() {
 
     // 1. Rate Trends by date
     const trendsMap: Record<string, number> = {};
-    records.forEach(rec => {
-      trendsMap[rec.date] = (trendsMap[rec.date] || 0) + 1;
-    });
+		records.forEach((rec: any) => {
+			trendsMap[rec.date] = (trendsMap[rec.date] || 0) + 1;
+		});
     const rateTrends = Object.entries(trendsMap)
       .map(([date, count]) => ({
         date,
@@ -2911,10 +2926,10 @@ export async function fetchLiveAttendanceStats() {
 
     // 2. By Day of Week
     const byDayMap: Record<string, number> = {};
-    records.forEach(rec => {
-      const dayName = new Date(rec.date).toLocaleDateString("en-US", { weekday: "long" });
-      byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
-    });
+		records.forEach((rec: any) => {
+			const dayName = new Date(rec.date).toLocaleDateString("en-US", { weekday: "long" });
+			byDayMap[dayName] = (byDayMap[dayName] || 0) + 1;
+		});
     const byDayOfWeek = Object.entries(byDayMap).map(([name, value]) => ({
       name,
       value: Math.round((value / json.data.summary.total) * 100)
@@ -2922,9 +2937,9 @@ export async function fetchLiveAttendanceStats() {
 
     // 3. Status Distribution
     const statusMap: Record<string, number> = {};
-    records.forEach(rec => {
-      statusMap[rec.status] = (statusMap[rec.status] || 0) + 1;
-    });
+		records.forEach((rec: any) => {
+			statusMap[rec.status] = (statusMap[rec.status] || 0) + 1;
+		});
     const statusDistribution = Object.entries(statusMap).map(([name, value]) => ({
       name,
       value
