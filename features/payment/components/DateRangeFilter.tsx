@@ -12,13 +12,15 @@ import { CalendarIcon, RefreshCw, Filter } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { setDateRange, selectDateRange, fetchAccountingData } from "../store/accounting-slice"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { setDateRange as setAdminDateRange } from "../store/adminPayments"
+
 
 export function DateRangeFilter() {
     const dispatch = useAppDispatch()
     const currentDateRange = useAppSelector(selectDateRange)
 
     const [startDate, setStartDate] = useState<Date | undefined>(
-        currentDateRange.startDate ? new Date(currentDateRange.startDate) : undefined,
+    currentDateRange.startDate ? new Date(currentDateRange.startDate) : undefined,
     )
     const [endDate, setEndDate] = useState<Date | undefined>(
         currentDateRange.endDate ? new Date(currentDateRange.endDate) : undefined,
@@ -45,7 +47,13 @@ export function DateRangeFilter() {
 
                 // Synchronize store and trigger fetch
                 dispatch(
-                    setDateRange({
+                    setAccountingDateRange({
+                        startDate: s || null,
+                        endDate: e || null,
+                    }),
+                );
+                dispatch(
+                    setAdminDateRange({
                         startDate: s || null,
                         endDate: e || null,
                     }),
@@ -66,7 +74,13 @@ export function DateRangeFilter() {
         setApplyMessage('Applying filter...')
 
         dispatch(
-            setDateRange({
+            setAccountingDateRange({
+                startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
+                endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
+            }),
+        )
+        dispatch(
+            setAdminDateRange({
                 startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
                 endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
             }),
@@ -123,7 +137,13 @@ export function DateRangeFilter() {
         setStartDate(undefined)
         setEndDate(undefined)
         dispatch(
-            setDateRange({
+            setAccountingDateRange({
+                startDate: null,
+                endDate: null,
+            }),
+        )
+        dispatch(
+            setAdminDateRange({
                 startDate: null,
                 endDate: null,
             }),
@@ -185,7 +205,7 @@ export function DateRangeFilter() {
         // Auto-apply the filter
         if (start && end) {
             dispatch(
-                setDateRange({
+                setAccountingDateRange({
                     startDate: format(start, "yyyy-MM-dd"),
                     endDate: format(end, "yyyy-MM-dd"),
                 }),
