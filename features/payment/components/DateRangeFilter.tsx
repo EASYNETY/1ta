@@ -111,21 +111,21 @@ export function DateRangeFilter() {
                 console.warn('[DateRangeFilter] Failed to update URL', err)
             }
 
-            // Check if fetch was successful
+            // Check if fetch was successful and sync using the returned payload (more reliable)
             if (fetchAccountingData.rejected.match(action)) {
                 console.warn('[DateRangeFilter] fetchAccountingData rejected', action.payload)
                 setApplyStatus('error')
                 setApplyMessage(action.payload ?? 'Failed to apply filter')
             } else {
                 console.log('[DateRangeFilter] fetchAccountingData fulfilled')
-                
-                // Additional sync: ensure adminPayments data is synced to accounting slice
-                const currentAdminPayments = adminPayments || [];
-                if (currentAdminPayments.length > 0) {
-                    // Filter admin payments by the new date range and sync
-                    const filteredPayments = currentAdminPayments.filter((payment) => {
+
+                // Use payments returned from the fetchAccountingData action to sync immediately
+                const returnedPayments = (action && (action.payload as any)?.payments) || [];
+
+                if (returnedPayments.length > 0) {
+                    const filteredPayments = returnedPayments.filter((payment: any) => {
                         if (!startDateStr && !endDateStr) return true;
-                        
+
                         try {
                             const paymentDate = new Date(payment.createdAt);
                             const start = startDateStr ? new Date(startDateStr) : null;
@@ -140,11 +140,14 @@ export function DateRangeFilter() {
                             return false;
                         }
                     });
-                    
-                    console.log('[DateRangeFilter] Syncing filtered payments to accounting slice:', filteredPayments.length);
+
+                    console.log('[DateRangeFilter] Syncing filtered payments to accounting slice (from action payload):', filteredPayments.length);
                     dispatch(syncPaymentsFromAdmin(filteredPayments));
+                } else {
+                    // Ensure accounting slice at least clears when no payments returned
+                    dispatch(syncPaymentsFromAdmin([]));
                 }
-                
+
                 setApplyStatus('success')
                 setApplyMessage('Filter applied successfully')
             }
@@ -174,12 +177,16 @@ export function DateRangeFilter() {
             endDate: null,
         }))
 
-        // Fetch data with no date range
-        await dispatch(fetchAccountingData({}))
-
-        // Sync all admin payments to accounting slice
-        if (adminPayments && adminPayments.length > 0) {
-            dispatch(syncPaymentsFromAdmin(adminPayments));
+        // Fetch data with no date range and sync using returned payload
+        const action = await dispatch(fetchAccountingData({}))
+        if (fetchAccountingData.fulfilled.match(action)) {
+            const returnedPayments = (action && (action.payload as any)?.payments) || [];
+            dispatch(syncPaymentsFromAdmin(returnedPayments));
+        } else {
+            // fallback to existing adminPayments selector
+            if (adminPayments && adminPayments.length > 0) {
+                dispatch(syncPaymentsFromAdmin(adminPayments));
+            }
         }
 
         // Remove date range from URL
@@ -252,10 +259,10 @@ export function DateRangeFilter() {
                 endDate: endStr,
             }))
 
-            // Sync filtered data
+            // Sync filtered data using returned payload (more reliable)
             if (fetchAccountingData.fulfilled.match(action)) {
-                // Filter and sync admin payments
-                const filteredPayments = (adminPayments || []).filter((payment) => {
+                const returnedPayments = (action && (action.payload as any)?.payments) || [];
+                const filteredPayments = returnedPayments.filter((payment: any) => {
                     try {
                         const paymentDate = new Date(payment.createdAt);
                         const startDate = new Date(start);
@@ -268,8 +275,25 @@ export function DateRangeFilter() {
                         return false;
                     }
                 });
-                
+
                 dispatch(syncPaymentsFromAdmin(filteredPayments));
+            } else {
+                // fallback: try syncing from selector
+                const fallbackFiltered = (adminPayments || []).filter((payment) => {
+                    try {
+                        const paymentDate = new Date(payment.createdAt);
+                        const startDate = new Date(start);
+                        startDate.setHours(0, 0, 0, 0);
+                        const endDate = new Date(end);
+                        endDate.setHours(23, 59, 59, 999);
+
+                        return paymentDate >= startDate && paymentDate <= endDate;
+                    } catch (e) {
+                        return false;
+                    }
+                });
+
+                dispatch(syncPaymentsFromAdmin(fallbackFiltered));
             }
         }
     }

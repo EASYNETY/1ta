@@ -37,6 +37,12 @@ export interface AccountingState {
 	};
 	status: "idle" | "loading" | "succeeded" | "failed";
 	error: string | null;
+
+	// Optional local cache used by the accounting slice to store filtered payments
+	// and the last time they were updated. Kept optional to avoid breaking other
+	// parts of the code that import this type.
+	filteredPayments?: any[];
+	lastUpdateTimestamp?: number | null;
 }
 
 // Export types for reports
