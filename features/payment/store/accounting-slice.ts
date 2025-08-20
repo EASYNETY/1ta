@@ -6,7 +6,7 @@ import {
 	createAsyncThunk,
 } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
-import { fetchAllAdminPaymentsSequentially } from "@/features/payment/store/adminPayments";
+import { fetchAllAdminPaymentsSequentially, fetchUnifiedPaymentData } from "@/features/payment/store/adminPayments";
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
 import type {
 	AccountingState,
@@ -35,20 +35,23 @@ export const fetchAccountingData = createAsyncThunk<
 			// Use provided params or fall back to empty
 			const payload = params || {};
 
-			// Dispatch the REAL data-fetching thunk from the adminPayments slice with date filters.
-			const resultAction = await dispatch(
-				fetchAllAdminPaymentsSequentially({
+			// Use the unified fetch which retrieves both payments and aggregated stats
+			// This ensures UI widgets that read stats (adminPayments.stats) and payments
+			// update together after Apply is clicked.
+			const unifiedResult = await dispatch(
+				fetchUnifiedPaymentData({
 					startDate: payload.startDate,
 					endDate: payload.endDate,
+					forceRefresh: false,
 				})
 			);
 
-			if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
-				console.warn('[fetchAccountingData] underlying fetchAllAdminPaymentsSequentially rejected', resultAction.payload)
-				return rejectWithValue(resultAction.payload as string);
+			if (fetchUnifiedPaymentData.rejected.match(unifiedResult)) {
+				console.warn('[fetchAccountingData] underlying fetchUnifiedPaymentData rejected', unifiedResult.payload)
+				return rejectWithValue(unifiedResult.payload as string);
 			}
 
-			console.log('[fetchAccountingData] underlying fetchAllAdminPaymentsSequentially fulfilled')
+			console.log('[fetchAccountingData] underlying fetchUnifiedPaymentData fulfilled')
 
 			return;
 		} catch (error: any) {
