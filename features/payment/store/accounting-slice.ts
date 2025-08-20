@@ -5,8 +5,8 @@ import {
 	createSelector,
 	createAsyncThunk,
 } from "@reduxjs/toolkit";
-import type { RootState, AppDispatch } from "@/store";
-import { fetchAllAdminPaymentsSequentially, fetchUnifiedPaymentData } from "@/features/payment/store/adminPayments";
+import type { RootState } from "@/store";
+import { fetchAllAdminPaymentsSequentially } from "@/features/payment/store/adminPayments";
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
 import type {
 	AccountingState,
@@ -22,48 +22,35 @@ import {
 	calculatePaymentMethodDistribution,
 } from "../utils/accounting-calculations";
 
-// Enhanced fetchAccountingData that ensures data synchronization
+// This is the restored "wrapper" thunk. Components call this single action.
 export const fetchAccountingData = createAsyncThunk<
-	{ payments: PaymentRecord[]; timestamp: number },
-	{ startDate?: string; endDate?: string } | void,
-	{ state: RootState; dispatch: AppDispatch; rejectValue: string }
->(
-	"accounting/fetchData",
-	async (params, { dispatch, rejectWithValue }) => {
-		try {
-			console.log('[fetchAccountingData] Starting fetch with params:', params);
-			const payload = params || {};
+	// This thunk will return void because its only job is to trigger other actions
+	// and reflect their status. The actual data is handled by the other slice.
+	void,
+	void, // It accepts no arguments
+	{ state: RootState; rejectValue: string }
+>("accounting/fetchData", async (_, { dispatch, rejectWithValue }) => {
+	try {
+		// Dispatch the REAL data-fetching thunk from the adminPayments slice.
+		// The `await` here is crucial to wait for the operation to complete.
+		const resultAction = await dispatch(fetchAllAdminPaymentsSequentially({}));
 
-			// Use the unified fetch to get both payments and stats
-			const unifiedResult = await dispatch(
-				fetchUnifiedPaymentData({
-					startDate: payload.startDate,
-					endDate: payload.endDate,
-					forceRefresh: true, // Force refresh to ensure fresh data
-				})
-			);
-
-			if (fetchUnifiedPaymentData.rejected.match(unifiedResult)) {
-				console.warn('[fetchAccountingData] Unified fetch rejected:', unifiedResult.payload);
-				return rejectWithValue(unifiedResult.payload as string);
-			}
-
-			// Extract payments from the unified result
-			const payments = unifiedResult.payload.payments || [];
-			console.log('[fetchAccountingData] Successfully fetched payments:', payments.length);
-
-			return {
-				payments,
-				timestamp: Date.now(),
-			};
-		} catch (error: any) {
-			console.error('[fetchAccountingData] Error:', error);
-			return rejectWithValue(
-				error.message || "An unknown error occurred while fetching accounting data"
-			);
+		// Check if the underlying thunk was rejected. If so, this thunk will also be rejected.
+		// This ensures the error bubbles up correctly.
+		if (fetchAllAdminPaymentsSequentially.rejected.match(resultAction)) {
+			return rejectWithValue(resultAction.payload as string);
 		}
+
+		// If the underlying thunk was fulfilled, this thunk is also considered fulfilled.
+		// We don't need to return a payload as the data is already in the adminPayments slice.
+		return;
+	} catch (error: any) {
+		return rejectWithValue(
+			error.message ||
+				"An unknown error occurred while fetching accounting data"
+		);
 	}
-);
+});
 
 const initialState: AccountingState = {
 	dateRange: {
@@ -72,18 +59,11 @@ const initialState: AccountingState = {
 	},
 	status: "idle",
 	error: null,
-	// Store the filtered payments directly in accounting slice for consistency
-	filteredPayments: [],
-	lastUpdateTimestamp: null,
 };
 
 const accountingSlice = createSlice({
 	name: "accounting",
-	initialState: {
-		...initialState,
-		filteredPayments: [] as PaymentRecord[],
-		lastUpdateTimestamp: null as number | null,
-	},
+	initialState,
 	reducers: {
 		setDateRange: (
 			state,
@@ -100,170 +80,100 @@ const accountingSlice = createSlice({
 			state.dateRange.endDate = null;
 			state.status = "idle";
 			state.error = null;
-			state.filteredPayments = [];
-			state.lastUpdateTimestamp = null;
-		},
-		// Manual sync action for when adminPayments updates
-		syncPaymentsFromAdmin: (state, action: { payload: PaymentRecord[] }) => {
-			state.filteredPayments = action.payload;
-			state.lastUpdateTimestamp = Date.now();
 		},
 	},
+	// The extraReducers listen to our local fetchAccountingData thunk.
+	// This correctly mirrors the status of the underlying fetch operation.
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchAccountingData.pending, (state) => {
 				state.status = "loading";
 				state.error = null;
 			})
-			.addCase(fetchAccountingData.fulfilled, (state, action) => {
+			.addCase(fetchAccountingData.fulfilled, (state) => {
 				state.status = "succeeded";
-				state.filteredPayments = action.payload.payments;
-				state.lastUpdateTimestamp = action.payload.timestamp;
-				console.log('[accountingSlice] Updated with payments:', action.payload.payments.length);
 			})
 			.addCase(fetchAccountingData.rejected, (state, action) => {
 				state.status = "failed";
-				state.error = action.payload ?? "Unknown error fetching accounting data";
-				console.error('[accountingSlice] Fetch rejected:', action.payload);
+				state.error =
+					action.payload ?? "Unknown error fetching accounting data";
 			});
 	},
 });
 
-export const { setDateRange, clearAccountingError, resetAccountingState, syncPaymentsFromAdmin } =
+export const { setDateRange, clearAccountingError, resetAccountingState } =
 	accountingSlice.actions;
 
-// --- ENHANCED SELECTORS ---
+// --- SELECTORS ---
+// These selectors are unchanged and will work correctly with this fix.
 
-export const selectAccountingStatus = (state: RootState) => state.accounting.status;
-export const selectAccountingError = (state: RootState) => state.accounting.error;
+export const selectAccountingStatus = (state: RootState) =>
+	state.accounting.status;
+export const selectAccountingError = (state: RootState) =>
+	state.accounting.error;
 export const selectDateRange = (state: RootState) => state.accounting.dateRange;
-export const selectLastUpdateTimestamp = (state: RootState) => state.accounting.lastUpdateTimestamp;
 
-// Primary selector for filtered payments - uses local state first, falls back to adminPayments
+// Selects the raw payment data from its true source in the adminPayments slice.
+const selectAllAdminPayments = (state: RootState) =>
+	state.adminPayments.payments;
+
+// This selector correctly filters the raw payments based on the local dateRange.
 const selectFilteredPaymentsForAccounting = createSelector(
-	[
-		(state: RootState) => state.accounting.filteredPayments,
-		(state: RootState) => state.adminPayments.payments,
-		selectDateRange,
-		selectLastUpdateTimestamp,
-	],
-	(localPayments, adminPayments, dateRange, lastUpdate) => {
-		console.log('[selectFilteredPaymentsForAccounting] Called with:', {
-			localPaymentsCount: localPayments?.length || 0,
-			adminPaymentsCount: adminPayments?.length || 0,
-			hasDateRange: !!(dateRange.startDate || dateRange.endDate),
-			lastUpdate,
-		});
-
-		// If we have local filtered payments and they're recent, use them
-		if (localPayments && localPayments.length > 0 && lastUpdate) {
-			const isRecent = Date.now() - lastUpdate < 60000; // 1 minute
-			if (isRecent) {
-				console.log('[selectFilteredPaymentsForAccounting] Using local payments:', localPayments.length);
-				return localPayments;
-			}
-		}
-
-		// Otherwise, filter admin payments by date range
-		const paymentsToFilter = adminPayments || [];
-		
+	[selectAllAdminPayments, selectDateRange],
+	(allPayments, dateRange) => {
+		// If no date range is set, return all payments
 		if (!dateRange.startDate && !dateRange.endDate) {
-			console.log('[selectFilteredPaymentsForAccounting] No date range, returning all admin payments:', paymentsToFilter.length);
-			return paymentsToFilter;
+			return allPayments;
 		}
 
-		const filtered = paymentsToFilter.filter((payment) => {
+		// Otherwise, filter the payments by the date range
+		return allPayments.filter((payment) => {
 			try {
 				const paymentDate = new Date(payment.createdAt);
-				const start = dateRange.startDate ? new Date(dateRange.startDate) : null;
-				if (start) start.setHours(0, 0, 0, 0);
+				const start = dateRange.startDate
+					? new Date(dateRange.startDate)
+					: null;
+				if (start) start.setHours(0, 0, 0, 0); // Set to start of the day
 				const end = dateRange.endDate ? new Date(dateRange.endDate) : null;
-				if (end) end.setHours(23, 59, 59, 999);
+				if (end) end.setHours(23, 59, 59, 999); // Set to end of the day
 
 				if (start && paymentDate < start) return false;
 				if (end && paymentDate > end) return false;
 				return true;
 			} catch (e) {
-				console.warn(`Could not parse date for payment ${payment.id}: ${payment.createdAt}`);
+				// Safely ignore payments with invalid date strings
+				console.warn(
+					`Could not parse date for payment ${payment.id}: ${payment.createdAt}`
+				);
 				return false;
 			}
 		});
-
-		console.log('[selectFilteredPaymentsForAccounting] Filtered payments:', filtered.length);
-		return filtered;
 	}
 );
 
-// Derived selectors with better error handling
+// The rest of the selectors derive data from the filtered list. No changes needed.
 export const selectAccountingStats = createSelector(
 	[selectFilteredPaymentsForAccounting],
-	(filteredPayments): AccountingStats => {
-		console.log('[selectAccountingStats] Calculating stats for payments:', filteredPayments?.length || 0);
-		if (!filteredPayments || filteredPayments.length === 0) {
-			return {
-				totalRevenue: 0,
-				pendingPaymentsAmount: 0,
-				reconciledTransactionCount: 0,
-				totalTransactionCount: 0,
-				failedTransactionCount: 0,
-				totalRevenueLastPeriod: 0,
-			};
-		}
-		return calculateAccountingStats(filteredPayments);
-	}
+	(filteredPayments): AccountingStats =>
+		calculateAccountingStats(filteredPayments)
 );
 
 export const selectCourseRevenues = createSelector(
 	[selectFilteredPaymentsForAccounting],
-	(filteredPayments): CourseRevenue[] => {
-		console.log('[selectCourseRevenues] Calculating course revenues for payments:', filteredPayments?.length || 0);
-		if (!filteredPayments || filteredPayments.length === 0) {
-			return [];
-		}
-		return calculateCourseRevenues(filteredPayments);
-	}
+	(filteredPayments): CourseRevenue[] =>
+		calculateCourseRevenues(filteredPayments)
 );
 
 export const selectMonthlyRevenueTrend = createSelector(
 	[selectFilteredPaymentsForAccounting],
-	(filteredPayments): MonthlyRevenue[] => {
-		console.log('[selectMonthlyRevenueTrend] Calculating monthly trends for payments:', filteredPayments?.length || 0);
-		if (!filteredPayments || filteredPayments.length === 0) {
-			return [];
-		}
-		return calculateMonthlyRevenueTrend(filteredPayments);
-	}
+	(filteredPayments): MonthlyRevenue[] =>
+		calculateMonthlyRevenueTrend(filteredPayments)
 );
 
 export const selectPaymentMethodDistribution = createSelector(
 	[selectFilteredPaymentsForAccounting],
-	(filteredPayments): PaymentMethodDistribution[] => {
-		console.log('[selectPaymentMethodDistribution] Calculating payment method distribution for payments:', filteredPayments?.length || 0);
-		if (!filteredPayments || filteredPayments.length === 0) {
-			return [];
-		}
-		return calculatePaymentMethodDistribution(filteredPayments);
-	}
-);
-
-// Debug selector to help with troubleshooting
-export const selectAccountingDebugInfo = createSelector(
-	[
-		selectFilteredPaymentsForAccounting,
-		selectAccountingStats,
-		selectCourseRevenues,
-		selectAccountingStatus,
-		selectDateRange,
-	],
-	(payments, stats, courses, status, dateRange) => ({
-		paymentsCount: payments?.length || 0,
-		statsCalculated: !!stats,
-		totalRevenue: stats?.totalRevenue || 0,
-		coursesCount: courses?.length || 0,
-		status,
-		dateRange,
-		timestamp: Date.now(),
-	})
+	(filteredPayments): PaymentMethodDistribution[] =>
+		calculatePaymentMethodDistribution(filteredPayments)
 );
 
 export default accountingSlice.reducer;
