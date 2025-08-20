@@ -15,6 +15,7 @@ import {
     selectDateRange as selectAccountingDateRange,
     fetchAccountingData,
 } from "../store/accounting-slice"
+import { selectAdminPayments } from "../store/adminPayments"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { setDateRange as setAdminDateRange } from "../store/adminPayments"
 
@@ -34,6 +35,7 @@ export function DateRangeFilter() {
     const [endOpen, setEndOpen] = useState(false)
     const [applyStatus, setApplyStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
     const [applyMessage, setApplyMessage] = useState<string | null>(null)
+    const adminPayments = useAppSelector(selectAdminPayments)
 
     // On mount, initialize from URL query params if present so filter persists across refresh
     useEffect(() => {
@@ -136,6 +138,19 @@ export function DateRangeFilter() {
             setApplyMessage(null)
         }, 3000)
     }
+
+    // Debug: when apply succeeds, log current admin payments count to aid debugging
+    useEffect(() => {
+        if (applyStatus === 'success') {
+            try {
+                console.info('[DateRangeFilter] adminPayments in store after apply:', {
+                    count: Array.isArray(adminPayments) ? adminPayments.length : 0,
+                })
+            } catch (e) {
+                // ignore
+            }
+        }
+    }, [applyStatus, adminPayments])
 
     const handleResetFilter = () => {
         setStartDate(undefined)
