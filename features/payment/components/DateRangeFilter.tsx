@@ -29,6 +29,36 @@ export function DateRangeFilter() {
     const [applyStatus, setApplyStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
     const [applyMessage, setApplyMessage] = useState<string | null>(null)
 
+    // On mount, initialize from URL query params if present so filter persists across refresh
+    useEffect(() => {
+        try {
+            const search = typeof window !== 'undefined' ? window.location.search : '';
+            if (!search) return;
+            const params = new URLSearchParams(search);
+            const s = params.get('startDate');
+            const e = params.get('endDate');
+            if (s || e) {
+                const parsedStart = s ? new Date(s) : undefined;
+                const parsedEnd = e ? new Date(e) : undefined;
+                setStartDate(parsedStart);
+                setEndDate(parsedEnd);
+
+                // Synchronize store and trigger fetch
+                dispatch(
+                    setDateRange({
+                        startDate: s || null,
+                        endDate: e || null,
+                    }),
+                );
+
+                dispatch(fetchAccountingData({ startDate: s || undefined, endDate: e || undefined }));
+            }
+        } catch (err) {
+            console.warn('[DateRangeFilter] failed to initialize from URL', err)
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
     const handleApplyFilter = async () => {
         console.log('[DateRangeFilter] Apply clicked', { startDate, endDate })
         // Update UI immediately
@@ -50,6 +80,22 @@ export function DateRangeFilter() {
                     endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
                 }),
             )
+
+            // Persist to URL so refresh keeps the filter
+            try {
+                if (typeof window !== 'undefined') {
+                    const params = new URLSearchParams(window.location.search);
+                    if (startDate) params.set('startDate', format(startDate, 'yyyy-MM-dd'));
+                    else params.delete('startDate');
+                    if (endDate) params.set('endDate', format(endDate, 'yyyy-MM-dd'));
+                    else params.delete('endDate');
+
+                    const newUrl = `${window.location.pathname}?${params.toString()}`;
+                    window.history.replaceState({}, '', newUrl);
+                }
+            } catch (err) {
+                console.warn('[DateRangeFilter] failed to persist date range to URL', err)
+            }
 
             if (fetchAccountingData.rejected.match(action)) {
                 console.warn('[DateRangeFilter] fetchAccountingData rejected', action.payload)
@@ -85,6 +131,19 @@ export function DateRangeFilter() {
 
         // Fetch data with no date range
         dispatch(fetchAccountingData({}))
+
+        // Remove date range from URL
+        try {
+            if (typeof window !== 'undefined') {
+                const params = new URLSearchParams(window.location.search);
+                params.delete('startDate');
+                params.delete('endDate');
+                const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+                window.history.replaceState({}, '', newUrl);
+            }
+        } catch (err) {
+            console.warn('[DateRangeFilter] failed to clear date range from URL', err)
+        }
     }
 
     const handleQuickSelect = (value: string) => {
