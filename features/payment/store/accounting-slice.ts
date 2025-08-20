@@ -8,7 +8,13 @@ import {
 import type { RootState } from "@/store";
 import { fetchAllAdminPaymentsSequentially, fetchUnifiedPaymentData } from "@/features/payment/store/adminPayments";
 import type { PaymentRecord } from "@/features/payment/types/payment-types";
- from "../types/accounting-types";
+import type {
+	AccountingState,
+	AccountingStats,
+	CourseRevenue,
+	MonthlyRevenue,
+	PaymentMethodDistribution,
+} from "../types/accounting-types";
 import {
 	calculateAccountingStats,
 	calculateCourseRevenues,
