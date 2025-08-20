@@ -34,10 +34,6 @@ const safeFormatDateTime = (dateString?: string): string => {
   }
 }
 
-// Reset to first page when filter changes
-useEffect(() => {
-  setCurrentPage(1)
-}, [currentDateRange.startDate, currentDateRange.endDate])
 
 const getStatusBadge = (status: PaymentRecord["status"]) => {
   switch (status) {
@@ -97,6 +93,11 @@ export function RecentPaymentsWidget() {
 
   const [currentPage, setCurrentPage]   = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(5)
+
+// Reset to first page when filter changes
+useEffect(() => {
+  setCurrentPage(1)
+}, [currentDateRange.startDate, currentDateRange.endDate])
 
   const fetchData = useCallback(() => {
     const params: AdminPaymentParams = {
