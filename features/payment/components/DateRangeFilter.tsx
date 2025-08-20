@@ -27,22 +27,43 @@ export function DateRangeFilter() {
     const [startOpen, setStartOpen] = useState(false)
     const [endOpen, setEndOpen] = useState(false)
 
-    const handleApplyFilter = () => {
-        dispatch(
-            setDateRange({
-                startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
-                endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
-            }),
-        )
+    const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
+  dispatch(
+    setDateRange({
+      startDate: range.from ? format(range.from, 'yyyy-MM-dd') : null,
+      endDate: range.to ? format(range.to, 'yyyy-MM-dd') : null
+    })
+  )
 
-        // Fetch data with the new date range
-        dispatch(
-            fetchAccountingData({
-                startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-                endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
-            }),
-        )
-    }
+  dispatch(
+    fetchAccountingData({
+      startDate: range.from ? format(range.from, 'yyyy-MM-dd') : undefined,
+      endDate: range.to ? format(range.to, 'yyyy-MM-dd') : undefined
+    })
+  )
+}
+
+const handleApplyFilter = () => {
+  handleDateRangeChange({ from: startDate, to: endDate })
+}
+
+
+    // const handleApplyFilter = () => {
+    //     dispatch(
+    //         setDateRange({
+    //             startDate: startDate ? format(startDate, "yyyy-MM-dd") : null,
+    //             endDate: endDate ? format(endDate, "yyyy-MM-dd") : null,
+    //         }),
+    //     )
+
+    //     // Fetch data with the new date range
+    //     dispatch(
+    //         fetchAccountingData({
+    //             startDate: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+    //             endDate: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
+    //         }),
+    //     )
+    // }
 
     const handleResetFilter = () => {
         setStartDate(undefined)
