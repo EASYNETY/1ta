@@ -91,7 +91,7 @@ export default function AccountingDashboard() {
         <DateRangeFilter />
 
         {/* Stats Cards */}
-        <AccountingDashboardStats />
+        <AdminPaymentStats/>
 
         {/* Payment History Table */}
         <RecentPaymentsWidget />
