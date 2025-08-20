@@ -2,7 +2,7 @@
 
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { AccountingGuard } from "@/components/auth/PermissionGuard"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -12,14 +12,11 @@ import { AlertCircle, RefreshCw } from "lucide-react"
 // Import accounting components
 import AdminPaymentStats from "@/features/payment/components/AdminPaymentStats"
 import { CourseRevenueTable } from "@/features/payment/components/CourseRevenueTable"
-import { CourseRevenueChart } from "@/features/payment/components/CourseRevenueChart"
-import { RevenueTrendsChart } from "@/features/payment/components/RevenueTrendsChart"
-import { PaymentMethodsChart } from "@/features/payment/components/PaymentMethodsChart"
 import { RecentPaymentsWidget } from "@/features/payment/components/RecentPaymentsWidget"
 import { AccountingQuickActions } from "@/features/payment/components/AccountingQuickActions"
 import { DateRangeFilter } from "@/features/payment/components/DateRangeFilter"
-import {AccountingDashboardStats } from "@/features/payment/components/AccountingDashboardStats"
-
+import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends"
+import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution"
 
 // Import accounting store
 import {
@@ -32,8 +29,6 @@ import {
   selectAccountingError,
   clearAccountingError,
 } from "@/features/payment/store/accounting-slice"
-import AdminDailyRevenueTrends from "@/features/payment/components/AdminDailyRevenueTrends"
-import RevenueByCourseDistribution from "@/features/payment/components/RevenueByCourseDistribution"
 
 export default function AccountingDashboard() {
   const dispatch = useAppDispatch()
@@ -48,15 +43,24 @@ export default function AccountingDashboard() {
 
   const isLoading = status === "loading"
 
+  // Local state to hold stats specifically for AdminPaymentStats
+  const [paymentStats, setPaymentStats] = useState(null)
+
   // Fetch data on component mount
   useEffect(() => {
     dispatch(fetchAccountingData({}))
 
-    // Clear any existing errors
     return () => {
       dispatch(clearAccountingError())
     }
   }, [dispatch])
+
+  // When stats update (after loading finishes), sync them into AdminPaymentStats
+  useEffect(() => {
+    if (!isLoading && stats) {
+      setPaymentStats(stats)
+    }
+  }, [isLoading, stats])
 
   const handleRefreshData = () => {
     dispatch(clearAccountingError())
@@ -78,7 +82,7 @@ export default function AccountingDashboard() {
           </Button>
         </div>
 
-        {/* Error Alert - Only show if there's an error and we're not loading */}
+        {/* Error Alert */}
         {error && !isLoading && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -90,18 +94,13 @@ export default function AccountingDashboard() {
         {/* Date Range Filter */}
         <DateRangeFilter />
 
-        {/* Stats Cards */}
-        <AdminPaymentStats/>
+        {/* Stats Cards - pass data + loading */}
+        <AdminPaymentStats data={paymentStats} isLoading={isLoading} />
 
         {/* Payment History Table */}
         <RecentPaymentsWidget />
 
-        {/* Charts Section */}
-        {/* <div className="grid gap-6 lg:grid-cols-2">
-          <RevenueTrendsChart data={monthlyRevenue} isLoading={isLoading} />
-          <PaymentMethodsChart data={paymentMethods} isLoading={isLoading} />
-        </div> */}
-
+        {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
           <AdminDailyRevenueTrends />
           <RevenueByCourseDistribution />
