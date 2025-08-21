@@ -153,9 +153,59 @@ const selectFilteredPaymentsForAccounting = createSelector(
 
 // The rest of the selectors derive data from the filtered list. No changes needed.
 export const selectAccountingStats = createSelector(
-	[selectFilteredPaymentsForAccounting],
-	(filteredPayments): AccountingStats =>
-		calculateAccountingStats(filteredPayments)
+	[selectFilteredPaymentsForAccounting, (state: RootState) => state.adminPayments.stats],
+	(filteredPayments, adminStats): AccountingStats => {
+		// If we have filtered payments, compute stats from them
+		if (filteredPayments && filteredPayments.length > 0) {
+			return calculateAccountingStats(filteredPayments);
+		}
+
+		// Fallback: if admin slice already has aggregated stats, convert them to AccountingStats
+		if (adminStats) {
+			try {
+				// adminStats.totalRevenue might be an array of {currency, total} or a number
+				let totalRevenue = 0;
+				if (Array.isArray((adminStats as any).totalRevenue)) {
+					totalRevenue = (adminStats as any).totalRevenue.reduce((s: number, it: any) => s + (it.total || 0), 0);
+				} else if (typeof (adminStats as any).totalRevenue === 'number') {
+					totalRevenue = (adminStats as any).totalRevenue;
+				}
+
+				const statusCounts = (adminStats as any).statusCounts || [];
+				const totalTransactionCount = statusCounts.reduce((s: number, it: any) => s + (it.count || 0), 0);
+				const failedTransactionCount = (statusCounts.find((i: any) => i.status === 'failed')?.count) || 0;
+
+				return {
+					totalRevenue,
+					totalRevenueLastPeriod: typeof (adminStats as any).totalRevenueLastPeriod === 'number' ? (adminStats as any).totalRevenueLastPeriod : 0,
+					pendingPaymentsAmount: 0,
+					reconciledTransactionCount: 0,
+					totalTransactionCount,
+					failedTransactionCount,
+				};
+			} catch (e) {
+				console.warn('Failed to convert adminStats to AccountingStats', e);
+				return {
+					totalRevenue: 0,
+					totalRevenueLastPeriod: 0,
+					pendingPaymentsAmount: 0,
+					reconciledTransactionCount: 0,
+					totalTransactionCount: 0,
+					failedTransactionCount: 0,
+				};
+			}
+		}
+
+		// Default empty stats
+		return {
+			totalRevenue: 0,
+			totalRevenueLastPeriod: 0,
+			pendingPaymentsAmount: 0,
+			reconciledTransactionCount: 0,
+			totalTransactionCount: 0,
+			failedTransactionCount: 0,
+		};
+	}
 );
 
 export const selectCourseRevenues = createSelector(

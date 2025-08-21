@@ -12,22 +12,24 @@ import {
   selectPaymentStats,
   selectPaymentStatsStatus,
   selectPaymentStatsError,
-  selectDateRange,
+  selectDateRange as selectAdminDateRange,
   setDateRange,
 } from "../store/adminPayments"
+import { selectDateRange as selectAccountingDateRange } from "@/features/payment/store/accounting-slice"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 
-export function AdminPaymentStats() {
+export function AdminPaymentStats({ data: propData, isLoading: propLoading }: { data?: any; isLoading?: boolean } = {}) {
   const dispatch = useAppDispatch()
-  const stats = useAppSelector(selectPaymentStats)
+  const statsFromStore = useAppSelector(selectPaymentStats)
   const status = useAppSelector(selectPaymentStatsStatus)
   const error = useAppSelector(selectPaymentStatsError)
-  const dateRange = useAppSelector(selectDateRange)
+  const adminDateRange = useAppSelector(selectAdminDateRange)
+  const accountingDateRange = useAppSelector(selectAccountingDateRange)
   
   // 🟡  get current user from your auth slice
   const userRole = useAppSelector((state) => state.auth.user?.role)
 
-  const isLoading = status === "loading"
+  const isLoading = typeof propLoading === "boolean" ? propLoading : status === "loading"
 
   const handleDateRangeChange = (range: { from?: Date; to?: Date }) => {
     dispatch(setDateRange({
@@ -49,35 +51,62 @@ export function AdminPaymentStats() {
     }
   }
 
-  // Calculate total revenue
+  // Calculate total revenue (support both admin-style stats and accounting-style stats)
   const calculateTotalRevenue = () => {
-    if (!stats || !stats.totalRevenue || stats.totalRevenue.length === 0) {
-      return { amount: 0, currency: "NGN" }
+    // Admin-style stats: stats.totalRevenue is an array of { currency, total }
+    if (stats && Array.isArray(stats.totalRevenue)) {
+      if (stats.totalRevenue.length === 0) return { amount: 0, currency: "NGN" }
+      const revenueByCurrency = stats.totalRevenue.reduce((acc: any, item: any) => {
+        const currency = item.currency || "NGN"
+        acc[currency] = (acc[currency] || 0) + (item.total || 0)
+        return acc
+      }, {} as Record<string, number>)
+
+      const currencies = Object.keys(revenueByCurrency)
+      return currencies.length
+        ? { amount: revenueByCurrency[currencies[0]], currency: currencies[0] }
+        : { amount: 0, currency: "NGN" }
     }
 
-    const revenueByCurrency = stats.totalRevenue.reduce((acc, item) => {
-      const currency = item.currency || "NGN"
-      acc[currency] = (acc[currency] || 0) + item.total
-      return acc
-    }, {} as Record<string, number>)
+    // Accounting-style stats: stats.totalRevenue is a number
+    if (stats && typeof stats.totalRevenue === "number") {
+      return { amount: stats.totalRevenue || 0, currency: "NGN" }
+    }
 
-    const currencies = Object.keys(revenueByCurrency)
-    return currencies.length
-      ? { amount: revenueByCurrency[currencies[0]], currency: currencies[0] }
-      : { amount: 0, currency: "NGN" }
+    return { amount: 0, currency: "NGN" }
   }
 
   const getStatusCount = (status: string) =>
     stats?.statusCounts?.find((i) => i.status === status)?.count || 0
 
+  // Prefer passed-in data (from accounting slice) but fall back to admin store
+  const stats = propData ?? statsFromStore
+
   const totalCount =
-    stats?.statusCounts?.reduce((total, item) => total + item.count, 0) || 0
+    stats?.statusCounts?.reduce((total: number, item: any) => total + (item.count || 0), 0) || 0
 
   const totalRevenue = calculateTotalRevenue()
-  const successfulCount = getStatusCount("succeeded")
-  const pendingCount = getStatusCount("pending")
-  const failedCount  = getStatusCount("failed")
-  const successRate  = totalCount > 0 ? Math.round((successfulCount / totalCount) * 100) : 0
+
+  // If stats come from accounting slice, map fields accordingly
+  let successfulCount = getStatusCount("succeeded")
+  let pendingCount = getStatusCount("pending")
+  let failedCount = getStatusCount("failed")
+  let computedSuccessRate = totalCount > 0 ? Math.round((successfulCount / totalCount) * 100) : 0
+
+  if (stats && typeof stats.totalRevenue === "number") {
+    // Accounting-style stats
+    const totalTransactionCount = stats.totalTransactionCount || 0
+    const failed = stats.failedTransactionCount || 0
+    const pendingAmount = stats.pendingPaymentsAmount || 0
+
+    failedCount = failed
+    // best-effort: if transaction counts are available use them
+    successfulCount = totalTransactionCount - failedCount
+    pendingCount = 0 // accounting stats don't include pending count currently
+    computedSuccessRate = totalTransactionCount > 0 ? Math.round((successfulCount / totalTransactionCount) * 100) : 0
+  }
+
+  const successRate = computedSuccessRate
 
   if (error) {
     return (
@@ -88,6 +117,11 @@ export function AdminPaymentStats() {
       </Alert>
     )
   }
+
+  // Prefer accounting date range for display when available
+  const displayDateRange = accountingDateRange && (accountingDateRange.startDate || accountingDateRange.endDate)
+    ? accountingDateRange
+    : (adminDateRange || null)
 
   return (
     <div className="space-y-4">
@@ -126,7 +160,7 @@ export function AdminPaymentStats() {
                     {formatCurrency(totalRevenue.amount, totalRevenue.currency)}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    For period {stats?.dateRange?.start || 'N/A'} to {stats?.dateRange?.end || 'N/A'}
+                    For period {displayDateRange?.startDate || stats?.dateRange?.start || 'N/A'} to {displayDateRange?.endDate || stats?.dateRange?.end || 'N/A'}
                   </div>
                 </CardContent>
               </>
