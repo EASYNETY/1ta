@@ -32,7 +32,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSocket } from "../services/socketService";
     // import { parseISO } from "date-fns";
-import { formatInTimeZone } from "date-fns-tz";
+// import { formatInTimeZone } from "date-fns-tz";
+
+import { utcToZonedTime } from "date-fns-tz";
 
 interface ChatMessageProps {
     message: MessageType;
@@ -78,22 +80,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     }, [message.id, message.roomId, isOwnMessage, isLast, markMessageAsRead]);
 
 
-
 const formatTimestamp = (ts?: string | null): string => {
     if (!ts) return "";
 
     try {
         const date = parseISO(ts);
+        if (!isValid(date)) return "";
 
-        // Force UTC formatting
-        return formatInTimeZone(date, "UTC", "dd/MM/yyyy HH:mm");
-
+        // Convert UTC to local timezone (GMT+1)
+        const zonedDate = utcToZonedTime(date, "Europe/Paris"); // GMT+1
+       
+        if (isToday(zonedDate)) return format(zonedDate, "HH:mm");
+        if (isYesterday(zonedDate)) return `Yesterday ${format(zonedDate, "HH:mm")}`;
+        return format(zonedDate, "dd/MM/yyyy HH:mm");
     } catch (error) {
-        console.error("Error formatting timestamp:", error);
+        console.error(error);
         return "";
     }
 };
-
     const getMessageStatusIcon = () => {
         if (!isOwnMessage) return null;
 
