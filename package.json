@@ -26,6 +26,8 @@
 		"prepare": "node -e \"if (process.env.VERCEL !== '1') { require('child_process').execSync('npx husky install', { stdio: 'inherit' }); }\""
 	},
 	"dependencies": {
+		"@emoji-mart/data": "^1.2.1",
+		"@emoji-mart/react": "^1.1.1",
 		"@hookform/resolvers": "^5.0.1",
 		"@radix-ui/react-accordion": "^1.2.7",
 		"@radix-ui/react-alert-dialog": "^1.1.10",
@@ -62,6 +64,7 @@
 		"clsx": "^2.1.1",
 		"cmdk": "^1.1.1",
 		"date-fns": "^2.30.0",
+		"date-fns-tz": "^3.2.0",
 		"dom-to-image": "^2.6.0",
 		"embla-carousel-react": "^8.6.0",
 		"file-saver": "^2.0.5",
