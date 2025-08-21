@@ -58,15 +58,12 @@ export function StudentAttendanceView() {
     /**
      * Converts ISO timestamp to WAT (UTC+1) and formats as "YYYY-MM-DD HH:mm:ss"
      */
-    const formatWATTimestamp = (ts?: string | null): string => {
+    const formatTimestamp = (ts?: string | null): string => {
         if (!ts) return "";
 
         try {
-            let date = parseISO(ts);
+            const date = parseISO(ts);
             if (!isValid(date)) return String(ts);
-
-            // Add 1 hour to convert UTC → WAT (UTC+1)
-            date = new Date(date.getTime() + 60 * 60 * 1000);
 
             return format(date, "yyyy-MM-dd HH:mm:ss");
         } catch {
@@ -263,7 +260,7 @@ export function StudentAttendanceView() {
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Time:</span>
                                         <span className="font-medium">
-                                            {formatWATTimestamp(selectedRecord.check_in_time)}
+                                            {formatTimestamp(selectedRecord.check_in_time)}
                                         </span>
                                         {/* <span className="font-medium">{format(parseISO(selectedRecord.check_in_time), "h:mm a")}</span> */}
                                     </div>
