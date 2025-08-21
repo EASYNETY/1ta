@@ -43,9 +43,6 @@ export default function AccountingDashboard() {
 
   const isLoading = status === "loading"
 
-  // Local state to hold stats specifically for AdminPaymentStats
-  const [paymentStats, setPaymentStats] = useState(null)
-
   // Fetch data on component mount
   useEffect(() => {
     dispatch(fetchAccountingData({}))
@@ -54,13 +51,6 @@ export default function AccountingDashboard() {
       dispatch(clearAccountingError())
     }
   }, [dispatch])
-
-  // When stats update (after loading finishes), sync them into AdminPaymentStats
-  useEffect(() => {
-    if (!isLoading && stats) {
-      setPaymentStats(stats)
-    }
-  }, [isLoading, stats])
 
   const handleRefreshData = () => {
     dispatch(clearAccountingError())
@@ -94,8 +84,8 @@ export default function AccountingDashboard() {
         {/* Date Range Filter */}
         <DateRangeFilter />
 
-        {/* Stats Cards - pass data + loading */}
-        <AdminPaymentStats data={paymentStats} isLoading={isLoading} />
+  {/* Stats Cards - pass data + loading */}
+  <AdminPaymentStats data={stats} isLoading={isLoading} />
 
         {/* Payment History Table */}
         <RecentPaymentsWidget />
