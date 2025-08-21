@@ -9,12 +9,12 @@ import { format, parseISO, isToday, isYesterday, isValid, addHours } from "date-
 import { cn, generateColorFromString, getContrastColor, getInitials } from "@/lib/utils";
 import { type ChatMessage as MessageType, MessageType as MsgType, MessageStatus } from "../types/chat-types";
 import { useAppSelector } from "@/store/hooks";
-import { 
-    FileIcon, 
-    Check, 
-    CheckCheck, 
-    Clock, 
-    AlertCircle, 
+import {
+    FileIcon,
+    Check,
+    CheckCheck,
+    Clock,
+    AlertCircle,
     Download,
     Play,
     Pause,
@@ -43,9 +43,9 @@ interface ChatMessageProps {
     onDelete?: (messageId: string) => void;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ 
-    message, 
-    showSenderInfo, 
+export const ChatMessage: React.FC<ChatMessageProps> = ({
+    message,
+    showSenderInfo,
     isLast = false,
     onReply,
     onForward,
@@ -79,24 +79,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
 
 
-const formatTimestamp = (ts?: string | null): string => {
-  if (!ts) return "";
+    const formatTimestamp = (ts?: string | null): string => {
+        if (!ts) return "";
 
-  try {
-    let date = parseISO(ts);
-    if (!isValid(date)) return "";
+        try {
+            const date = parseISO(ts);
+            if (!isValid(date)) return "";
 
-    // If ts is in UTC and you are GMT+1, add 1 hour
-    date = addHours(date, 1);
-
-    if (isToday(date)) return format(date, "HH:mm");
-    if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
-    return format(date, "dd/MM/yyyy HH:mm");
-  } catch (error) {
-    console.error(error);
-    return "";
-  }
-};
+            if (isToday(date)) return format(date, "HH:mm");
+            if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
+            return format(date, "dd/MM/yyyy HH:mm");
+        } catch (error) {
+            console.error("Error formatting timestamp:", error);
+            return "";
+        }
+    };
     const getMessageStatusIcon = () => {
         if (!isOwnMessage) return null;
 
@@ -174,11 +171,11 @@ const formatTimestamp = (ts?: string | null): string => {
 
             case MsgType.FILE:
                 return (
-                    <div 
+                    <div
                         className={cn(
                             "flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-opacity-80 transition-colors min-w-[200px]",
-                            isOwnMessage 
-                                ? "bg-primary/10 border-primary/20 hover:bg-primary/20" 
+                            isOwnMessage
+                                ? "bg-primary/10 border-primary/20 hover:bg-primary/20"
                                 : "bg-muted border-muted-foreground/20 hover:bg-muted/80"
                         )}
                         onClick={() => {
@@ -357,7 +354,7 @@ const formatTimestamp = (ts?: string | null): string => {
                                     </DropdownMenuItem>
                                 )}
                                 {isOwnMessage && onDelete && (
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                         onClick={() => onDelete(message.id)}
                                         className="text-destructive"
                                     >
