@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSocket } from "../services/socketService";
+    // import { parseISO } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 interface ChatMessageProps {
     message: MessageType;
@@ -75,28 +77,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         }
     }, [message.id, message.roomId, isOwnMessage, isLast, markMessageAsRead]);
 
-    const formatTimestamp = (ts: string | null | undefined): string => {
-        if (!ts) return "";
 
-        try {
-            const date = parseISO(ts);
-            if (!isValid(date)) {
-                console.warn(`Invalid timestamp: "${ts}"`);
-                return "";
-            }
 
-            if (isToday(date)) {
-                return format(date, "HH:mm");
-            } else if (isYesterday(date)) {
-                return `Yesterday ${format(date, "HH:mm")}`;
-            } else {
-                return format(date, "dd/MM/yyyy HH:mm");
-            }
-        } catch (error) {
-            console.error("Error formatting timestamp:", error);
-            return "";
-        }
-    };
+const formatTimestamp = (ts?: string | null): string => {
+    if (!ts) return "";
+
+    try {
+        const date = parseISO(ts);
+
+        // Force UTC formatting
+        return formatInTimeZone(date, "UTC", "dd/MM/yyyy HH:mm");
+
+    } catch (error) {
+        console.error("Error formatting timestamp:", error);
+        return "";
+    }
+};
 
     const getMessageStatusIcon = () => {
         if (!isOwnMessage) return null;
