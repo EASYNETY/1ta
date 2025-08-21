@@ -5,7 +5,7 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format, parseISO, isToday, isYesterday, isValid } from "date-fns";
+import { format, parseISO, isToday, isYesterday, isValid, addHours } from "date-fns";
 import { cn, generateColorFromString, getContrastColor, getInitials } from "@/lib/utils";
 import { type ChatMessage as MessageType, MessageType as MsgType, MessageStatus } from "../types/chat-types";
 import { useAppSelector } from "@/store/hooks";
@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSocket } from "../services/socketService";
-import {toZonedTime } from "date-fns-tz";
+
 
 
 interface ChatMessageProps {
@@ -78,26 +78,25 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     }, [message.id, message.roomId, isOwnMessage, isLast, markMessageAsRead]);
 
 
+
 const formatTimestamp = (ts?: string | null): string => {
   if (!ts) return "";
 
-  
   try {
-    const date = parseISO(ts);
+    let date = parseISO(ts);
     if (!isValid(date)) return "";
 
-    // Convert to your local timezone (GMT+1)
-    const zonedDate = toZonedTime(date, "Europe/Paris");
+    // If ts is in UTC and you are GMT+1, add 1 hour
+    date = addHours(date, 1);
 
-    if (isToday(zonedDate)) return format(zonedDate, "HH:mm");
-    if (isYesterday(zonedDate)) return `Yesterday ${format(zonedDate, "HH:mm")}`;
-    return format(zonedDate, "dd/MM/yyyy HH:mm");
+    if (isToday(date)) return format(date, "HH:mm");
+    if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
+    return format(date, "dd/MM/yyyy HH:mm");
   } catch (error) {
-    console.error("Error formatting timestamp:", error);
+    console.error(error);
     return "";
   }
 };
-
     const getMessageStatusIcon = () => {
         if (!isOwnMessage) return null;
 
