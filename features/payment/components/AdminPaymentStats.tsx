@@ -128,8 +128,8 @@ export function AdminPaymentStats({ data: propData, isLoading: propLoading }: { 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl font-semibold">Payment Statistics</h2>
         <DateRangePicker
-          from={dateRange.startDate ? parseISO(dateRange.startDate) : subDays(new Date(), 30)}
-          to={dateRange.endDate ? parseISO(dateRange.endDate) : new Date()}
+          from={adminDateRange?.startDate ? parseISO(adminDateRange.startDate) : subDays(new Date(), 30)}
+          to={adminDateRange?.endDate ? parseISO(adminDateRange.endDate) : new Date()}
           onSelect={handleDateRangeChange}
         />
       </div>
