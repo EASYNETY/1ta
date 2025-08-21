@@ -81,6 +81,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 const formatTimestamp = (ts?: string | null): string => {
   if (!ts) return "";
 
+  
   try {
     const date = parseISO(ts);
     if (!isValid(date)) return "";
