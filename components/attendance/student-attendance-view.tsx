@@ -184,7 +184,7 @@ export function StudentAttendanceView() {
                         <div className="space-y-2">
                             {studentRecords.map((record) => (
                                 <div
-                                    key={record.date}
+                                    key={`${record.date}-${record.status}`}
                                     onClick={() => handleRecordClick(record)}
                                     className="flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-accent/50 transition-colors"
                                 >
