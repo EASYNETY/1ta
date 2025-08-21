@@ -83,15 +83,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         if (!ts) return "";
 
         try {
-            const date = parseISO(ts);
-            if (!isValid(date)) return "";
+            // Treat string as local time, not UTC
+            // Split date components manually
+            const [datePart, timePart] = ts.split("T");
+            if (!datePart || !timePart) return ts;
+
+            const [year, month, day] = datePart.split("-").map(Number);
+            const [hour, minute, second] = timePart.split(":").map(Number);
+
+            const date = new Date(year, month - 1, day, hour, minute, second || 0);
 
             if (isToday(date)) return format(date, "HH:mm");
             if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
             return format(date, "dd/MM/yyyy HH:mm");
         } catch (error) {
             console.error("Error formatting timestamp:", error);
-            return "";
+            return ts;
         }
     };
     const getMessageStatusIcon = () => {
