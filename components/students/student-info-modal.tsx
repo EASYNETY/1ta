@@ -75,6 +75,31 @@ export function StudentInfoModal({
         onResumeScan();   // Trigger the parent component's resume logic
     };
 
+
+    import { isToday, isYesterday, format } from "date-fns";
+
+    const formatLocalTimestamp = (ts?: string | null): string => {
+        if (!ts) return "";
+
+        try {
+            const [datePart, timePart] = ts.split("T");
+            if (!datePart || !timePart) return ts;
+
+            const [year, month, day] = datePart.split("-").map(Number);
+            const [hour, minute, second] = timePart.split(":").map(Number);
+
+            // Construct a *local* date (no UTC shift)
+            const date = new Date(year, month - 1, day, hour, minute, second || 0);
+
+            if (isToday(date)) return format(date, "HH:mm");
+            if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
+            return format(date, "dd/MM/yyyy HH:mm");
+        } catch (error) {
+            console.error("Error formatting timestamp:", error);
+            return ts;
+        }
+    };
+
     const getDialogTitle = () => {
         if (isLoading) return "Processing Scan...";
         if (apiStatus === "loading") return "Marking Attendance...";
@@ -159,7 +184,14 @@ export function StudentInfoModal({
                                 {studentInfo.className && <InfoItem icon={School} label="Registered Class" value={studentInfo.className} />}
                                 {lectureName && <InfoItem icon={BookOpen} label="Lecture/Class" value={lectureName} />}
                                 <InfoItem icon={Calendar} label="Date of Birth" value={studentInfo.dateOfBirth || "Not Provided"} />
-                                {checkInDateTime && <InfoItem icon={Calendar} label="Check-in Time" value={checkInDateTime} />}
+                                {/* {checkInDateTime && <InfoItem icon={Calendar} label="Check-in Time" value={checkInDateTime} />} */}
+                                {checkInDateTime && (
+                                    <InfoItem
+                                        icon={Calendar}
+                                        label="Check-in Time"
+                                        value={formatLocalTimestamp(checkInDateTime)}
+                                    />
+                                )}
                                 {/* Treat isActive as Paid Status */}
                                 <InfoItem
                                     icon={CreditCard}
