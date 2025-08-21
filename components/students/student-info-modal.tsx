@@ -79,27 +79,42 @@ export function StudentInfoModal({
 
 
 
-    const formatLocalTimestamp = (ts?: string | null): string => {
+    // Parse ISO safely: if the string has timezone (Z or ±HH:MM), use parseISO (keeps absolute time, formats to local).
+    // If it has NO timezone, treat it as already-local and build a local Date (prevents unwanted UTC shift).
+    const parseLocalAware = (ts: string): Date => {
+        const trimmed = ts.trim();
+
+        // Normalize space separator to 'T' for simpler splitting
+        const normalized = trimmed.replace(" ", "T");
+
+        // Has explicit timezone? (Z or ±HH:MM at the end)
+        const hasTZ = /[zZ]$|[+\-]\d{2}:\d{2}$/.test(normalized);
+        if (hasTZ) {
+            return parseISO(normalized);
+        }
+
+        // No timezone → treat as local wall time
+        const [datePart, timePart = "00:00:00"] = normalized.split("T");
+        const [y, m, d] = (datePart || "").split("-").map((n) => parseInt(n, 10));
+        const [hh = 0, mm = 0, ss = 0] = (timePart.split(".")[0] || "")
+            .split(":")
+            .map((n) => parseInt(n, 10));
+
+        return new Date(y || 0, (m || 1) - 1, d || 1, hh || 0, mm || 0, ss || 0);
+    };
+
+    const formatLocalTimestampKeepDate = (ts?: string | null): string => {
         if (!ts) return "";
-
         try {
-            const [datePart, timePart] = ts.split("T");
-            if (!datePart || !timePart) return ts;
-
-            const [year, month, day] = datePart.split("-").map(Number);
-            const [hour, minute, second] = timePart.split(":").map(Number);
-
-            // Construct a *local* date (no UTC shift)
-            const date = new Date(year, month - 1, day, hour, minute, second || 0);
-
-            if (isToday(date)) return format(date, "HH:mm");
-            if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
+            const date = parseLocalAware(ts);
+            if (!isValid(date)) return String(ts);
+            // Always keep date + time (no "Today"/"Yesterday" collapsing)
             return format(date, "dd/MM/yyyy HH:mm");
-        } catch (error) {
-            console.error("Error formatting timestamp:", error);
-            return ts;
+        } catch {
+            return String(ts);
         }
     };
+
 
     const getDialogTitle = () => {
         if (isLoading) return "Processing Scan...";
@@ -190,7 +205,7 @@ export function StudentInfoModal({
                                     <InfoItem
                                         icon={Calendar}
                                         label="Check-in Time"
-                                        value={formatLocalTimestamp(checkInDateTime)}
+                                        value={formatLocalTimestampKeepDate(checkInDateTime)}
                                     />
                                 )}
                                 {/* Treat isActive as Paid Status */}
