@@ -31,10 +31,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSocket } from "../services/socketService";
-    // import { parseISO } from "date-fns";
-// import { formatInTimeZone } from "date-fns-tz";
+import {toZonedTime } from "date-fns-tz";
 
-import { utcToZonedTime } from "date-fns-tz";
 
 interface ChatMessageProps {
     message: MessageType;
@@ -81,23 +79,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
 
 
 const formatTimestamp = (ts?: string | null): string => {
-    if (!ts) return "";
+  if (!ts) return "";
 
-    try {
-        const date = parseISO(ts);
-        if (!isValid(date)) return "";
+  try {
+    const date = parseISO(ts);
+    if (!isValid(date)) return "";
 
-        // Convert UTC to local timezone (GMT+1)
-        const zonedDate = utcToZonedTime(date, "Europe/Paris"); // GMT+1
-       
-        if (isToday(zonedDate)) return format(zonedDate, "HH:mm");
-        if (isYesterday(zonedDate)) return `Yesterday ${format(zonedDate, "HH:mm")}`;
-        return format(zonedDate, "dd/MM/yyyy HH:mm");
-    } catch (error) {
-        console.error(error);
-        return "";
-    }
+    // Convert to your local timezone (GMT+1)
+    const zonedDate = toZonedTime(date, "Europe/Paris");
+
+    if (isToday(zonedDate)) return format(zonedDate, "HH:mm");
+    if (isYesterday(zonedDate)) return `Yesterday ${format(zonedDate, "HH:mm")}`;
+    return format(zonedDate, "dd/MM/yyyy HH:mm");
+  } catch (error) {
+    console.error("Error formatting timestamp:", error);
+    return "";
+  }
 };
+
     const getMessageStatusIcon = () => {
         if (!isOwnMessage) return null;
 
