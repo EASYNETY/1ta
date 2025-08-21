@@ -26,6 +26,8 @@ import {
     ScanLine // Added for casual scan mode
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { isToday, isYesterday, format } from "date-fns";
+
 
 // This interface should align with the data you pass from ScanPage.tsx
 // which in turn should be derived from your canonical User/StudentUser type.
@@ -76,7 +78,6 @@ export function StudentInfoModal({
     };
 
 
-    import { isToday, isYesterday, format } from "date-fns";
 
     const formatLocalTimestamp = (ts?: string | null): string => {
         if (!ts) return "";
