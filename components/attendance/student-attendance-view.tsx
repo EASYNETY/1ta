@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { format, parseISO, isToday } from "date-fns"
+import { format, parseISO, isToday, isValid } from "date-fns"
 import { Check, X, Clock, Calendar, Info, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -55,6 +55,24 @@ export function StudentAttendanceView() {
         return { total, present, absent, late, presentPercentage, absentPercentage, latePercentage }
     }, [studentRecords])
 
+    /**
+     * Converts ISO timestamp to WAT (UTC+1) and formats as "YYYY-MM-DD HH:mm:ss"
+     */
+    const formatWATTimestamp = (ts?: string | null): string => {
+        if (!ts) return "";
+
+        try {
+            let date = parseISO(ts);
+            if (!isValid(date)) return String(ts);
+
+            // Add 1 hour to convert UTC → WAT (UTC+1)
+            date = new Date(date.getTime() + 60 * 60 * 1000);
+
+            return format(date, "yyyy-MM-dd HH:mm:ss");
+        } catch {
+            return String(ts);
+        }
+    };
     // Helper function to get status classes
     const getStatusClasses = (status: AttendanceStatus): string => {
         switch (status) {
@@ -244,7 +262,10 @@ export function StudentAttendanceView() {
                                 {selectedRecord.check_in_time && (
                                     <div className="flex justify-between text-sm">
                                         <span className="text-muted-foreground">Time:</span>
-                                        <span className="font-medium">{format(parseISO(selectedRecord.check_in_time), "h:mm a")}</span>
+                                        <span className="font-medium">
+                                            {formatWATTimestamp(selectedRecord.check_in_time)}
+                                        </span>
+                                        {/* <span className="font-medium">{format(parseISO(selectedRecord.check_in_time), "h:mm a")}</span> */}
                                     </div>
                                 )}
                             </div>
