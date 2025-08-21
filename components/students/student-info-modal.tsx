@@ -26,7 +26,7 @@ import {
     ScanLine // Added for casual scan mode
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { isToday, isYesterday, format } from "date-fns";
+import { isToday, isYesterday, format, parseISO, isValid } from "date-fns";
 
 
 // This interface should align with the data you pass from ScanPage.tsx
@@ -105,16 +105,18 @@ export function StudentInfoModal({
 
     const formatLocalTimestampKeepDate = (ts?: string | null): string => {
         if (!ts) return "";
+
         try {
-            const date = parseLocalAware(ts);
+            // Parse ISO string
+            const date = parseISO(ts);
             if (!isValid(date)) return String(ts);
-            // Always keep date + time (no "Today"/"Yesterday" collapsing)
-            return format(date, "dd/MM/yyyy HH:mm");
+
+            // Format in local time with seconds
+            return format(date, "yyyy-MM-dd HH:mm:ss");
         } catch {
             return String(ts);
         }
     };
-
 
     const getDialogTitle = () => {
         if (isLoading) return "Processing Scan...";
