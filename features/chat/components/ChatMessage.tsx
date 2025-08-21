@@ -1,137 +1,483 @@
+// features/chat/components/ChatMessage.tsx - OPTIMIZED VERSION
+
 "use client";
 
-import React, { useRef, useEffect, useMemo, useCallback, memo } from "react";
+import type React from "react";
+import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format, isToday, isYesterday } from "date-fns";
+import { format, parseISO, isToday, isYesterday, isValid, addHours } from "date-fns";
 import { cn, generateColorFromString, getContrastColor, getInitials } from "@/lib/utils";
 import { type ChatMessage as MessageType, MessageType as MsgType, MessageStatus } from "../types/chat-types";
 import { useAppSelector } from "@/store/hooks";
 import {
-  FileIcon, Check, CheckCheck, Clock, AlertCircle, Download, Play, Pause, Volume2,
-  Image as ImageIcon, Copy, Reply, Forward, Trash2, MoreVertical
+    FileIcon,
+    Check,
+    CheckCheck,
+    Clock,
+    AlertCircle,
+    Download,
+    Play,
+    Pause,
+    Volume2,
+    Image as ImageIcon,
+    Copy,
+    Reply,
+    Forward,
+    Trash2,
+    MoreVertical
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSocket } from "../services/socketService";
 
 interface ChatMessageProps {
-  message: MessageType;
-  showSenderInfo: boolean;
-  isLast?: boolean;
-  onReply?: (message: MessageType) => void;
-  onForward?: (message: MessageType) => void;
-  onDelete?: (messageId: string) => void;
+    message: MessageType;
+    showSenderInfo: boolean;
+    isLast?: boolean;
+    onReply?: (message: MessageType) => void;
+    onForward?: (message: MessageType) => void;
+    onDelete?: (messageId: string) => void;
 }
 
-const ChatMessageComponent: React.FC<ChatMessageProps> = ({
-  message,
-  showSenderInfo,
-  isLast = false,
-  onReply,
-  onForward,
-  onDelete
-}) => {
-  const currentUser = useAppSelector((state) => state.auth.user);
-  const isOwnMessage = message.senderId === currentUser?.id;
-  const { markMessageAsRead } = useSocket();
-  const messageRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  // Mark message as read only for messages from others
-  useEffect(() => {
-    if (!isOwnMessage && isLast && messageRef.current) {
-      const observer = new IntersectionObserver(([entry]) => {
-        if (entry.isIntersecting) markMessageAsRead(message.id, message.roomId);
-      }, { threshold: 0.5 });
-      observer.observe(messageRef.current);
-      return () => observer.disconnect();
-    }
-  }, [isOwnMessage, isLast, message.id, message.roomId, markMessageAsRead]);
-
-  // Memoized timestamp
-  const formattedTimestamp = useMemo(() => {
-    if (!message.timestamp) return "";
-    try {
-      const date = new Date(message.timestamp);
-      if (isToday(date)) return format(date, "HH:mm");
-      if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
-      return format(date, "dd/MM/yyyy HH:mm");
-    } catch { return message.timestamp; }
-  }, [message.timestamp]);
-
-  // Memoized message status icon
-  const messageStatusIcon = useMemo(() => {
+// Memoized components for better performance
+const MessageStatusIcon = memo(({ status, isOwnMessage }: { status: MessageStatus; isOwnMessage: boolean }) => {
     if (!isOwnMessage) return null;
-    switch (message.status) {
-      case MessageStatus.SENDING: return <Clock className="h-3 w-3 text-muted-foreground animate-pulse" />;
-      case MessageStatus.FAILED: return <AlertCircle className="h-3 w-3 text-destructive" />;
-      case MessageStatus.SENT: return <Check className="h-3 w-3 text-muted-foreground" />;
-      case MessageStatus.DELIVERED: return <CheckCheck className="h-3 w-3 text-muted-foreground" />;
-      case MessageStatus.READ: return <CheckCheck className="h-3 w-3 text-blue-500" />;
-      default: return <Clock className="h-3 w-3 text-muted-foreground" />;
+
+    switch (status) {
+        case MessageStatus.SENDING:
+            return <Clock className="h-3 w-3 text-muted-foreground animate-pulse" />;
+        case MessageStatus.FAILED:
+            return <AlertCircle className="h-3 w-3 text-destructive" />;
+        case MessageStatus.SENT:
+            return <Check className="h-3 w-3 text-muted-foreground" />;
+        case MessageStatus.DELIVERED:
+            return <CheckCheck className="h-3 w-3 text-muted-foreground" />;
+        case MessageStatus.READ:
+            return <CheckCheck className="h-3 w-3 text-blue-500" />;
+        default:
+            return <Clock className="h-3 w-3 text-muted-foreground" />;
     }
-  }, [isOwnMessage, message.status]);
+});
 
-  // Avatar colors
-  const fallbackBgColor = useMemo(() => message.sender?.id ? generateColorFromString(message.sender.id) : "#e5e7eb", [message.sender?.id]);
-  const fallbackTextColorClass = useMemo(() => getContrastColor(fallbackBgColor) === "light" ? "text-gray-700" : "text-white", [fallbackBgColor]);
-  const initials = useMemo(() => getInitials(message.sender?.name), [message.sender?.name]);
+MessageStatusIcon.displayName = "MessageStatusIcon";
 
-  const handleCopy = useCallback(() => navigator.clipboard.writeText(message.content || ""), [message.content]);
-  const handleDownload = useCallback((url: string, filename: string) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, []);
-  const toggleAudio = useCallback(() => {
-    if (!audioRef.current) return;
-    if (audioRef.current.paused) audioRef.current.play();
-    else audioRef.current.pause();
-  }, []);
+const ImageMessage = memo(({ message }: { message: MessageType }) => {
+    const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Render content only once
-  const messageContent = useMemo(() => {
-    switch (message.type) {
-      case MsgType.IMAGE:
-        return (
-          <img src={message.metadata?.imageUrl || "/placeholder.svg"} alt="Image content" className="rounded-md max-h-[300px] w-full object-cover cursor-pointer" />
-        );
-      case MsgType.FILE:
-        return (
-          <div onClick={() => message.metadata?.fileUrl && handleDownload(message.metadata.fileUrl, message.metadata.fileName || "file")}>
-            <FileIcon /> {message.metadata?.fileName || "File"}
-          </div>
-        );
-      case MsgType.AUDIO:
-        return <audio ref={audioRef} src={message.metadata?.audioUrl} controls className="w-full" />;
-      case MsgType.SYSTEM:
-        return <div className="text-xs italic text-muted-foreground text-center">{message.content}</div>;
-      default:
-        return <div>{message.content}</div>;
-    }
-  }, [message, handleDownload]);
-
-  return (
-    <div ref={messageRef} className={cn("flex gap-2 items-end px-2 py-1", isOwnMessage ? "justify-end" : "justify-start")}>
-      {!isOwnMessage && showSenderInfo && (
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={message.sender?.avatarUrl} />
-          <AvatarFallback style={{ backgroundColor: fallbackBgColor }} className={fallbackTextColorClass}>{initials}</AvatarFallback>
-        </Avatar>
-      )}
-      <div className={cn("flex flex-col max-w-[65%]", isOwnMessage ? "items-end" : "items-start")}>
-        {messageContent}
-        <div className="flex items-center gap-1 mt-1 text-xs">
-          <span>{formattedTimestamp}</span>
-          {messageStatusIcon}
+    return (
+        <div className="relative group">
+            <div className="relative max-w-[280px] sm:max-w-[320px]">
+                {!imageLoaded && (
+                    <div className="flex items-center justify-center h-32 bg-muted rounded-md">
+                        <ImageIcon className="h-8 w-8 text-muted-foreground animate-pulse" />
+                    </div>
+                )}
+                <img
+                    src={message.metadata?.imageUrl || "/placeholder.svg"}
+                    alt="Image content"
+                    className={cn(
+                        "rounded-md max-h-[300px] object-cover w-full cursor-pointer transition-opacity",
+                        imageLoaded ? "opacity-100" : "opacity-0"
+                    )}
+                    onLoad={() => setImageLoaded(true)}
+                    onClick={() => {
+                        window.open(message.metadata?.imageUrl, '_blank');
+                    }}
+                    loading="lazy" // Add lazy loading
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-md" />
+            </div>
+            {message.content && (
+                <p className="mt-2 text-sm">{message.content}</p>
+            )}
         </div>
-      </div>
-    </div>
-  );
-};
+    );
+});
 
-export const ChatMessage = memo(ChatMessageComponent);
+ImageMessage.displayName = "ImageMessage";
+
+const FileMessage = memo(({ message, isOwnMessage }: { message: MessageType; isOwnMessage: boolean }) => {
+    const handleDownload = useCallback((url: string, filename: string) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, []);
+
+    return (
+        <div
+            className={cn(
+                "flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-opacity-80 transition-colors min-w-[200px]",
+                isOwnMessage
+                    ? "bg-primary/10 border-primary/20 hover:bg-primary/20"
+                    : "bg-muted border-muted-foreground/20 hover:bg-muted/80"
+            )}
+            onClick={() => {
+                if (message.metadata?.fileUrl) {
+                    handleDownload(message.metadata.fileUrl, message.metadata.fileName || 'file');
+                }
+            }}
+        >
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <FileIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                    {message.metadata?.fileName || "File"}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {message.metadata?.fileSize && (
+                        <span>{(message.metadata.fileSize / 1024).toFixed(1)} KB</span>
+                    )}
+                    <span className="flex items-center gap-1">
+                        <Download className="h-3 w-3" />
+                        Download
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+FileMessage.displayName = "FileMessage";
+
+const AudioMessage = memo(({ message }: { message: MessageType }) => {
+    const [audioPlaying, setAudioPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement>(null);
+
+    const toggleAudio = useCallback(() => {
+        if (audioRef.current) {
+            if (audioPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play();
+            }
+            setAudioPlaying(!audioPlaying);
+        }
+    }, [audioPlaying]);
+
+    return (
+        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg min-w-[200px]">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={toggleAudio}
+            >
+                {audioPlaying ? (
+                    <Pause className="h-4 w-4" />
+                ) : (
+                    <Play className="h-4 w-4" />
+                )}
+            </Button>
+            <div className="flex-1">
+                <div className="flex items-center gap-2">
+                    <Volume2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Voice message</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                    {message.metadata?.duration || "0:00"}
+                </div>
+            </div>
+            <audio
+                ref={audioRef}
+                src={message.metadata?.audioUrl}
+                onEnded={() => setAudioPlaying(false)}
+                className="hidden"
+                preload="metadata" // Optimize loading
+            />
+        </div>
+    );
+});
+
+AudioMessage.displayName = "AudioMessage";
+
+export const ChatMessage: React.FC<ChatMessageProps> = memo(({
+    message,
+    showSenderInfo,
+    isLast = false,
+    onReply,
+    onForward,
+    onDelete
+}) => {
+    const currentUser = useAppSelector((state) => state.auth.user);
+    const isOwnMessage = message.senderId === currentUser?.id;
+    const [isHovered, setIsHovered] = useState(false);
+    const { markMessageAsRead } = useSocket();
+    const messageRef = useRef<HTMLDivElement>(null);
+
+    // Memoize expensive calculations
+    const fallbackBgColor = useMemo(() => 
+        message.sender?.id ? generateColorFromString(message.sender.id) : '#e5e7eb'
+    , [message.sender?.id]);
+    
+    const contrast = useMemo(() => getContrastColor(fallbackBgColor), [fallbackBgColor]);
+    const fallbackTextColorClass = contrast === 'light' ? 'text-gray-700' : 'text-white';
+    const initials = useMemo(() => getInitials(message.sender?.name), [message.sender?.name]);
+
+    // Optimized timestamp formatting with memoization
+    const formattedTimestamp = useMemo(() => {
+        if (!message.timestamp) return "";
+
+        try {
+            const [datePart, timePart] = message.timestamp.split("T");
+            if (!datePart || !timePart) return message.timestamp;
+
+            const [year, month, day] = datePart.split("-").map(Number);
+            const [hour, minute, second] = timePart.split(":").map(Number);
+
+            const date = new Date(year, month - 1, day, hour, minute, second || 0);
+
+            if (isToday(date)) return format(date, "HH:mm");
+            if (isYesterday(date)) return `Yesterday ${format(date, "HH:mm")}`;
+            return format(date, "dd/MM/yyyy HH:mm");
+        } catch (error) {
+            console.error("Error formatting timestamp:", error);
+            return message.timestamp;
+        }
+    }, [message.timestamp]);
+
+    // Intersection observer for read receipts - optimized
+    useEffect(() => {
+        if (!isOwnMessage && messageRef.current && isLast) {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        markMessageAsRead(message.id, message.roomId);
+                    }
+                },
+                { 
+                    threshold: 0.5,
+                    rootMargin: '50px' // Trigger slightly before fully visible
+                }
+            );
+
+            observer.observe(messageRef.current);
+            return () => observer.disconnect();
+        }
+    }, [message.id, message.roomId, isOwnMessage, isLast, markMessageAsRead]);
+
+    const handleCopy = useCallback(() => {
+        navigator.clipboard.writeText(message.content);
+    }, [message.content]);
+
+    const handleReply = useCallback(() => {
+        onReply?.(message);
+    }, [onReply, message]);
+
+    const handleForward = useCallback(() => {
+        onForward?.(message);
+    }, [onForward, message]);
+
+    const handleDelete = useCallback(() => {
+        onDelete?.(message.id);
+    }, [onDelete, message.id]);
+
+    const renderMessageContent = useMemo(() => {
+        switch (message.type) {
+            case MsgType.IMAGE:
+                return <ImageMessage message={message} />;
+
+            case MsgType.FILE:
+                return <FileMessage message={message} isOwnMessage={isOwnMessage} />;
+
+            case MsgType.AUDIO:
+                return <AudioMessage message={message} />;
+
+            case MsgType.SYSTEM:
+                return (
+                    <div className="text-xs italic text-muted-foreground text-center px-4 py-1">
+                        {message.content}
+                    </div>
+                );
+
+            default: // TEXT
+                return (
+                    <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                        {message.content}
+                        {message.metadata?.isEdited && (
+                            <span className="text-xs text-muted-foreground ml-2 italic">
+                                (edited)
+                            </span>
+                        )}
+                    </div>
+                );
+        }
+    }, [message, isOwnMessage]);
+
+    // System messages
+    if (message.type === MsgType.SYSTEM) {
+        return (
+            <div className="flex justify-center my-3">
+                <div className="bg-muted/80 text-muted-foreground rounded-full px-3 py-1 text-xs text-center max-w-md">
+                    {message.content}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            ref={messageRef}
+            className={cn(
+                "group flex gap-2 items-end relative px-2 py-1",
+                isOwnMessage ? "justify-end" : "justify-start",
+                !showSenderInfo && !isOwnMessage && "pl-12"
+            )}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            {/* Avatar for other users */}
+            {!isOwnMessage && (
+                <div className="flex-shrink-0 h-8 w-8 mb-1">
+                    {showSenderInfo ? (
+                        <Avatar className="h-full w-full">
+                            <AvatarImage
+                                src={message.sender?.avatarUrl}
+                                alt={message.sender?.name || "User"}
+                                loading="lazy"
+                            />
+                            <AvatarFallback
+                                style={{ backgroundColor: fallbackBgColor }}
+                                className={cn("text-xs font-medium", fallbackTextColorClass)}
+                            >
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
+                    ) : (
+                        <div className="h-8 w-8" />
+                    )}
+                </div>
+            )}
+
+            {/* Message Actions - Show on hover */}
+            {isHovered && !message.isOptimistic && (
+                <div className={cn(
+                    "absolute top-0 z-10 flex items-center gap-1",
+                    isOwnMessage ? "right-0 mr-2" : "left-12 ml-2"
+                )}>
+                    <TooltipProvider>
+                        {onReply && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 bg-background/90 backdrop-blur border shadow-sm hover:bg-accent"
+                                        onClick={handleReply}
+                                    >
+                                        <Reply className="h-3 w-3" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Reply</TooltipContent>
+                            </Tooltip>
+                        )}
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 bg-background/90 backdrop-blur border shadow-sm hover:bg-accent"
+                                >
+                                    <MoreVertical className="h-3 w-3" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align={isOwnMessage ? "end" : "start"}>
+                                {message.type === MsgType.TEXT && (
+                                    <DropdownMenuItem onClick={handleCopy}>
+                                        <Copy className="h-4 w-4 mr-2" />
+                                        Copy
+                                    </DropdownMenuItem>
+                                )}
+                                {onForward && (
+                                    <DropdownMenuItem onClick={handleForward}>
+                                        <Forward className="h-4 w-4 mr-2" />
+                                        Forward
+                                    </DropdownMenuItem>
+                                )}
+                                {isOwnMessage && onDelete && (
+                                    <DropdownMenuItem
+                                        onClick={handleDelete}
+                                        className="text-destructive"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TooltipProvider>
+                </div>
+            )}
+
+            <div className={cn(
+                "flex flex-col max-w-[75%] sm:max-w-[65%]",
+                isOwnMessage ? "items-end" : "items-start"
+            )}>
+                {/* Sender name for group chats */}
+                {!isOwnMessage && showSenderInfo && message.sender?.name && (
+                    <span className="text-xs font-medium mb-1 text-muted-foreground px-1">
+                        {message.sender.name}
+                    </span>
+                )}
+
+                {/* Reply indicator */}
+                {message.parentMessageId && (
+                    <div className={cn(
+                        "text-xs text-muted-foreground mb-1 px-3 py-1 rounded-md bg-muted/50 border-l-2",
+                        isOwnMessage ? "border-l-primary/50" : "border-l-blue-500/50"
+                    )}>
+                        <div className="flex items-center gap-1">
+                            <Reply className="h-3 w-3" />
+                            <span>Replying to message</span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Message bubble */}
+                <div
+                    className={cn(
+                        "relative px-3 py-2 rounded-2xl shadow-sm transition-all",
+                        isOwnMessage
+                            ? "bg-primary text-primary-foreground rounded-br-md"
+                            : "bg-background border rounded-bl-md",
+                        message.status === MessageStatus.FAILED && "border-destructive/50",
+                        message.isOptimistic && "opacity-70"
+                    )}
+                >
+                    {renderMessageContent}
+
+                    {/* Message footer with time and status */}
+                    <div className={cn(
+                        "flex items-center gap-1 mt-1 text-xs",
+                        isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"
+                    )}>
+                        <span>{formattedTimestamp}</span>
+                        <MessageStatusIcon status={message.status} isOwnMessage={isOwnMessage} />
+                    </div>
+
+                    {/* Optimistic message indicator */}
+                    {message.isOptimistic && (
+                        <div className="absolute -bottom-1 -right-1">
+                            <Clock className="h-3 w-3 text-muted-foreground animate-pulse" />
+                        </div>
+                    )}
+                </div>
+
+                {/* Read receipts for group chats */}
+                {isOwnMessage && message.status === MessageStatus.READ && message.readBy && (
+                    <div className="text-xs text-muted-foreground mt-1 px-1">
+                        Read by {message.readBy.length} recipient{message.readBy.length !== 1 ? 's' : ''}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+});
+
+ChatMessage.displayName = "ChatMessage";
