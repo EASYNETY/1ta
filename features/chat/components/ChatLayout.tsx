@@ -1,9 +1,9 @@
-// features/chat/components/ChatLayout.tsx - EMERGENCY FIX
+// features/chat/components/ChatLayout.tsx - FIXED VERSION
 
 "use client";
 
 import type React from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { ChatRoomList } from "./ChatRoomList";
 import { ChatMessageList } from "./ChatMessageList";
@@ -12,8 +12,8 @@ import { ChatRoomHeader } from "./ChatRoomHeader";
 import { SelectChatPrompt } from "./SelectChatPrompt";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Menu, MessageSquare, AlertTriangle } from "lucide-react";
-import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount } from "../store/chatSlice";
+import { Menu, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
+import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount, selectMessageStatusForRoom } from "../store/chatSlice";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { fetchChatMessages } from "../store/chat-thunks";
 
@@ -23,10 +23,15 @@ export const ChatLayout: React.FC = () => {
     const selectedRoom = useAppSelector(selectSelectedRoom);
     const allRooms = useAppSelector(selectChatRooms);
     const totalUnreadCount = useAppSelector(selectChatUnreadCount);
+    const messageStatus = useAppSelector((state) => 
+        selectedRoomId ? selectMessageStatusForRoom(state, selectedRoomId) : 'idle'
+    );
+    
     const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
-    const [isLoadingMessages, setIsLoadingMessages] = useState(false);
     const [loadingError, setLoadingError] = useState<string | null>(null);
     const [retryCount, setRetryCount] = useState(0);
+    const fetchAbortController = useRef<AbortController | null>(null);
+    const lastFetchedRoomId = useRef<string | null>(null);
 
     // Mobile view detection
     const [isMobileView, setIsMobileView] = useState(false);
@@ -47,94 +52,109 @@ export const ChatLayout: React.FC = () => {
         }
     }, [selectedRoomId, mobileSheetOpen]);
 
-    // EMERGENCY FIX: Aggressive timeout and error handling
+    // FIXED: Clean message fetching logic
     useEffect(() => {
+        // Reset states when no room is selected
         if (!selectedRoomId) {
-            setIsLoadingMessages(false);
             setLoadingError(null);
+            lastFetchedRoomId.current = null;
+            // Cancel any ongoing fetch
+            if (fetchAbortController.current) {
+                fetchAbortController.current.abort();
+                fetchAbortController.current = null;
+            }
             return;
         }
 
-        let timeoutId: NodeJS.Timeout;
-        let aborted = false;
+        // Don't fetch if we just fetched this room (prevents infinite loops)
+        if (lastFetchedRoomId.current === selectedRoomId && messageStatus !== 'failed') {
+            console.log("🔄 Skipping fetch - already fetched this room:", selectedRoomId);
+            return;
+        }
 
-        const fetchWithTimeout = async () => {
-            setIsLoadingMessages(true);
+        // Cancel previous fetch if ongoing
+        if (fetchAbortController.current) {
+            fetchAbortController.current.abort();
+        }
+
+        const fetchMessages = async () => {
+            console.log("📨 Starting message fetch for room:", selectedRoomId);
             setLoadingError(null);
             
-            console.log(`🚨 EMERGENCY FETCH: ${selectedRoomId}`);
-
-            // Create abort controller for timeout
-            const abortController = new AbortController();
-            
-            // Set aggressive 10-second timeout
-            const emergencyTimeout = setTimeout(() => {
-                abortController.abort();
-                if (!aborted) {
-                    setIsLoadingMessages(false);
-                    setLoadingError("Request timed out after 10 seconds");
-                    console.error("🚨 FETCH TIMEOUT for room:", selectedRoomId);
-                }
-            }, 10000);
+            // Create new abort controller
+            fetchAbortController.current = new AbortController();
+            lastFetchedRoomId.current = selectedRoomId;
 
             try {
-                // Try to fetch messages with timeout
-                const result = await Promise.race([
-                    dispatch(fetchChatMessages({ 
-                        roomId: selectedRoomId, 
-                        page: 1, 
-                        limit: 20 // Reduced limit for faster loading
-                    })).unwrap(),
-                    new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Timeout')), 8000)
-                    )
-                ]);
-
-                if (!aborted) {
-                    setIsLoadingMessages(false);
-                    setRetryCount(0);
-                    console.log("✅ Messages loaded successfully");
-                }
+                await dispatch(fetchChatMessages({ 
+                    roomId: selectedRoomId, 
+                    page: 1, 
+                    limit: 30 
+                })).unwrap();
+                
+                console.log("✅ Messages fetched successfully for room:", selectedRoomId);
+                setRetryCount(0);
+                
             } catch (error: any) {
-                clearTimeout(emergencyTimeout);
-                if (!aborted) {
-                    setIsLoadingMessages(false);
-                    const errorMessage = error.message || "Failed to load messages";
-                    setLoadingError(errorMessage);
-                    console.error("🚨 FETCH ERROR:", error);
+                // Only set error if not aborted
+                if (!fetchAbortController.current?.signal.aborted) {
+                    console.error("❌ Failed to fetch messages:", error);
+                    setLoadingError(error.message || "Failed to load messages");
                 }
             } finally {
-                clearTimeout(emergencyTimeout);
+                fetchAbortController.current = null;
             }
         };
 
-        // Immediate fetch with minimal delay
-        timeoutId = setTimeout(fetchWithTimeout, 50);
-
+        // Add small delay to prevent rapid successive calls
+        const timeoutId = setTimeout(fetchMessages, 100);
+        
         return () => {
-            aborted = true;
             clearTimeout(timeoutId);
         };
     }, [selectedRoomId, dispatch, retryCount]);
 
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (fetchAbortController.current) {
+                fetchAbortController.current.abort();
+            }
+        };
+    }, []);
+
     // Manual retry function
     const handleRetry = useCallback(() => {
+        console.log("🔄 Manual retry triggered");
         setRetryCount(prev => prev + 1);
         setLoadingError(null);
+        lastFetchedRoomId.current = null; // Force refetch
     }, []);
 
     // Emergency reset function
     const handleEmergencyReset = useCallback(() => {
-        setIsLoadingMessages(false);
+        console.log("🚨 Emergency reset triggered");
         setLoadingError(null);
         setRetryCount(0);
-        // Force re-render by clearing and setting room
+        lastFetchedRoomId.current = null;
+        
+        // Cancel any ongoing requests
+        if (fetchAbortController.current) {
+            fetchAbortController.current.abort();
+            fetchAbortController.current = null;
+        }
+        
+        // Force page refresh as last resort
         window.location.reload();
     }, []);
 
     const handleRoomSelectInSheet = () => {
         setMobileSheetOpen(false);
     };
+
+    // Determine loading state
+    const isLoading = messageStatus === 'loading' && !loadingError;
+    const hasError = messageStatus === 'failed' || !!loadingError;
 
     return (
         <div className="flex h-[calc(100vh-var(--header-height,4rem))] border rounded-lg overflow-hidden bg-background/5 backdrop-blur-sm relative">
@@ -197,48 +217,43 @@ export const ChatLayout: React.FC = () => {
                         {/* Header */}
                         <ChatRoomHeader room={selectedRoom} isMobileView={isMobileView} />
 
-                        {/* EMERGENCY: Loading/Error States */}
-                        {isLoadingMessages && (
-                            <div className="flex items-center justify-center p-6 border-b bg-muted/20">
-                                <div className="flex flex-col items-center gap-3">
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>
-                                        Loading messages... ({retryCount > 0 ? `Retry ${retryCount}` : 'Please wait'})
-                                    </div>
-                                    <DyraneButton 
-                                        onClick={handleEmergencyReset} 
-                                        variant="outline" 
-                                        size="sm"
-                                        className="text-xs"
-                                    >
-                                        Emergency Reset
-                                    </DyraneButton>
+                        {/* Loading State */}
+                        {isLoading && (
+                            <div className="flex items-center justify-center p-6 border-b bg-muted/10">
+                                <div className="flex items-center gap-3">
+                                    <RefreshCw className="h-5 w-5 animate-spin text-primary" />
+                                    <span className="text-sm text-muted-foreground">
+                                        Loading messages...
+                                    </span>
                                 </div>
                             </div>
                         )}
 
                         {/* Error State */}
-                        {loadingError && (
-                            <div className="flex items-center justify-center p-6 border-b bg-destructive/10">
+                        {hasError && (
+                            <div className="flex items-center justify-center p-6 border-b bg-destructive/5">
                                 <div className="flex flex-col items-center gap-3 text-center">
                                     <div className="flex items-center gap-2 text-sm text-destructive">
                                         <AlertTriangle className="h-4 w-4" />
-                                        {loadingError}
+                                        {loadingError || "Failed to load messages"}
                                     </div>
                                     <div className="flex gap-2">
                                         <DyraneButton onClick={handleRetry} variant="outline" size="sm">
-                                            Retry ({retryCount + 1})
+                                            <RefreshCw className="h-4 w-4 mr-1" />
+                                            Retry {retryCount > 0 && `(${retryCount + 1})`}
                                         </DyraneButton>
-                                        <DyraneButton onClick={handleEmergencyReset} variant="destructive" size="sm">
-                                            Reset Page
-                                        </DyraneButton>
+                                        {retryCount > 2 && (
+                                            <DyraneButton onClick={handleEmergencyReset} variant="destructive" size="sm">
+                                                Reset Page
+                                            </DyraneButton>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* Messages - Only show if not loading and no error */}
-                        {!isLoadingMessages && !loadingError && (
+                        {/* Messages - Show if not loading */}
+                        {!isLoading && (
                             <div className="flex-1 overflow-y-auto">
                                 <ChatMessageList />
                             </div>
