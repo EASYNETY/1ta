@@ -39,68 +39,88 @@ const generateBreakdownData = (
   const tuitionItems = cartItems.map(item => {
     const courseDetails = getCourseDetails(item.courseId)
 
-    // Priority order for pricing:
-    // 1. If there's a discountPriceNaira in cart item, use it as final price
-    // 2. Otherwise use priceNaira from cart item
-    // 3. Fall back to course details pricing
-    
-    let finalPrice: number;
-    let originalPrice: number;
+    // FIX: Improved pricing logic with better validation
+    let finalPrice: number = 0;
+    let originalPrice: number = 0;
     let discountAmount: number = 0;
 
-    if (item.discountPriceNaira && item.discountPriceNaira > 0) {
-      // Cart item has discount price - use it as final price
-      finalPrice = item.discountPriceNaira;
-      originalPrice = item.priceNaira || courseDetails?.priceNaira || item.discountPriceNaira;
-      discountAmount = Math.max(originalPrice - finalPrice, 0);
-    } else if (item.priceNaira) {
-      // Cart item has regular price
-      finalPrice = item.priceNaira;
-      originalPrice = courseDetails?.priceNaira || item.priceNaira;
-      // Check if course details has a discount
-      if (courseDetails?.discountPriceNaira && courseDetails.discountPriceNaira < originalPrice) {
-        finalPrice = courseDetails.discountPriceNaira;
-        discountAmount = originalPrice - finalPrice;
+    // Get prices from cart item first, then fall back to course details
+    const cartPrice = Number(item.priceNaira) || 0;
+    const cartDiscountPrice = Number(item.discountPriceNaira) || 0;
+    const coursePrice = Number(courseDetails?.priceNaira) || 0;
+    const courseDiscountPrice = Number(courseDetails?.discountPriceNaira) || 0;
+
+    // Determine the pricing hierarchy
+    if (cartDiscountPrice > 0) {
+      // Cart has discount price - use it
+      finalPrice = cartDiscountPrice;
+      originalPrice = cartPrice > 0 ? cartPrice : coursePrice;
+    } else if (cartPrice > 0) {
+      // Cart has regular price
+      originalPrice = cartPrice;
+      // Check if course has a better discount
+      if (courseDiscountPrice > 0 && courseDiscountPrice < cartPrice) {
+        finalPrice = courseDiscountPrice;
+      } else {
+        finalPrice = cartPrice;
       }
     } else {
-      // Fall back to course details
-      originalPrice = courseDetails?.priceNaira || 0;
-      if (courseDetails?.discountPriceNaira && courseDetails.discountPriceNaira > 0) {
-        finalPrice = courseDetails.discountPriceNaira;
-        discountAmount = originalPrice - finalPrice;
+      // Fall back to course pricing
+      originalPrice = coursePrice;
+      if (courseDiscountPrice > 0) {
+        finalPrice = courseDiscountPrice;
       } else {
-        finalPrice = originalPrice;
+        finalPrice = coursePrice;
       }
     }
 
-    // Ensure prices are never negative
-    finalPrice = Math.max(finalPrice, 0);
-    originalPrice = Math.max(originalPrice, 0);
-    discountAmount = Math.max(discountAmount, 0);
+    // Calculate discount amount
+    if (finalPrice < originalPrice) {
+      discountAmount = originalPrice - finalPrice;
+    }
+
+    // Ensure all values are valid numbers and not negative
+    finalPrice = Math.max(Number(finalPrice) || 0, 0);
+    originalPrice = Math.max(Number(originalPrice) || 0, 0);
+    discountAmount = Math.max(Number(discountAmount) || 0, 0);
+
+    // If final price is 0 but original price exists, there might be an error
+    if (finalPrice === 0 && originalPrice > 0) {
+      console.warn(`Final price is 0 for course ${item.courseId}, using original price`);
+      finalPrice = originalPrice;
+      discountAmount = 0;
+    }
 
     return {
       id: `tuition-${item.courseId}`,
       category: 'tuition' as const,
       description: item.title,
-      amount: finalPrice, // This is the actual amount that should be charged
-      quantity: 1,
+      amount: finalPrice,
+      quantity: Number(item.quantity) || 1,
       isIncluded: false,
       details: courseDetails
         ? `Instructor: ${courseDetails.instructor.name}${courseDetails.level ? ` • Level: ${courseDetails.level}` : ''}`
         : `Instructor: ${item.instructor || 'TBD'}`,
-      originalAmount: discountAmount > 0 ? originalPrice : undefined, // Only show original if there's a discount
-      discountAmount: discountAmount > 0 ? discountAmount : undefined // Only show discount if there is one
+      originalAmount: discountAmount > 0 ? originalPrice : undefined,
+      discountAmount: discountAmount > 0 ? discountAmount : undefined
     }
   })
 
-  const tuitionTotal = tuitionItems.reduce((sum, item) => sum + item.amount, 0)
+  // Filter out items with zero amount (shouldn't happen but safety check)
+  const validTuitionItems = tuitionItems.filter(item => item.amount > 0);
+  
+  if (validTuitionItems.length !== tuitionItems.length) {
+    console.warn(`Filtered out ${tuitionItems.length - validTuitionItems.length} items with zero amount`);
+  }
+
+  const tuitionTotal = validTuitionItems.reduce((sum, item) => sum + (item.amount * item.quantity), 0);
 
   return [
     {
       title: "Tuition Fees",
       icon: "GraduationCap",
       totalAmount: tuitionTotal,
-      items: tuitionItems
+      items: validTuitionItems
     }
   ]
 }
@@ -219,21 +239,36 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
     return useAppSelector(selectPublicCourseById(courseId))
   }
 
-  const sections = generateBreakdownData(cartItems, getCourseDetails)
+  // FIX: Better error handling for breakdown generation
+  let sections: BreakdownSection[] = []
+  let subtotal = 0
+  let totalSavings = 0
 
-  // Calculate totals using the corrected amounts (with discounts applied)
-  const subtotal = sections.reduce((sum, section) => sum + section.totalAmount, 0)
-  
-  // Use tax from cart slice if available, otherwise calculate 7.5% VAT
+  try {
+    sections = generateBreakdownData(cartItems, getCourseDetails)
+    
+    // Calculate totals using the corrected amounts (with discounts applied)
+    subtotal = sections.reduce((sum, section) => sum + section.totalAmount, 0)
+    
+    // Calculate total savings for display
+    totalSavings = sections.reduce((totalSaving, section) => {
+      return totalSaving + section.items.reduce((sectionSaving, item) => {
+        return sectionSaving + (item.discountAmount || 0)
+      }, 0)
+    }, 0)
+  } catch (error) {
+    console.error("Error generating payment breakdown:", error)
+    // Fallback calculation if breakdown generation fails
+    subtotal = cartItems.reduce((sum, item) => {
+      const price = Number(item.discountPriceNaira ?? item.priceNaira ?? 0)
+      const quantity = Number(item.quantity ?? 1)
+      return sum + (price * quantity)
+    }, 0)
+  }
+
+  // Use tax from cart slice if available, otherwise calculate 0% VAT
   const tax = cartTaxAmount > 0 ? cartTaxAmount : subtotal * 0
   const total = subtotal + tax
-
-  // Calculate total savings for display
-  const totalSavings = sections.reduce((totalSaving, section) => {
-    return totalSaving + section.items.reduce((sectionSaving, item) => {
-      return sectionSaving + (item.discountAmount || 0)
-    }, 0)
-  }, 0)
 
   const toggleSection = (sectionTitle: string) => {
     const newOpenSections = new Set(openSections)
@@ -243,6 +278,32 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
       newOpenSections.add(sectionTitle)
     }
     setOpenSections(newOpenSections)
+  }
+
+  // FIX: Added validation for zero or negative totals
+  if (total <= 0 && cartItems.length > 0) {
+    return (
+      <Card className={cn("w-full border-none", className)}>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold">Payment Breakdown</h2>
+            <Badge variant="destructive" className="text-xs">
+              Error: Invalid Total
+            </Badge>
+          </div>
+          
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Pricing Error</AlertTitle>
+            <AlertDescription>
+              Unable to calculate valid pricing for cart items. Please refresh and try again.
+              <br />
+              <small>Debug: Subtotal = ₦{subtotal.toLocaleString()}, Tax = ₦{tax.toLocaleString()}</small>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </Card>
+    )
   }
 
   return (
@@ -262,17 +323,26 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
           </div>
         </div>
 
+        {/* Debug info in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
+            Debug - Subtotal: ₦{subtotal.toLocaleString()}, Tax: ₦{tax.toLocaleString()}, Total: ₦{total.toLocaleString()}
+          </div>
+        )}
+
         {/* Breakdown Sections */}
-        <div className="space-y-2 mb-6 w-full">
-          {sections.map((section) => (
-            <BreakdownSectionComponent
-              key={section.title}
-              section={section}
-              isOpen={openSections.has(section.title)}
-              onToggle={() => toggleSection(section.title)}
-            />
-          ))}
-        </div>
+        {sections.length > 0 && (
+          <div className="space-y-2 mb-6 w-full">
+            {sections.map((section) => (
+              <BreakdownSectionComponent
+                key={section.title}
+                section={section}
+                isOpen={openSections.has(section.title)}
+                onToggle={() => toggleSection(section.title)}
+              />
+            ))}
+          </div>
+        )}
 
         <Separator className="my-4" />
 
@@ -312,7 +382,7 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
             <div className="flex items-start gap-2">
               <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-amber-700 dark:text-amber-300">
-              <p className="font-medium mb-1">Missing Course Information</p>
+                <p className="font-medium mb-1">Missing Course Information</p>
                 <p>Some course details are not available. Pricing is based on cart data.</p>
               </div>
             </div>
@@ -349,4 +419,3 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
       </div>
     </Card>
   )
-}
