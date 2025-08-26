@@ -42,11 +42,21 @@ const safeFormatDetailedDate = (dateString?: string): string => {
     if (!dateString) return "N/A";
     try {
         const date = parseISO(dateString);
-        return isValid(date) ? format(date, "PPP 'at' p") : "Invalid Date";
+        return isValid(date) ? format(date, "PPP") : "Invalid Date";
     } catch {
-        return "Error";
+        return "Invalid Date";
     }
 };
+
+// const safeFormatDetailedDate = (dateString?: string): string => {
+//     if (!dateString) return "N/A";
+//     try {
+//         const date = parseISO(dateString);
+//         return isValid(date) ? format(date, "PPP 'at' p") : "Invalid Date";
+//     } catch {
+//         return "Error";
+//     }
+// };
 
 export default function AdminTicketDetailPage() {
     const params = useParams();
@@ -159,7 +169,7 @@ export default function AdminTicketDetailPage() {
                         </div>
                     </div>
                     <CardDescription className="text-xs pt-1">
-                        Opened by {ticket.user?.name || ticket.user?.id} on {safeFormatDetailedDate(ticket.createdAt)}
+                        Opened: {ticket.user?.userName || ticket.user?.id} {safeFormatDetailedDate(ticket.createdAt)}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
