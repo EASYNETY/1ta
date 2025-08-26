@@ -11,22 +11,26 @@ class SocketService {
     private currentUser: any = null;
     private connectedRooms: Set<string> = new Set();
     private typingTimers: Map<string, NodeJS.Timeout> = new Map();
+    private isInitializing = false;
+    private lastConnectErrorTs: number = 0;
+    private lastMaxReconnectLogTs: number = 0;
 
     initialize(user: any) {
-        if (this.socket?.connected) {
-            this.disconnect();
+        // Prevent duplicate initialization while an init/connect is already in progress
+        if (this.isInitializing || (this.socket && this.socket.connected)) {
+            return;
         }
 
         this.currentUser = user;
-        
+        this.isInitializing = true;
+
+        // Disable socket.io built-in reconnection logic to avoid double reconnect loops.
+        // We handle reconnection ourselves (exponential backoff + visibility checks).
         this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com', {
             transports: ['websocket', 'polling'],
             withCredentials: true,
             timeout: 20000,
-            reconnection: true,
-            reconnectionAttempts: this.maxReconnectAttempts,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
+            reconnection: false,
             autoConnect: true,
             forceNew: true,
             query: {
@@ -36,6 +40,19 @@ class SocketService {
         });
 
         this.setupEventListeners();
+
+        // Reconnect when the tab becomes visible to avoid background reconnect storms
+        if (typeof window !== 'undefined') {
+            const onVisibility = () => {
+                if (document.visibilityState === 'visible' && this.socket && !this.socket.connected) {
+                    // reset attempts so we can try again when user returns
+                    this.reconnectAttempts = 0;
+                    this.handleReconnect();
+                }
+            };
+            document.removeEventListener('visibilitychange', onVisibility);
+            document.addEventListener('visibilitychange', onVisibility);
+        }
     }
 
     private setupEventListeners() {
@@ -63,21 +80,33 @@ class SocketService {
 
         this.socket.on('disconnect', (reason) => {
             console.log('❌ Disconnected from chat server:', reason);
+            this.isInitializing = false;
             store.dispatch(connectionStatusChanged({ status: 'disconnected', timestamp: Date.now() }));
-            
-            if (reason === 'io server disconnect') {
-                // Server disconnected, try to reconnect
+
+            // Only attempt reconnect for server-initiated disconnects or network issues
+            // and only when page is visible to avoid background storms
+            if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
                 this.handleReconnect();
             }
         });
 
         this.socket.on('connect_error', (error) => {
-            console.error('🚨 Connection error:', error);
+            // Throttle connect_error logs to avoid flooding the console
+            const now = Date.now();
+            if (now - this.lastConnectErrorTs > 10000) { // once every 10s
+                console.error('🚨 Connection error:', error?.message || error);
+                this.lastConnectErrorTs = now;
+            } else {
+                // Use debug-level log for repeated errors
+                console.debug('🚨 Connection error (throttled):', error?.message || error);
+            }
+
             store.dispatch(connectionStatusChanged({ 
                 status: 'error', 
-                error: error.message,
+                error: error?.message || String(error),
                 timestamp: Date.now() 
             }));
+
             this.handleReconnect();
         });
 
@@ -173,8 +202,23 @@ class SocketService {
     }
 
     private handleReconnect() {
+        // Avoid reconnect storms: only try when tab is visible
+        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+            console.debug('🔕 Tab not visible — deferring reconnect until visible');
+            return;
+        }
+
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            console.log('🚫 Max reconnect attempts reached');
+            const now = Date.now();
+            // Throttle the max-reconnect log to once per minute
+            if (now - this.lastMaxReconnectLogTs > 60000) {
+                console.log('🚫 Max reconnect attempts reached');
+                this.lastMaxReconnectLogTs = now;
+            } else {
+                console.debug('🚫 Max reconnect attempts reached (throttled)');
+            }
+            // dispatch a final failed status so UI can react
+            store.dispatch(connectionStatusChanged({ status: 'failed', timestamp: Date.now() }));
             return;
         }
 
@@ -186,10 +230,18 @@ class SocketService {
         this.reconnectAttempts++;
 
         console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
-        
+
         this.reconnectTimeout = setTimeout(() => {
+            // Make sure socket still exists and isn't already connected
             if (this.socket && !this.socket.connected) {
-                this.socket.connect();
+                try {
+                    // mark that we're attempting a connection
+                    this.isInitializing = true;
+                    this.socket.connect();
+                } catch (err) {
+                    console.debug('Reconnect attempt failed to call connect():', err);
+                    this.isInitializing = false;
+                }
             }
         }, delay);
     }
