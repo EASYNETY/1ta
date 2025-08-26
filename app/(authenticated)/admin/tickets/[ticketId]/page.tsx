@@ -160,52 +160,61 @@ export default function AdminTicketDetailPage() {
                     </div>
                     <CardDescription className="text-xs pt-1">
                         Opened by {ticket.user?.name || ticket.user?.id} on {safeFormatDetailedDate(ticket.createdAt)}
-                        {" • "} Last updated: {safeFormatDetailedDate(ticket.updatedAt)}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <p className="whitespace-pre-wrap">{ticket.description}</p>
                     <div className="mt-6 pt-6 border-t">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
-                                <Label htmlFor="status-select" className="mr-2 text-sm">
-                                    Status:
-                                </Label>
-                                <Select value={ticket.status}
-                                    onValueChange={(value) => handleStatusChange(value as TicketStatus)}
-                                >
-                                    <SelectTrigger id="status-select" className="w-full sm:w-[180px]">
-                                        <SelectValue placeholder="Select status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="open">Open</SelectItem>
-                                        <SelectItem value="in_progress">In Progress</SelectItem>
-                                        <SelectItem value="resolved">Resolved</SelectItem>
-                                        <SelectItem value="closed">Closed</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {/* Show controls only to staff (admin / customer care). Owners can view status but cannot change it. */}
+                            { (hasAdminAccess(user ?? undefined) || isCustomerCare(user ?? undefined)) ? (
+                                <>
+                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                        <Label htmlFor="status-select" className="mr-2 text-sm">
+                                            Status:
+                                        </Label>
+                                        <Select value={ticket.status}
+                                            onValueChange={(value) => handleStatusChange(value as TicketStatus)}
+                                        >
+                                            <SelectTrigger id="status-select" className="w-full sm:w-[180px]">
+                                                <SelectValue placeholder="Select status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="open">Open</SelectItem>
+                                                <SelectItem value="in_progress">In Progress</SelectItem>
+                                                <SelectItem value="resolved">Resolved</SelectItem>
+                                                <SelectItem value="closed">Closed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                            <div className="flex gap-2">
-                                <DyraneButton
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleStatusChange("resolved")}
-                                    className="text-green-600"
-                                >
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    Mark Resolved
-                                </DyraneButton>
-                                <DyraneButton
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleStatusChange("closed")}
-                                    className="text-red-600"
-                                >
-                                    <XCircle className="mr-2 h-4 w-4" />
-                                    Close Ticket
-                                </DyraneButton>
-                            </div>
+                                    <div className="flex gap-2">
+                                        <DyraneButton
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleStatusChange("resolved")}
+                                            className="text-green-600"
+                                        >
+                                            <CheckCircle className="mr-2 h-4 w-4" />
+                                            Mark Resolved
+                                        </DyraneButton>
+                                        <DyraneButton
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleStatusChange("closed")}
+                                            className="text-red-600"
+                                        >
+                                            <XCircle className="mr-2 h-4 w-4" />
+                                            Close Ticket
+                                        </DyraneButton>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <Label className="mr-2 text-sm">Status:</Label>
+                                    <span className="text-sm font-medium">{typeof ticket.status === 'string' ? ticket.status.replace("_", " ") : "Unknown"}</span>
+                                </div>
+                            ) }
                         </div>
                     </div>
                 </CardContent>
