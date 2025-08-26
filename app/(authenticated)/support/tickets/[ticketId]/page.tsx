@@ -248,7 +248,7 @@ export default function AdminTicketDetailPage() {
                                         </span>
                                         <span className="text-xs text-muted-foreground">{safeFormatDetailedDate(response.createdAt)}</span>
                                     </div>
-                                    <p className="text-sm whitespace-pre-wrap">{response.message}</p>
+                                    <p className="text-sm whitespace-pre-wrap">{response.content}</p>
                                 </div>
                             </div>
                         ))

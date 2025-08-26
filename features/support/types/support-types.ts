@@ -28,6 +28,7 @@ export interface TicketResponse {
 	userName?: string;
 	userRole?: string;
 	message: string;
+	content: string;
 	createdAt: string;
 }
 
