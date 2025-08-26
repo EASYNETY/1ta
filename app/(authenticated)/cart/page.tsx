@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { Card } from "@/components/ui/card"
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button"
-import { removeItem } from "@/features/cart/store/cart-slice"
+import { removeItem, selectCartTotal, selectCartTaxAmount } from "@/features/cart/store/cart-slice"
 import { isProfileComplete } from "@/features/auth/utils/profile-completeness"
 import { isStudent, User } from "@/types/user.types"
 import { GraduationCap, ArrowRight, AlertTriangle } from "lucide-react"
@@ -86,15 +86,6 @@ export default function CartPage() {
 
     const { user, skipOnboarding, token } = useAppSelector((state) => state.auth);
     const cart = useAppSelector((state) => state.cart);
-    // FIX 1: Use proper cart total calculation
-    const cartTotal = useAppSelector((state) => {
-        // Calculate total from cart items with proper pricing logic
-        return state.cart.items.reduce((total, item) => {
-            const price = Number(item.discountPriceNaira ?? item.priceNaira ?? 0);
-            const quantity = Number(item.quantity ?? 1);
-            return total + (price * quantity);
-        }, 0);
-    });
 
     const [isInitiatingCheckout, setIsInitiatingCheckout] = useState(false);
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -112,10 +103,49 @@ export default function CartPage() {
     // Selectors for course details
     const allCourses = useAppSelector(selectAllCourses);
 
+    // Compute cartTotal using the same fallback rules as PaymentBreakdown so values align
+    const cartComputedTotal = cart.items.reduce((sum, item) => {
+        const courseDetails = allCourses.find(c => c.id === item.courseId);
+        // Priority: item.discountPriceNaira -> item.priceNaira -> courseDetails.discountPriceNaira -> courseDetails.priceNaira -> 0
+        let finalPrice = 0;
+        if (typeof item.discountPriceNaira === 'number' && item.discountPriceNaira > 0) {
+            finalPrice = item.discountPriceNaira;
+        } else if (typeof item.priceNaira === 'number' && item.priceNaira > 0) {
+            finalPrice = item.priceNaira;
+            if (courseDetails?.discountPriceNaira && courseDetails.discountPriceNaira < finalPrice) {
+                finalPrice = courseDetails.discountPriceNaira;
+            }
+        } else if (courseDetails) {
+            if (courseDetails.discountPriceNaira && courseDetails.discountPriceNaira > 0) {
+                finalPrice = courseDetails.discountPriceNaira;
+            } else {
+                finalPrice = courseDetails.priceNaira || 0;
+            }
+        }
+
+        const qty = Number((item as any).quantity ?? 1) || 1;
+        return sum + Math.max(finalPrice, 0) * Math.max(qty, 1);
+    }, 0);
+
+    // Fallbacks to ensure we have a sensible total even if some data hasn't loaded.
+    const cartSliceTotal = useAppSelector(selectCartTotal);
+    const cartTaxAmount = useAppSelector(selectCartTaxAmount);
+
+    // Simple fallback: compute total directly from cart item fields (discountPriceNaira -> priceNaira)
+    const directItemTotal = cart.items.reduce((s, item) => {
+        const price = Number(item.discountPriceNaira ?? item.priceNaira ?? 0) || 0;
+        const qty = Number((item as any).quantity ?? 1) || 1;
+        return s + price * qty;
+    }, 0);
+
+    // Prefer the breakdown-aware computed total, otherwise prefer slice total, otherwise direct item total
+    const cartTotal = cartComputedTotal > 0 ? cartComputedTotal : (cartSliceTotal > 0 ? cartSliceTotal : directItemTotal);
+
     const profileComplete = user ? isProfileComplete(user) : false;
     const hasItems = cart.items.length > 0;
     const isCorporateStudent = user && isStudent(user) && Boolean(user.corporateId) && !user.isCorporateManager;
     const isCorporateManager = user && isStudent(user) && Boolean(user.isCorporateManager);
+    // (debug removed)
 
     useEffect(() => {
         if (isCorporateStudent) {
@@ -193,26 +223,11 @@ export default function CartPage() {
         }
         setIsInitiatingCheckout(true);
 
-        // FIX 3: Improved total calculation with validation
-        const discountedTotalWithTax = cart.items.reduce((acc, item) => {
-            const price = Number(item.discountPriceNaira ?? item.priceNaira ?? 0);
-            const qty = Number(item.quantity ?? 1);
-            
-            // Validate price and quantity
-            if (isNaN(price) || price < 0) {
-                console.warn(`Invalid price for item ${item.courseId}: ${price}`);
-                return acc;
-            }
-            if (isNaN(qty) || qty < 1) {
-                console.warn(`Invalid quantity for item ${item.courseId}: ${qty}`);
-                return acc;
-            }
-            
-            return acc + (price * qty);
-        }, 0);
+    // Use the canonical cart total (breakdown-aware) plus any cart tax as the final amount
+    const finalTotal = Math.max(0, Math.round(cartTotal + (cartTaxAmount ?? 0)));
 
-        // FIX 4: Validate total before proceeding
-        if (discountedTotalWithTax < 0) {
+    // FIX 4: Validate total before proceeding
+    if (finalTotal < 0) {
             toast({
                 title: "Invalid Total",
                 description: "Cart total cannot be negative. Please refresh and try again.",
@@ -222,7 +237,7 @@ export default function CartPage() {
             return;
         }
 
-        console.log("CartPage: Calculated total:", discountedTotalWithTax);
+    console.log("CartPage: Calculated final total:", finalTotal);
         let proceedWithNewInvoiceFlow = true;
 
         // Pre-checks
@@ -283,19 +298,33 @@ export default function CartPage() {
             const currentCartInvoiceItems: InvoiceItem[] = cart.items.map(item => ({
                 description: item.title,
                 amount: Number(item.discountPriceNaira ?? item.priceNaira ?? 0),
-                quantity: Number(item.quantity ?? 1),
+                quantity: Number((item as any).quantity ?? 1),
                 courseId: item.courseId,
             }));
 
             const isCartEffectivelyIdentical =
                 existingCurrentInvoice.studentId === user.id &&
-                Number(existingCurrentInvoice.amount) === discountedTotalWithTax &&
+                Number(existingCurrentInvoice.amount) === finalTotal &&
                 areCartInvoiceItemsEffectivelyEqual(currentCartInvoiceItems, existingCurrentInvoice.items);
 
             if (isCartEffectivelyIdentical) {
                 console.log("CartPage: Cart is identical to the previously prepared invoice. Attempting to reuse.");
                 currentAttemptInvoiceIdRef.current = existingCurrentInvoice.id;
                 proceedWithNewInvoiceFlow = false;
+                // Ensure checkout slice is prepared with the existing invoice's total and items
+                try {
+                    dispatch(
+                        prepareCheckout({
+                            cartItems: cart.items,
+                            coursesData: [],
+                            user: user as User,
+                            totalAmountFromCart: Number(existingCurrentInvoice.amount) || finalTotal,
+                            invoiceId: existingCurrentInvoice.id,
+                        })
+                    );
+                } catch (err) {
+                    console.warn("CartPage: Failed to dispatch prepareCheckout for reuse path:", err);
+                }
             } else {
                 console.log("CartPage: Cart changed or details mismatch. Resetting and creating new invoice.");
                 await dispatch(resetPaymentState());
@@ -317,13 +346,13 @@ export default function CartPage() {
             const invoiceItems: InvoiceItem[] = cart.items
                 .filter(item => {
                     const price = Number(item.discountPriceNaira ?? item.priceNaira ?? 0);
-                    const quantity = Number(item.quantity ?? 1);
+                    const quantity = Number((item as any).quantity ?? 1);
                     return !isNaN(price) && price >= 0 && !isNaN(quantity) && quantity > 0;
                 })
                 .map(item => ({
                     description: item.title,
                     amount: Number(item.discountPriceNaira ?? item.priceNaira ?? 0),
-                    quantity: Number(item.quantity ?? 1),
+                    quantity: Number((item as any).quantity ?? 1),
                     courseId: item.courseId,
                 }));
 
@@ -343,7 +372,7 @@ export default function CartPage() {
 
             const invoicePayload: CreateInvoicePayload = {
                 studentId: user.id,
-                amount: discountedTotalWithTax,
+                amount: finalTotal,
                 description: cart.items.map(i => i.title).join(', '),
                 dueDate: formattedDueDate,
                 items: invoiceItems,
@@ -367,7 +396,7 @@ export default function CartPage() {
                         cartItems: cart.items,
                         coursesData: [],
                         user: user as User,
-                        totalAmountFromCart: discountedTotalWithTax,
+                        totalAmountFromCart: finalTotal,
                         invoiceId: createdInvoice.id,
                     })
                 );
@@ -479,12 +508,7 @@ export default function CartPage() {
         <div className="mx-auto">
             <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
             
-            {/* FIX 6: Added cart total debug info in development */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="mb-4 p-2 bg-gray-100 rounded text-xs">
-                    Debug: Cart Total = ₦{cartTotal.toLocaleString()}
-                </div>
-            )}
+            {/* debug UI removed */}
 
             {!profileComplete && !skipOnboarding && (
                 <Alert variant="default" className="mb-6 bg-primary/5 border-primary/20">
