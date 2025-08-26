@@ -23,7 +23,7 @@ import { BreakdownSection, PaymentBreakdownItem } from "@/features/payment/types
 import { useState } from "react"
 import { Card } from "../ui/card"
 import { useAppSelector } from "@/store/hooks"
-import { selectPublicCourseById } from "@/features/public-course/store/public-course-slice"
+import { selectAllCourses } from "@/features/public-course/store/public-course-slice"
 import { PublicCourse } from "@/features/public-course/types/public-course-interface"
 import { Button } from "../ui/button"
 
@@ -214,9 +214,12 @@ export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps
   // Get tax information from cart slice
   const cartTaxAmount = useAppSelector(selectCartTaxAmount)
 
-  // Function to get course details for each cart item
+  // Select all public courses once at top-level to avoid calling hooks inside loops or helper functions
+  const publicCourses = useAppSelector(selectAllCourses)
+
+  // Function to get course details for each cart item (lookup from the array)
   const getCourseDetails = (courseId: string): PublicCourse | undefined => {
-    return useAppSelector(selectPublicCourseById(courseId))
+    return publicCourses.find(c => c.id === courseId)
   }
 
   const sections = generateBreakdownData(cartItems, getCourseDetails)
