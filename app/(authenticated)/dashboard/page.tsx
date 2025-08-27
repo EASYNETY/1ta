@@ -280,19 +280,19 @@ export default function DashboardPage() {
                 return (
                     <>
                         {commonTabs}
-                        <TabsTrigger value="courses">All Courses</TabsTrigger>
+                        <TabsTrigger value="courses" onClick={(e) => { e.preventDefault(); router.push('/courses') }}>All Courses</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
                     </>
                 )
             case "admin":
-                return <>{commonTabs}
-                    <TabsTrigger value="courses">All Courses</TabsTrigger>
+                    return <>{commonTabs}
+                    <TabsTrigger value="courses" onClick={(e) => { e.preventDefault(); router.push('/courses') }}>All Courses</TabsTrigger>
                 </>
             case "accounting":
                 return (
                     <>
                         {commonTabs}
-                        <TabsTrigger value="courses">All Courses</TabsTrigger>
+                        <TabsTrigger value="courses" onClick={(e) => { e.preventDefault(); router.push('/courses') }}>All Courses</TabsTrigger>
                         <TabsTrigger value="payments">Payments</TabsTrigger>
                     </>
                 )
@@ -307,7 +307,7 @@ export default function DashboardPage() {
                 return (
                     <>
                         {commonTabs}
-                        <TabsTrigger value="courses">All Courses</TabsTrigger>
+                        <TabsTrigger value="courses" onClick={(e) => { e.preventDefault(); router.push('/courses') }}>All Courses</TabsTrigger>
                         <TabsTrigger value="students">Students</TabsTrigger>
                         <TabsTrigger value="assignments">Assignments</TabsTrigger>
                         <TabsTrigger value="analytics">Analytics</TabsTrigger>
