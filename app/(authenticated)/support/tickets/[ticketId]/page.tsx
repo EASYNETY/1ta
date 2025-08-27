@@ -54,6 +54,7 @@ export default function AdminTicketDetailPage() {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
     const ticket = useAppSelector(selectCurrentTicket);
+    const responses = ticket?.responses || [];
     const status = useAppSelector(selectTicketStatus);
     const responseStatus = useAppSelector(selectSupportCreateStatus);
     const error = useAppSelector(selectSupportError);
@@ -219,8 +220,8 @@ export default function AdminTicketDetailPage() {
                 <h2 className="text-xl font-semibold mb-4">Conversation History</h2>
 
                 <div className="space-y-4 mb-6">
-                    {ticket.responses && ticket.responses.length > 0 ? (
-                        ticket.responses.map((response: TicketResponse) => (
+                    {responses.length > 0 ? (
+                        responses.map((response: TicketResponse) => (
                             <div key={response.id} className="flex gap-3">
                                 <Avatar
                                     className={cn("h-8 w-8 border", {
