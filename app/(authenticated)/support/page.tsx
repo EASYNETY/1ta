@@ -15,7 +15,7 @@ import { SupportTicket } from '@/features/support/types/support-types';
 export default function MySupportTicketsPage() {
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.auth);
-    const tickets = useAppSelector(selectMyTickets);
+    const tickets = useAppSelector(selectMyTickets) || [];
     const status = useAppSelector(selectSupportStatus);
     const error = useAppSelector(selectSupportError);
     const isLoading = status === 'loading';
