@@ -5,6 +5,7 @@ import { DyraneCard } from '@/components/dyrane-ui/dyrane-card';
 import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import useRelativeTime from '../hooks/useRelativeTime';
 import { cn } from '@/lib/utils';
 import type { SupportTicket, TicketStatus, TicketPriority } from '../types/support-types';
 import { Tag, MessageSquare, Clock } from 'lucide-react'; // Icons
@@ -38,18 +39,7 @@ export const getPriorityStyles = (priority: TicketPriority): string => {
 export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
     const { user } = useAppSelector(state => state.auth);
 
-    const formatTimeAgo = (dateString?: string) => {
-        if (!dateString) return '';
-        try {
-            const parsed = parseISO(dateString);
-            const now = new Date();
-            // Prevent future timestamps (clock skew) from producing "in X" countdowns.
-            const safeDate = parsed.getTime() > now.getTime() ? now : parsed;
-            return formatDistanceToNowStrict(safeDate, { addSuffix: true });
-        } catch {
-            return 'Invalid date';
-        }
-    };
+    const updatedLabel = useRelativeTime(ticket.updatedAt);
 
     // Determine the link based on user role
     const ticketLink = user && (hasAdminAccess(user))
@@ -72,7 +62,7 @@ export const TicketListItem: React.FC<TicketListItemProps> = ({ ticket }) => {
                     </div>
                     <div className="flex flex-col sm:items-end text-xs text-muted-foreground flex-shrink-0 gap-1 sm:gap-0 pt-2 sm:pt-0 border-t sm:border-none">
                         <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> Ticket #{ticket.id.split('_')[1] || ticket.id}</span>
-                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Updated {formatTimeAgo(ticket.updatedAt)}</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {updatedLabel}</span>
                         {/* Optionally show response count */}
                         {/* <span className="flex items-center gap-1"><MessageSquare className="h-3 w-3"/> {ticket.responses?.length || 0} Responses</span> */}
                     </div>
