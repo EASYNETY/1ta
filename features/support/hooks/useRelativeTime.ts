@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { parseISO, isValid, formatDistanceToNowStrict } from 'date-fns'
+import { parseISO, isValid, differenceInSeconds, differenceInMinutes, differenceInHours } from 'date-fns'
 
 /**
  * Returns a live-updating relative time label for a given ISO date string.
@@ -13,8 +13,16 @@ export default function useRelativeTime(dateString?: string) {
             if (!isValid(parsed)) return 'Updated Invalid date'
             const now = new Date()
             const safeDate = parsed.getTime() > now.getTime() ? now : parsed
-            const text = formatDistanceToNowStrict(safeDate, { addSuffix: true })
-            return `Updated ${text}`
+            const seconds = differenceInSeconds(now, safeDate)
+            const minutes = differenceInMinutes(now, safeDate)
+            const hours = differenceInHours(now, safeDate)
+            if (seconds < 60) {
+                return `Updated ${seconds} second${seconds === 1 ? '' : 's'} ago`
+            } else if (minutes < 60) {
+                return `Updated ${minutes} minute${minutes === 1 ? '' : 's'} ago`
+            } else {
+                return `Updated ${hours} hour${hours === 1 ? '' : 's'} ago`
+            }
         } catch {
             return 'Updated Error'
         }
@@ -35,36 +43,35 @@ export default function useRelativeTime(dateString?: string) {
             setLabel(compute())
         }
 
-        // Choose interval: every second for the first minute, otherwise every minute
+        // Choose interval: every second for <1min, every minute for <1hr, every hour for >=1hr
         const getInterval = () => {
             try {
                 const parsed = parseISO(dateString)
                 if (!isValid(parsed)) return 60000
-                const now = Date.now()
-                const diffSec = Math.abs((now - Math.min(parsed.getTime(), now)) / 1000)
-                return diffSec < 60 ? 1000 : 60000
+                const now = new Date()
+                const seconds = differenceInSeconds(now, parsed)
+                const minutes = differenceInMinutes(now, parsed)
+                if (seconds < 60) return 1000
+                if (minutes < 60) return 60000
+                return 3600000
             } catch {
                 return 60000
             }
         }
 
-        // Start interval and also run immediately
         tick()
         let interval = getInterval()
-        const id = setInterval(tick, interval)
+        let id = setInterval(tick, interval)
 
-        // If the frequency should change (e.g., moved past 1 minute), recreate timer
+        // Check every 10s if interval should change
         const freqChecker = setInterval(() => {
             const next = getInterval()
             if (next !== interval) {
                 clearInterval(id)
                 interval = next
-                // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                // recreate interval with new timing (we'll rely on effect cleanup to clear)
-                // but here we simply clear and set a new one
-                // NOTE: setInterval id variable re-assigned below is local; recreate directly
+                id = setInterval(tick, interval)
             }
-        }, 5000)
+        }, 10000)
 
         return () => {
             mounted = false
