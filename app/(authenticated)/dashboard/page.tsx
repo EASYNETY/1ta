@@ -39,7 +39,9 @@ import { AnalyticsTab } from "@/components/dashboard/analytics-tab"
 
 export default function DashboardPage() {
     const { user, isInitialized, skipOnboarding, token } = useAppSelector((state) => state.auth)
-    const { courses, status } = useAppSelector((state) => state.auth_courses)
+    const authCoursesState = useAppSelector((state) => state.auth_courses)
+    const courses = authCoursesState?.courses || []
+    const status = authCoursesState?.status
     const [activeTab, setActiveTab] = useState("overview")
     const dispatch = useAppDispatch()
     const router = useRouter()
@@ -123,13 +125,13 @@ export default function DashboardPage() {
                     const fetchedCourses = await fetchEnrolledCoursesApi(token)
                     console.log(`Dashboard: Received ${fetchedCourses.length} enrolled courses:`, fetchedCourses)
 
-                    if (fetchedCourses.length > 0) {
+                        if (fetchedCourses && fetchedCourses.length > 0) {
                         console.log("Dashboard: Setting enrolled courses from API");
                         setEnrolledCourses(fetchedCourses);
-                    } else {
+                        } else {
                         // If no enrolled courses returned, check if we have courses in Redux store
                         console.log("Dashboard: No enrolled courses returned from API, checking Redux store");
-                        if (courses && courses.length > 0) {
+                        if (courses.length > 0) {
                             const reduxCourses = courses.filter(course =>
                                 course.enrolmentStatus === 'enroled' ||
                                 course.enrollmentStatus === true
@@ -150,7 +152,7 @@ export default function DashboardPage() {
                     setEnrolledError("Failed to load your enrolled courses")
 
                     // Fallback to using the courses from the Redux store
-                    if (courses && courses.length > 0) {
+                    if (courses.length > 0) {
                         const reduxCourses = courses.filter(course =>
                             course.enrolmentStatus === 'enroled' ||
                             course.enrollmentStatus === true
@@ -188,11 +190,11 @@ export default function DashboardPage() {
                         // If no available courses returned, use courses from Redux store
                         // that are not enrolled
                         console.log("Dashboard: No available courses returned from API, using Redux store")
-                        if (courses && courses.length > 0 && enrolledCourses.length > 0) {
+                        if (courses.length > 0 && enrolledCourses.length > 0) {
                             const filteredCourses = filterOutEnrolledCourses(courses, enrolledCourses)
                             console.log("Dashboard: Using filtered courses from Redux store:", filteredCourses)
                             setAvailableCourses(filteredCourses)
-                        } else if (courses && courses.length > 0) {
+                        } else if (courses.length > 0) {
                             // Filter out enrolled courses from Redux store
                             const filteredCourses = courses.filter(course =>
                                 course.enrolmentStatus !== 'enroled' &&
@@ -206,7 +208,7 @@ export default function DashboardPage() {
                     setAvailableError("Failed to load available courses")
 
                     // Fallback to using filtered courses from Redux store
-                    if (courses && courses.length > 0 && enrolledCourses.length > 0) {
+                    if (courses.length > 0 && enrolledCourses.length > 0) {
                         const filteredCourses = filterOutEnrolledCourses(courses, enrolledCourses)
                         console.log("Using fallback filtered courses from Redux store:", filteredCourses)
                         setAvailableCourses(filteredCourses)
@@ -514,7 +516,7 @@ export default function DashboardPage() {
                                 .map((course, index) => (
                                     <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
                                 ))
-                        ) : courses && courses.length > 0 ? (
+                        ) : courses.length > 0 ? (
                             // Fallback to using only enrolled courses from Redux store
                             courses
                                 .filter(course => course.enrolmentStatus === 'enroled' || course.enrollmentStatus === true)
@@ -561,7 +563,7 @@ export default function DashboardPage() {
                                 .map((course, index) => (
                                     <CourseCard key={`${course.id}-${index}`} course={course} index={index} />
                                 ))
-                        ) : courses && courses.length > 0 ? (
+                        ) : courses.length > 0 ? (
                             // Fallback to using only non-enrolled courses from Redux store
                             courses
                                 .filter(course =>
