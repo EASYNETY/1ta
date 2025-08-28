@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { format, parseISO, isToday, isValid } from "date-fns"
+import { format, parseISO, isToday, isValid, subHours } from "date-fns"
 import { Check, X, Clock, Calendar, Info, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -65,7 +65,10 @@ export function StudentAttendanceView() {
             const date = parseISO(ts);
             if (!isValid(date)) return String(ts);
 
-            return format(date, "yyyy-MM-dd HH:mm:ss");
+            // Subtract 1 hour
+            const adjustedDate = subHours(date, 1);
+
+            return format(adjustedDate, "yyyy-MM-dd HH:mm:ss");
         } catch {
             return String(ts);
         }
