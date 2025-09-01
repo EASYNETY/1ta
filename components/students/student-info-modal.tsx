@@ -41,6 +41,7 @@ interface StudentInfo {
     barcodeId: string;
     isActive?: boolean;      // This will be interpreted as paid status for display
     avatarUrl?: string | null; // URL for the student's avatar image
+    paymentStatus?: string;
 }
 
 interface StudentInfoModalProps {
@@ -55,6 +56,7 @@ interface StudentInfoModalProps {
     casualScanMode?: boolean   // Whether we're in casual scan mode (view only)
     checkInDateTime?: string   // New: Date and time of check-in
     lectureName?: string       // New: Name of the lecture/class checked in for
+    paymentStatus?: string;
 }
 
 export function StudentInfoModal({
@@ -69,6 +71,7 @@ export function StudentInfoModal({
     casualScanMode = false,
     checkInDateTime,
     lectureName,
+    paymentStatus
 }: StudentInfoModalProps) {
 
     // This function handles closing the modal AND triggering the scan resumption
@@ -214,14 +217,44 @@ export function StudentInfoModal({
                                 <InfoItem
                                     icon={CreditCard}
                                     label="Payment Status"
-                                    value={(studentInfo.isActive === true || Number(studentInfo.isActive) === 1) ? "Paid" : studentInfo.isActive === false ? "Unpaid" : "Unknown"}
+                                    value={paymentStatus || studentInfo?.paymentStatus || "Unknown"}  // Use API payment status first
                                     valueAsBadge={true}
                                     badgeVariant={
-                                        (studentInfo.isActive === true || Number(studentInfo.isActive) === 1) ? "default"
-                                            : studentInfo.isActive === false ? "destructive"
-                                                : "secondary"
+                                        (() => {
+                                            const status = (paymentStatus || studentInfo?.paymentStatus || "Unknown").toLowerCase();
+                                            switch (status) {
+                                                case 'paid':
+                                                    return "default" as const;
+                                                case 'pending':
+                                                    return "secondary" as const;
+                                                case 'not paid':
+                                                case 'failed':
+                                                case 'cancelled':
+                                                case 'refunded':
+                                                    return "destructive" as const;
+                                                default:
+                                                    return "secondary" as const;
+                                            }
+                                        })()
                                     }
-                                    badgeClassName={(studentInfo.isActive === true || Number(studentInfo.isActive) === 1) ? "bg-green-100 text-green-800 border-green-200" : ""}
+                                    badgeClassName={
+                                        (() => {
+                                            const status = (paymentStatus || studentInfo?.paymentStatus || "Unknown").toLowerCase();
+                                            switch (status) {
+                                                case 'paid':
+                                                    return "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-600/30";
+                                                case 'pending':
+                                                    return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-600/30";
+                                                case 'not paid':
+                                                case 'failed':
+                                                case 'cancelled':
+                                                case 'refunded':
+                                                    return "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-600/30";
+                                                default:
+                                                    return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-300 dark:border-gray-600/30";
+                                            }
+                                        })()
+                                    }
                                 />
                             </div>
 

@@ -24,11 +24,13 @@ export interface CourseAttendanceDetails {
 	dailyRecords: Record<string, DailyAttendance>;
 }
 
+// Add this to your AttendanceMarkingState interface
 interface AttendanceMarkingState {
 	isLoading: boolean;
 	error: string | null;
 	lastMarkedStatus: "success" | "error" | "idle";
 	markedStudentId: string | null;
+	markingResult: any | null; // Store the complete API response
 	studentAttendance: Record<string, StudentAttendanceRecord[]>;
 	courseAttendance: Record<string, CourseAttendanceDetails>;
 	allRecords: AttendanceRecord[];
@@ -157,9 +159,9 @@ export const fetchCourseAttendance = createAsyncThunk<
 	}
 });
 
-// Mark Attendance Thunk
+// Update the markStudentAttendance thunk to return the full response
 export const markStudentAttendance = createAsyncThunk<
-	{ success: boolean; studentId: string; message?: string },
+	any, // Return the full API response instead of just basic info
 	MarkAttendancePayload,
 	{ state: RootState; rejectValue: string }
 >("attendance/markStudent", async (payload, { getState, rejectWithValue, dispatch }) => {
@@ -176,20 +178,11 @@ export const markStudentAttendance = createAsyncThunk<
 
 		// Handle both direct and nested response structures
 		if (response.success) {
-			if (response.data) {
-				// Backend returns nested structure with success and data
-				// Immediately refetch student attendance for real-time update
-				await dispatch(fetchStudentAttendance(payload.studentId));
-				return {
-					success: response.success,
-					studentId: payload.studentId,
-					message: response.message || "Attendance marked successfully",
-				};
-			} else {
-				// Direct response structure
-				await dispatch(fetchStudentAttendance(payload.studentId));
-				return { ...response, studentId: payload.studentId };
-			}
+			// Immediately refetch student attendance for real-time update
+			await dispatch(fetchStudentAttendance(payload.studentId));
+
+			// Return the complete response so we can access paymentStatus, checkInDateTime, etc.
+			return response;
 		} else {
 			return rejectWithValue(
 				response.message || "Failed to mark attendance on server."
@@ -204,11 +197,13 @@ export const markStudentAttendance = createAsyncThunk<
 	}
 });
 
+// Update the initialState to include markingResult
 const initialState: AttendanceMarkingState = {
 	isLoading: false,
 	error: null,
 	lastMarkedStatus: "idle",
 	markedStudentId: null,
+	markingResult: null, // Add this
 	studentAttendance: {},
 	allRecords: [],
 	courseAttendance: {},
@@ -224,7 +219,9 @@ const attendanceMarkingSlice = createSlice({
 			state.lastMarkedStatus = "idle";
 			state.error = null;
 			state.markedStudentId = null;
+			state.markingResult = null; // Clear the result
 		},
+
 	},
 	extraReducers: (builder) => {
 		builder
@@ -234,22 +231,21 @@ const attendanceMarkingSlice = createSlice({
 				state.error = null;
 				state.lastMarkedStatus = "idle";
 				state.markedStudentId = null;
+				state.markingResult = null; // Clear previous result
 			})
 			.addCase(markStudentAttendance.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.lastMarkedStatus = "success";
 				state.markedStudentId = action.payload.studentId;
+				state.markingResult = action.payload; // Store the complete API response
 				state.error = null;
-
-				// Update the attendance data in state if needed
-				// This would be a good place to refetch the attendance data
-				// or update it directly if you have the necessary information
 			})
 			.addCase(markStudentAttendance.rejected, (state, action) => {
 				state.isLoading = false;
 				state.lastMarkedStatus = "error";
 				state.error = action.payload ?? "Failed to mark attendance.";
 				state.markedStudentId = null;
+				state.markingResult = null; // Clear result on error
 			})
 
 			// Fetch Student Attendance
@@ -404,6 +400,10 @@ export const selectFetchingStudentAttendance = (state: RootState) =>
 	state.attendanceMarking.fetchingStudentAttendance;
 export const selectFetchingCourseAttendance = (state: RootState) =>
 	state.attendanceMarking.fetchingCourseAttendance;
+
+// Add the new selector
+export const selectAttendanceMarkingResult = (state: RootState) =>
+	state.attendanceMarking.markingResult;
 
 // New selector for analytics
 export const selectAllAttendanceForAnalytics = (state: RootState) =>
