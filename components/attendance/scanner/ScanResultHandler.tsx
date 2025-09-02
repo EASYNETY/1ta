@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
     markStudentAttendance,
     resetMarkingStatus,
     selectAttendanceMarkingLoading,
     selectAttendanceMarkingError,
-    selectAttendanceMarkingStatus
+    selectAttendanceMarkingStatus,
+    selectAttendanceMarkingResult // Add this selector to get the API response
 } from "@/features/attendance/store/attendance-slice";
 import { selectCourseClass } from "@/features/classes/store/classSessionSlice";
 import { StudentInfoModal } from "@/components/students/student-info-modal";
@@ -56,6 +57,14 @@ export function ScanResultHandler({
     const markingLoading = useAppSelector(selectAttendanceMarkingLoading);
     const apiError = useAppSelector(selectAttendanceMarkingError);
     const apiStatus = useAppSelector(selectAttendanceMarkingStatus);
+    const markingResult = useAppSelector(selectAttendanceMarkingResult); // Get API response
+
+    // State to store API response data
+    const [apiResponseData, setApiResponseData] = useState<{
+        paymentStatus?: string;
+        checkInDateTime?: string;
+        lectureName?: string;
+    } | null>(null);
 
     // Handle modal close
     const handleModalClose = useCallback(() => {
@@ -67,8 +76,22 @@ export function ScanResultHandler({
         setLastScannedId(null);
         setStudentInfo(null);
         setIsScannerActive(true);
+        setApiResponseData(null); // Clear API response data
         dispatch(resetMarkingStatus());
     }, [setLastScannedId, setStudentInfo, setIsScannerActive, dispatch]);
+
+    // Effect to extract data from API response
+    useEffect(() => {
+        if (markingResult && apiStatus === 'success') {
+            console.log('Attendance marking API response:', markingResult);
+            
+            setApiResponseData({
+                paymentStatus: markingResult.paymentStatus,
+                checkInDateTime: markingResult.checkInDateTime,
+                lectureName: markingResult.lecture
+            });
+        }
+    }, [markingResult, apiStatus]);
 
     // Effect to process scanned barcode
     useEffect(() => {
@@ -126,6 +149,7 @@ export function ScanResultHandler({
 
                 // Mark attendance if not in casual mode and class is selected
                 if (!casualScanMode && selectedClass?.id) {
+                    console.log('Marking attendance for student:', foundStudent.id);
                     dispatch(markStudentAttendance({
                         studentId: foundStudent.id,
                         classInstanceId: selectedClass.id,
@@ -170,6 +194,7 @@ export function ScanResultHandler({
 
                         // Mark attendance if not in casual mode and class is selected
                         if (!casualScanMode && selectedClass?.id) {
+                            console.log('Marking attendance for partial match student:', partialMatches[0].id);
                             dispatch(markStudentAttendance({
                                 studentId: partialMatches[0].id,
                                 classInstanceId: selectedClass.id,
@@ -212,8 +237,9 @@ export function ScanResultHandler({
             apiStatus={casualScanMode ? 'success' : (markingLoading ? 'loading' : apiStatus)}
             apiError={apiError}
             casualScanMode={casualScanMode}
-            checkInDateTime={new Date().toISOString()}
-            lectureName={selectedClass.courseName}
+            checkInDateTime={apiResponseData?.checkInDateTime || (casualScanMode ? new Date().toISOString() : undefined)}
+            lectureName={apiResponseData?.lectureName || selectedClass?.courseName}
+            paymentStatus={apiResponseData?.paymentStatus} // Pass payment status from API
         />
     );
 }
