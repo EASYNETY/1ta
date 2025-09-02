@@ -29,9 +29,9 @@ export function CourseCard({ course, index }: CourseCardProps) {
     // Calculate progress percentage
     const progressPercentage = course.progress ?? 0
 
-    console.log(`[CourseCard] ${course.title} image:`, course.image);
+    console.log(`[CourseCard] ${course.title} - Image URL:`, course.image, 'Icon URL:', course.iconUrl);
 
-        // Create a data URL fallback for when all else fails
+    // Create a data URL fallback for when all else fails
     const createFallbackImage = () => {
         const svg = `<svg width="400" height="225" xmlns="http://www.w3.org/2000/svg">
             <rect width="100%" height="100%" fill="#f1f5f9"/>
@@ -42,41 +42,44 @@ export function CourseCard({ course, index }: CourseCardProps) {
         return `data:image/svg+xml;base64,${btoa(svg)}`;
     };
 
-    // Enhanced image URL handling with better fallbacks
+    // Improved image URL handling
     const getImageUrl = () => {
-        // If we had an error, use fallback chain
+        // If we had an error, use fallback
         if (imageError) {
             console.log(`[CourseCard] Using fallback due to error for: ${course.title}`);
-            
-            // Try the generated icon first
-            const generatedIcon = getCourseIcon(course.title, course.id);
-            
-            // If generated icon looks like a placeholder path that might not exist, use data URL
-            if (generatedIcon.includes('placeholder') || generatedIcon.startsWith('/course-')) {
-                return createFallbackImage();
+            return createFallbackImage();
+        }
+
+        // Priority 1: Use the main course image if it's a valid HTTP URL
+        if (course.image && typeof course.image === 'string' && course.image.startsWith('http')) {
+            // Skip placeholder URLs
+            if (!course.image.includes('placeholder') && !course.image.includes('example.com')) {
+                console.log(`[CourseCard] Using main course image: ${course.image}`);
+                return course.image;
             }
-            
-            return generatedIcon;
         }
 
-        // Use direct API image if available
-        if (course.image && course.image.startsWith("http") && !course.image.includes('placeholder')) {
-            console.log(`[CourseCard] Using direct image URL: ${course.image}`);
-            return course.image;
+        // Priority 2: Use iconUrl if available and valid
+        if (course.iconUrl && typeof course.iconUrl === 'string' && course.iconUrl.startsWith('http')) {
+            if (!course.iconUrl.includes('placeholder') && !course.iconUrl.includes('example.com')) {
+                console.log(`[CourseCard] Using iconUrl: ${course.iconUrl}`);
+                return course.iconUrl;
+            }
         }
 
-        // Fallback to iconUrl if available
-        if (course.iconUrl && course.iconUrl.startsWith("http")) {
-            console.log(`[CourseCard] Using iconUrl: ${course.iconUrl}`);
-            return course.iconUrl;
+        // Priority 3: Try to construct API URL if we have an image filename
+        if (course.image && typeof course.image === 'string' && !course.image.startsWith('http')) {
+            const apiImageUrl = `https://api.onetechacademy.com/uploads/courses/${course.image}`;
+            console.log(`[CourseCard] Using constructed API URL: ${apiImageUrl}`);
+            return apiImageUrl;
         }
 
-        // Final fallback to generated icon
+        // Priority 4: Use generated icon as last resort
         console.log(`[CourseCard] Using generated icon for: ${course.title}`);
         const generatedIcon = getCourseIcon(course.title, course.id);
         
-        // If generated icon looks like a placeholder path that might not exist, use data URL
-        if (generatedIcon.includes('placeholder') || generatedIcon.startsWith('/course-')) {
+        // If generated icon looks like a local path, use data URL instead
+        if (generatedIcon.includes('placeholder') || generatedIcon.startsWith('/course-') || !generatedIcon.startsWith('http')) {
             return createFallbackImage();
         }
         
@@ -84,7 +87,6 @@ export function CourseCard({ course, index }: CourseCardProps) {
     };
 
     const imageUrl = getImageUrl();
-    const isExternalImage = imageUrl.includes('api.onetechacademy.com');
 
     const handleImageError = () => {
         console.log(`[CourseCard] Image failed to load: ${imageUrl}`);
@@ -99,13 +101,11 @@ export function CourseCard({ course, index }: CourseCardProps) {
         setImageError(false); // Reset error state on successful load
     };
 
-
-
     return (
         <motion.div variants={item}>
             <DyraneCard className="overflow-hidden h-full flex flex-col group">
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                    {/* Always use regular img tag to avoid Next.js external image issues */}
+                    {/* Use regular img tag to avoid Next.js external image restrictions */}
                     <img
                         src={imageUrl}
                         alt={course.title || "Course"}
