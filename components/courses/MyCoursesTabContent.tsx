@@ -5,16 +5,16 @@ import { EmptyStateCard } from "./EmptyStateCard";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
-import { FetchStatus } from "@/types"; // Assuming type exists
+import { FetchStatus } from "@/types";
 import { AuthCourse } from "@/features/auth-course/types/auth-course-interface";
 
 interface MyCoursesTabContentProps {
     status: FetchStatus;
-    courses: AuthCourse[]; // These should be the *filtered* courses relevant to the user
-    onClearFilters: () => void; // Pass clear filter action if needed for empty state
+    courses: AuthCourse[];
+    onClearFilters: () => void;
 }
 
-// Animation variants (can be moved to a constants file)
+// Animation variants
 const container = {
     hidden: { opacity: 0 },
     show: {
@@ -26,6 +26,9 @@ const container = {
 };
 
 export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCoursesTabContentProps) {
+    console.log("[MyCoursesTabContent] Received courses:", courses);
+    console.log("[MyCoursesTabContent] Status:", status);
+
     if (status === "loading") {
         return (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -38,7 +41,24 @@ export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCours
         );
     }
 
+    if (status === "failed") {
+        return (
+            <EmptyStateCard
+                Icon={BookOpen}
+                title="Error Loading Your Courses"
+                message="There was an error loading your enrolled courses. Please try again later."
+                action={
+                    <DyraneButton onClick={() => window.location.reload()}>
+                        Retry
+                    </DyraneButton>
+                }
+            />
+        );
+    }
+
     if (courses && courses.length > 0) {
+        console.log("[MyCoursesTabContent] Rendering courses grid with", courses.length, "courses");
+        
         return (
             <motion.div
                 className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -46,20 +66,34 @@ export function MyCoursesTabContent({ status, courses, onClearFilters }: MyCours
                 initial="hidden"
                 animate="show"
             >
-                {courses.map((course, index) => (
-                    <CourseCard key={`${course?.id || index}-${index}`} course={course} index={index} />
-                ))}
+                {courses.map((course, index) => {
+                    console.log(`[MyCoursesTabContent] Rendering course ${index}:`, {
+                        id: course?.id,
+                        title: course?.title,
+                        image: course?.image,
+                        iconUrl: course?.iconUrl,
+                        enrolmentStatus: course?.enrolmentStatus
+                    });
+                    
+                    return (
+                        <CourseCard 
+                            key={`my-courses-${course?.id || index}-${index}`} 
+                            course={course} 
+                            index={index} 
+                        />
+                    );
+                })}
             </motion.div>
         );
     }
 
-    // Adjust message based on context (e.g., if filters are active)
-    const message = "You haven't enroled in any courses yet, or no courses match your current filters. Browse our catalog to find courses that interest you.";
+    // Empty state
+    const message = "You haven't enrolled in any courses yet, or no courses match your current filters. Browse our catalog to find courses that interest you.";
 
     return (
         <EmptyStateCard
             Icon={BookOpen}
-            title="No courses found"
+            title="No enrolled courses found"
             message={message}
             action={
                 <>
