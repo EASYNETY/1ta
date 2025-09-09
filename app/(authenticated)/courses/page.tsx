@@ -1,110 +1,119 @@
 // app/(authenticated)/courses/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react"
-import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice"
-// We no longer need the separate API client for enrolled courses here
-// import { getEnrolledCourses as fetchEnrolledCoursesApi } from "@/features/auth-course/utils/course-api-client"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
-import { AuthenticationGuard } from "@/components/courses/AuthenticationGuard"
-import { CoursesPageHeader } from "@/components/courses/CoursesPageHeader"
-import { CourseTabsList } from "@/components/courses/CourseTabsList"
-import { CourseFilters } from "@/components/courses/CourseFilters"
-import { AllCoursesTabContent } from "@/components/courses/AllCoursesTabContent"
-import { ManageCoursesTabContent } from "@/components/courses/ManageCoursesTabContent"
-import { CourseRequestsTabContent } from "@/components/courses/CourseRequestsTabContent"
-import { type User, isStudent } from "@/types/user.types"
-import { MyCoursesTabContent } from "@/components/courses/MyCoursesTabContent"
-import { CorporateStudentNotice } from "@/components/courses/CorporateStudentNotice"
+import { useState, useEffect, useMemo } from "react";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { fetchAuthCourses } from "@/features/auth-course/store/auth-course-slice";
+import { getEnrolledCourses as fetchEnrolledCoursesApi } from "@/features/auth-course/utils/course-api-client";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { AuthenticationGuard } from "@/components/courses/AuthenticationGuard";
+import { CoursesPageHeader } from "@/components/courses/CoursesPageHeader";
+import { CourseTabsList } from "@/components/courses/CourseTabsList";
+import { CourseFilters } from "@/components/courses/CourseFilters";
+import { AllCoursesTabContent } from "@/components/courses/AllCoursesTabContent";
+import { ManageCoursesTabContent } from "@/components/courses/ManageCoursesTabContent";
+import { CourseRequestsTabContent } from "@/components/courses/CourseRequestsTabContent";
+import { type User, isStudent } from "@/types/user.types";
+import { MyCoursesTabContent } from "@/components/courses/MyCoursesTabContent";
+import { CorporateStudentNotice } from "@/components/courses/CorporateStudentNotice";
 
 export default function CoursesPage() {
-  const { user } = useAppSelector((state) => state.auth) as { user: User | null }
-  const { courses, categories, status } = useAppSelector((state) => state.auth_courses)
-  const dispatch = useAppDispatch()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState<string | "all">("all")
-  const [levelFilter, setLevelFilter] = useState<string | "all">("all")
+  const { user, token } = useAppSelector((state) => state.auth) as { user: User | null, token: string | null };
+  const { courses, categories, status } = useAppSelector((state) => state.auth_courses);
+  const dispatch = useAppDispatch();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string | "all">("all");
+  const [levelFilter, setLevelFilter] = useState<string | "all">("all");
   
-  // --- REMOVED ---
-  // We no longer need separate state for enrolled courses as it causes data inconsistency.
-  // const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
-  // const [isLoadingEnrolled, setIsLoadingEnrolled] = useState(false)
-  // const [enrolledError, setEnrolledError] = useState<string | null>(null)
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
+  const [isLoadingEnrolled, setIsLoadingEnrolled] = useState(true); // Default to true on initial load
+  const [enrolledError, setEnrolledError] = useState<string | null>(null);
 
   const isCorporateStudent = isStudent(user) && user.corporateId !== undefined && user.corporateId !== null && !user.isCorporateManager;
-  const [activeTab, setActiveTab] = useState(isCorporateStudent ? "my-courses" : "all-courses")
+  const [activeTab, setActiveTab] = useState(isCorporateStudent ? "my-courses" : "all-courses");
 
-  // Fetch all courses (including their enrolment status) on mount
+  // Fetch all courses for the "All Courses" tab
   useEffect(() => {
-    if (user) {
-      dispatch(fetchAuthCourses())
+    if (user && !isCorporateStudent) {
+      dispatch(fetchAuthCourses());
     }
-  }, [dispatch, user])
+  }, [dispatch, user, isCorporateStudent]);
+  
+  // --- [FIXED LOGIC] ---
+  // Fetch ENROLLED courses specifically for the "My Courses" tab.
+  // This is now simpler and more reliable.
+  useEffect(() => {
+    // Only run this fetch if the user is logged in.
+    if (user && token) {
+      const getEnrolledCourses = async () => {
+        setIsLoadingEnrolled(true);
+        setEnrolledError(null);
+        try {
+          console.log("Courses Page: Fetching enrolled courses...");
+          
+          // We trust this API call as the single source of truth.
+          const fetchedCourses = await fetchEnrolledCoursesApi(token);
+          
+          console.log(`Courses Page: Successfully received ${fetchedCourses.length} enrolled courses from API.`);
+          setEnrolledCourses(fetchedCourses);
 
-  // --- REMOVED ---
-  // The separate useEffect for fetching enrolled courses is deleted.
-  // This was the source of the inconsistent data.
+        } catch (error) {
+          console.error("Courses Page: Error fetching enrolled courses:", error);
+          setEnrolledError("Failed to load your enrolled courses. Please try again.");
+          setEnrolledCourses([]); // Set to empty on error to prevent crashes
+        } finally {
+          setIsLoadingEnrolled(false);
+        }
+      };
+      
+      getEnrolledCourses();
+    } else {
+      // If there's no user/token, ensure the list is empty and not loading.
+      setIsLoadingEnrolled(false);
+      setEnrolledCourses([]);
+    }
+  }, [user, token]); // The dependency array is now correct.
 
   useEffect(() => {
     if (isCorporateStudent && activeTab === "all-courses") {
-      setActiveTab("my-courses")
+      setActiveTab("my-courses");
     }
-  }, [activeTab, isCorporateStudent])
+  }, [activeTab, isCorporateStudent]);
 
-  // --- NEW LOGIC: DERIVE ENROLLED COURSES FROM THE SINGLE SOURCE OF TRUTH (REDUX) ---
-  const enrolledCourses = useMemo(() => {
-    if (!courses) return [];
-    // The main 'courses' array already has the correct data and enrolment status.
-    return courses.filter(course => 
-      course.enrolmentStatus === 'enroled' || 
-      course.enrolmentStatus === true
-    );
-  }, [courses]); // This will only re-calculate when the main courses list changes.
-
-  // Filter all courses based on search query and filters
+  // This filtering logic now applies to the separate lists of courses
   const filteredAllCourses = useMemo(() => {
     return courses.filter((course) => {
-      // (Your existing filter logic for all courses - no changes needed)
-      const matchesSearch =
-          (course?.title && course.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (course?.description && course.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (course?.tags && Array.isArray(course.tags) && course.tags.some((tag) => 
-            tag && typeof tag === 'string' && tag.toLowerCase().includes(searchQuery.toLowerCase())
-          ))
-        const matchesCategory = categoryFilter === "all" || course?.category === categoryFilter
-        const matchesLevel = levelFilter === "all" || course?.level === levelFilter
-        return matchesSearch && matchesCategory && matchesLevel
-    })
-  }, [courses, searchQuery, categoryFilter, levelFilter])
+        const matchesSearch =
+          (course?.title?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (course?.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesCategory = categoryFilter === "all" || course?.category === categoryFilter;
+        const matchesLevel = levelFilter === "all" || course?.level === levelFilter;
+        return matchesSearch && matchesCategory && matchesLevel;
+    });
+  }, [courses, searchQuery, categoryFilter, levelFilter]);
 
-  // Filter the derived enrolled courses list based on search query and filters
   const filteredEnrolledCourses = useMemo(() => {
-      return enrolledCourses.filter((course) => {
-          // (Your existing filter logic, now applied to the clean enrolledCourses list)
-          const matchesSearch =
-            (course?.title && course.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (course?.description && course.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-            (course?.tags && Array.isArray(course.tags) && course.tags.some((tag) => 
-              tag && typeof tag === 'string' && tag.toLowerCase().includes(searchQuery.toLowerCase())
-            ))
-          const matchesCategory = categoryFilter === "all" || course?.category === categoryFilter
-          const matchesLevel = levelFilter === "all" || course?.level === levelFilter
-          return matchesSearch && matchesCategory && matchesLevel
-      });
+    return enrolledCourses.filter((course) => {
+        const matchesSearch =
+          (course?.title?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (course?.description?.toLowerCase().includes(searchQuery.toLowerCase()));
+        const matchesCategory = categoryFilter === "all" || course?.category === categoryFilter;
+        const matchesLevel = levelFilter === "all" || course?.level === levelFilter;
+        return matchesSearch && matchesCategory && matchesLevel;
+    });
   }, [enrolledCourses, searchQuery, categoryFilter, levelFilter]);
 
+
   const clearFilters = () => {
-    setSearchQuery("")
-    setCategoryFilter("all")
-    setLevelFilter("all")
-  }
+    setSearchQuery("");
+    setCategoryFilter("all");
+    setLevelFilter("all");
+  };
 
   return (
     <AuthenticationGuard>
       <div className="space-y-6">
         <CoursesPageHeader user={user} />
-
         {isCorporateStudent && <CorporateStudentNotice />}
 
         <Tabs
@@ -113,8 +122,6 @@ export default function CoursesPage() {
           onValueChange={setActiveTab}
         >
           <CourseTabsList user={user} />
-
-          {/* Filters are now visible on "my-courses" tab as well */}
           <CourseFilters
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -129,8 +136,7 @@ export default function CoursesPage() {
             {isCorporateStudent ? (
               <div className="p-6 text-center bg-muted/20 rounded-lg border">
                 <p className="text-muted-foreground">
-                  As a corporate student, you can only access courses assigned to you by your organization. Please check
-                  the "My Courses" tab to see your assigned courses.
+                  As a corporate student, your access is limited to your assigned courses in the "My Courses" tab.
                 </p>
               </div>
             ) : (
@@ -140,15 +146,17 @@ export default function CoursesPage() {
 
           <TabsContent value="my-courses">
             <MyCoursesTabContent
-              // Use the main Redux status, which is the true loading status
-              status={status}
-              // Pass the correctly filtered list of enrolled courses
+              status={isLoadingEnrolled ? "loading" : (enrolledError ? "failed" : "success")}
               courses={filteredEnrolledCourses}
               onClearFilters={clearFilters}
             />
-            {/* The separate enrolledError is no longer needed */}
+            {enrolledError && (
+              <div className="mt-4 p-4 border rounded-md bg-destructive/10 text-destructive text-center">
+                <p>{enrolledError}</p>
+              </div>
+            )}
           </TabsContent>
-
+          
           {(user?.role === "admin" || user?.role === "super_admin") && (
             <TabsContent value="manage-courses">
               <ManageCoursesTabContent status={status} courses={filteredAllCourses} />
@@ -163,5 +171,5 @@ export default function CoursesPage() {
         </Tabs>
       </div>
     </AuthenticationGuard>
-  )
+  );
 }
