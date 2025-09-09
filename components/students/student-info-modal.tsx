@@ -1,5 +1,3 @@
-// components/students/student-info-modal.tsx
-
 "use client"
 
 import { Button } from "@/components/ui/button"
@@ -193,8 +191,8 @@ export function StudentInfoModal({
                                         <UserIcon className="h-8 w-8 text-muted-foreground" />
                                     </div>
                                 )}
-                                <div className="flex-grow">
-                                    <h3 className="font-semibold text-xl leading-tight">{studentInfo.name}</h3>
+                                <div className="flex-grow min-w-0"> {/* Added min-w-0 here to help constrain the name/email */}
+                                    <h3 className="font-semibold text-xl leading-tight truncate">{studentInfo.name}</h3>
                                     <p className="text-sm text-muted-foreground truncate">{studentInfo.email}</p>
                                 </div>
                             </div>
@@ -319,21 +317,18 @@ export function StudentInfoModal({
 const InfoItem: React.FC<{
     icon: React.ElementType,
     label: string,
-    value?: string | number | null | boolean, // Allow boolean for generic use if needed
+    value?: string | number | null | boolean,
     isCode?: boolean,
     valueAsBadge?: boolean,
     badgeVariant?: "default" | "secondary" | "destructive" | "outline",
     badgeClassName?: string
 }> = ({ icon: Icon, label, value, isCode = false, valueAsBadge = false, badgeVariant = "secondary", badgeClassName = "" }) => {
-    // More robust check for empty or undefined values
     if (value === undefined || value === null || String(value).trim() === '') {
-        // Optionally display N/A for specifically empty strings if desired, else hide
-        // For now, we just don't render the item if value is not meaningfully present
         return null;
     }
 
     let displayValue: React.ReactNode;
-    const stringValue = String(value); // Convert to string for display in Badge or span
+    const stringValue = String(value);
 
     if (valueAsBadge) {
         displayValue = (
@@ -344,14 +339,19 @@ const InfoItem: React.FC<{
     } else if (isCode) {
         displayValue = <code className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{stringValue}</code>;
     } else {
-        displayValue = <span className="font-medium truncate">{stringValue}</span>;
+        // --- FIX 1: Changed <span> to <p> ---
+        // This makes it a block-level element, which is more reliable for truncation within a flex container.
+        displayValue = <p className="font-medium truncate">{stringValue}</p>;
     }
 
     return (
-        <div className="flex items-start gap-2.5 text-sm py-1"> {/* Adjusted gap and py */}
-            <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-[3px]" /> {/* Fine-tuned icon alignment */}
-            <span className="text-muted-foreground min-w-[110px] w-[110px] flex-shrink-0">{label}:</span> {/* Fixed width for labels */}
-            <div className="flex-grow min-w-0 break-words">{displayValue}</div> {/* Allow words to break */}
+        <div className="flex items-start gap-2.5 text-sm py-1">
+            <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-[3px]" />
+            <span className="text-muted-foreground min-w-[110px] w-[110px] flex-shrink-0">{label}:</span>
+            {/* --- FIX 2: Removed `break-words` ---
+                This class is for multi-line wrapping and conflicts with single-line truncation.
+                The `min-w-0` is the crucial part that allows the container to shrink and the truncation to activate. */}
+            <div className="flex-grow min-w-0">{displayValue}</div>
         </div>
     );
 }
