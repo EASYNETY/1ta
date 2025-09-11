@@ -25,7 +25,7 @@
 ## 🚀 **Recommended Push Commands**
 
 ### **Option 1: Single Comprehensive Commit (Recommended)**
-```bash
+\`\`\`bash
 # Check current status
 git status
 
@@ -66,10 +66,10 @@ Priority: Critical"
 
 # Push to repository
 git push origin main
-```
+\`\`\`
 
 ### **Option 2: Separate Commits (If Preferred)**
-```bash
+\`\`\`bash
 # Commit 1: RBAC Implementation
 git add hooks/usePermissions.ts components/auth/PermissionGuard.tsx features/auth/components/auth-provider.tsx components/auth/AuthenticationGuard.tsx components/layout/auth/app-sidebar.tsx hooks/useFilteredPrimaryNavItems.ts hooks/useFilteredSecondaryNavItems.tsx app/\(authenticated\)/accounting/dashboard/page.tsx
 git commit -m "feat: implement complete 4-tier RBAC system
@@ -100,7 +100,7 @@ git commit -m "docs: add organization completion guides
 
 # Push all commits
 git push origin main
-```
+\`\`\`
 
 ---
 

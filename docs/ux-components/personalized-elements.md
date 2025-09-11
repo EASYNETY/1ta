@@ -13,7 +13,7 @@ Personalized elements enhance the user experience by tailoring content and inter
 
 The Learning Path Recommendations component displays personalized course recommendations based on the user's interests, completed courses, and learning goals.
 
-```jsx
+\`\`\`jsx
 // components/recommendations/LearningPathRecommendations.tsx
 import { useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/store/hooks';
@@ -83,13 +83,13 @@ export function LearningPathRecommendations() {
     </DyraneCard>
   );
 }
-```
+\`\`\`
 
 ## Learning Progress Visualization
 
 The Learning Progress Visualization component provides interactive charts to help users track their learning progress.
 
-```jsx
+\`\`\`jsx
 // components/progress/LearningProgressChart.tsx
 import { useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
@@ -168,13 +168,13 @@ export function LearningProgressChart() {
     </DyraneCard>
   );
 }
-```
+\`\`\`
 
 ## Learning Streaks & Gamification
 
 The Learning Streaks component encourages daily engagement with streak counters, badges, and achievements.
 
-```jsx
+\`\`\`jsx
 // components/gamification/LearningStreak.tsx
 import { useState } from 'react';
 import { DyraneCard, DyraneCardContent, DyraneCardHeader, DyraneCardTitle } from '@/components/dyrane-ui/dyrane-card';
@@ -250,13 +250,13 @@ export function LearningStreak() {
     </DyraneCard>
   );
 }
-```
+\`\`\`
 
 ## Integration
 
 These personalized elements can be integrated into the dashboard and other relevant pages:
 
-```jsx
+\`\`\`jsx
 // app/(authenticated)/dashboard/page.tsx
 import { LearningPathRecommendations } from '@/components/recommendations/LearningPathRecommendations';
 import { LearningProgressChart } from '@/components/progress/LearningProgressChart';
@@ -281,7 +281,7 @@ export default function DashboardPage() {
     </div>
   );
 }
-```
+\`\`\`
 
 ## Dependencies
 

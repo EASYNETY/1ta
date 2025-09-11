@@ -14,7 +14,7 @@ We need API endpoints to manage the following public pages through our CMS:
 - **Purpose**: Fetch page content for public pages
 - **Page Types**: `privacy-policy`, `terms-conditions`, `cookies-policy`, `data-protection-policy`, `help-support`
 - **Response Format**:
-```json
+\`\`\`json
 {
   "id": "privacy-policy",
   "title": "Privacy Policy",
@@ -44,7 +44,7 @@ We need API endpoints to manage the following public pages through our CMS:
     }
   ]
 }
-```
+\`\`\`
 
 #### **PUT /api/cms/pages/{pageType}**
 - **Purpose**: Update page content from admin dashboard
@@ -60,7 +60,7 @@ We need API endpoints to manage the following public pages through our CMS:
 #### **GET /api/cms/landing**
 - **Purpose**: Fetch landing page sections
 - **Response Format**:
-```json
+\`\`\`json
 {
   "sections": [
     {
@@ -157,7 +157,7 @@ We need API endpoints to manage the following public pages through our CMS:
     }
   ]
 }
-```
+\`\`\`
 
 #### **PUT /api/cms/landing**
 - **Purpose**: Update landing page sections
@@ -170,7 +170,7 @@ We need API endpoints to manage the following public pages through our CMS:
 - **Purpose**: List uploaded media files
 - **Query Parameters**: `?type=image|video&page=1&limit=20`
 - **Response**:
-```json
+\`\`\`json
 {
   "files": [
     {
@@ -190,7 +190,7 @@ We need API endpoints to manage the following public pages through our CMS:
     "totalPages": 3
   }
 }
-```
+\`\`\`
 
 #### **POST /api/cms/media/upload**
 - **Purpose**: Upload new media files
@@ -206,7 +206,7 @@ We need API endpoints to manage the following public pages through our CMS:
 #### **GET /api/cms/stats**
 - **Purpose**: Get website statistics for admin dashboard
 - **Response**:
-```json
+\`\`\`json
 {
   "pages": {
     "total": 8,
@@ -229,13 +229,13 @@ We need API endpoints to manage the following public pages through our CMS:
   },
   "lastUpdated": "2024-01-15T10:30:00Z"
 }
-```
+\`\`\`
 
 ## 🔧 Technical Requirements
 
 ### **Database Schema Suggestions**
 
-```sql
+\`\`\`sql
 -- CMS Pages Table
 CREATE TABLE cms_pages (
   id VARCHAR(50) PRIMARY KEY,
@@ -269,15 +269,15 @@ CREATE TABLE page_analytics (
   visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   session_id VARCHAR(255)
 );
-```
+\`\`\`
 
 ### **Environment Variables**
-```env
+\`\`\`env
 CMS_ENABLED=true
 CMS_ADMIN_ROLE=admin
 MEDIA_UPLOAD_MAX_SIZE=10MB
 MEDIA_ALLOWED_TYPES=image/jpeg,image/png,image/webp,video/mp4
-```
+\`\`\`
 
 ## 🚀 Implementation Priority
 

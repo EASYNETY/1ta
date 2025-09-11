@@ -16,7 +16,7 @@ This document provides a comprehensive guide for integrating the frontend educat
 
 The educational features in SmartEdu are interconnected in the following ways:
 
-```
+\`\`\`
                   ┌─────────────┐
                   │   Courses   │
                   └──────┬──────┘
@@ -36,7 +36,7 @@ The educational features in SmartEdu are interconnected in the following ways:
                    ┌─────────────┐
                    │ Attendance  │
                    └─────────────┘
-```
+\`\`\`
 
 ### Key Relationships:
 
@@ -49,7 +49,7 @@ The educational features in SmartEdu are interconnected in the following ways:
 
 ### Course
 
-```typescript
+\`\`\`typescript
 interface Course {
   id: string;
   title: string;
@@ -67,11 +67,11 @@ interface Course {
   modules: Module[];
   // Other course-specific fields
 }
-```
+\`\`\`
 
 ### Class
 
-```typescript
+\`\`\`typescript
 interface AdminClassView {
   id: string;
   courseTitle: string;
@@ -86,11 +86,11 @@ interface AdminClassView {
   location?: string;
   // Other class-specific fields
 }
-```
+\`\`\`
 
 ### Schedule Event
 
-```typescript
+\`\`\`typescript
 interface ScheduleEvent {
   id: string;
   title: string;
@@ -108,11 +108,11 @@ interface ScheduleEvent {
   description?: string;
   attendees?: string[];
 }
-```
+\`\`\`
 
 ### Attendance
 
-```typescript
+\`\`\`typescript
 interface DailyAttendance {
   date: string; // Format: YYYY-MM-DD
   courseClassId: string;
@@ -125,7 +125,7 @@ interface StudentAttendance {
   status: "present" | "absent" | "late";
   time?: string;
 }
-```
+\`\`\`
 
 ## API Endpoints
 
@@ -199,7 +199,7 @@ All API responses should follow this format to maintain compatibility with the f
 
 ### Success Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Operation successful",
@@ -207,11 +207,11 @@ All API responses should follow this format to maintain compatibility with the f
     // Response data matching the expected types
   }
 }
-```
+\`\`\`
 
 ### Error Response
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Error message",
@@ -219,7 +219,7 @@ All API responses should follow this format to maintain compatibility with the f
     // Optional detailed errors
   ]
 }
-```
+\`\`\`
 
 ## Special Considerations
 

@@ -23,18 +23,18 @@ We'll use a long-running feature branch strategy that allows:
 
 ### **Branch Structure**
 
-```
+\`\`\`
 main (production-ready code)
 ├── feature/cms-system (CMS development)
 ├── feature/other-features (other ongoing work)
 └── hotfix/* (emergency fixes)
-```
+\`\`\`
 
 ## Initial Setup
 
 ### **Step 1: Create and Setup CMS Branch**
 
-```bash
+\`\`\`bash
 # Ensure you're on the latest main branch
 git checkout main
 git pull origin main
@@ -74,11 +74,11 @@ that can be integrated when ready for production."
 
 # Push the feature branch
 git push -u origin feature/cms-system
-```
+\`\`\`
 
 ### **Step 2: Protect the Branch (Optional)**
 
-```bash
+\`\`\`bash
 # If using GitHub, you can protect the branch via web interface
 # Or use GitHub CLI:
 gh api repos/:owner/:repo/branches/feature/cms-system/protection \
@@ -87,13 +87,13 @@ gh api repos/:owner/:repo/branches/feature/cms-system/protection \
   --field enforce_admins=true \
   --field required_pull_request_reviews='{"required_approving_review_count":1}' \
   --field restrictions=null
-```
+\`\`\`
 
 ## Maintaining the CMS Branch
 
 ### **Working on CMS Features**
 
-```bash
+\`\`\`bash
 # Always work on the CMS branch for CMS-related changes
 git checkout feature/cms-system
 
@@ -111,11 +111,11 @@ git commit -m "feat(cms): add media optimization pipeline
 
 # Push changes
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **Creating Sub-branches for Specific CMS Features**
 
-```bash
+\`\`\`bash
 # For larger CMS features, create sub-branches
 git checkout feature/cms-system
 git checkout -b feature/cms-system/media-optimization
@@ -135,13 +135,13 @@ git push origin feature/cms-system
 # Clean up sub-branch
 git branch -d feature/cms-system/media-optimization
 git push origin --delete feature/cms-system/media-optimization
-```
+\`\`\`
 
 ## Syncing with Main Branch
 
 ### **Regular Sync Strategy (Recommended)**
 
-```bash
+\`\`\`bash
 # Sync CMS branch with latest main changes (weekly or bi-weekly)
 git checkout feature/cms-system
 git fetch origin
@@ -159,11 +159,11 @@ git commit -m "resolve: merge conflicts with main branch"
 
 # Push updated branch
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **Handling Conflicts**
 
-```bash
+\`\`\`bash
 # If conflicts occur during merge/rebase
 git status  # See conflicted files
 
@@ -181,18 +181,18 @@ git rebase --continue
 
 # Push changes
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **Selective File Updates**
 
-```bash
+\`\`\`bash
 # If you only want specific files from main
 git checkout feature/cms-system
 git checkout main -- path/to/specific/file.ts
 git add .
 git commit -m "sync: update specific file from main branch"
 git push origin feature/cms-system
-```
+\`\`\`
 
 ## Integration Strategy
 
@@ -200,7 +200,7 @@ git push origin feature/cms-system
 
 #### **Option 1: Full Integration (Recommended)**
 
-```bash
+\`\`\`bash
 # Ensure CMS branch is up to date
 git checkout feature/cms-system
 git fetch origin
@@ -218,11 +218,11 @@ git push origin main
 # Or delete it if no longer needed
 git branch -d feature/cms-system
 git push origin --delete feature/cms-system
-```
+\`\`\`
 
 #### **Option 2: Selective Integration**
 
-```bash
+\`\`\`bash
 # Cherry-pick specific commits from CMS branch
 git checkout main
 git cherry-pick <commit-hash-1> <commit-hash-2>
@@ -234,11 +234,11 @@ git checkout feature/cms-system -- data/mock/website-cms-mock.ts
 git add .
 git commit -m "integrate: CMS backend documentation and mock data"
 git push origin main
-```
+\`\`\`
 
 #### **Option 3: Squash Merge**
 
-```bash
+\`\`\`bash
 # Create a single commit from all CMS changes
 git checkout main
 git merge --squash feature/cms-system
@@ -252,13 +252,13 @@ Complete CMS implementation including:
 - Implementation guides and workflows"
 
 git push origin main
-```
+\`\`\`
 
 ## Best Practices
 
 ### **Commit Message Conventions**
 
-```bash
+\`\`\`bash
 # Use conventional commits for CMS branch
 feat(cms): add new CMS feature
 fix(cms): fix CMS bug
@@ -266,11 +266,11 @@ docs(cms): update CMS documentation
 refactor(cms): refactor CMS code
 test(cms): add CMS tests
 chore(cms): update CMS dependencies
-```
+\`\`\`
 
 ### **Branch Naming**
 
-```bash
+\`\`\`bash
 # Main CMS branch
 feature/cms-system
 
@@ -279,11 +279,11 @@ feature/cms-system/media-management
 feature/cms-system/page-editor
 feature/cms-system/analytics
 feature/cms-system/user-permissions
-```
+\`\`\`
 
 ### **Regular Maintenance**
 
-```bash
+\`\`\`bash
 # Weekly sync with main (recommended)
 git checkout feature/cms-system
 git fetch origin
@@ -293,19 +293,19 @@ git push origin feature/cms-system
 # Monthly cleanup
 git branch --merged feature/cms-system  # See merged branches
 git branch -d feature/cms-system/completed-feature  # Delete merged branches
-```
+\`\`\`
 
 ### **Documentation Updates**
 
-```bash
+\`\`\`bash
 # Always update documentation when making CMS changes
 git add docs/
 git commit -m "docs(cms): update CMS documentation for new features"
-```
+\`\`\`
 
 ### **Testing Before Integration**
 
-```bash
+\`\`\`bash
 # Before integrating to main, ensure everything works
 npm run build
 npm run test
@@ -313,13 +313,13 @@ npm run lint
 
 # Test CMS functionality specifically
 npm run test:cms  # If you have CMS-specific tests
-```
+\`\`\`
 
 ## Emergency Procedures
 
 ### **Hotfix on Main While CMS Branch Exists**
 
-```bash
+\`\`\`bash
 # Create hotfix from main
 git checkout main
 git checkout -b hotfix/critical-fix
@@ -341,11 +341,11 @@ git push origin feature/cms-system
 
 # Clean up
 git branch -d hotfix/critical-fix
-```
+\`\`\`
 
 ### **Rollback CMS Integration**
 
-```bash
+\`\`\`bash
 # If CMS integration causes issues, rollback
 git checkout main
 git log --oneline  # Find commit before CMS merge
@@ -353,7 +353,7 @@ git reset --hard <commit-before-cms>
 git push --force-with-lease origin main
 
 # CMS branch remains intact for future integration
-```
+\`\`\`
 
 ## Summary
 

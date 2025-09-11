@@ -14,7 +14,7 @@ This document outlines the comprehensive controller implementations for the Smar
 
 ### Base Controller Structure
 
-```javascript
+\`\`\`javascript
 // controllers/base-cms-controller.js
 const { validationResult } = require('express-validator');
 
@@ -88,11 +88,11 @@ class BaseCMSController {
 }
 
 module.exports = BaseCMSController;
-```
+\`\`\`
 
 ## CMS Pages Controller
 
-```javascript
+\`\`\`javascript
 // controllers/cms-pages-controller.js
 const BaseCMSController = require('./base-cms-controller');
 const { CMSPage, CMSPageAnalytics } = require('../models');
@@ -312,11 +312,11 @@ class CMSPagesController extends BaseCMSController {
 }
 
 module.exports = new CMSPagesController();
-```
+\`\`\`
 
 ## CMS Media Controller
 
-```javascript
+\`\`\`javascript
 // controllers/cms-media-controller.js
 const BaseCMSController = require('./base-cms-controller');
 const { CMSMedia } = require('../models');
@@ -572,4 +572,4 @@ class CMSMediaController extends BaseCMSController {
 }
 
 module.exports = new CMSMediaController();
-```
+\`\`\`

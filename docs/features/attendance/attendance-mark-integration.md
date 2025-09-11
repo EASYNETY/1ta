@@ -6,7 +6,7 @@ This guide outlines how to update the frontend code to properly integrate with t
 
 Currently, the frontend uses a Redux thunk to mark attendance:
 
-```typescript
+\`\`\`typescript
 // Mark Attendance Thunk
 export const markStudentAttendance = createAsyncThunk<
   { success: boolean; studentId: string; message?: string },
@@ -32,7 +32,7 @@ export const markStudentAttendance = createAsyncThunk<
     return rejectWithValue(message)
   }
 })
-```
+\`\`\`
 
 ## Recommended Updates
 
@@ -40,7 +40,7 @@ export const markStudentAttendance = createAsyncThunk<
 
 Update the payload interface to include the additional fields:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 export interface MarkAttendancePayload {
   studentId: string;
@@ -50,13 +50,13 @@ export interface MarkAttendancePayload {
   status?: "present" | "absent" | "late" | "excused";  // Add status field
   notes?: string;  // Add notes field
 }
-```
+\`\`\`
 
 ### 2. Update the Success Response Type
 
 Update the success response type to match the backend response:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 interface MarkAttendanceSuccessResponse {
   success: boolean;
@@ -66,13 +66,13 @@ interface MarkAttendanceSuccessResponse {
   timestamp: string;
   status: "present" | "absent" | "late" | "excused";
 }
-```
+\`\`\`
 
 ### 3. Update the Thunk
 
 Update the thunk to handle the enhanced response:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 export const markStudentAttendance = createAsyncThunk<
   MarkAttendanceSuccessResponse,
@@ -108,13 +108,13 @@ export const markStudentAttendance = createAsyncThunk<
     return rejectWithValue(error?.message || "An unknown error occurred.")
   }
 })
-```
+\`\`\`
 
 ### 4. Update the Reducer
 
 Update the reducer to handle the enhanced response:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 .addCase(markStudentAttendance.fulfilled, (state, action) => {
   state.isLoading = false
@@ -136,13 +136,13 @@ Update the reducer to handle the enhanced response:
     // or a refetch of the student's attendance data
   }
 })
-```
+\`\`\`
 
 ### 5. Add New State Properties
 
 Add new properties to the state interface:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 interface AttendanceMarkingState {
   isLoading: boolean
@@ -156,13 +156,13 @@ interface AttendanceMarkingState {
   fetchingStudentAttendance: boolean
   fetchingCourseAttendance: boolean
 }
-```
+\`\`\`
 
 ### 6. Update the Initial State
 
 Update the initial state with the new properties:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 const initialState: AttendanceMarkingState = {
   isLoading: false,
@@ -176,20 +176,20 @@ const initialState: AttendanceMarkingState = {
   fetchingStudentAttendance: false,
   fetchingCourseAttendance: false,
 }
-```
+\`\`\`
 
 ### 7. Add Selectors for New Properties
 
 Add selectors to access the new properties:
 
-```typescript
+\`\`\`typescript
 // features/attendance/store/attendance-slice.ts
 export const selectLastMarkedAttendanceId = (state: RootState) => 
   state.attendance.lastMarkedAttendanceId
 
 export const selectLastMarkedAttendanceStatus = (state: RootState) => 
   state.attendance.lastMarkedAttendanceStatus
-```
+\`\`\`
 
 ## Component Integration
 
@@ -197,7 +197,7 @@ export const selectLastMarkedAttendanceStatus = (state: RootState) =>
 
 The `ScanResultHandler` component should be updated to include status and notes when marking attendance:
 
-```typescript
+\`\`\`typescript
 // components/attendance/scanner/ScanResultHandler.tsx
 if (!casualScanMode && selectedClass?.id) {
   dispatch(markStudentAttendance({
@@ -209,13 +209,13 @@ if (!casualScanMode && selectedClass?.id) {
     notes: `Marked via barcode scan` // Optional notes
   }));
 }
-```
+\`\`\`
 
 ### Add Status Selection to Manual Attendance Marking
 
 For manual attendance marking, add the ability to select a status:
 
-```tsx
+\`\`\`tsx
 // Example component for manual attendance marking
 function ManualAttendanceMarking({ student, classInstance }) {
   const [status, setStatus] = useState<AttendanceStatus>('present');
@@ -262,13 +262,13 @@ function ManualAttendanceMarking({ student, classInstance }) {
     </div>
   );
 }
-```
+\`\`\`
 
 ## Error Handling Improvements
 
 Add better error handling in components that use the attendance marking functionality:
 
-```tsx
+\`\`\`tsx
 // Example error handling in a component
 function AttendanceMarker() {
   const dispatch = useAppDispatch();
@@ -300,7 +300,7 @@ function AttendanceMarker() {
   
   // Rest of component...
 }
-```
+\`\`\`
 
 ## Testing
 

@@ -16,32 +16,32 @@ The hybrid pagination system allows seamless transition between **client-side** 
 
 ### 1. Configuration-Driven Approach
 
-```typescript
+\`\`\`typescript
 // config/pagination.ts
 export const PAGINATION_CONFIG = {
   FEATURES: {
     USERS_SERVER_PAGINATION: false, // ← Change to true when backend ready
   }
 }
-```
+\`\`\`
 
 ### 2. Hybrid Hook
 
-```typescript
+\`\`\`typescript
 // hooks/use-hybrid-pagination.ts
 export function useEnhancedHybridPagination({
   data,
   serverPaginated, // ← Switches behavior
   serverMetadata
 })
-```
+\`\`\`
 
 ### 3. Smart API Calls
 
-```typescript
+\`\`\`typescript
 // Current: GET /admin/users?search=john
 // Future:  GET /admin/users?search=john&page=2&limit=10
-```
+\`\`\`
 
 ## How It Works
 
@@ -60,10 +60,10 @@ export function useEnhancedHybridPagination({
 ## Migration Path
 
 ### Step 1: Enable Server Pagination
-```typescript
+\`\`\`typescript
 // config/pagination.ts
 USERS_SERVER_PAGINATION: true // ← Change this flag
-```
+\`\`\`
 
 ### Step 2: Update Backend
 Backend should handle these parameters:
@@ -72,7 +72,7 @@ Backend should handle these parameters:
 - `?role=student` - Filter by role
 
 ### Step 3: Update API Response
-```typescript
+\`\`\`typescript
 // Current response
 {
   users: User[]
@@ -85,7 +85,7 @@ Backend should handle these parameters:
   currentPage: 2,
   totalPages: 15
 }
-```
+\`\`\`
 
 ## Benefits
 
@@ -103,7 +103,7 @@ Backend should handle these parameters:
 
 ## File Structure
 
-```
+\`\`\`
 ├── config/
 │   └── pagination.ts              # Configuration flags
 ├── hooks/
@@ -112,11 +112,11 @@ Backend should handle these parameters:
 │   └── pagination-controls.tsx    # UI components
 └── app/(authenticated)/users/
     └── page.tsx                   # Implementation example
-```
+\`\`\`
 
 ## Usage Example
 
-```typescript
+\`\`\`typescript
 // In any component
 const serverPaginated = isServerPaginationEnabled('USERS_SERVER_PAGINATION');
 
@@ -129,7 +129,7 @@ const paginationResult = useEnhancedHybridPagination({
 });
 
 // Use paginationResult.paginatedData for display
-```
+\`\`\`
 
 ## Testing the Implementation
 

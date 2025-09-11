@@ -4,7 +4,7 @@
 
 ### Required Variables
 
-```bash
+\`\`\`bash
 # Feature Control
 WEBSITE_CMS_ENABLED=false          # Enable/disable CMS functionality
 WEBSITE_CMS_TIER=premium           # Feature tier requirement
@@ -18,46 +18,46 @@ WEBSITE_CMS_ALLOWED_TYPES=image/jpeg,image/png,image/webp,video/mp4,application/
 # Cache Configuration
 WEBSITE_CMS_CACHE_TTL=3600         # Cache time-to-live in seconds
 WEBSITE_CMS_ENABLE_CACHE=true     # Enable/disable caching
-```
+\`\`\`
 
 ### Development Environment (.env.local)
 
-```bash
+\`\`\`bash
 # Development settings
 WEBSITE_CMS_ENABLED=true
 WEBSITE_CMS_TIER=premium
 WEBSITE_CMS_DEBUG=true
 WEBSITE_CMS_MOCK_DATA=true         # Use mock data instead of real API
 WEBSITE_CMS_CACHE_TTL=60           # Shorter cache for development
-```
+\`\`\`
 
 ### Production Environment (.env.production)
 
-```bash
+\`\`\`bash
 # Production settings
 WEBSITE_CMS_ENABLED=false          # Disabled by default
 WEBSITE_CMS_TIER=premium
 WEBSITE_CMS_DEBUG=false
 WEBSITE_CMS_MOCK_DATA=false
 WEBSITE_CMS_CACHE_TTL=3600
-```
+\`\`\`
 
 ### Staging Environment (.env.staging)
 
-```bash
+\`\`\`bash
 # Staging settings
 WEBSITE_CMS_ENABLED=true
 WEBSITE_CMS_TIER=premium
 WEBSITE_CMS_DEBUG=true
 WEBSITE_CMS_MOCK_DATA=true         # Use mock data for testing
 WEBSITE_CMS_CACHE_TTL=300
-```
+\`\`\`
 
 ## Feature Flag Implementation
 
 ### Environment Utility
 
-```typescript
+\`\`\`typescript
 // lib/env/website-cms.ts
 export const websiteCMSConfig = {
   enabled: process.env.WEBSITE_CMS_ENABLED === 'true',
@@ -82,11 +82,11 @@ export const websiteCMSConfig = {
 export const isCMSEnabled = () => websiteCMSConfig.enabled
 export const isCMSDebugMode = () => websiteCMSConfig.debug
 export const shouldUseMockData = () => websiteCMSConfig.mockData
-```
+\`\`\`
 
 ### Feature Gate Component
 
-```typescript
+\`\`\`typescript
 // components/feature-gates/cms-feature-gate.tsx
 interface CMSFeatureGateProps {
   children: React.ReactNode
@@ -108,13 +108,13 @@ export function CMSFeatureGate({
   
   return <>{children}</>
 }
-```
+\`\`\`
 
 ## Configuration Validation
 
 ### Environment Validation Schema
 
-```typescript
+\`\`\`typescript
 // lib/validation/env-schema.ts
 import { z } from 'zod'
 
@@ -138,13 +138,13 @@ export function validateCMSEnvironment() {
     throw new Error('CMS environment validation failed')
   }
 }
-```
+\`\`\`
 
 ## Feature Availability Checks
 
 ### User Tier Validation
 
-```typescript
+\`\`\`typescript
 // lib/auth/tier-check.ts
 export function checkUserTier(requiredTier: 'basic' | 'premium'): boolean {
   // This would integrate with your existing user/subscription system
@@ -163,11 +163,11 @@ export function getCurrentUserTier(): 'basic' | 'premium' {
   // For now, return premium for admins
   return 'premium'
 }
-```
+\`\`\`
 
 ### Runtime Feature Checks
 
-```typescript
+\`\`\`typescript
 // hooks/use-cms-availability.ts
 export function useCMSAvailability() {
   const isEnabled = isCMSEnabled()
@@ -184,13 +184,13 @@ export function useCMSAvailability() {
             !isAdmin ? 'permission' : 'available'
   }
 }
-```
+\`\`\`
 
 ## Deployment Configuration
 
 ### Docker Environment
 
-```dockerfile
+\`\`\`dockerfile
 # Dockerfile environment args
 ARG WEBSITE_CMS_ENABLED=false
 ARG WEBSITE_CMS_TIER=premium
@@ -199,11 +199,11 @@ ARG WEBSITE_CMS_DEBUG=false
 ENV WEBSITE_CMS_ENABLED=$WEBSITE_CMS_ENABLED
 ENV WEBSITE_CMS_TIER=$WEBSITE_CMS_TIER
 ENV WEBSITE_CMS_DEBUG=$WEBSITE_CMS_DEBUG
-```
+\`\`\`
 
 ### Kubernetes ConfigMap
 
-```yaml
+\`\`\`yaml
 # k8s/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -214,22 +214,22 @@ data:
   WEBSITE_CMS_TIER: "premium"
   WEBSITE_CMS_DEBUG: "false"
   WEBSITE_CMS_CACHE_TTL: "3600"
-```
+\`\`\`
 
 ### Vercel Environment
 
-```bash
+\`\`\`bash
 # Vercel environment variables
 vercel env add WEBSITE_CMS_ENABLED false production
 vercel env add WEBSITE_CMS_TIER premium production
 vercel env add WEBSITE_CMS_DEBUG false production
-```
+\`\`\`
 
 ## Monitoring & Logging
 
 ### Feature Usage Tracking
 
-```typescript
+\`\`\`typescript
 // lib/analytics/cms-tracking.ts
 export function trackCMSFeatureUsage(feature: string, action: string) {
   if (isCMSDebugMode()) {
@@ -244,11 +244,11 @@ export function trackCMSFeatureUsage(feature: string, action: string) {
     enabled: isCMSEnabled()
   })
 }
-```
+\`\`\`
 
 ### Error Reporting
 
-```typescript
+\`\`\`typescript
 // lib/error/cms-error-handler.ts
 export function handleCMSError(error: Error, context: string) {
   const errorData = {
@@ -266,7 +266,7 @@ export function handleCMSError(error: Error, context: string) {
   // Send to error reporting service
   errorReporting.captureException(error, { extra: errorData })
 }
-```
+\`\`\`
 
 ## Security Considerations
 
@@ -303,7 +303,7 @@ When `WEBSITE_CMS_DEBUG=true`:
 
 ### Health Checks
 
-```typescript
+\`\`\`typescript
 // api/website/health/route.ts
 export async function GET() {
   const health = {
@@ -315,4 +315,4 @@ export async function GET() {
   
   return Response.json(health)
 }
-```
+\`\`\`

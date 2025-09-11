@@ -13,7 +13,7 @@ This document outlines the comprehensive database models and schemas required fo
 
 ### Core CMS Tables
 
-```sql
+\`\`\`sql
 -- CMS Pages Table
 CREATE TABLE cms_pages (
   id VARCHAR(50) PRIMARY KEY,
@@ -120,13 +120,13 @@ CREATE TABLE cms_media_usage (
   INDEX idx_page_id (page_id),
   INDEX idx_usage_type (usage_type)
 );
-```
+\`\`\`
 
 ## Sequelize Models
 
 ### CMS Page Model
 
-```javascript
+\`\`\`javascript
 // models/cms-page.js
 const { DataTypes } = require('sequelize');
 
@@ -228,11 +228,11 @@ module.exports = (sequelize) => {
 
   return CMSPage;
 };
-```
+\`\`\`
 
 ### CMS Media Model
 
-```javascript
+\`\`\`javascript
 // models/cms-media.js
 const { DataTypes } = require('sequelize');
 
@@ -327,11 +327,11 @@ module.exports = (sequelize) => {
 
   return CMSMedia;
 };
-```
+\`\`\`
 
 ### CMS Landing Section Model
 
-```javascript
+\`\`\`javascript
 // models/cms-landing-section.js
 const { DataTypes } = require('sequelize');
 
@@ -394,11 +394,11 @@ module.exports = (sequelize) => {
 
   return CMSLandingSection;
 };
-```
+\`\`\`
 
 ### CMS Page Analytics Model
 
-```javascript
+\`\`\`javascript
 // models/cms-page-analytics.js
 const { DataTypes } = require('sequelize');
 
@@ -457,11 +457,11 @@ module.exports = (sequelize) => {
 
   return CMSPageAnalytics;
 };
-```
+\`\`\`
 
 ### CMS Settings Model
 
-```javascript
+\`\`\`javascript
 // models/cms-settings.js
 const { DataTypes } = require('sequelize');
 
@@ -513,13 +513,13 @@ module.exports = (sequelize) => {
 
   return CMSSettings;
 };
-```
+\`\`\`
 
 ## Database Migrations
 
 ### Initial CMS Tables Migration
 
-```javascript
+\`\`\`javascript
 // migrations/001-create-cms-tables.js
 'use strict';
 
@@ -656,11 +656,11 @@ module.exports = {
     await queryInterface.dropTable('cms_pages');
   }
 };
-```
+\`\`\`
 
 ## Relationships and Associations
 
-```javascript
+\`\`\`javascript
 // models/index.js - Define associations
 module.exports = (sequelize) => {
   const CMSPage = require('./cms-page')(sequelize);
@@ -688,13 +688,13 @@ module.exports = (sequelize) => {
     CMSSettings
   };
 };
-```
+\`\`\`
 
 ## Indexes and Performance
 
 ### Recommended Indexes
 
-```sql
+\`\`\`sql
 -- Performance indexes for analytics queries
 CREATE INDEX idx_analytics_date_range ON cms_page_analytics (visited_at, page_path);
 CREATE INDEX idx_analytics_user_session ON cms_page_analytics (user_id, session_id, visited_at);
@@ -707,5 +707,5 @@ CREATE INDEX idx_sections_enabled_order ON cms_landing_sections (enabled, order_
 -- Full-text search indexes (MySQL)
 ALTER TABLE cms_pages ADD FULLTEXT(title, meta_description);
 ALTER TABLE cms_media ADD FULLTEXT(filename, alt_text, caption);
-```
-```
+\`\`\`
+\`\`\`

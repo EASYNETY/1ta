@@ -30,13 +30,13 @@
   - ✅ Integrated with existing cart state management
   - ✅ Added comprehensive cost calculation logic for all fee types
 - **Current Flow Analysis:**
-  ```
+  \`\`\`
   Public Course Display → Course Modal → "Enrol Now" → Cart → Checkout → Payment
-  ```
+  \`\`\`
 - **Enhanced Flow:**
-  ```
+  \`\`\`
   Public Course Display → Course Modal → "Enrol Now" → Enhanced Cart (with breakdown) → Checkout → Payment
-  ```
+  \`\`\`
 - **Business Requirements:**
   - Display tuition fees with course-specific pricing
   - Show course materials costs (books, digital resources, lab fees)
@@ -50,7 +50,7 @@
   - Leverage existing cart state management infrastructure
   - No additional routing or navigation complexity
 - **UI/UX Design:**
-  ```
+  \`\`\`
   ┌─────────────────────────────────────┐
   │ Your Cart                           │
   ├─────────────────────────────────────┤
@@ -71,7 +71,7 @@
   ├─────────────────────────────────────┤
   │ [Proceed to Checkout] Button        │
   └─────────────────────────────────────┘
-  ```
+  \`\`\`
 - **Acceptance Criteria:**
   - All cost components clearly itemized with descriptions
   - Total calculation accurate and dynamic
@@ -321,19 +321,19 @@
 **🎯 Start Here: Create Payment Breakdown Components**
 
 1. **Create Base Component Structure:**
-   ```bash
+   \`\`\`bash
    # Create new component files
    touch components/payment/payment-breakdown.tsx
    touch components/payment/breakdown-section.tsx
    touch components/payment/breakdown-item.tsx
-   ```
+   \`\`\`
 
 2. **Define TypeScript Interfaces:**
    - Add interfaces to `/features/payment/types/payment-types.ts`
    - Extend cart types for breakdown data
 
 3. **Build PaymentBreakdown Component:**
-   ```typescript
+   \`\`\`typescript
    // components/payment/payment-breakdown.tsx
    interface PaymentBreakdownProps {
      cartItems: CartItem[];
@@ -343,7 +343,7 @@
    export function PaymentBreakdown({ cartItems, className }: PaymentBreakdownProps) {
      // Component implementation
    }
-   ```
+   \`\`\`
 
 4. **Integrate with Cart Page:**
    - Modify `/app/(authenticated)/cart/page.tsx`
@@ -355,11 +355,11 @@
 **🔧 Payment Initialization Fix:**
 
 1. **Investigate Current Error:**
-   ```bash
+   \`\`\`bash
    # Check payment initialization flow
    # Review PaystackCheckout component
    # Analyze payment slice error handling
-   ```
+   \`\`\`
 
 2. **Debug Payment Flow:**
    - Check API endpoint connectivity
@@ -486,7 +486,7 @@
 - `/features/payment/types/payment-types.ts` - Add breakdown interfaces
 
 **New TypeScript Interfaces:**
-```typescript
+\`\`\`typescript
 interface PaymentBreakdownItem {
   id: string;
   category: 'tuition' | 'materials' | 'refreshments' | 'exam_fees' | 'exam_materials';
@@ -509,10 +509,10 @@ interface BreakdownSection {
   items: PaymentBreakdownItem[];
   totalAmount: number;
 }
-```
+\`\`\`
 
 **Enhanced Cart Layout Structure:**
-```typescript
+\`\`\`typescript
 // /app/(authenticated)/cart/page.tsx
 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
   {/* Left Column: Course Items (existing) */}
@@ -526,7 +526,7 @@ interface BreakdownSection {
     <CheckoutButton />
   </div>
 </div>
-```
+\`\`\`
 
 **Implementation Steps:**
 1. **Phase 1: Create Breakdown Components**

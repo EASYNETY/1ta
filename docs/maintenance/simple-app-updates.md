@@ -61,7 +61,7 @@ We've implemented a simple, reliable app update detection system using establish
 
 ## Environment Variables
 
-```bash
+\`\`\`bash
 # Required for version detection
 NEXT_PUBLIC_APP_VERSION=0.1.0
 NEXT_PUBLIC_BUILD_ID=your-build-id
@@ -70,7 +70,7 @@ BUILD_TIME=2024-01-01T00:00:00Z
 # Automatically set by deployment platforms
 VERCEL_GIT_COMMIT_SHA=abc123
 VERCEL_GIT_COMMIT_DATE=2024-01-01T00:00:00Z
-```
+\`\`\`
 
 ## Development vs Production
 
@@ -91,7 +91,7 @@ VERCEL_GIT_COMMIT_DATE=2024-01-01T00:00:00Z
 ### Automatic Version Setting
 Add to your deployment pipeline:
 
-```bash
+\`\`\`bash
 # Set build time
 export BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
@@ -100,15 +100,15 @@ export NEXT_PUBLIC_BUILD_ID=$VERCEL_GIT_COMMIT_SHA
 
 # Build and deploy
 npm run build
-```
+\`\`\`
 
 ### Manual Version Updates
 Update `package.json` version for major releases:
-```json
+\`\`\`json
 {
   "version": "0.2.0"
 }
-```
+\`\`\`
 
 ## Benefits
 

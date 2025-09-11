@@ -44,13 +44,13 @@ The Customer Care Barcode Scanning System provides instant access to student inf
 ## Technical Implementation
 
 ### Component Structure
-```
+\`\`\`
 app/(authenticated)/attendance/scan/page.tsx
 ├── BarcodeScanner (from lib/barcode-scanner)
 ├── Student Information Display
 ├── Payment Status Component
 └── Course Information Component
-```
+\`\`\`
 
 ### Data Flow
 1. **Barcode Detection**: Camera captures and processes barcode data
@@ -66,31 +66,31 @@ app/(authenticated)/attendance/scan/page.tsx
 ## API Integration
 
 ### Student Lookup
-```typescript
+\`\`\`typescript
 // Find student by barcode ID or user ID
 const student = allUsers.find(user => 
   user.role === 'student' && 
   (user.barcodeId === scannedData || user.id === scannedData)
 );
-```
+\`\`\`
 
 ### Payment Status Retrieval
-```typescript
+\`\`\`typescript
 // Mock implementation - replace with real API
 const getPaymentStatus = async (studentId: string): Promise<PaymentStatus> => {
   // API call to payment service
   return await paymentAPI.getStudentPaymentStatus(studentId);
 };
-```
+\`\`\`
 
 ### Course Information Retrieval
-```typescript
+\`\`\`typescript
 // Mock implementation - replace with real API
 const getCourseInfo = async (classId: string): Promise<CourseInfo> => {
   // API call to course service
   return await courseAPI.getClassDetails(classId);
 };
-```
+\`\`\`
 
 ## Error Handling
 

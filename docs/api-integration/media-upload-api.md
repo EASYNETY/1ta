@@ -8,17 +8,17 @@ The Media Upload API allows users to upload various types of media files to the 
 
 ## Base URL
 
-```
+\`\`\`
 https://api.onetechacademy.com/api/v1
-```
+\`\`\`
 
 ## Authentication
 
 All media upload endpoints require authentication. Include a valid JWT token in the Authorization header:
 
-```
+\`\`\`
 Authorization: Bearer <token>
-```
+\`\`\`
 
 ## Media Types
 
@@ -50,7 +50,7 @@ Uploads a media file to the server.
 
 #### Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Successfully uploaded 1 file(s)",
@@ -70,11 +70,11 @@ Uploads a media file to the server.
     "count": 1
   }
 }
-```
+\`\`\`
 
 #### Error Response
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Failed to upload file",
@@ -83,7 +83,7 @@ Uploads a media file to the server.
     "mediaType": ["Invalid media type"]
   }
 }
-```
+\`\`\`
 
 ### Get Media by ID
 
@@ -95,7 +95,7 @@ Retrieves information about a media file by its ID.
 
 #### Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -111,7 +111,7 @@ Retrieves information about a media file by its ID.
   },
   "message": "Media retrieved successfully"
 }
-```
+\`\`\`
 
 ### Delete Media
 
@@ -123,12 +123,12 @@ Deletes a media file by its ID.
 
 #### Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Media deleted successfully"
 }
-```
+\`\`\`
 
 ## File Size Limits
 
@@ -195,7 +195,7 @@ Consider implementing the following processing steps:
 
 The media files should be tracked in a database with the following fields:
 
-```sql
+\`\`\`sql
 CREATE TABLE media (
   id VARCHAR(255) PRIMARY KEY,
   url VARCHAR(1024) NOT NULL,
@@ -209,7 +209,7 @@ CREATE TABLE media (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
-```
+\`\`\`
 
 ### Progress Tracking
 
@@ -244,7 +244,7 @@ The frontend should use the following approach for media uploads:
 
 ### Backend (Node.js with Express and Multer)
 
-```javascript
+\`\`\`javascript
 const express = require('express');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
@@ -331,4 +331,4 @@ router.post('/upload', upload.array('files'), (req, res) => {
 });
 
 module.exports = router;
-```
+\`\`\`

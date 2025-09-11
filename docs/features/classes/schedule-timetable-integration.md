@@ -16,7 +16,7 @@ This document provides detailed specifications for integrating the frontend sche
 
 ### Schedule Event Types
 
-```typescript
+\`\`\`typescript
 // Types of schedule events
 export type ScheduleEventType = "lecture" | "lab" | "exam" | "office-hours" | "meeting" | "other";
 
@@ -96,15 +96,15 @@ export interface UpdateScheduleEventPayload {
   description?: string;
   attendees?: string[];
 }
-```
+\`\`\`
 
 ## API Endpoints
 
 ### Schedule
 
-```
+\`\`\`
 GET /schedule
-```
+\`\`\`
 
 **Query Parameters:**
 - `role`: User role (student, teacher, admin)
@@ -113,7 +113,7 @@ GET /schedule
 - `endDate`: End date for the range (YYYY-MM-DD)
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -135,11 +135,11 @@ GET /schedule
     }
   ]
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /schedule-events
-```
+\`\`\`
 
 **Query Parameters:**
 - `page`: Page number for pagination
@@ -150,7 +150,7 @@ GET /schedule-events
 - `endDate`: Optional filter by end date
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -178,14 +178,14 @@ GET /schedule-events
     "totalPages": 3
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /schedule-events/:id
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -205,14 +205,14 @@ GET /schedule-events/:id
     "attendees": ["student_1", "student_2", "corp_student_1"]
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 POST /schedule-events
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "title": "PMP Exam Preparation",
   "courseId": "1",
@@ -224,10 +224,10 @@ POST /schedule-events
   "description": "Final exam preparation session",
   "attendees": ["student_1", "student_2", "corp_student_1"]
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Schedule event created successfully",
@@ -247,22 +247,22 @@ POST /schedule-events
     "attendees": ["student_1", "student_2", "corp_student_1"]
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 PUT /schedule-events/:id
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "title": "PMP Exam Preparation - Updated",
   "location": "Virtual Classroom B"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Schedule event updated successfully",
@@ -282,14 +282,14 @@ PUT /schedule-events/:id
     "attendees": ["student_1", "student_2", "corp_student_1"]
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 DELETE /schedule-events/:id
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Schedule event deleted successfully",
@@ -297,7 +297,7 @@ DELETE /schedule-events/:id
     "id": "sched_10"
   }
 }
-```
+\`\`\`
 
 ## Frontend Implementation
 
@@ -305,7 +305,7 @@ DELETE /schedule-events/:id
 
 The frontend uses Redux thunks to interact with the schedule API:
 
-```typescript
+\`\`\`typescript
 // Fetch schedule for the week/calendar view
 export const fetchSchedule = createAsyncThunk<
   ScheduleEvent[],
@@ -360,7 +360,7 @@ export const updateScheduleEvent = createAsyncThunk<
     return rejectWithValue(error.message || "Failed to update schedule event");
   }
 });
-```
+\`\`\`
 
 ## Relationships with Other Features
 

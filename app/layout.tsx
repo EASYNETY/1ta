@@ -1,33 +1,34 @@
+import type React from "react"
 // app/layout.tsx
-import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import "../styles/animations.css";
-import { Providers } from "@/store/providers";
-import { AuthProvider } from "@/features/auth/components/auth-provider";
-import { ThemeProvider } from "@/providers/theme-provider";
-import { MouseTrackerProvider } from "@/providers/MouseTrackerProvider";
-import { ErrorBoundary } from "@/providers/error-boundary";
-import { Toaster } from "sonner";
-import { cacheManager } from "@/lib/cache-manager";
-import { UpdateDetector } from "@/components/app/UpdateDetector";
-import useSocketListeners from "@/hooks/useSocketListeners";
-import SocketInit from "@/components/SocketInit"; 
+import type { Metadata, Viewport } from "next"
+import { Geist, Geist_Mono } from "next/font/google"
+import "./globals.css"
+import "../styles/animations.css"
+import { Providers } from "@/store/providers"
+import { AuthProvider } from "@/features/auth/components/auth-provider"
+import { ThemeProvider } from "@/providers/theme-provider"
+import { MouseTrackerProvider } from "@/providers/MouseTrackerProvider"
+import { ErrorBoundary } from "@/providers/error-boundary"
+import { Toaster } from "sonner"
+import { cacheManager } from "@/lib/cache-manager"
+import { UpdateDetector } from "@/components/app/UpdateDetector"
+import SocketInit from "@/components/SocketInit"
+import RealTimeInit from "@/components/RealTimeInit"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
+})
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
+})
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-};
+}
 
 export const metadata: Metadata = {
   title: {
@@ -39,61 +40,44 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/icon.png", sizes: "512x512", type: "image/png" }],
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   if (process.env.NODE_ENV === "development") {
-    cacheManager.enableCacheDebugging();
+    cacheManager.enableCacheDebugging()
   }
 
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-    >
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
       <head>
         {/* Google Search Console Tag */}
-        <meta
-          name="google-site-verification"
-          content="MiY5SQjDfoGiDXVac4bACOQ6yl3Aj8s9s0Qfi_zHvGs"
-        />
+        <meta name="google-site-verification" content="MiY5SQjDfoGiDXVac4bACOQ6yl3Aj8s9s0Qfi_zHvGs" />
 
         {/* Google Analytics Tag */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-6C3HWK2X3H"
-        ></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-6C3HWK2X3H"></script>
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
+            __html: `window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-6C3HWK2X3H');
-            `,
+              gtag('config', 'G-6C3HWK2X3H');`,
           }}
         />
 
         {/* Meta Pixel Code */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
+            __html: `!function(f,b,e,v,n,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://connect.facebook.net/en_US/fbevents.js";
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "sfw0czdw64");
               fbq('init', '1982477292494082');
-              fbq('track', 'PageView');
-            `,
+              fbq('track', 'PageView');`,
           }}
         />
         <noscript>
@@ -109,13 +93,11 @@ export default function RootLayout({
         <script
           type="text/javascript"
           dangerouslySetInnerHTML={{
-            __html: `
-              (function(c,l,a,r,i,t,y){
+            __html: `(function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
                 t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
                 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-              })(window, document, "clarity", "script", "sfw0czdw64");
-            `,
+              })(window, document, "clarity", "script", "sfw0czdw64");`,
           }}
         />
 
@@ -163,13 +145,9 @@ export default function RootLayout({
       </head>
       <body>
         <Providers>
-          <SocketInit /> 
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
+          <RealTimeInit />
+          <SocketInit />
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
             <ErrorBoundary>
               <AuthProvider>
                 <MouseTrackerProvider>
@@ -191,5 +169,5 @@ export default function RootLayout({
         </Providers>
       </body>
     </html>
-  );
+  )
 }

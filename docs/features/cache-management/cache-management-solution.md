@@ -57,30 +57,30 @@ We implemented a **simple, reliable app update detection system** using establis
 ## Files Structure
 
 ### ✅ Core Implementation
-```
+\`\`\`
 app/api/version/route.ts              # Server version endpoint
 lib/simple-version-checker.ts         # Client version checking
 components/app/UpdateDetector.tsx     # Automatic detection
 features/settings/components/SettingsAppMaintenance.tsx  # Enhanced UI
-```
+\`\`\`
 
 ### ✅ Supporting Files
-```
+\`\`\`
 lib/cache-manager.ts                  # Centralized cache utilities
 next.config.ts                        # Development cache headers
 app/layout.tsx                        # UpdateDetector integration
-```
+\`\`\`
 
 ### ✅ Documentation
-```
+\`\`\`
 docs/simple-app-updates.md           # Technical documentation
 CACHE_MANAGEMENT_SOLUTION.md         # This summary
 README.md                             # Updated with cache management section
-```
+\`\`\`
 
 ## Environment Variables
 
-```bash
+\`\`\`bash
 # Required for version detection
 NEXT_PUBLIC_APP_VERSION=0.1.0
 NEXT_PUBLIC_BUILD_ID=your-build-id
@@ -89,7 +89,7 @@ BUILD_TIME=2024-01-01T00:00:00Z
 # Automatically set by deployment platforms
 VERCEL_GIT_COMMIT_SHA=abc123
 VERCEL_GIT_COMMIT_DATE=2024-01-01T00:00:00Z
-```
+\`\`\`
 
 ## Benefits Achieved
 

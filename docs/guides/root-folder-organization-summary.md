@@ -17,7 +17,7 @@
 4. `test-hook.js` → `tests/test-hook.js`
 
 #### **New Test Structure:**
-```
+\`\`\`
 tests/
 ├── course-crud-test.js                    # Existing test file
 ├── test-cart-operations.js               # Moved from root
@@ -26,7 +26,7 @@ tests/
     ├── cart-functionality-test-results.md # Existing file
     ├── manual-test-results.md            # Moved from root
     └── test-cart-functionality.md        # Moved from root
-```
+\`\`\`
 
 ### ✅ **Documentation Files Moved to `docs/guides/` Folder**
 
@@ -35,7 +35,7 @@ tests/
 2. `FINAL-PUSH-GUIDE.md` → `docs/guides/final-push-guide.md`
 
 #### **Updated Documentation Structure:**
-```
+\`\`\`
 docs/guides/
 ├── README.md                                    # Existing guide index
 ├── documentation-index.md                      # Existing documentation index
@@ -44,7 +44,7 @@ docs/guides/
 ├── documentation-organization-complete.md      # Moved from root
 ├── final-push-guide.md                        # Moved from root
 └── root-folder-organization-summary.md        # This summary
-```
+\`\`\`
 
 ---
 
@@ -73,7 +73,7 @@ docs/guides/
 ## 📋 **Current Root Directory Structure**
 
 ### **Essential Project Files (Remaining in Root):**
-```
+\`\`\`
 ./
 ├── README.md                    # Project overview
 ├── package.json                 # Dependencies
@@ -106,7 +106,7 @@ docs/guides/
 ├── examples/                   # Code examples
 ├── src/                        # Source files
 └── node_modules/               # Dependencies
-```
+\`\`\`
 
 ---
 

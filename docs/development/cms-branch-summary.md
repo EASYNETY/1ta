@@ -8,21 +8,21 @@
 ## 🎯 **Quick Access Commands**
 
 ### **Switch to CMS Branch**
-```bash
+\`\`\`bash
 git checkout feature/cms-system
-```
+\`\`\`
 
 ### **Check Current Branch**
-```bash
+\`\`\`bash
 git branch
 # Should show: * feature/cms-system
-```
+\`\`\`
 
 ### **View Branch Status**
-```bash
+\`\`\`bash
 git status
 git log --oneline -5
-```
+\`\`\`
 
 ## 📁 **What's in the CMS Branch**
 
@@ -58,7 +58,7 @@ git log --oneline -5
 ## 🔄 **Regular Workflow**
 
 ### **Working on CMS Features**
-```bash
+\`\`\`bash
 # 1. Switch to CMS branch
 git checkout feature/cms-system
 
@@ -71,10 +71,10 @@ git commit -m "feat(cms): add specific feature"
 
 # 4. Push changes
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **Sync with Main Branch (Weekly)**
-```bash
+\`\`\`bash
 # 1. Switch to CMS branch
 git checkout feature/cms-system
 
@@ -91,12 +91,12 @@ git commit -m "sync: merge latest main branch changes"
 
 # 5. Push updated branch
 git push origin feature/cms-system
-```
+\`\`\`
 
 ## 🚀 **When Ready to Integrate**
 
 ### **Option 1: Full Integration (Recommended)**
-```bash
+\`\`\`bash
 # 1. Ensure CMS branch is up to date
 git checkout feature/cms-system
 git fetch origin
@@ -109,10 +109,10 @@ git merge feature/cms-system
 
 # 3. Push to main
 git push origin main
-```
+\`\`\`
 
 ### **Option 2: Selective Integration**
-```bash
+\`\`\`bash
 # Cherry-pick specific commits
 git checkout main
 git cherry-pick <commit-hash>
@@ -123,7 +123,7 @@ git checkout feature/cms-system -- docs/backend/
 git add .
 git commit -m "integrate: CMS backend documentation"
 git push origin main
-```
+\`\`\`
 
 ## 📊 **Branch Statistics**
 
@@ -167,25 +167,25 @@ git push origin main
 ## 📞 **Quick Help**
 
 ### **Check if you're on CMS branch:**
-```bash
+\`\`\`bash
 git branch
 # Look for: * feature/cms-system
-```
+\`\`\`
 
 ### **See what's different from main:**
-```bash
+\`\`\`bash
 git log main..feature/cms-system --oneline
-```
+\`\`\`
 
 ### **View files changed:**
-```bash
+\`\`\`bash
 git diff --name-only main..feature/cms-system
-```
+\`\`\`
 
 ### **Switch back to main:**
-```bash
+\`\`\`bash
 git checkout main
-```
+\`\`\`
 
 ---
 

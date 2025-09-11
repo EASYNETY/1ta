@@ -50,7 +50,7 @@ The application uses Redux for state management with the following slices:
 - Ensure the API response matches the expected format
 - Test the integration with the profile page dropdown
 
-```typescript
+\`\`\`typescript
 // Current implementation
 export const fetchCourses = createAsyncThunk<
   PublicCourse[],
@@ -75,14 +75,14 @@ export const fetchCourses = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 #### Payment Processing
 - Update payment thunks in `features/payment/store/payment-slice.ts`
 - Integrate with Paystack API through backend
 - Test payment flow with real API
 
-```typescript
+\`\`\`typescript
 // Current implementation
 export const initiatePayment = createAsyncThunk<
   PaymentResponse,
@@ -111,7 +111,7 @@ export const initiatePayment = createAsyncThunk<
     }
   }
 );
-```
+\`\`\`
 
 #### Auth Courses
 - Update auth course thunks
@@ -140,7 +140,7 @@ Special attention needs to be paid to handling zero naira values in the applicat
    - Skip payment gateway for zero-value transactions
    - Update UI to show "Get Free Item" instead of "Pay ₦0 Now"
 
-```typescript
+\`\`\`typescript
 // In PaystackCheckout component
 {amount === 0 ? (
   <div className="pt-2">
@@ -155,7 +155,7 @@ Special attention needs to be paid to handling zero naira values in the applicat
 ) : (
   // Regular payment button
 )}
-```
+\`\`\`
 
 2. **Course Display**:
    - Show "Free" instead of "₦0" for zero-value courses
@@ -203,7 +203,7 @@ Ensure proper loading states are displayed during API calls:
 To ensure smooth integration, all API responses should follow these formats:
 
 ### Success Response
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Operation successful",
@@ -211,10 +211,10 @@ To ensure smooth integration, all API responses should follow these formats:
     // Response data
   }
 }
-```
+\`\`\`
 
 ### Error Response
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Error message",
@@ -222,10 +222,10 @@ To ensure smooth integration, all API responses should follow these formats:
     // Optional detailed errors
   ]
 }
-```
+\`\`\`
 
 ### Pagination Response
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -240,7 +240,7 @@ To ensure smooth integration, all API responses should follow these formats:
     }
   }
 }
-```
+\`\`\`
 
 ## Conclusion
 

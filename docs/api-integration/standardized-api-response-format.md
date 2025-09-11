@@ -6,7 +6,7 @@ This document defines the standardized API response format that should be used f
 
 All API responses should follow this basic structure:
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -14,7 +14,7 @@ All API responses should follow this basic structure:
   },
   "message": "Operation completed successfully"
 }
-```
+\`\`\`
 
 - `success`: Boolean indicating if the request was successful
 - `data`: The actual data being returned (object or array)
@@ -24,7 +24,7 @@ All API responses should follow this basic structure:
 
 For endpoints that return paginated data, the response should include pagination information:
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -38,7 +38,7 @@ For endpoints that return paginated data, the response should include pagination
   },
   "message": "Operation completed successfully"
 }
-```
+\`\`\`
 
 - `pagination.total`: Total number of items available
 - `pagination.page`: Current page number
@@ -49,7 +49,7 @@ For endpoints that return paginated data, the response should include pagination
 
 Error responses should follow this structure:
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Descriptive error message",
@@ -58,7 +58,7 @@ Error responses should follow this structure:
     "details": "Additional error details"
   }
 }
-```
+\`\`\`
 
 - `success`: Always `false` for error responses
 - `message`: A human-readable error message
@@ -69,7 +69,7 @@ Error responses should follow this structure:
 
 ### Successful Single Item Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -79,11 +79,11 @@ Error responses should follow this structure:
   },
   "message": "Item fetched successfully"
 }
-```
+\`\`\`
 
 ### Successful Collection Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -100,11 +100,11 @@ Error responses should follow this structure:
   ],
   "message": "Items fetched successfully"
 }
-```
+\`\`\`
 
 ### Paginated Collection Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -127,11 +127,11 @@ Error responses should follow this structure:
   },
   "message": "Items fetched successfully"
 }
-```
+\`\`\`
 
 ### Validation Error Response
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Validation failed",
@@ -143,11 +143,11 @@ Error responses should follow this structure:
     }
   }
 }
-```
+\`\`\`
 
 ### Not Found Error Response
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Item not found",
@@ -156,11 +156,11 @@ Error responses should follow this structure:
     "details": "The requested item with ID 123 does not exist"
   }
 }
-```
+\`\`\`
 
 ### Server Error Response
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Internal server error",
@@ -169,7 +169,7 @@ Error responses should follow this structure:
     "details": "An unexpected error occurred while processing your request"
   }
 }
-```
+\`\`\`
 
 ## HTTP Status Codes
 

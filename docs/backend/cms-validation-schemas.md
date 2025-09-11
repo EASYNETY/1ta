@@ -13,7 +13,7 @@ This document outlines the comprehensive validation schemas for the SmartEdu CMS
 
 ### Base Validation Setup
 
-```javascript
+\`\`\`javascript
 // middleware/validation.js
 const { body, param, query, validationResult } = require('express-validator');
 
@@ -43,13 +43,13 @@ const commonValidators = {
 };
 
 module.exports = { commonValidators };
-```
+\`\`\`
 
 ## Page Validation Schemas
 
 ### Create/Update Page Validation
 
-```javascript
+\`\`\`javascript
 // validation/cms-page-validation.js
 const { body } = require('express-validator');
 const { commonValidators } = require('../middleware/validation');
@@ -151,11 +151,11 @@ const pageValidation = {
 };
 
 module.exports = pageValidation;
-```
+\`\`\`
 
 ### Section Data Validation
 
-```javascript
+\`\`\`javascript
 // validation/section-data-validation.js
 const sectionDataValidators = {
   // Hero section validation
@@ -253,11 +253,11 @@ const sectionDataValidators = {
 };
 
 module.exports = sectionDataValidators;
-```
+\`\`\`
 
 ## Media Validation Schemas
 
-```javascript
+\`\`\`javascript
 // validation/cms-media-validation.js
 const { body, query } = require('express-validator');
 const { commonValidators } = require('../middleware/validation');
@@ -336,11 +336,11 @@ const mediaValidation = {
 };
 
 module.exports = mediaValidation;
-```
+\`\`\`
 
 ## Landing Section Validation
 
-```javascript
+\`\`\`javascript
 // validation/cms-landing-validation.js
 const { body } = require('express-validator');
 const sectionDataValidators = require('./section-data-validation');
@@ -423,11 +423,11 @@ const landingValidation = {
 };
 
 module.exports = landingValidation;
-```
+\`\`\`
 
 ## Custom Validators
 
-```javascript
+\`\`\`javascript
 // validation/custom-validators.js
 const { CMSPage, CMSMedia } = require('../models');
 
@@ -502,11 +502,11 @@ const customValidators = {
 };
 
 module.exports = customValidators;
-```
+\`\`\`
 
 ## Usage Examples
 
-```javascript
+\`\`\`javascript
 // routes/cms-pages.js
 const express = require('express');
 const router = express.Router();
@@ -535,4 +535,4 @@ router.put('/:pageType',
 );
 
 module.exports = router;
-```
+\`\`\`

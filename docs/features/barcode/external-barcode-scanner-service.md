@@ -6,7 +6,7 @@ This document outlines the requirements for a WebSocket service that the backend
 
 ## Architecture
 
-```
+\`\`\`
 +-----------------------+     HTTP/Serial/etc.    +-----------------+     WebSocket     +--------------------------+
 | External Barcode      | ----------------------> | Backend Service | ----------------> | Frontend (ScanPage.tsx)  |
 | Scanner (Hardware)    |                         | (e.g., Node.js) |                   | (Listening for messages) |
@@ -18,7 +18,7 @@ This document outlines the requirements for a WebSocket service that the backend
                                                 +-----------------+
                                                 | Database/Auth   |
                                                 +-----------------+
-```
+\`\`\`
 
 ## Frontend Implementation Details
 
@@ -65,24 +65,24 @@ To align with our frontend implementation, the backend team needs to implement a
 
 #### From External Scanner to Backend (HTTP)
 
-```json
+\`\`\`json
 {
   "barcodeId": "12345XYZ",
   "targetClassId": "class_123",
   "targetUserId": "user_456",
   "stationId": "station_001"
 }
-```
+\`\`\`
 
 #### From Backend to Frontend (WebSocket)
 
-```json
+\`\`\`json
 {
   "barcodeId": "12345XYZ",
   "timestamp": "2023-07-15T14:30:45Z",
   "source": "station_001"
 }
-```
+\`\`\`
 
 The frontend expects to receive messages with the event name `external_barcode_scanned`.
 

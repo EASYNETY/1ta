@@ -16,7 +16,7 @@ This document provides a comprehensive reference of the data types used in the S
 
 ## User Types
 
-```typescript
+\`\`\`typescript
 // Basic user role types
 export type UserRole = "admin" | "teacher" | "student";
 export type AccountType = "individual" | "corporate" | "institutional";
@@ -85,13 +85,13 @@ export interface AuthState {
   usersLoading: boolean;
   usersError: string | null;
 }
-```
+\`\`\`
 
 ## Course Types
 
 ### Public Course
 
-```typescript
+\`\`\`typescript
 export interface PublicCourse {
   id: string;
   slug: string;
@@ -153,11 +153,11 @@ export type CourseCategory =
   | "Language"
   | "Health & Fitness"
   | "Project Management";
-```
+\`\`\`
 
 ### Auth Course
 
-```typescript
+\`\`\`typescript
 export interface AuthCourse {
   id: string;
   slug: string;
@@ -185,11 +185,11 @@ export interface AuthCourse {
     }[];
   }[];
 }
-```
+\`\`\`
 
 ## Payment Types
 
-```typescript
+\`\`\`typescript
 export interface PaymentRecord {
   id: string;
   userId: string;
@@ -233,11 +233,11 @@ export interface PaymentHistoryState {
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 }
-```
+\`\`\`
 
 ## Class Types
 
-```typescript
+\`\`\`typescript
 export interface Class {
   id: string;
   name: string;
@@ -268,11 +268,11 @@ export interface ClassSession {
   attendanceRecorded: boolean;
   attendanceCount?: number;
 }
-```
+\`\`\`
 
 ## Attendance Types
 
-```typescript
+\`\`\`typescript
 export interface AttendanceRecord {
   id: string;
   studentId: string;
@@ -309,11 +309,11 @@ export interface MarkAttendancePayload {
   status: "present" | "absent" | "late" | "excused";
   notes?: string;
 }
-```
+\`\`\`
 
 ## Support Types
 
-```typescript
+\`\`\`typescript
 export type TicketStatus = "open" | "in-progress" | "resolved" | "closed";
 export type TicketPriority = "low" | "medium" | "high" | "urgent";
 export type FeedbackType = "general" | "course" | "instructor" | "platform";
@@ -351,7 +351,7 @@ export interface Feedback {
   comment: string;
   createdAt: string;
 }
-```
+\`\`\`
 
 ## Conclusion
 

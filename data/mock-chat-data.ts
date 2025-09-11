@@ -484,4 +484,3 @@ export const markMockRoomAsRead = async (
 
     return { success: true, message: "Room marked as read.", updatedRoom: updatedRoomCopy };
 };
-

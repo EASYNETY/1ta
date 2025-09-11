@@ -16,7 +16,7 @@ The attendance feature in SmartEdu allows tracking student presence in classes a
 
 ### Core Attendance Types
 
-```typescript
+\`\`\`typescript
 // Attendance status type
 export type AttendanceStatus = "present" | "absent" | "late";
 
@@ -58,11 +58,11 @@ export interface StudentAttendanceResponse {
   name: string;
   attendanceRecords: StudentAttendanceRecord[];
 }
-```
+\`\`\`
 
 ### Redux State Structure
 
-```typescript
+\`\`\`typescript
 // Adjusted State Shape for the Redux slice
 interface CourseAttendanceDetails {
   courseClassId: string;
@@ -86,15 +86,15 @@ interface AttendanceState {
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 }
-```
+\`\`\`
 
 ## API Endpoints
 
 ### Get Class Attendance
 
-```
+\`\`\`
 GET /attendance/class/:classId
-```
+\`\`\`
 
 **Query Parameters:**
 - `date`: Optional date filter (YYYY-MM-DD)
@@ -102,7 +102,7 @@ GET /attendance/class/:classId
 - `endDate`: Optional end date for range (YYYY-MM-DD)
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -121,13 +121,13 @@ GET /attendance/class/:classId
     ]
   }
 }
-```
+\`\`\`
 
 ### Get Student Attendance
 
-```
+\`\`\`
 GET /attendance/student/:studentId
-```
+\`\`\`
 
 **Query Parameters:**
 - `date`: Optional date filter (YYYY-MM-DD)
@@ -136,7 +136,7 @@ GET /attendance/student/:studentId
 - `courseClassId`: Optional filter by class
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -153,16 +153,16 @@ GET /attendance/student/:studentId
     ]
   }
 }
-```
+\`\`\`
 
 ### Mark Attendance
 
-```
+\`\`\`
 POST /attendance/mark
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "studentId": "student_1",
   "courseClassId": "ccs_1_morn",
@@ -171,10 +171,10 @@ POST /attendance/mark
   "time": "09:15:00",
   "scanMethod": "barcode" // or "manual", "qr", etc.
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Attendance marked successfully",
@@ -188,24 +188,24 @@ POST /attendance/mark
     "scanMethod": "barcode"
   }
 }
-```
+\`\`\`
 
 ### Update Attendance
 
-```
+\`\`\`
 PUT /attendance/:id
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "status": "late",
   "time": "09:30:00"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Attendance updated successfully",
@@ -219,7 +219,7 @@ PUT /attendance/:id
     "scanMethod": "manual"
   }
 }
-```
+\`\`\`
 
 ## Frontend Implementation
 
@@ -227,7 +227,7 @@ PUT /attendance/:id
 
 The frontend uses Redux thunks to interact with the attendance API:
 
-```typescript
+\`\`\`typescript
 // Fetch teacher's class attendance
 export const fetchTeacherClassAttendance = createAsyncThunk<
   TeacherAttendanceResponse,
@@ -286,7 +286,7 @@ export const markAttendance = createAsyncThunk<
     return rejectWithValue(e.message || "Failed to mark attendance");
   }
 });
-```
+\`\`\`
 
 ## Barcode Scanner Integration
 
@@ -299,7 +299,7 @@ The attendance feature integrates with external barcode scanners via WebSocket:
 
 ### WebSocket Message Format
 
-```typescript
+\`\`\`typescript
 interface WebSocketBarcodeMessage {
   type: 'barcode_scan_received';
   data: {
@@ -308,7 +308,7 @@ interface WebSocketBarcodeMessage {
     status: string;
   }
 }
-```
+\`\`\`
 
 ### Attendance Marking Flow
 

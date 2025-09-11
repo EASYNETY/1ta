@@ -31,7 +31,7 @@ This document outlines comprehensive testing procedures for the 4-tier RBAC syst
 - [ ] No restrictions (Super Admin has full access)
 
 #### 🧪 **Test Cases:**
-```typescript
+\`\`\`typescript
 describe('Super Admin Access', () => {
   test('Can access admin analytics dashboard', async () => {
     // Navigate to /admin/analytics
@@ -51,7 +51,7 @@ describe('Super Admin Access', () => {
     // Test delete functionality
   });
 });
-```
+\`\`\`
 
 ### 2. Admin Tests
 
@@ -71,7 +71,7 @@ describe('Super Admin Access', () => {
 - [ ] Customer care barcode scanning
 
 #### 🧪 **Test Cases:**
-```typescript
+\`\`\`typescript
 describe('Admin Access Restrictions', () => {
   test('Cannot access admin analytics', async () => {
     // Navigate to /admin/analytics
@@ -90,7 +90,7 @@ describe('Admin Access Restrictions', () => {
     // Verify deactivate buttons are visible
   });
 });
-```
+\`\`\`
 
 ### 3. Accounting Tests
 
@@ -110,7 +110,7 @@ describe('Admin Access Restrictions', () => {
 - [ ] Customer care features
 
 #### 🧪 **Test Cases:**
-```typescript
+\`\`\`typescript
 describe('Accounting Role Access', () => {
   test('Can access accounting dashboard', async () => {
     // Navigate to /accounting/dashboard
@@ -129,7 +129,7 @@ describe('Accounting Role Access', () => {
     // Test payment operations
   });
 });
-```
+\`\`\`
 
 ### 4. Customer Care Tests
 
@@ -149,7 +149,7 @@ describe('Accounting Role Access', () => {
 - [ ] Student data modification
 
 #### 🧪 **Test Cases:**
-```typescript
+\`\`\`typescript
 describe('Customer Care Access', () => {
   test('Can scan student barcodes', async () => {
     // Navigate to /attendance/scan
@@ -168,7 +168,7 @@ describe('Customer Care Access', () => {
     // Verify redirect or access denied
   });
 });
-```
+\`\`\`
 
 ### 5. Teacher Tests
 
@@ -188,7 +188,7 @@ describe('Customer Care Access', () => {
 - [ ] Delete operations
 
 #### 🧪 **Test Cases:**
-```typescript
+\`\`\`typescript
 describe('Teacher Access', () => {
   test('Can access student analytics', async () => {
     // Navigate to /analytics
@@ -201,7 +201,7 @@ describe('Teacher Access', () => {
     // Verify redirect or access denied
   });
 });
-```
+\`\`\`
 
 ### 6. Student Tests
 
@@ -226,7 +226,7 @@ describe('Teacher Access', () => {
 ## 🔧 Component-Level Testing
 
 ### Navigation Tests
-```typescript
+\`\`\`typescript
 describe('Navigation Filtering', () => {
   test('Super Admin sees all navigation items', () => {
     // Login as super admin
@@ -245,10 +245,10 @@ describe('Navigation Filtering', () => {
     // Verify other sections hidden
   });
 });
-```
+\`\`\`
 
 ### Permission Guard Tests
-```typescript
+\`\`\`typescript
 describe('Permission Guards', () => {
   test('DeleteGuard hides delete buttons for non-super-admin', () => {
     // Render component with DeleteGuard
@@ -262,14 +262,14 @@ describe('Permission Guards', () => {
     // Verify edit access denied
   });
 });
-```
+\`\`\`
 
 ---
 
 ## 🚀 Integration Testing
 
 ### Route Protection Tests
-```typescript
+\`\`\`typescript
 describe('Route Protection', () => {
   test('AuthProvider redirects unauthorized users', () => {
     // Test each protected route
@@ -282,10 +282,10 @@ describe('Route Protection', () => {
     // Verify access control maintained
   });
 });
-```
+\`\`\`
 
 ### API Integration Tests
-```typescript
+\`\`\`typescript
 describe('API Permission Enforcement', () => {
   test('Backend enforces role-based access', () => {
     // Test API calls with different roles
@@ -293,7 +293,7 @@ describe('API Permission Enforcement', () => {
     // Verify proper data filtering
   });
 });
-```
+\`\`\`
 
 ---
 
@@ -341,7 +341,7 @@ describe('API Permission Enforcement', () => {
 ## 🧪 Automated Testing Setup
 
 ### Test Data Setup
-```typescript
+\`\`\`typescript
 // Mock users for testing
 const testUsers = {
   superAdmin: { role: 'super_admin', permissions: ['*'] },
@@ -351,10 +351,10 @@ const testUsers = {
   teacher: { role: 'teacher', permissions: ['manage_courses'] },
   student: { role: 'student', permissions: ['view_courses'] }
 };
-```
+\`\`\`
 
 ### Test Utilities
-```typescript
+\`\`\`typescript
 // Helper function to test role access
 const testRoleAccess = async (role: string, route: string, shouldHaveAccess: boolean) => {
   // Login with role
@@ -367,7 +367,7 @@ const testPermissionGuard = (permission: string, userRole: string, shouldRender:
   // Render component with permission guard
   // Assert visibility
 };
-```
+\`\`\`
 
 ---
 

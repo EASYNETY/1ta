@@ -119,7 +119,7 @@ For corporate users managing student accounts:
 ### Key Type Definitions
 
 #### User Types
-```typescript
+\`\`\`typescript
 export type UserRole = "admin" | "teacher" | "student";
 export type AccountType = "individual" | "corporate" | "institutional";
 export type OnboardingStatus = "incomplete" | "complete" | "pending_verification";
@@ -154,10 +154,10 @@ export interface StudentUser extends BaseUser {
   purchasedStudentSlots?: number | null;
   class?: any | null;
 }
-```
+\`\`\`
 
 #### Course Types
-```typescript
+\`\`\`typescript
 export interface PublicCourse {
   id: string;
   slug: string;
@@ -177,10 +177,10 @@ export interface PublicCourse {
   discountPriceUSD?: number;
   // Additional fields omitted for brevity
 }
-```
+\`\`\`
 
 #### Payment Types
-```typescript
+\`\`\`typescript
 export interface PaymentRecord {
   id: string;
   userId: string;
@@ -193,7 +193,7 @@ export interface PaymentRecord {
   createdAt: string;
   paymentMethod: string;
 }
-```
+\`\`\`
 
 ## Conclusion
 

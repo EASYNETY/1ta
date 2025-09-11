@@ -16,7 +16,7 @@ This document provides a step-by-step guide for implementing the comprehensive C
 
 ### Required Dependencies
 
-```json
+\`\`\`json
 {
   "dependencies": {
     "express": "^4.18.2",
@@ -41,11 +41,11 @@ This document provides a step-by-step guide for implementing the comprehensive C
     "sequelize-cli": "^6.6.1"
   }
 }
-```
+\`\`\`
 
 ### Environment Variables
 
-```env
+\`\`\`env
 # Database Configuration
 DB_HOST=localhost
 DB_PORT=3306
@@ -78,11 +78,11 @@ AWS_ACCESS_KEY_ID=your_aws_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret
 AWS_REGION=us-east-1
 AWS_S3_BUCKET=your-s3-bucket
-```
+\`\`\`
 
 ## Project Structure
 
-```
+\`\`\`
 backend/
 ├── config/
 │   ├── database.js
@@ -129,13 +129,13 @@ backend/
 ├── uploads/
 ├── app.js
 └── server.js
-```
+\`\`\`
 
 ## Installation Steps
 
 ### 1. Initialize Project
 
-```bash
+\`\`\`bash
 # Create project directory
 mkdir smartedu-cms-backend
 cd smartedu-cms-backend
@@ -148,11 +148,11 @@ npm install express sequelize mysql2 express-validator multer sharp fluent-ffmpe
 
 # Install dev dependencies
 npm install --save-dev nodemon jest supertest sequelize-cli
-```
+\`\`\`
 
 ### 2. Setup Database Configuration
 
-```javascript
+\`\`\`javascript
 // config/database.js
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
@@ -181,11 +181,11 @@ const sequelize = new Sequelize(
 );
 
 module.exports = sequelize;
-```
+\`\`\`
 
 ### 3. Setup Main Application
 
-```javascript
+\`\`\`javascript
 // app.js
 const express = require('express');
 const cors = require('cors');
@@ -255,11 +255,11 @@ app.use('*', (req, res) => {
 });
 
 module.exports = app;
-```
+\`\`\`
 
 ### 4. Setup Server
 
-```javascript
+\`\`\`javascript
 // server.js
 const app = require('./app');
 const sequelize = require('./config/database');
@@ -305,13 +305,13 @@ process.on('SIGINT', async () => {
 });
 
 startServer();
-```
+\`\`\`
 
 ## Database Setup
 
 ### 1. Run Migrations
 
-```bash
+\`\`\`bash
 # Initialize Sequelize CLI
 npx sequelize-cli init
 
@@ -323,11 +323,11 @@ npx sequelize-cli db:migrate
 
 # Seed default data (optional)
 npx sequelize-cli db:seed:all
-```
+\`\`\`
 
 ### 2. Create Default Admin User
 
-```javascript
+\`\`\`javascript
 // scripts/create-admin.js
 const bcrypt = require('bcryptjs');
 const { User } = require('../models');
@@ -351,13 +351,13 @@ async function createAdmin() {
 }
 
 createAdmin();
-```
+\`\`\`
 
 ## API Routes Setup
 
 ### Example Route Implementation
 
-```javascript
+\`\`\`javascript
 // routes/cms-pages.js
 const express = require('express');
 const router = express.Router();
@@ -399,13 +399,13 @@ router.get('/:pageType/analytics',
 );
 
 module.exports = router;
-```
+\`\`\`
 
 ## Testing
 
 ### Setup Test Environment
 
-```javascript
+\`\`\`javascript
 // tests/setup.js
 const { sequelize } = require('../models');
 
@@ -416,11 +416,11 @@ beforeAll(async () => {
 afterAll(async () => {
   await sequelize.close();
 });
-```
+\`\`\`
 
 ### Example Test
 
-```javascript
+\`\`\`javascript
 // tests/controllers/cms-pages.test.js
 const request = require('supertest');
 const app = require('../../app');
@@ -466,13 +466,13 @@ describe('CMS Pages Controller', () => {
     });
   });
 });
-```
+\`\`\`
 
 ## Deployment
 
 ### Production Configuration
 
-```javascript
+\`\`\`javascript
 // config/production.js
 module.exports = {
   database: {
@@ -498,11 +498,11 @@ module.exports = {
     }
   }
 };
-```
+\`\`\`
 
 ### Docker Configuration
 
-```dockerfile
+\`\`\`dockerfile
 # Dockerfile
 FROM node:18-alpine
 
@@ -516,11 +516,11 @@ COPY . .
 EXPOSE 8080
 
 CMD ["node", "server.js"]
-```
+\`\`\`
 
 ### Docker Compose
 
-```yaml
+\`\`\`yaml
 # docker-compose.yml
 version: '3.8'
 
@@ -554,7 +554,7 @@ services:
 
 volumes:
   mysql_data:
-```
+\`\`\`
 
 ## Next Steps
 

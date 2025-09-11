@@ -28,7 +28,7 @@ The frontend integrates with a backend API built with:
 
 ### Authentication Flow
 
-```mermaid
+\`\`\`mermaid
 sequenceDiagram
     participant User
     participant Frontend
@@ -42,11 +42,11 @@ sequenceDiagram
     AuthAPI->>Frontend: Return tokens
     Frontend->>Frontend: Store tokens
     Frontend->>User: Redirect to dashboard
-```
+\`\`\`
 
 ### Data Flow
 
-```mermaid
+\`\`\`mermaid
 flowchart TD
     A[User Interaction] --> B[React Components]
     B --> C[Redux Actions]
@@ -58,11 +58,11 @@ flowchart TD
     E --> D
     D --> H[Redux Store]
     H --> B
-```
+\`\`\`
 
 ## Directory Structure
 
-```
+\`\`\`
 smartedu-frontend/
 ├── app/                  # Next.js app directory
 │   ├── (authenticated)/  # Authenticated routes
@@ -86,7 +86,7 @@ smartedu-frontend/
 ├── styles/               # Global styles
 ├── public/               # Static assets
 └── docs/                 # Documentation
-```
+\`\`\`
 
 ## State Management
 
@@ -94,7 +94,7 @@ SmartEdu uses Redux Toolkit for state management. The state is organized by feat
 
 ### Redux Store Structure
 
-```typescript
+\`\`\`typescript
 interface RootState {
   auth: AuthState;
   courses: CoursesState;
@@ -106,7 +106,7 @@ interface RootState {
   search: SearchState;
   // ... other slices
 }
-```
+\`\`\`
 
 ### Redux Toolkit Slices
 
@@ -119,7 +119,7 @@ Each feature has its own slice, which includes:
 
 Example slice structure:
 
-```typescript
+\`\`\`typescript
 // features/courses/store/course-slice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
@@ -163,7 +163,7 @@ const courseSlice = createSlice({
 export const selectAllCourses = (state) => state.courses.courses;
 
 export default courseSlice.reducer;
-```
+\`\`\`
 
 ## API Integration
 

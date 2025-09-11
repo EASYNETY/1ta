@@ -168,7 +168,7 @@ Implement the missing pages in the following order:
 
 ## Template for New Help Pages
 
-```tsx
+\`\`\`tsx
 // app/(authenticated)/help/[category]/[topic]/page.tsx
 
 'use client'
@@ -273,7 +273,7 @@ export default function HelpArticlePage() {
     </article>
   );
 }
-```
+\`\`\`
 
 ## Example Implementations
 

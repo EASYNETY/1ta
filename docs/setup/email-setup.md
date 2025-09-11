@@ -8,9 +8,9 @@ The contact form has been updated to use Resend for reliable email delivery to i
 
 Add the following environment variable to your `.env.local` file:
 
-```bash
+\`\`\`bash
 RESEND_API_KEY=your_resend_api_key_here
-```
+\`\`\`
 
 ### Getting a Resend API Key
 

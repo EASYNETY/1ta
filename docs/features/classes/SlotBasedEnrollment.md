@@ -28,7 +28,7 @@ The slot-based enrolment system includes several React components that work toge
 
 This component handles the enrolment process for a class. It checks for available slots and enrolment start dates before allowing enrolment.
 
-```tsx
+\`\`\`tsx
 <ClassEnrolmentButton
   classId="class-123"
   courseId="course-456"
@@ -38,7 +38,7 @@ This component handles the enrolment process for a class. It checks for availabl
   enrolmentStartDate="2023-06-01T00:00:00Z"
   buttonText="Enrol Now"
 />
-```
+\`\`\`
 
 Key features:
 - Checks if enrolment has started
@@ -50,7 +50,7 @@ Key features:
 
 This component allows students to join a waitlist when a class is full.
 
-```tsx
+\`\`\`tsx
 <ClassWaitlistButton
   classId="class-123"
   courseId="course-456"
@@ -61,7 +61,7 @@ This component allows students to join a waitlist when a class is full.
   schedule="Mon, Wed, Fri 10:00 AM - 12:00 PM"
   location="Room 101"
 />
-```
+\`\`\`
 
 Key features:
 - Collects contact information for notifications
@@ -72,14 +72,14 @@ Key features:
 
 This component displays a notification when slots become available for students on the waitlist.
 
-```tsx
+\`\`\`tsx
 <ClassAvailabilityNotification
   classId="class-123"
   courseId="course-456"
   courseTitle="Introduction to React"
   availableSlots={2}
 />
-```
+\`\`\`
 
 Key features:
 - Automatically detects when slots become available
@@ -90,7 +90,7 @@ Key features:
 
 This component displays the enrolment status of a class, including available slots, waitlist status, and enrolment options.
 
-```tsx
+\`\`\`tsx
 <ClassEnrolmentStatus
   classId="class-123"
   courseId="course-456"
@@ -104,7 +104,7 @@ This component displays the enrolment status of a class, including available slo
   location="Room 101"
   status="active"
 />
-```
+\`\`\`
 
 Key features:
 - Displays available slots with a progress bar
@@ -120,7 +120,7 @@ The slot-based enrolment system uses Redux for state management. The following s
 
 The classes slice has been updated to include waitlist functionality:
 
-```typescript
+\`\`\`typescript
 // Waitlist entry type
 export interface WaitlistEntry {
   id: string;
@@ -142,7 +142,7 @@ export interface ClassesState {
   waitlistStatus: "idle" | "loading" | "succeeded" | "failed";
   waitlistError: string | null;
 }
-```
+\`\`\`
 
 Key actions:
 - `addToWaitlist`: Add a student to the waitlist for a class
@@ -154,7 +154,7 @@ Key actions:
 
 The cart slice has been updated to handle class-based enrolment:
 
-```typescript
+\`\`\`typescript
 export interface CartItem {
   courseId: string;
   classId?: string; // Added for class-based enrolment
@@ -164,7 +164,7 @@ export interface CartItem {
   image?: string;
   instructor?: string;
 }
-```
+\`\`\`
 
 Key changes:
 - Updated `addItem` to check for existing items by classId
@@ -210,7 +210,7 @@ The slot-based enrolment system integrates with the cart system to handle enrolm
 
 ### Basic Enrolment Button
 
-```tsx
+\`\`\`tsx
 import { ClassEnrolmentButton } from '@/components/classes/ClassEnrolmentButton';
 
 export default function ClassDetailsPage({ classData }) {
@@ -228,11 +228,11 @@ export default function ClassDetailsPage({ classData }) {
     </div>
   );
 }
-```
+\`\`\`
 
 ### Complete Enrolment Status Display
 
-```tsx
+\`\`\`tsx
 import { ClassEnrolmentStatus } from '@/components/classes/ClassEnrolmentStatus';
 
 export default function ClassDetailsPage({ classData }) {
@@ -265,7 +265,7 @@ export default function ClassDetailsPage({ classData }) {
     </div>
   );
 }
-```
+\`\`\`
 
 ## Conclusion
 

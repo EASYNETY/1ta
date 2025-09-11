@@ -14,7 +14,7 @@ This guide provides best practices and examples for writing unit tests for the S
 
 ### Basic Test Structure
 
-```typescript
+\`\`\`typescript
 // Import the component or function to test
 import { functionToTest } from '../path-to-function';
 
@@ -34,11 +34,11 @@ describe('functionToTest', () => {
   
   // More test cases...
 });
-```
+\`\`\`
 
 ### Testing React Components
 
-```typescript
+\`\`\`typescript
 // components/__tests__/Button.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import Button from '../Button';
@@ -61,11 +61,11 @@ describe('Button', () => {
     expect(screen.getByText('Click me')).toBeDisabled();
   });
 });
-```
+\`\`\`
 
 ### Testing Redux Slices
 
-```typescript
+\`\`\`typescript
 // features/auth/store/__tests__/auth-slice.test.ts
 import authReducer, { login, logout, initialState } from '../auth-slice';
 
@@ -112,11 +112,11 @@ describe('auth slice', () => {
     expect(state).toEqual(initialState);
   });
 });
-```
+\`\`\`
 
 ### Testing Redux Thunks
 
-```typescript
+\`\`\`typescript
 // features/auth/store/__tests__/auth-thunks.test.ts
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from '../auth-slice';
@@ -184,11 +184,11 @@ describe('auth thunks', () => {
     expect(state.error).toBe('Invalid credentials');
   });
 });
-```
+\`\`\`
 
 ### Testing Utility Functions
 
-```typescript
+\`\`\`typescript
 // lib/utils/__tests__/format-date.test.ts
 import { formatDate } from '../format-date';
 
@@ -209,7 +209,7 @@ describe('formatDate', () => {
     expect(formatDate(date, 'MM/dd/yyyy')).toBe('01/01/2023');
   });
 });
-```
+\`\`\`
 
 ## Best Practices
 
@@ -217,7 +217,7 @@ describe('formatDate', () => {
 
 Focus on what the code does, not how it does it. This makes your tests more resilient to refactoring.
 
-```typescript
+\`\`\`typescript
 // Good: Testing behavior
 it('should show error message when form is submitted with empty fields', () => {
   render(<LoginForm />);
@@ -232,13 +232,13 @@ it('should set error state when form is submitted with empty fields', () => {
   setError('Email is required');
   expect(result.current[0]).toBe('Email is required');
 });
-```
+\`\`\`
 
 ### 2. Use Descriptive Test Names
 
 Test names should describe the expected behavior, making it clear what the test is checking.
 
-```typescript
+\`\`\`typescript
 // Good: Descriptive test name
 it('should display error message when password is less than 8 characters', () => {
   // Test code...
@@ -248,7 +248,7 @@ it('should display error message when password is less than 8 characters', () =>
 it('should validate password', () => {
   // Test code...
 });
-```
+\`\`\`
 
 ### 3. Arrange-Act-Assert Pattern
 
@@ -258,7 +258,7 @@ Structure your tests using the Arrange-Act-Assert pattern:
 2. **Act**: Perform the action being tested
 3. **Assert**: Check the result
 
-```typescript
+\`\`\`typescript
 it('should calculate total price correctly', () => {
   // Arrange
   const items = [
@@ -272,13 +272,13 @@ it('should calculate total price correctly', () => {
   // Assert
   expect(total).toBe(35);
 });
-```
+\`\`\`
 
 ### 4. Mock External Dependencies
 
 Use mocks to isolate the code being tested from external dependencies.
 
-```typescript
+\`\`\`typescript
 // Mock API client
 jest.mock('../api-client', () => ({
   get: jest.fn(),
@@ -300,13 +300,13 @@ describe('fetchUser', () => {
     expect(get).toHaveBeenCalledWith('/users/1');
   });
 });
-```
+\`\`\`
 
 ### 5. Test Edge Cases
 
 Don't just test the happy path. Test edge cases, error conditions, and boundary values.
 
-```typescript
+\`\`\`typescript
 describe('divideNumbers', () => {
   it('should divide two numbers correctly', () => {
     expect(divideNumbers(10, 2)).toBe(5);
@@ -326,33 +326,33 @@ describe('divideNumbers', () => {
     expect(divideNumbers(10, 3)).toBeCloseTo(3.333, 3);
   });
 });
-```
+\`\`\`
 
 ## Running Tests
 
 ### Running All Tests
 
-```bash
+\`\`\`bash
 npm test
-```
+\`\`\`
 
 ### Running Tests for a Specific File
 
-```bash
+\`\`\`bash
 npm test -- path/to/test-file.test.ts
-```
+\`\`\`
 
 ### Running Tests in Watch Mode
 
-```bash
+\`\`\`bash
 npm test -- --watch
-```
+\`\`\`
 
 ### Generating Coverage Report
 
-```bash
+\`\`\`bash
 npm test -- --coverage
-```
+\`\`\`
 
 ## Conclusion
 

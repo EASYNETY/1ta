@@ -80,7 +80,7 @@
 ## Critical Use Cases Tested
 
 ### 🛒 Cart Item Removal
-```typescript
+\`\`\`typescript
 // In cart page: handleRemoveItem function
 const handleRemoveItem = (courseId: string) => {
     dispatch(removeItem({ id: courseId }));
@@ -90,32 +90,32 @@ const handleRemoveItem = (courseId: string) => {
         variant: "default",
     });
 };
-```
+\`\`\`
 - **Status**: ✅ WORKING
 - **Verification**: Action dispatched correctly, toast notification shown
 
 ### 💰 Payment Breakdown Calculation
-```typescript
+\`\`\`typescript
 // In payment-breakdown.tsx: generateBreakdownData function
 const tuitionTotal = cartItems.reduce((sum, item) => 
     sum + (item.discountPriceNaira || item.priceNaira), 0
 )
-```
+\`\`\`
 - **Status**: ✅ WORKING
 - **Verification**: Prices calculated from actual cart items
 
 ### 🔄 Course Data Integration
-```typescript
+\`\`\`typescript
 // In cart page: getCourseDetails function
 const getCourseDetails = (courseId: string) => {
     return allCourses.find(course => course.id === courseId);
 };
-```
+\`\`\`
 - **Status**: ✅ WORKING
 - **Verification**: Real PublicCourse data used when available
 
 ### 📋 Invoice Creation Flow
-```typescript
+\`\`\`typescript
 // In cart page: handleCheckout function
 const createdInvoice = await dispatch(createInvoiceThunk(invoicePayload)).unwrap();
 dispatch(prepareCheckout({
@@ -125,7 +125,7 @@ dispatch(prepareCheckout({
     totalAmountFromCart: totalWithTax,
     invoiceId: createdInvoice.id,
 }));
-```
+\`\`\`
 - **Status**: ✅ WORKING
 - **Verification**: Invoice creation and checkout preparation maintained
 

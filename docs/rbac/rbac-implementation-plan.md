@@ -84,7 +84,7 @@ This document outlines the comprehensive plan to implement the 4-tier Role-Based
 **Dependencies**: Database access, API endpoints
 
 #### 1.1 Database Schema Updates
-```sql
+\`\`\`sql
 -- Add new role permissions
 ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'super_admin';
 ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'accounting';
@@ -99,10 +99,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS shift VARCHAR(100);
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS gateway_ref VARCHAR(255);
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255);
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS reconciliation_status VARCHAR(50);
-```
+\`\`\`
 
 #### 1.2 Permission Matrix Implementation
-```typescript
+\`\`\`typescript
 const ROLE_PERMISSIONS = {
   super_admin: ['*'], // All permissions
   admin: [
@@ -127,17 +127,17 @@ const ROLE_PERMISSIONS = {
     'view_own_attendance', 'access_discussions'
   ]
 };
-```
+\`\`\`
 
 #### 1.3 API Middleware Updates
-```typescript
+\`\`\`typescript
 // Role-based route protection
 app.get('/api/admin/analytics/*', requireRole(['super_admin']));
 app.get('/api/payments/*', requireRole(['super_admin', 'admin', 'accounting']));
 app.delete('/api/*', requireRole(['super_admin'])); // Only super admin can delete
 app.get('/api/customer-care/*', requireRole(['customer_care', 'super_admin']));
 app.get('/api/accounting/*', requireRole(['accounting', 'super_admin']));
-```
+\`\`\`
 
 ### Phase 2: Frontend Permission System (Week 1-2)
 **Duration**: 7 days
@@ -145,7 +145,7 @@ app.get('/api/accounting/*', requireRole(['accounting', 'super_admin']));
 **Dependencies**: Phase 1 completion
 
 #### 2.1 Permission Hook Implementation
-```typescript
+\`\`\`typescript
 // hooks/usePermissions.ts
 export const usePermissions = () => {
   const { user } = useAppSelector(state => state.auth);
@@ -162,10 +162,10 @@ export const usePermissions = () => {
 
   return { hasPermission, canDelete, canViewAnalytics, canManagePayments };
 };
-```
+\`\`\`
 
 #### 2.2 Navigation Updates
-```typescript
+\`\`\`typescript
 // Update sidebar navigation
 export const primaryNavItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["super_admin", "admin", "teacher", "student"] },
@@ -193,10 +193,10 @@ export const customerCareNavItems: NavItem[] = [
   { title: "Tickets", href: "/support/tickets", icon: LifeBuoy, roles: ["customer_care"] },
   { title: "Feedback", href: "/support/feedback", icon: MessageSquare, roles: ["customer_care"] },
 ];
-```
+\`\`\`
 
 #### 2.3 Component Permission Guards
-```typescript
+\`\`\`typescript
 // components/auth/PermissionGuard.tsx
 interface PermissionGuardProps {
   permission: string;
@@ -218,7 +218,7 @@ export const PermissionGuard = ({ permission, fallback, children }: PermissionGu
 <PermissionGuard permission="delete_users">
   <DeleteButton />
 </PermissionGuard>
-```
+\`\`\`
 
 ### Phase 3: Accounting Dashboard (Week 2)
 **Duration**: 5 days
@@ -226,7 +226,7 @@ export const PermissionGuard = ({ permission, fallback, children }: PermissionGu
 **Dependencies**: Phase 1-2 completion
 
 #### 3.1 Accounting Dashboard Layout
-```typescript
+\`\`\`typescript
 // app/(authenticated)/accounting/dashboard/page.tsx
 export default function AccountingDashboard() {
   return (
@@ -251,10 +251,10 @@ export default function AccountingDashboard() {
     </AuthorizationGuard>
   );
 }
-```
+\`\`\`
 
 #### 3.2 Payment History Table
-```typescript
+\`\`\`typescript
 // Required fields as per CEO specification
 interface PaymentRecord {
   serialNumber: string;
@@ -272,7 +272,7 @@ interface PaymentRecord {
   reconciled: 'Yes' | 'No' | 'Partial';
   notes?: string;
 }
-```
+\`\`\`
 
 ### Phase 4: Access Control Implementation (Week 2-3)
 **Duration**: 5 days
@@ -280,7 +280,7 @@ interface PaymentRecord {
 **Dependencies**: Phase 1-3 completion
 
 #### 4.1 Route Protection Updates
-```typescript
+\`\`\`typescript
 // features/auth/components/auth-provider.tsx
 // Enhanced role-based access control
 if (pathname.startsWith("/admin/analytics") && user.role !== "super_admin") {
@@ -297,7 +297,7 @@ if (pathname.startsWith("/customer-care") && !['customer_care', 'super_admin'].i
   router.push("/dashboard");
   return;
 }
-```
+\`\`\`
 
 ---
 
@@ -322,7 +322,7 @@ if (pathname.startsWith("/customer-care") && !['customer_care', 'super_admin'].i
 - [ ] Customer Care limited access workflow
 
 ### Test Scenarios
-```typescript
+\`\`\`typescript
 describe('RBAC System', () => {
   test('Super Admin can access analytics dashboard', () => {
     // Test implementation
@@ -340,7 +340,7 @@ describe('RBAC System', () => {
     // Test implementation
   });
 });
-```
+\`\`\`
 
 ---
 
