@@ -15,7 +15,7 @@ This guide provides best practices and examples for writing integration tests fo
 
 ### Testing Connected Components
 
-```typescript
+\`\`\`typescript
 // features/courses/components/__tests__/CourseList.test.tsx
 import { render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
@@ -100,11 +100,11 @@ describe('CourseList', () => {
     });
   });
 });
-```
+\`\`\`
 
 ### Testing Form Submission
 
-```typescript
+\`\`\`typescript
 // features/auth/components/__tests__/LoginForm.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
@@ -235,11 +235,11 @@ describe('LoginForm', () => {
     expect(screen.getByText(/password is required/i)).toBeInTheDocument();
   });
 });
-```
+\`\`\`
 
 ### Testing API Integration
 
-```typescript
+\`\`\`typescript
 // features/courses/api/__tests__/course-api.test.ts
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
@@ -311,7 +311,7 @@ describe('Course API', () => {
     await expect(fetchCourses()).rejects.toThrow('Failed to fetch courses');
   });
 });
-```
+\`\`\`
 
 ## Best Practices
 
@@ -319,7 +319,7 @@ describe('Course API', () => {
 
 Integration tests should test complete user flows, not just individual components or functions.
 
-```typescript
+\`\`\`typescript
 it('should allow user to login and view dashboard', async () => {
   render(
     <Provider store={store}>
@@ -352,13 +352,13 @@ it('should allow user to login and view dashboard', async () => {
   expect(screen.getByText('Course 1')).toBeInTheDocument();
   expect(screen.getByText('Course 2')).toBeInTheDocument();
 });
-```
+\`\`\`
 
 ### 2. Mock External Dependencies
 
 Use MSW to mock API requests and responses, allowing you to test the integration between your components and the API without making actual network requests.
 
-```typescript
+\`\`\`typescript
 // Setup MSW server
 const server = setupServer(
   rest.get('/api/courses', (req, res, ctx) => {
@@ -379,13 +379,13 @@ const server = setupServer(
 beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
-```
+\`\`\`
 
 ### 3. Test Error Handling
 
 Test how your application handles errors, such as API errors, validation errors, and network errors.
 
-```typescript
+\`\`\`typescript
 it('should handle API error when fetching courses', async () => {
   // Override the default handler to return an error
   server.use(
@@ -405,13 +405,13 @@ it('should handle API error when fetching courses', async () => {
     expect(screen.getByText('Failed to load courses')).toBeInTheDocument();
   });
 });
-```
+\`\`\`
 
 ### 4. Use a Real Redux Store
 
 Use a real Redux store with your actual reducers to test the integration between your components and the store.
 
-```typescript
+\`\`\`typescript
 // Setup store with actual reducers
 const store = configureStore({
   reducer: {
@@ -420,13 +420,13 @@ const store = configureStore({
     // Add other reducers as needed
   },
 });
-```
+\`\`\`
 
 ### 5. Test Accessibility
 
 Test that your components are accessible to all users, including those with disabilities.
 
-```typescript
+\`\`\`typescript
 it('should be accessible', async () => {
   const { container } = render(
     <Provider store={store}>
@@ -437,33 +437,33 @@ it('should be accessible', async () => {
   const results = await axe(container);
   expect(results).toHaveNoViolations();
 });
-```
+\`\`\`
 
 ## Running Tests
 
 ### Running All Tests
 
-```bash
+\`\`\`bash
 npm test
-```
+\`\`\`
 
 ### Running Tests for a Specific File
 
-```bash
+\`\`\`bash
 npm test -- path/to/test-file.test.ts
-```
+\`\`\`
 
 ### Running Tests in Watch Mode
 
-```bash
+\`\`\`bash
 npm test -- --watch
-```
+\`\`\`
 
 ### Generating Coverage Report
 
-```bash
+\`\`\`bash
 npm test -- --coverage
-```
+\`\`\`
 
 ## Conclusion
 

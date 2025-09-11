@@ -63,7 +63,7 @@ The system will leverage data from existing Redux slices:
 ### Redux Slices
 
 1. **Analytics Slice**
-   ```typescript
+   \`\`\`typescript
    // features/analytics/store/analytics-slice.ts
    export interface AnalyticsState {
      dashboardStats: {
@@ -75,10 +75,10 @@ The system will leverage data from existing Redux slices:
      status: "idle" | "loading" | "succeeded" | "failed";
      error: string | null;
    }
-   ```
+   \`\`\`
 
 2. **Reports Slice**
-   ```typescript
+   \`\`\`typescript
    // features/analytics/store/reports-slice.ts
    export interface ReportsState {
      studentReports: { data: StudentReport[], total: number, status: string, error: string | null };
@@ -87,10 +87,10 @@ The system will leverage data from existing Redux slices:
      attendanceReports: { data: AttendanceReport[], total: number, status: string, error: string | null };
      studentBiodataReports: { data: StudentBiodataReport[], total: number, status: string, error: string | null };
    }
-   ```
+   \`\`\`
 
 3. **Student Biodata Slice**
-   ```typescript
+   \`\`\`typescript
    // features/analytics/store/student-biodata-slice.ts
    export interface StudentBiodataState {
      stats: {
@@ -104,12 +104,12 @@ The system will leverage data from existing Redux slices:
      status: "idle" | "loading" | "succeeded" | "failed";
      error: string | null;
    }
-   ```
+   \`\`\`
 
 ### Async Thunks
 
 1. **Dashboard Stats**
-   ```typescript
+   \`\`\`typescript
    export const fetchAnalyticsDashboard = createAsyncThunk(
      "analytics/fetchDashboard",
      async (_, { rejectWithValue }) => {
@@ -124,38 +124,38 @@ The system will leverage data from existing Redux slices:
        }
      }
    );
-   ```
+   \`\`\`
 
 2. **Report Data**
-   ```typescript
+   \`\`\`typescript
    export const fetchStudentReports = createAsyncThunk(
      "analytics/fetchStudentReports",
      async (filter: ReportFilter, { rejectWithValue }) => {
        // Implementation details
      }
    );
-   ```
+   \`\`\`
 
 3. **Student Biodata**
-   ```typescript
+   \`\`\`typescript
    export const fetchStudentBiodataStats = createAsyncThunk(
      "analytics/fetchStudentBiodataStats",
      async (_, { rejectWithValue }) => {
        // Implementation details
      }
    );
-   ```
+   \`\`\`
 
 ### Utility Functions
 
 1. **CSV Export**
-   ```typescript
+   \`\`\`typescript
    export function exportToCSV<T>(data: T[], filename: string) {
      const csv = Papa.unparse(data);
      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
      saveAs(blob, `${filename}.csv`);
    }
-   ```
+   \`\`\`
 
 ## UI Design
 

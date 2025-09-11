@@ -20,19 +20,19 @@ This is an asynchronous Redux thunk responsible for orchestrating the password c
 
 *   **Key Types:**
     *   **`ChangePasswordPayload`**: Defines the structure of the data sent *to* the thunk (and subsequently to the API).
-        ```typescript
+        \`\`\`typescript
         export interface ChangePasswordPayload {
             currentPassword: string;
             newPassword: string;
         }
-        ```
+        \`\`\`
     *   **`ChangePasswordSuccessResponse`**: Defines the expected structure of the data received from the API upon a *successful* password change.
-        ```typescript
+        \`\`\`typescript
         export interface ChangePasswordSuccessResponse {
             message: string; // e.g., "Password updated successfully."
             // Other properties if your API returns more on success.
         }
-        ```
+        \`\`\`
     *   **Thunk Definition Generic Types:**
         *   `createAsyncThunk<SuccessResponseType, ThunkArgType, ThunkApiConfig>`
         *   For `changePasswordThunk`:
@@ -47,12 +47,12 @@ This is an asynchronous Redux thunk responsible for orchestrating the password c
 When the `changePasswordThunk` is dispatched from the UI (e.g., `SettingsSecurity.tsx`), it sends a payload to the backend API.
 
 *   **Structure:** Matches the `ChangePasswordPayload` interface.
-    ```json
+    \`\`\`json
     {
         "currentPassword": "user-current-password-value",
         "newPassword": "user-new-password-value"
     }
-    ```
+    \`\`\`
 *   **Note:** The `confirmPassword` field, often present in UI forms, is typically validated on the client-side and **not** sent to the backend. Only the `newPassword` is transmitted.
 
 ---
@@ -78,19 +78,19 @@ The thunk anticipates specific responses from the backend API.
 
 *   **On Success (e.g., HTTP Status 200 OK):**
     *   **Expected JSON Structure:**
-        ```json
+        \`\`\`json
         {
             "success": true,
             "message": "Password updated successfully."
             // Potentially other data if your API provides it
         }
-        ```
+        \`\`\`
     *   The `changePasswordThunk` will resolve successfully, and its `fulfilled` action will carry a payload matching `ChangePasswordSuccessResponse` (primarily the `message`).
     *   The Redux state will reflect `isLoading: false` and `error: null`.
 
 *   **On Failure (e.g., HTTP Status 400 Bad Request, 401 Unauthorized, 403 Forbidden, 500 Internal Server Error):**
     *   **Expected JSON Structure (for client-side errors like incorrect current password or validation issues):**
-        ```json
+        \`\`\`json
         // Example for 400 Bad Request (e.g., current password incorrect)
         {
             "success": false,
@@ -99,7 +99,7 @@ The thunk anticipates specific responses from the backend API.
                 { "path": "currentPassword", "msg": "Invalid current password." }
             ]
         }
-        ```
+        \`\`\`
     *   The `changePasswordThunk` will be rejected.
     *   Its `rejected` action will carry a `payload` of type `string` (the `rejectValue`), which will be the error message extracted from the API response or a generic fallback.
     *   The Redux state will reflect `isLoading: false` and `error` will be set to this error message.

@@ -17,7 +17,7 @@ When working with data from APIs or Redux store, we often encounter these issues
 
 We've implemented utility functions in `lib/utils/safe-data.ts` to handle these issues:
 
-```typescript
+\`\`\`typescript
 // Example usage
 import { safeArray, safeObject, safeString } from '@/lib/utils/safe-data';
 
@@ -29,7 +29,7 @@ const user = safeObject(state.user); // Always returns an object
 
 // Instead of: const name = user.name (might be undefined)
 const name = safeString(user.name); // Always returns a string
-```
+\`\`\`
 
 ## Implementation in Redux Slices
 
@@ -37,32 +37,32 @@ const name = safeString(user.name); // Always returns a string
 
 Always initialize arrays as empty arrays and objects as empty objects:
 
-```typescript
+\`\`\`typescript
 const initialState = {
   users: [], // Not null or undefined
   user: {}, // Not null or undefined
   count: 0, // Not null or undefined
   status: 'idle', // Not null or undefined
 };
-```
+\`\`\`
 
 ### 2. Safe Reducers
 
 When updating state in reducers, ensure values are never null or undefined:
 
-```typescript
+\`\`\`typescript
 // Bad
 state.users = action.payload.users;
 
 // Good
 state.users = action.payload.users || [];
-```
+\`\`\`
 
 ### 3. Safe Selectors
 
 Create selectors that handle null/undefined values:
 
-```typescript
+\`\`\`typescript
 // features/auth/store/auth-selectors.ts
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
@@ -76,13 +76,13 @@ export const selectSafeUsers = createSafeArraySelector(selectUsers);
 
 // Usage in components
 const users = useAppSelector(selectSafeUsers); // Always returns an array
-```
+\`\`\`
 
 ### 4. Safe Component Usage
 
 When using data in components, apply defensive programming:
 
-```typescript
+\`\`\`typescript
 // Bad
 const items = useAppSelector(state => state.items);
 const itemCount = items.length; // Might cause error if items is undefined
@@ -93,7 +93,7 @@ import { safeArray } from '@/lib/utils/safe-data';
 const items = useAppSelector(state => state.items);
 const safeItems = safeArray(items);
 const itemCount = safeItems.length; // Safe, always works
-```
+\`\`\`
 
 ## Best Practices
 
@@ -108,7 +108,7 @@ const itemCount = safeItems.length; // Safe, always works
 
 When handling async thunks, ensure data is never null/undefined:
 
-```typescript
+\`\`\`typescript
 builder.addCase(
   fetchUsers.fulfilled,
   (state, action) => {
@@ -118,13 +118,13 @@ builder.addCase(
     state.total = action.payload.total || 0;
   }
 );
-```
+\`\`\`
 
 ### 3. Component Rendering
 
 Use conditional rendering or default values:
 
-```tsx
+\`\`\`tsx
 // Conditional rendering
 {users.length > 0 ? (
   <UserList users={users} />
@@ -134,13 +134,13 @@ Use conditional rendering or default values:
 
 // Default values with optional chaining
 <span>{user?.name || 'Anonymous'}</span>
-```
+\`\`\`
 
 ### 4. Type Guards
 
 Use TypeScript type guards to handle different data types:
 
-```typescript
+\`\`\`typescript
 function isUser(obj: any): obj is User {
   return obj && typeof obj === 'object' && 'id' in obj && 'name' in obj;
 }
@@ -150,53 +150,53 @@ if (isUser(data)) {
   // TypeScript knows data is User here
   console.log(data.name);
 }
-```
+\`\`\`
 
 ## Safe Data Utility Functions
 
 ### safeArray
 
-```typescript
+\`\`\`typescript
 export function safeArray<T>(array: T[] | null | undefined): T[] {
   return Array.isArray(array) ? array : [];
 }
-```
+\`\`\`
 
 ### safeObject
 
-```typescript
+\`\`\`typescript
 export function safeObject<T extends object>(obj: T | null | undefined): T {
   return (obj && typeof obj === 'object') ? obj : {} as T;
 }
-```
+\`\`\`
 
 ### safeString
 
-```typescript
+\`\`\`typescript
 export function safeString(str: string | null | undefined, defaultValue: string = ''): string {
   return (str !== null && str !== undefined) ? String(str) : defaultValue;
 }
-```
+\`\`\`
 
 ### safeNumber
 
-```typescript
+\`\`\`typescript
 export function safeNumber(num: number | null | undefined, defaultValue: number = 0): number {
   return (num !== null && num !== undefined && !isNaN(Number(num))) ? Number(num) : defaultValue;
 }
-```
+\`\`\`
 
 ### safeBoolean
 
-```typescript
+\`\`\`typescript
 export function safeBoolean(bool: boolean | null | undefined, defaultValue: boolean = false): boolean {
   return bool === true ? true : bool === false ? false : defaultValue;
 }
-```
+\`\`\`
 
 ## Safe Selector Creator
 
-```typescript
+\`\`\`typescript
 export function createSafeArraySelector<State, Result>(
   selector: (state: State) => Result[] | null | undefined
 ) {
@@ -205,13 +205,13 @@ export function createSafeArraySelector<State, Result>(
     (result) => safeArray(result)
   );
 }
-```
+\`\`\`
 
 ## Example: Updating a Redux Slice
 
 ### Before
 
-```typescript
+\`\`\`typescript
 // Unsafe slice
 const usersSlice = createSlice({
   name: 'users',
@@ -230,11 +230,11 @@ const usersSlice = createSlice({
     });
   }
 });
-```
+\`\`\`
 
 ### After
 
-```typescript
+\`\`\`typescript
 // Safe slice
 const usersSlice = createSlice({
   name: 'users',
@@ -257,7 +257,7 @@ const usersSlice = createSlice({
 // Safe selectors
 export const selectUsers = (state: RootState) => state.users.users;
 export const selectSafeUsers = createSafeArraySelector(selectUsers);
-```
+\`\`\`
 
 ## Conclusion
 

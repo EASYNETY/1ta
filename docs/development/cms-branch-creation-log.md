@@ -45,32 +45,32 @@
 ## 🌿 **Git Commands Executed**
 
 ### **Step 1: Preparation**
-```bash
+\`\`\`bash
 # Ensure we're on the latest main branch
 git checkout main
 git pull origin main
 
 # Check current status
 git status
-```
+\`\`\`
 
 ### **Step 2: Create CMS Feature Branch**
-```bash
+\`\`\`bash
 # Create and switch to the CMS feature branch
 git checkout -b feature/cms-system
-```
+\`\`\`
 
 ### **Step 3: Stage All Changes**
-```bash
+\`\`\`bash
 # Add all changes to staging
 git add .
 
 # Verify what's being committed
 git status
-```
+\`\`\`
 
 ### **Step 4: Create Comprehensive Commit**
-```bash
+\`\`\`bash
 git commit -m "feat: comprehensive CMS system implementation
 
 🏗️ Documentation Organization:
@@ -115,18 +115,18 @@ This branch serves as a complete CMS implementation store that can be:
 - Rolled back easily if needed
 
 Backend team has everything needed to implement production-ready CMS system."
-```
+\`\`\`
 
 ### **Step 5: Push Feature Branch**
-```bash
+\`\`\`bash
 # Push the feature branch to remote repository
 git push -u origin feature/cms-system
-```
+\`\`\`
 
 ## ✅ **ACTUAL EXECUTION RESULTS**
 
 ### **Commands Executed Successfully:**
-```bash
+\`\`\`bash
 # 1. Created feature branch
 git checkout -b feature/cms-system
 # Output: Switched to a new branch 'feature/cms-system'
@@ -144,16 +144,16 @@ git commit -m "feat: comprehensive CMS system implementation..."
 git push -u origin feature/cms-system
 # Output: Successfully pushed to origin/feature/cms-system
 #         Remote URL: https://github.com/Dr-dyrane/smartedu-frontend/pull/new/feature/cms-system
-```
+\`\`\`
 
 ### **Final Branch Status:**
-```bash
+\`\`\`bash
 git branch -v
 # Output:
 # * feature/cms-system       27aeeeb feat: comprehensive CMS system implementation
 #   fix-websocket-close-code 9d610b6 Fix WebSocket close code issue by removing close codes entirely
 #   main                     33964c7 feat: implement mailto functionality for contact forms
-```
+\`\`\`
 
 ## 📊 **Branch Status After Creation**
 
@@ -164,7 +164,7 @@ git branch -v
 - **Purpose:** Complete CMS implementation store
 
 ### **Files Changed**
-```
+\`\`\`
 Modified/Created:
 ├── docs/backend/cms-api-requirements.md          (moved from root)
 ├── docs/backend/cms-database-models.md           (new)
@@ -184,12 +184,12 @@ Removed:
 ├── CACHE_MANAGEMENT_SOLUTION.md                  (moved to docs/features/)
 ├── data-types-reference.md                       (already in docs/)
 └── mock-data-replacement.md                      (already in docs/)
-```
+\`\`\`
 
 ## 🔄 **Ongoing Workflow**
 
 ### **Working on CMS Features**
-```bash
+\`\`\`bash
 # Switch to CMS branch for CMS work
 git checkout feature/cms-system
 
@@ -200,10 +200,10 @@ git checkout feature/cms-system
 git add .
 git commit -m "feat(cms): add specific CMS feature"
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **Regular Syncing with Main (Weekly Recommended)**
-```bash
+\`\`\`bash
 # Sync CMS branch with latest main changes
 git checkout feature/cms-system
 git fetch origin
@@ -216,10 +216,10 @@ git commit -m "sync: merge latest main branch changes"
 
 # Push updated branch
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **When Ready to Integrate**
-```bash
+\`\`\`bash
 # Ensure CMS branch is up to date
 git checkout feature/cms-system
 git fetch origin
@@ -235,7 +235,7 @@ git push origin main
 
 # Optionally keep CMS branch for future development
 # Or delete if no longer needed
-```
+\`\`\`
 
 ## 🎯 **Benefits of This Approach**
 
@@ -256,28 +256,28 @@ git push origin main
 ## 📞 **Quick Reference Commands**
 
 ### **Switch to CMS Branch**
-```bash
+\`\`\`bash
 git checkout feature/cms-system
-```
+\`\`\`
 
 ### **Sync with Main**
-```bash
+\`\`\`bash
 git checkout feature/cms-system
 git fetch origin
 git merge origin/main
 git push origin feature/cms-system
-```
+\`\`\`
 
 ### **Check Branch Status**
-```bash
+\`\`\`bash
 git branch -v
 git log --oneline --graph --decorate --all -10
-```
+\`\`\`
 
 ### **View Changes Since Branch Creation**
-```bash
+\`\`\`bash
 git log main..feature/cms-system --oneline
-```
+\`\`\`
 
 ## 🚨 **Important Notes**
 

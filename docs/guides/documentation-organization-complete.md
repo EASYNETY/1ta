@@ -9,7 +9,7 @@
 ## 🎉 **What We've Accomplished**
 
 ### ✅ **Organized Documentation Structure**
-```
+\`\`\`
 docs/
 ├── README.md                           # Main documentation hub
 ├── rbac/                              # 🔐 RBAC System (Priority 1)
@@ -116,7 +116,7 @@ docs/
 ├── frontend/                         # 🖥️ Frontend Documentation
 ├── requirements/                     # 📋 Requirements
 └── samples/                          # 📝 Code Samples
-```
+\`\`\`
 
 ---
 
@@ -151,7 +151,7 @@ docs/
 ## 🚀 **Ready for Repository Push**
 
 ### **What's Ready to Commit:**
-```bash
+\`\`\`bash
 # All organized documentation
 docs/                                  # Clean, organized structure
 ├── rbac/                             # Complete RBAC implementation docs
@@ -161,7 +161,7 @@ docs/                                  # Clean, organized structure
 README.md                             # Project overview
 package.json                          # Dependencies
 [other essential project files]       # Core project structure
-```
+\`\`\`
 
 ### **What Was Cleaned Up:**
 - ❌ Removed: Duplicate files

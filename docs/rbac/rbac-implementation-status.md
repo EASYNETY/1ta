@@ -192,7 +192,7 @@ The following backend implementations are **required** for the RBAC system to fu
 ## 🔧 Technical Architecture
 
 ### Permission System Design
-```typescript
+\`\`\`typescript
 // Hierarchical permission checking
 Super Admin → All Permissions
 Admin → Subset (no analytics, no delete)
@@ -200,16 +200,16 @@ Accounting → Payment-focused permissions
 Customer Care → Read-only + scanning permissions
 Teacher → Course management permissions
 Student → Basic access permissions
-```
+\`\`\`
 
 ### Component Architecture
-```
+\`\`\`
 AuthProvider (Route Protection)
 ├── PermissionGuard (Component Protection)
 ├── Navigation (Role-based Filtering)
 ├── Dashboards (Role-specific Views)
 └── API Integration (Permission Headers)
-```
+\`\`\`
 
 ---
 

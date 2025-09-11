@@ -47,7 +47,7 @@ The 4-tier Role-Based Access Control (RBAC) system has been **fully implemented 
 ## 🔧 **Technical Implementation**
 
 ### **Permission System Architecture**
-```typescript
+\`\`\`typescript
 // 40+ granular permissions across 6 roles
 Super Admin → All Permissions (delete, analytics, full access)
 Admin → Restricted (no analytics, no delete, read-only payments)
@@ -55,10 +55,10 @@ Accounting → Payment-focused (dashboard, reconciliation, reports)
 Customer Care → Limited (scanning, read-only student info)
 Teacher → Course management (existing functionality)
 Student → Basic access (own data only)
-```
+\`\`\`
 
 ### **Component Protection**
-```typescript
+\`\`\`typescript
 // Example usage of permission guards
 <PermissionGuard permission="delete_users">
   <DeleteButton />
@@ -71,7 +71,7 @@ Student → Basic access (own data only)
 <SuperAdminGuard>
   <AnalyticsDashboard />
 </SuperAdminGuard>
-```
+\`\`\`
 
 ### **Route Protection**
 - Enhanced AuthProvider with hierarchical access control
@@ -83,7 +83,7 @@ Student → Basic access (own data only)
 ## 📋 **Backend Requirements Summary**
 
 ### **Database Schema Changes**
-```sql
+\`\`\`sql
 -- Add new role types
 ALTER TYPE user_role ADD VALUE 'super_admin';
 ALTER TYPE user_role ADD VALUE 'accounting';
@@ -94,7 +94,7 @@ ALTER TABLE users ADD COLUMN permissions TEXT[];
 ALTER TABLE payments ADD COLUMN gateway_ref VARCHAR(255);
 ALTER TABLE payments ADD COLUMN transaction_id VARCHAR(255);
 ALTER TABLE payments ADD COLUMN reconciliation_status VARCHAR(50);
-```
+\`\`\`
 
 ### **Required API Endpoints**
 - `/api/admin/analytics/*` (Super Admin only)

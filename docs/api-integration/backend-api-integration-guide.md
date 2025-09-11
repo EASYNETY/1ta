@@ -25,7 +25,7 @@ All API responses should follow a consistent structure to make frontend integrat
 
 ### Success Response Format
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [/* Array of items or single object */],
@@ -37,7 +37,7 @@ All API responses should follow a consistent structure to make frontend integrat
     "pages": 10
   }
 }
-```
+\`\`\`
 
 - `success`: Boolean indicating if the request was successful
 - `data`: The actual data being returned (array or object)
@@ -46,7 +46,7 @@ All API responses should follow a consistent structure to make frontend integrat
 
 ### Error Response Format
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Descriptive error message",
@@ -55,7 +55,7 @@ All API responses should follow a consistent structure to make frontend integrat
     "details": "Additional error details"
   }
 }
-```
+\`\`\`
 
 ## Error Handling
 
@@ -73,14 +73,14 @@ All API responses should follow a consistent structure to make frontend integrat
 
 When returning lists of items, always include pagination information:
 
-```json
+\`\`\`json
 "pagination": {
   "total": 100,    // Total number of items
   "page": 1,       // Current page number
   "limit": 10,     // Items per page
   "pages": 10      // Total number of pages
 }
-```
+\`\`\`
 
 ## Specific Endpoints
 
@@ -90,7 +90,7 @@ When returning lists of items, always include pagination information:
 
 **Expected Response Format:**
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -122,7 +122,7 @@ When returning lists of items, always include pagination information:
   },
   "message": "Classes fetched successfully"
 }
-```
+\`\`\`
 
 **Important Fields:**
 - `id`: Unique identifier for the class
@@ -135,7 +135,7 @@ When returning lists of items, always include pagination information:
 
 **Expected Response Format:**
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -159,7 +159,7 @@ When returning lists of items, always include pagination information:
   },
   "message": "Class fetched successfully"
 }
-```
+\`\`\`
 
 ### Attendance API
 
@@ -167,18 +167,18 @@ When returning lists of items, always include pagination information:
 
 **Expected Request Format:**
 
-```json
+\`\`\`json
 {
   "studentId": "student-id",
   "classId": "class-id",
   "date": "2023-01-01",
   "status": "present"
 }
-```
+\`\`\`
 
 **Expected Response Format:**
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -192,7 +192,7 @@ When returning lists of items, always include pagination information:
   },
   "message": "Attendance marked successfully"
 }
-```
+\`\`\`
 
 ## Data Types and Field Naming
 

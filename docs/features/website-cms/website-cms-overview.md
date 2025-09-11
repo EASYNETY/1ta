@@ -47,9 +47,9 @@ The Website CMS provides administrators with complete control over the public we
 
 Access the Website CMS through the admin navigation:
 
-```
+\`\`\`
 Admin Tools > Website
-```
+\`\`\`
 
 ### Main Pages
 
@@ -128,7 +128,7 @@ The CMS supports various section types:
 
 ### File Structure
 
-```
+\`\`\`
 ├── app/(authenticated)/admin/website/
 │   ├── page.tsx                    # Main dashboard
 │   ├── pages/
@@ -157,13 +157,13 @@ The CMS supports various section types:
 │   └── useWebsiteData.ts          # Custom hooks for CMS data
 └── types/
     └── website.types.ts           # TypeScript definitions
-```
+\`\`\`
 
 ### State Management
 
 The CMS uses Redux Toolkit for state management:
 
-```typescript
+\`\`\`typescript
 // Store structure
 interface WebsiteState {
   pages: WebsitePage[]
@@ -174,7 +174,7 @@ interface WebsiteState {
   error: ErrorStates
   pagination: PaginationStates
 }
-```
+\`\`\`
 
 ### API Endpoints
 
@@ -190,21 +190,21 @@ interface WebsiteState {
 
 ### Custom Hooks
 
-```typescript
+\`\`\`typescript
 // Available hooks
 const { pages, loading, error } = useWebsitePages()
 const { page, updateCurrentPage } = useWebsitePage(pageId)
 const { mediaFiles, uploadNewMedia } = useWebsiteMedia()
 const { settings, saveSettings } = useWebsiteSettings()
 const { landingPage, sections } = useLandingPageData()
-```
+\`\`\`
 
 ## Making Pages Dynamic
 
 To make a page dynamic (pulling content from CMS):
 
 1. **Use the Dynamic Section Renderer**:
-```tsx
+\`\`\`tsx
 import { DynamicSectionRenderer } from '@/components/website/dynamic-section-renderer'
 import { useLandingPageData } from '@/hooks/useWebsiteData'
 
@@ -223,7 +223,7 @@ export default function DynamicPage() {
     </div>
   )
 }
-```
+\`\`\`
 
 2. **Replace Static Content**:
    - Replace hardcoded text with CMS data
@@ -233,7 +233,7 @@ export default function DynamicPage() {
 ## Database Schema
 
 ### Pages Table
-```sql
+\`\`\`sql
 CREATE TABLE website_pages (
   id VARCHAR PRIMARY KEY,
   title VARCHAR NOT NULL,
@@ -248,10 +248,10 @@ CREATE TABLE website_pages (
   author VARCHAR,
   views INTEGER DEFAULT 0
 );
-```
+\`\`\`
 
 ### Media Table
-```sql
+\`\`\`sql
 CREATE TABLE website_media (
   id VARCHAR PRIMARY KEY,
   name VARCHAR NOT NULL,
@@ -264,17 +264,17 @@ CREATE TABLE website_media (
   uploaded_at TIMESTAMP,
   used_in JSON
 );
-```
+\`\`\`
 
 ### Settings Table
-```sql
+\`\`\`sql
 CREATE TABLE website_settings (
   id VARCHAR PRIMARY KEY,
   key VARCHAR UNIQUE NOT NULL,
   value JSON,
   updated_at TIMESTAMP
 );
-```
+\`\`\`
 
 ## Usage Examples
 

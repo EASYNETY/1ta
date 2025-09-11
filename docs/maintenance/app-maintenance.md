@@ -20,10 +20,10 @@ The feature is implemented as a settings component that can be accessed from the
 
 The API cache clearing functionality uses the `apiCache.clear()` method from the `lib/api-cache.ts` module. This clears all cached API responses, forcing the application to fetch fresh data from the server on the next request.
 
-```typescript
+\`\`\`typescript
 // Clear the API cache
 apiCache.clear();
-```
+\`\`\`
 
 ### App Update
 
@@ -34,7 +34,7 @@ The app update functionality:
 3. Clears the API cache
 4. Reloads the application
 
-```typescript
+\`\`\`typescript
 // Save auth data
 const authToken = localStorage.getItem(authTokenKey);
 const authUser = localStorage.getItem(authUserKey);
@@ -56,15 +56,15 @@ apiCache.clear();
 
 // Reload the app
 window.location.reload();
-```
+\`\`\`
 
 ### Hard Refresh
 
 The hard refresh functionality forces a complete reload from the server by adding a timestamp parameter to the URL:
 
-```typescript
+\`\`\`typescript
 window.location.href = window.location.href.split('#')[0] + '?t=' + Date.now();
-```
+\`\`\`
 
 ## User Experience
 

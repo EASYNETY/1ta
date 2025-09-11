@@ -41,7 +41,7 @@ The API client (`lib/api-client.ts`) currently handles both mock data and real A
 
 ### Current Implementation
 
-```typescript
+\`\`\`typescript
 // --- Config ---
 // Base URL for the API
 const API_BASE_URL =
@@ -118,7 +118,7 @@ export async function handleMockRequest<T>(
   }
   // ... more endpoint handlers ...
 }
-```
+\`\`\`
 
 ### Replacement Strategy
 
@@ -133,7 +133,7 @@ export async function handleMockRequest<T>(
 
 #### Current Mock Implementation
 
-```typescript
+\`\`\`typescript
 // In /data/public-mock-course-data.ts
 export async function getPublicMockCourses(): Promise<PublicCourse[]> {
   // Return mock public courses
@@ -154,11 +154,11 @@ if (endpoint === "/public_courses" && method === "get") {
     } as unknown as T;
   }
 }
-```
+\`\`\`
 
 #### Thunk Implementation
 
-```typescript
+\`\`\`typescript
 // In features/public-course/store/public-course-slice.ts
 export const fetchCourses = createAsyncThunk<
   PublicCourse[],
@@ -183,13 +183,13 @@ export const fetchCourses = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 #### Backend Requirements
 
 The backend should implement a `GET /public_courses` endpoint that returns:
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -213,13 +213,13 @@ The backend should implement a `GET /public_courses` endpoint that returns:
   ],
   "message": "Public courses fetched successfully"
 }
-```
+\`\`\`
 
 ### 2. Payment Processing
 
 #### Current Mock Implementation
 
-```typescript
+\`\`\`typescript
 // In lib/api-client.ts
 if (endpoint === "/payments/initialize" && method === "post") {
   if (!body) {
@@ -258,11 +258,11 @@ if (endpoint === "/payments/initialize" && method === "post") {
     }
   } as unknown as T;
 }
-```
+\`\`\`
 
 #### Thunk Implementation
 
-```typescript
+\`\`\`typescript
 // In features/payment/store/payment-slice.ts
 export const initiatePayment = createAsyncThunk<
   PaymentResponse,
@@ -291,7 +291,7 @@ export const initiatePayment = createAsyncThunk<
     }
   }
 );
-```
+\`\`\`
 
 #### Backend Requirements
 
@@ -306,7 +306,7 @@ The backend should implement a `POST /payments/initialize` endpoint that:
 
 Update unit tests to mock API responses instead of using mock data:
 
-```typescript
+\`\`\`typescript
 // Before
 jest.mock('@/data/mock-course-data', () => ({
   getPublicMockCourses: jest.fn().mockResolvedValue([mockCourse1, mockCourse2])
@@ -320,7 +320,7 @@ jest.mock('@/lib/api-client', () => ({
     message: "Courses fetched successfully"
   })
 }));
-```
+\`\`\`
 
 ### 2. Integration Tests
 

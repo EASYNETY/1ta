@@ -23,7 +23,7 @@ Always use the safe utility functions from `lib/utils/safe-data.ts` when accessi
 
 ### Array Operations
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct array operations without safety checks
 const items = data.items.map(item => item.name);
 
@@ -32,11 +32,11 @@ import { safeMap, safeArray } from '@/lib/utils/safe-data';
 const items = safeMap(data.items, item => item.name);
 // or
 const items = safeArray(data.items).map(item => item.name);
-```
+\`\`\`
 
 ### Object Properties
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct property access without safety checks
 const userName = user.profile.name;
 
@@ -46,11 +46,11 @@ const userName = safeGet(user, 'profile.name', 'Unknown');
 // or
 const profile = safeObject(user.profile);
 const userName = profile.name || 'Unknown';
-```
+\`\`\`
 
 ### String Operations
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: String operations without safety checks
 const firstLetter = text.charAt(0).toUpperCase();
 
@@ -58,13 +58,13 @@ const firstLetter = text.charAt(0).toUpperCase();
 import { safeString } from '@/lib/utils/safe-data';
 const text = safeString(rawText);
 const firstLetter = text.charAt(0).toUpperCase();
-```
+\`\`\`
 
 ## API Response Handling
 
 Use the safe API client and validators to handle API responses.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct API calls without validation
 const user = await get<User>('/users/123');
 
@@ -80,13 +80,13 @@ const userValidator: ApiResponseValidator<User> = {
 
 const defaultUser: User = { id: '', name: '', email: '' };
 const user = await safeGet<User>('/users/123', userValidator, defaultUser);
-```
+\`\`\`
 
 ## Error Boundaries
 
 Use error boundaries to catch and handle errors gracefully.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: No error handling
 <MyComponent />
 
@@ -96,11 +96,11 @@ import GlobalErrorBoundary from '@/components/error-boundary/GlobalErrorBoundary
 <GlobalErrorBoundary>
   <MyComponent />
 </GlobalErrorBoundary>
-```
+\`\`\`
 
 For functional components, use the `useErrorHandler` hook:
 
-```tsx
+\`\`\`tsx
 import useErrorHandler from '@/hooks/useErrorHandler';
 
 function MyComponent() {
@@ -123,13 +123,13 @@ function MyComponent() {
   
   return <div>My Component</div>;
 }
-```
+\`\`\`
 
 ## Type Safety
 
 Use TypeScript effectively to catch type errors at compile time.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Using any type
 function processData(data: any) {
   return data.items.map(item => item.name);
@@ -148,13 +148,13 @@ interface Data {
 function processData(data: Data) {
   return safeMap(data.items, item => item.name);
 }
-```
+\`\`\`
 
 ## Redux State Management
 
 Use safe selectors to access Redux state.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct state access without safety checks
 const users = useAppSelector(state => state.auth.users);
 users.map(user => user.name); // Might cause error if users is undefined
@@ -163,13 +163,13 @@ users.map(user => user.name); // Might cause error if users is undefined
 import { useSafeArraySelector } from '@/store/safe-hooks';
 const users = useSafeArraySelector(state => state.auth.users);
 users.map(user => user.name); // Safe, users is guaranteed to be an array
-```
+\`\`\`
 
 ## Date Handling
 
 Always use safe date parsing and formatting.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct date parsing without safety checks
 const date = new Date(dateString);
 const formattedDate = format(date, 'yyyy-MM-dd');
@@ -180,7 +180,7 @@ import { format } from 'date-fns';
 
 const date = safeParseDate(dateString);
 const formattedDate = safeFormatDate(date, d => format(d, 'yyyy-MM-dd'), 'Invalid date');
-```
+\`\`\`
 
 ## Code Review Checklist
 

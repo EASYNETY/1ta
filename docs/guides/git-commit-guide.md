@@ -8,7 +8,7 @@
 ## 📋 **What's Ready to Commit**
 
 ### ✅ **New Files Added**
-```
+\`\`\`
 hooks/usePermissions.ts                           # Core permission system
 components/auth/PermissionGuard.tsx               # UI permission guards
 app/(authenticated)/accounting/dashboard/page.tsx # Accounting dashboard
@@ -19,10 +19,10 @@ docs/rbac/                                        # Complete RBAC documentation
 ├── rbac-testing-plan.md                          # Testing strategy
 └── backend-rbac-requirements.md                  # Backend requirements
 RBAC-STATUS.md                                    # Executive summary
-```
+\`\`\`
 
 ### 🔄 **Files Modified**
-```
+\`\`\`
 features/auth/components/auth-provider.tsx        # Enhanced route protection
 components/auth/AuthenticationGuard.tsx           # Updated authorization
 components/layout/auth/app-sidebar.tsx            # Role-based navigation
@@ -30,14 +30,14 @@ hooks/useFilteredPrimaryNavItems.ts               # Navigation filtering
 hooks/useFilteredSecondaryNavItems.tsx            # Secondary nav updates
 types/user.types.ts                               # Already had RBAC types
 docs/README.md                                    # Updated documentation
-```
+\`\`\`
 
 ---
 
 ## 🎯 **Recommended Commit Strategy**
 
 ### **Option 1: Single Comprehensive Commit**
-```bash
+\`\`\`bash
 git add .
 git commit -m "feat: implement complete 4-tier RBAC system
 
@@ -70,10 +70,10 @@ git commit -m "feat: implement complete 4-tier RBAC system
 
 Closes: CEO requirements for RBAC system
 Priority: Critical for production deployment"
-```
+\`\`\`
 
 ### **Option 2: Multiple Focused Commits**
-```bash
+\`\`\`bash
 # Commit 1: Core permission system
 git add hooks/usePermissions.ts components/auth/PermissionGuard.tsx
 git commit -m "feat: add core RBAC permission system
@@ -114,7 +114,7 @@ git commit -m "docs: add comprehensive RBAC documentation
 - Add backend implementation requirements
 - Add testing plan and implementation status
 - Update main documentation structure"
-```
+\`\`\`
 
 ---
 
@@ -142,7 +142,7 @@ git commit -m "docs: add comprehensive RBAC documentation
 
 ## 🚀 **Push Commands**
 
-```bash
+\`\`\`bash
 # Check current status
 git status
 
@@ -167,7 +167,7 @@ Priority: Critical"
 
 # Push to repository
 git push origin main
-```
+\`\`\`
 
 ---
 

@@ -12,13 +12,13 @@ This document outlines the dynamic approaches implemented to handle the three ma
 #### Changes Made:
 
 **VerifyPaymentResponse Type** (`features/payment/types/payment-types.ts`):
-```typescript
+\`\`\`typescript
 export interface VerifyPaymentResponse {
     payments?: PaymentRecord; // Current format (plural)
     payment?: PaymentRecord;  // Alternative format (singular) from API docs
     verification: any; // The verification data from Paystack
 }
-```
+\`\`\`
 
 **verifyPayment Thunk** (`features/payment/store/payment-slice.ts`):
 - Accepts both response formats
@@ -26,11 +26,11 @@ export interface VerifyPaymentResponse {
 - Dynamic validation checks for either format
 
 **Slice Reducer**:
-```typescript
+\`\`\`typescript
 const paymentRecord = action.payload.payments || 
                      (action.payload as any).payment ||
                      null;
-```
+\`\`\`
 
 ### 2. Field Access Flexibility
 **Problem**: Code tries to access `gatewayRef` but this field might not always be available
@@ -39,7 +39,7 @@ const paymentRecord = action.payload.payments ||
 
 #### Enhanced Metadata Extraction (`app/(authenticated)/payments/callback/page.tsx`):
 
-```typescript
+\`\`\`typescript
 const getMetadataFromPaymentRecord = (record: PaymentRecord | null): Record<string, any> => {
     // Define potential metadata sources in order of priority
     const metadataSources = [
@@ -72,7 +72,7 @@ const getMetadataFromPaymentRecord = (record: PaymentRecord | null): Record<stri
     
     return {}; // No valid metadata found
 };
-```
+\`\`\`
 
 ### 3. Robust Metadata Handling
 **Problem**: Current approach is fragile, depending on backend "stuffing" JSON into existing fields
@@ -81,7 +81,7 @@ const getMetadataFromPaymentRecord = (record: PaymentRecord | null): Record<stri
 
 #### Dynamic Enrollment Data Extraction:
 
-```typescript
+\`\`\`typescript
 const getEnrollmentData = (
     metadata: Record<string, any>, 
     paymentRecord: PaymentRecord | null,
@@ -118,13 +118,13 @@ const getEnrollmentData = (
     
     return { courseIds: Array.isArray(courseIds) ? courseIds : [], invoiceId, isCorporate, studentCount };
 };
-```
+\`\`\`
 
 ## Enhanced PaymentRecord Type
 
 Added optional metadata fields for future flexibility:
 
-```typescript
+\`\`\`typescript
 export interface PaymentRecord {
     // ... existing fields ...
     
@@ -133,7 +133,7 @@ export interface PaymentRecord {
     providerMetadata?: Record<string, any>; // Provider-specific metadata
     transactionMetadata?: Record<string, any>; // Transaction-specific metadata
 }
-```
+\`\`\`
 
 ## Benefits of Dynamic Approaches
 
@@ -147,13 +147,13 @@ export interface PaymentRecord {
 
 The callback page now uses these dynamic helpers:
 
-```typescript
+\`\`\`typescript
 // Use dynamic helpers to extract data
 const metadata = getMetadataFromPaymentRecord(verifiedPaymentDetails);
 const enrollmentData = getEnrollmentData(metadata, verifiedPaymentDetails, searchParams);
 
 const { courseIds: courseIdsToEnrol, invoiceId, isCorporate, studentCount } = enrollmentData;
-```
+\`\`\`
 
 This approach ensures the payment callback remains functional regardless of:
 - Backend response format changes (singular vs plural)

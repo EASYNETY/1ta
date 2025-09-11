@@ -6,7 +6,7 @@ The Interactive Onboarding Tour is a guided walkthrough that introduces new user
 
 ## Implementation
 
-```jsx
+\`\`\`jsx
 // components/onboarding/OnboardingTour.tsx
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -113,13 +113,13 @@ export function OnboardingTour() {
     />
   );
 }
-```
+\`\`\`
 
 ## Integration
 
 1. Add the OnboardingTour component to the authenticated layout:
 
-```jsx
+\`\`\`jsx
 // app/(authenticated)/layout.tsx
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 
@@ -131,11 +131,11 @@ export default function AuthenticatedLayout({ children }) {
     </>
   );
 }
-```
+\`\`\`
 
 2. Update the auth slice to track tour completion:
 
-```jsx
+\`\`\`jsx
 // features/auth/store/auth-slice.ts
 const authSlice = createSlice({
   name: 'auth',
@@ -152,11 +152,11 @@ const authSlice = createSlice({
 });
 
 export const { completeOnboardingTour } = authSlice.actions;
-```
+\`\`\`
 
 3. Add CSS classes to key UI elements for targeting:
 
-```jsx
+\`\`\`jsx
 // components/dashboard/DashboardWelcome.tsx
 <div className="dashboard-welcome">
   <h1>Welcome, {user.name}</h1>
@@ -167,7 +167,7 @@ export const { completeOnboardingTour } = authSlice.actions;
   <h2>My Courses</h2>
   {/* Course cards */}
 </div>
-```
+\`\`\`
 
 ## Dependencies
 

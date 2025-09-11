@@ -57,7 +57,7 @@ Steps:
    - Number of Students to Manage
    - Multi-select: Courses to Assign (capacity limits apply)
    - Button: Generate Student Slots
-     ```ts
+     \`\`\`ts
      {
        corporateId: 'corp_xyz123',
        courseId: 'course_id',
@@ -67,7 +67,7 @@ Steps:
        isCorporateManager: false,
        role: 'student'
      }
-     ```
+     \`\`\`
 3. Submit → `/dashboard`
 
 ---
@@ -90,12 +90,12 @@ Steps:
 
 #### API
 
-```http
+\`\`\`http
 GET /users?role=student|teacher|admin
 POST /users
 PATCH /users/:id
 DELETE /users/:id
-```
+\`\`\`
 
 ---
 
@@ -107,12 +107,12 @@ DELETE /users/:id
 
 #### API
 
-```http
+\`\`\`http
 GET /courses
 POST /courses
 PUT /courses/:id
 DELETE /courses/:id
-```
+\`\`\`
 
 ---
 
@@ -128,11 +128,11 @@ DELETE /courses/:id
 
 #### API
 
-```http
+\`\`\`http
 POST /payment/individual
 POST /payment/corporate
 GET /payment/status/:userId
-```
+\`\`\`
 
 ---
 
@@ -145,13 +145,13 @@ GET /payment/status/:userId
 
 #### API
 
-```http
+\`\`\`http
 POST /classes
 GET /classes
 PUT /classes/:id
 POST /classes/:id/add-students
 POST /classes/:id/assign-teacher
-```
+\`\`\`
 
 ---
 
@@ -162,11 +162,11 @@ POST /classes/:id/assign-teacher
 
 #### API
 
-```http
+\`\`\`http
 POST /schedule
 GET /schedule/:classId
 PUT /schedule/:id
-```
+\`\`\`
 
 ---
 
@@ -178,11 +178,11 @@ PUT /schedule/:id
 
 #### API
 
-```http
+\`\`\`http
 POST /attendance/check-in
 GET /attendance/class/:classId
 GET /attendance/student/:studentId
-```
+\`\`\`
 
 ---
 
@@ -194,10 +194,10 @@ GET /attendance/student/:studentId
 
 #### API
 
-```http
+\`\`\`http
 GET /chat/course/:courseId
 POST /chat/course/:courseId/message
-```
+\`\`\`
 
 ---
 
@@ -208,11 +208,11 @@ POST /chat/course/:courseId/message
 
 #### API
 
-```http
+\`\`\`http
 POST /support-ticket
 GET /support-ticket?status=open|closed
 PATCH /support-ticket/:id
-```
+\`\`\`
 
 ---
 

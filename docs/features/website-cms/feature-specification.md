@@ -79,7 +79,7 @@ A WordPress-like content management system that allows administrators to control
 ## Data Models
 
 ### Page Model
-```typescript
+\`\`\`typescript
 interface WebsitePage {
   id: string
   title: string
@@ -94,10 +94,10 @@ interface WebsitePage {
   author: string
   views?: number
 }
-```
+\`\`\`
 
 ### Section Model
-```typescript
+\`\`\`typescript
 interface PageSection {
   id: string
   name: string
@@ -106,10 +106,10 @@ interface PageSection {
   order: number
   data: SectionData
 }
-```
+\`\`\`
 
 ### Media Model
-```typescript
+\`\`\`typescript
 interface MediaFile {
   id: string
   name: string
@@ -122,7 +122,7 @@ interface MediaFile {
   uploadedAt: string
   usedIn: string[]
 }
-```
+\`\`\`
 
 ## API Contracts
 

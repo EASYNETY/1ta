@@ -13,7 +13,7 @@ This document highlights specific issues we've encountered with the Classes API 
 The Classes API endpoints are returning inconsistent response formats:
 
 - Sometimes returning an array of classes directly:
-  ```json
+  \`\`\`json
   [
     {
       "id": "course-1_morning",
@@ -36,10 +36,10 @@ The Classes API endpoints are returning inconsistent response formats:
     },
     // More classes...
   ]
-  ```
+  \`\`\`
 
 - Sometimes returning a nested structure:
-  ```json
+  \`\`\`json
   {
     "success": true,
     "data": [
@@ -58,7 +58,7 @@ The Classes API endpoints are returning inconsistent response formats:
     },
     "message": "Classes fetched successfully"
   }
-  ```
+  \`\`\`
 
 #### Impact
 
@@ -68,7 +68,7 @@ This inconsistency forces the frontend to implement complex conditional logic to
 
 Standardize all API responses to use the nested format with `success`, `data`, `pagination`, and `message` properties:
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [/* Array of classes */],
@@ -80,7 +80,7 @@ Standardize all API responses to use the nested format with `success`, `data`, `
   },
   "message": "Classes fetched successfully"
 }
-```
+\`\`\`
 
 ### 2. Inconsistent Field Naming
 
@@ -101,7 +101,7 @@ This inconsistency requires complex mapping logic on the frontend to convert bet
 
 Standardize all field names to use snake_case:
 
-```json
+\`\`\`json
 {
   "id": "class-id",
   "name": "Class Name",
@@ -112,7 +112,7 @@ Standardize all field names to use snake_case:
   "teacher_id": "teacher-id",
   "course_id": "course-id"
 }
-```
+\`\`\`
 
 ### 3. Missing Pagination Information
 
@@ -128,14 +128,14 @@ The frontend has to implement fallback logic to handle cases where pagination in
 
 Always include pagination information for list endpoints, even if all items fit on one page:
 
-```json
+\`\`\`json
 "pagination": {
   "total": 2,
   "page": 1,
   "limit": 10,
   "pages": 1
 }
-```
+\`\`\`
 
 ## Specific Endpoint Requirements
 
@@ -143,7 +143,7 @@ Always include pagination information for list endpoints, even if all items fit 
 
 **Expected Response Format:**
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -175,13 +175,13 @@ Always include pagination information for list endpoints, even if all items fit 
   },
   "message": "Classes fetched successfully"
 }
-```
+\`\`\`
 
 ### GET /classes/:id
 
 **Expected Response Format:**
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -205,13 +205,13 @@ Always include pagination information for list endpoints, even if all items fit 
   },
   "message": "Class fetched successfully"
 }
-```
+\`\`\`
 
 ### POST /classes
 
 **Expected Request Format:**
 
-```json
+\`\`\`json
 {
   "name": "New Class",
   "description": "Class description",
@@ -227,11 +227,11 @@ Always include pagination information for list endpoints, even if all items fit 
   "teacher_id": "teacher-id",
   "course_id": "course-id"
 }
-```
+\`\`\`
 
 **Expected Response Format:**
 
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -255,33 +255,33 @@ Always include pagination information for list endpoints, even if all items fit 
   },
   "message": "Class created successfully"
 }
-```
+\`\`\`
 
 ## Frontend Workarounds
 
 While waiting for the backend to standardize the API responses, we've implemented the following workarounds on the frontend:
 
 1. Added conditional logic to handle both direct arrays and nested response structures:
-   ```javascript
+   \`\`\`javascript
    const classesData = Array.isArray(response) 
        ? response // Direct array response
        : (response.success && response.data) 
            ? response.data // Nested structure with success and data
            : []; // Fallback to empty array
-   ```
+   \`\`\`
 
 2. Added fallback logic for pagination information:
-   ```javascript
+   \`\`\`javascript
    const pagination = response.pagination || {
        total: mappedClasses.length,
        page: page,
        limit: limit,
        pages: Math.ceil(mappedClasses.length / limit)
    };
-   ```
+   \`\`\`
 
 3. Implemented field mapping to handle inconsistent field naming:
-   ```javascript
+   \`\`\`javascript
    const mappedClass = {
        id: cls.id,
        courseTitle: cls.name || "", // Use name as courseTitle
@@ -294,7 +294,7 @@ While waiting for the backend to standardize the API responses, we've implemente
        endDate: cls.end_date || cls.endDate,
        description: cls.description || "",
    };
-   ```
+   \`\`\`
 
 ## Conclusion
 

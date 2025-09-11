@@ -16,7 +16,7 @@ This document provides detailed specifications for integrating the frontend clas
 
 ### Course Types
 
-```typescript
+\`\`\`typescript
 // Public course visible to all users
 export interface PublicCourse {
   id: string;
@@ -80,11 +80,11 @@ export interface AuthLesson extends PublicLesson {
   completed: boolean;
   lastAccessed?: string;
 }
-```
+\`\`\`
 
 ### Class Types
 
-```typescript
+\`\`\`typescript
 // Class view for admin
 export interface AdminClassView {
   id: string;
@@ -134,15 +134,15 @@ export interface ClassesState {
   courseClassOptionsStatus: "idle" | "loading" | "succeeded" | "failed";
   courseClassOptionsError: string | null;
 }
-```
+\`\`\`
 
 ## API Endpoints
 
 ### Courses
 
-```
+\`\`\`
 GET /courses
-```
+\`\`\`
 
 **Query Parameters:**
 - `page`: Page number for pagination
@@ -152,7 +152,7 @@ GET /courses
 - `level`: Filter by level
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -183,14 +183,14 @@ GET /courses
     "totalPages": 3
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /courses/:id
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -213,13 +213,13 @@ GET /courses/:id
     "tags": ["project management", "certification"]
   }
 }
-```
+\`\`\`
 
 ### Classes
 
-```
+\`\`\`
 GET /classes
-```
+\`\`\`
 
 **Query Parameters:**
 - `page`: Page number for pagination
@@ -228,7 +228,7 @@ GET /classes
 - `status`: Filter by status
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -255,14 +255,14 @@ GET /classes
     "totalPages": 2
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /classes/:id
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -281,14 +281,14 @@ GET /classes/:id
     "notes": "Morning session"
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 POST /classes
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "courseId": "1",
   "teacherId": "teacher_1",
@@ -300,10 +300,10 @@ POST /classes
   "meetingLink": "https://zoom.us/j/example2",
   "notes": "Afternoon session"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Class created successfully",
@@ -323,22 +323,22 @@ POST /classes
     "notes": "Afternoon session"
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 PUT /classes/:id
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "status": "active",
   "location": "Virtual Classroom C"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Class updated successfully",
@@ -358,14 +358,14 @@ PUT /classes/:id
     "notes": "Afternoon session"
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 DELETE /classes/:id
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Class deleted successfully",
@@ -373,14 +373,14 @@ DELETE /classes/:id
     "id": "class_1_2"
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /teachers/:teacherId/taught-classes
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": [
@@ -409,7 +409,7 @@ GET /teachers/:teacherId/taught-classes
     }
   ]
 }
-```
+\`\`\`
 
 ## Frontend Implementation
 
@@ -417,7 +417,7 @@ GET /teachers/:teacherId/taught-classes
 
 The frontend uses Redux thunks to interact with the classes and courses API:
 
-```typescript
+\`\`\`typescript
 // Fetch all classes (admin view)
 export const fetchAdminClasses = createAsyncThunk<
   FetchAdminClassesResult,
@@ -477,7 +477,7 @@ export const updateClass = createAsyncThunk<
     return rejectWithValue(errorMessage);
   }
 });
-```
+\`\`\`
 
 ## Relationships with Other Features
 

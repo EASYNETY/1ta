@@ -8,7 +8,7 @@ This document outlines the testing strategy for the SmartEdu platform. It covers
 
 SmartEdu follows the testing pyramid approach, with a focus on having a solid foundation of unit tests, complemented by integration tests and a smaller number of end-to-end tests.
 
-```
+\`\`\`
     /\
    /  \
   /    \
@@ -20,7 +20,7 @@ SmartEdu follows the testing pyramid approach, with a focus on having a solid fo
 /                \
 /     Unit Tests   \
 /--------------------\
-```
+\`\`\`
 
 ## Types of Tests
 
@@ -37,7 +37,7 @@ Unit tests focus on testing individual components, functions, and modules in iso
 
 **Example Unit Test:**
 
-```typescript
+\`\`\`typescript
 // features/auth/store/__tests__/auth-slice.test.ts
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer, { login, logout } from '../auth-slice';
@@ -93,7 +93,7 @@ describe('auth slice', () => {
     expect(state).toEqual(initialState);
   });
 });
-```
+\`\`\`
 
 ### Integration Tests
 
@@ -108,7 +108,7 @@ Integration tests focus on testing the interaction between different parts of th
 
 **Example Integration Test:**
 
-```typescript
+\`\`\`typescript
 // features/courses/components/__tests__/CourseList.test.tsx
 import { render, screen, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
@@ -193,7 +193,7 @@ describe('CourseList', () => {
     });
   });
 });
-```
+\`\`\`
 
 ### End-to-End Tests
 
@@ -207,7 +207,7 @@ End-to-end tests focus on testing the application as a whole, simulating user in
 
 **Example E2E Test:**
 
-```typescript
+\`\`\`typescript
 // cypress/e2e/login.cy.ts
 describe('Login', () => {
   beforeEach(() => {
@@ -249,7 +249,7 @@ describe('Login', () => {
     cy.url().should('include', '/login');
   });
 });
-```
+\`\`\`
 
 ## Testing Workflow
 
@@ -271,7 +271,7 @@ describe('Login', () => {
 
 Tests are organized alongside the code they test, following the same directory structure:
 
-```
+\`\`\`
 features/
 ├── auth/
 │   ├── components/
@@ -286,7 +286,7 @@ features/
 ├── courses/
 │   ├── ...
 └── ...
-```
+\`\`\`
 
 ## Best Practices
 

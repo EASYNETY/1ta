@@ -4,7 +4,7 @@ This document provides a standardized template for creating thunks that handle b
 
 ## Basic Thunk Template
 
-```typescript
+\`\`\`typescript
 export const fetchSomeData = createAsyncThunk<
   ResponseType,
   RequestParamsType,
@@ -24,11 +24,11 @@ export const fetchSomeData = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 ## Thunk with Data Transformation
 
-```typescript
+\`\`\`typescript
 export const fetchSomeData = createAsyncThunk<
   TransformedResponseType,
   RequestParamsType,
@@ -52,11 +52,11 @@ export const fetchSomeData = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 ## Thunk with Pagination
 
-```typescript
+\`\`\`typescript
 export const fetchPaginatedData = createAsyncThunk<
   PaginatedResponseType,
   PaginationParamsType,
@@ -81,11 +81,11 @@ export const fetchPaginatedData = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 ## POST Thunk Template
 
-```typescript
+\`\`\`typescript
 export const createSomeData = createAsyncThunk<
   ResponseType,
   RequestDataType,
@@ -102,11 +102,11 @@ export const createSomeData = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 ## PUT Thunk Template
 
-```typescript
+\`\`\`typescript
 export const updateSomeData = createAsyncThunk<
   ResponseType,
   { id: string; data: RequestDataType },
@@ -123,11 +123,11 @@ export const updateSomeData = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 ## DELETE Thunk Template
 
-```typescript
+\`\`\`typescript
 export const deleteSomeData = createAsyncThunk<
   { success: boolean; id: string },
   string,
@@ -144,11 +144,11 @@ export const deleteSomeData = createAsyncThunk<
     return rejectWithValue(message);
   }
 });
-```
+\`\`\`
 
 ## Reducer Template
 
-```typescript
+\`\`\`typescript
 // In your slice file
 .addCase(fetchSomeData.fulfilled, (state, action) => {
   state.status = "succeeded";
@@ -157,11 +157,11 @@ export const deleteSomeData = createAsyncThunk<
   // Handle the data
   state.items = action.payload;
 })
-```
+\`\`\`
 
 ## Reducer Template for Paginated Data
 
-```typescript
+\`\`\`typescript
 // In your slice file
 .addCase(fetchPaginatedData.fulfilled, (state, action) => {
   state.status = "succeeded";
@@ -176,6 +176,6 @@ export const deleteSomeData = createAsyncThunk<
     totalPages: action.payload.pagination?.pages || 1,
   };
 })
-```
+\`\`\`
 
 By following these templates, we ensure consistent handling of API responses across the application, making the code more maintainable and reducing the risk of bugs.

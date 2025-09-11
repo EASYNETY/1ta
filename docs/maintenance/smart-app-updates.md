@@ -72,11 +72,11 @@ Instead of manual cache clearing, we've implemented a smart app update detection
 
 Add to your `.env.local`:
 
-```bash
+\`\`\`bash
 # App Version (for update detection)
 NEXT_PUBLIC_APP_VERSION=0.1.0
 NEXT_PUBLIC_BUILD_ID=your-build-id
-```
+\`\`\`
 
 ## How to Use
 

@@ -12,7 +12,7 @@ The Contextual Help System provides users with context-aware assistance througho
 
 Smart tooltips provide different levels of help based on the user's experience with the platform.
 
-```jsx
+\`\`\`jsx
 // components/help/SmartTooltip.tsx
 import { useState } from 'react';
 import { useAppSelector } from '@/store/hooks';
@@ -82,13 +82,13 @@ export function SmartTooltip({ featureId, children, icon = false, className }: S
     </TooltipProvider>
   );
 }
-```
+\`\`\`
 
 ## Contextual Help Panel
 
 The Contextual Help Panel provides context-sensitive guidance based on the current page.
 
-```jsx
+\`\`\`jsx
 // components/help/ContextualHelpPanel.tsx
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -198,13 +198,13 @@ export function ContextualHelpPanel() {
     </div>
   );
 }
-```
+\`\`\`
 
 ## Integration
 
 1. Add the ContextualHelpPanel to the authenticated layout:
 
-```jsx
+\`\`\`jsx
 // app/(authenticated)/layout.tsx
 import { ContextualHelpPanel } from '@/components/help/ContextualHelpPanel';
 
@@ -216,11 +216,11 @@ export default function AuthenticatedLayout({ children }) {
     </>
   );
 }
-```
+\`\`\`
 
 2. Use SmartTooltips for key interactive elements:
 
-```jsx
+\`\`\`jsx
 // components/courses/EnrolButton.tsx
 import { SmartTooltip } from '@/components/help/SmartTooltip';
 
@@ -231,7 +231,7 @@ export function EnrolButton({ courseId }) {
     </SmartTooltip>
   );
 }
-```
+\`\`\`
 
 ## Dependencies
 

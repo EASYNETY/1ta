@@ -13,7 +13,7 @@ This document provides detailed specifications for the `/api/attendance/mark` en
 
 The frontend sends the following payload structure when marking attendance:
 
-```typescript
+\`\`\`typescript
 export interface MarkAttendancePayload {
   studentId: string;           // ID of the student being marked
   classInstanceId: string;     // ID of the class instance/session
@@ -22,7 +22,7 @@ export interface MarkAttendancePayload {
   status?: "present" | "absent" | "late" | "excused";  // Optional status, defaults to "present" if not provided
   notes?: string;              // Optional notes about the attendance
 }
-```
+\`\`\`
 
 ### Field Descriptions
 
@@ -42,7 +42,7 @@ export interface MarkAttendancePayload {
 - **Status Code**: `200 OK`
 - **Content**:
 
-```typescript
+\`\`\`typescript
 export interface MarkAttendanceSuccessResponse {
   success: boolean;            // Always true for success responses
   studentId: string;           // ID of the student whose attendance was marked
@@ -51,10 +51,10 @@ export interface MarkAttendanceSuccessResponse {
   timestamp: string;           // Server timestamp when attendance was recorded
   status: "present" | "absent" | "late" | "excused";  // The status that was recorded
 }
-```
+\`\`\`
 
 Example:
-```json
+\`\`\`json
 {
   "success": true,
   "studentId": "12345",
@@ -63,14 +63,14 @@ Example:
   "timestamp": "2023-10-15T14:32:15.123Z",
   "status": "present"
 }
-```
+\`\`\`
 
 ### Error Response
 
 - **Status Codes**: `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `500 Internal Server Error`
 - **Content**:
 
-```typescript
+\`\`\`typescript
 export interface MarkAttendanceErrorResponse {
   success: boolean;            // Always false for error responses
   message: string;             // Error message describing what went wrong
@@ -79,16 +79,16 @@ export interface MarkAttendanceErrorResponse {
     [field: string]: string;
   };
 }
-```
+\`\`\`
 
 Example:
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Failed to mark attendance: Student not found",
   "errorCode": "STUDENT_NOT_FOUND"
 }
-```
+\`\`\`
 
 ## Error Handling
 
@@ -116,7 +116,7 @@ The backend should handle the following error scenarios gracefully:
 
 The frontend currently uses the Redux toolkit with a thunk action to mark attendance:
 
-```typescript
+\`\`\`typescript
 // Mark Attendance Thunk
 export const markStudentAttendance = createAsyncThunk<
   { success: boolean; studentId: string; message?: string },
@@ -142,13 +142,13 @@ export const markStudentAttendance = createAsyncThunk<
     return rejectWithValue(message)
   }
 })
-```
+\`\`\`
 
 ## Example Usage
 
 ### Marking a Student Present
 
-```typescript
+\`\`\`typescript
 // Example code for marking a student as present
 dispatch(markStudentAttendance({
   studentId: "12345",
@@ -156,11 +156,11 @@ dispatch(markStudentAttendance({
   markedByUserId: "", // Will be filled by backend from auth token
   timestamp: new Date().toISOString()
 }));
-```
+\`\`\`
 
 ### Marking a Student Absent with Notes
 
-```typescript
+\`\`\`typescript
 // Example code for marking a student as absent with notes
 dispatch(markStudentAttendance({
   studentId: "12345",
@@ -170,4 +170,4 @@ dispatch(markStudentAttendance({
   status: "absent",
   notes: "Student notified teacher in advance about absence"
 }));
-```
+\`\`\`

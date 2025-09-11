@@ -178,7 +178,7 @@ This maintenance plan ensures that the help content remains a valuable resource 
 
 ### Appendix A: Help Content Structure
 
-```
+\`\`\`
 app/(authenticated)/help/
 ├── getting-started/
 │   ├── overview/
@@ -208,7 +208,7 @@ app/(authenticated)/help/
     ├── profile/
     ├── settings/
     └── notifications/
-```
+\`\`\`
 
 ### Appendix B: Content Update Checklist
 

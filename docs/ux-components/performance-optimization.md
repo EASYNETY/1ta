@@ -16,7 +16,7 @@ The OptimizedImage component enhances image loading performance by:
 - Handling errors gracefully
 - Setting appropriate image sizes
 
-```jsx
+\`\`\`jsx
 // components/optimized-image/OptimizedImage.tsx
 import { useState } from 'react';
 import Image from 'next/image';
@@ -109,13 +109,13 @@ export function OptimizedImage({
     </div>
   );
 }
-```
+\`\`\`
 
 ## Code Splitting and Lazy Loading
 
 Implement code splitting and lazy loading to reduce initial bundle size:
 
-```jsx
+\`\`\`jsx
 // app/(authenticated)/layout.tsx
 import { Suspense, lazy } from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -163,13 +163,13 @@ export default function AuthenticatedLayout({
     </SidebarProvider>
   );
 }
-```
+\`\`\`
 
 ## Component Optimization
 
 Optimize React components to reduce re-renders:
 
-```jsx
+\`\`\`jsx
 // components/optimized-list/OptimizedList.tsx
 import { memo, useCallback, useRef } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -237,13 +237,13 @@ function OptimizedListInner<T>({
 }
 
 export const OptimizedList = memo(OptimizedListInner) as typeof OptimizedListInner;
-```
+\`\`\`
 
 ## Critical CSS Inlining
 
 Inline critical CSS to improve First Contentful Paint:
 
-```jsx
+\`\`\`jsx
 // app/layout.tsx
 import { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
@@ -316,13 +316,13 @@ export default function RootLayout({
     </html>
   );
 }
-```
+\`\`\`
 
 ## Critical CSS File
 
 Create a critical CSS file with essential styles:
 
-```css
+\`\`\`css
 /* styles/critical.css */
 :root {
   --font-geist-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -359,7 +359,7 @@ body {
 .min-h-screen { min-height: 100vh; }
 .relative { position: relative; }
 .z-10 { z-index: 10; }
-```
+\`\`\`
 
 ## Dependencies
 

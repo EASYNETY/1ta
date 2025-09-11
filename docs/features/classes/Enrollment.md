@@ -35,7 +35,7 @@ This change allows for more granular control over enrolment for each class insta
 
 ### Class Interface
 
-```typescript
+\`\`\`typescript
 export interface Class {
   id: string;
   name: string;
@@ -56,11 +56,11 @@ export interface Class {
   created_at: string;
   updated_at: string;
 }
-```
+\`\`\`
 
 ### Enrolment Interfaces
 
-```typescript
+\`\`\`typescript
 export interface ClassEnrolment {
   id: string;
   class_id: string;
@@ -101,26 +101,26 @@ export interface BulkEnrolmentResponse {
   };
   error?: string;
 }
-```
+\`\`\`
 
 ## API Endpoints
 
 ### Enrolment Endpoints
 
-```
+\`\`\`
 POST /api/enrolment/enrol
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "class_id": "class_123",
   "student_id": "student_456"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Successfully enroled in class",
@@ -155,23 +155,23 @@ POST /api/enrolment/enrol
     }
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 POST /api/enrolment/bulk-enrol
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "class_id": "class_123",
   "student_ids": ["student_456", "student_789", "student_101"],
   "corporate_id": "corp_123"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Successfully enroled 3 students in class",
@@ -197,14 +197,14 @@ POST /api/enrolment/bulk-enrol
     }
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /api/enrolment/class/:classId/students
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -227,14 +227,14 @@ GET /api/enrolment/class/:classId/students
     }
   }
 }
-```
+\`\`\`
 
-```
+\`\`\`
 GET /api/enrolment/student/:studentId/classes
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -253,25 +253,25 @@ GET /api/enrolment/student/:studentId/classes
     "total": 2
   }
 }
-```
+\`\`\`
 
 ### Class Management Endpoints
 
-```
+\`\`\`
 PUT /api/classes/:classId
-```
+\`\`\`
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "max_slots": 40,
   "visibility": "public",
   "enrolment_start_date": "2023-06-01T00:00:00Z"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Class updated successfully",
@@ -285,7 +285,7 @@ PUT /api/classes/:classId
     // Other class properties...
   }
 }
-```
+\`\`\`
 
 ## Frontend Implementation
 
@@ -293,7 +293,7 @@ PUT /api/classes/:classId
 
 The Class Form component should be updated to include the enrolment settings that were previously in the Course Settings:
 
-```tsx
+\`\`\`tsx
 // features/classes/components/ClassForm.tsx
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -397,13 +397,13 @@ export function ClassForm({ initialData, onSubmit }) {
     </form>
   );
 }
-```
+\`\`\`
 
 ### Enrolment Component
 
 Here's an example of an enrolment component that can be used to enrol students in a class:
 
-```tsx
+\`\`\`tsx
 // features/classes/components/EnrolmentButton.tsx
 import { useState } from "react";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
@@ -464,7 +464,7 @@ export function EnrolmentButton({ classId, disabled }: EnrolmentButtonProps) {
     </DyraneButton>
   );
 }
-```
+\`\`\`
 
 ## Integration Steps
 

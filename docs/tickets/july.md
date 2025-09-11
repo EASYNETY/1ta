@@ -1,4 +1,3 @@
-
 # Fixing Frontend Data Flow
 
 ## Overview
@@ -14,13 +13,13 @@ Our `lib/api-client.ts` was designed to simplify API calls by automatically unwr
 1.  **Standard Unwrapping:** For responses like `{ success: true, data: { ... } }`, the client correctly returned only the contents of the `data` property.
 2.  **Paginated Unwrapping (The Source of Bugs):** For paginated list responses like `{ success: true, data: [...], pagination: {...} }`, the client had custom logic that attempted to merge the two:
 
-    ```typescript
+    \`\`\`typescript
     // Inside api-client.ts
     data = {
         ...responseData.data, // Spreads an array into an object
         pagination: responseData.pagination
     };
-    ```
+    \`\`\`
 
     This resulted in a quirky object `{"0": item1, "1": item2, ..., "pagination": ...}` instead of a standard object like `{ items: [...], pagination: {...} }`.
 
@@ -40,7 +39,7 @@ We addressed these issues on a case-by-case basis by adding a **transformation l
 
 #### Code Fix: `features/support/store/supportSlice.ts`
 
-```typescript
+\`\`\`typescript
 // The fetchAllTickets thunk was updated
 
 export const fetchAllTickets = createAsyncThunk<
@@ -76,7 +75,7 @@ export const fetchAllTickets = createAsyncThunk<
 		} catch (e: any) { /* ... */ }
 	}
 );
-```
+\`\`\`
 
 ---
 
@@ -96,14 +95,14 @@ The same pattern of issues was present throughout the chat feature.
 *   **Diagnosis:** The `api-client` correctly unwrapped the `data` property from the `POST /chat/messages` response. This `data` object *was* the `ChatMessage`. The thunk, however, was not returning it correctly, leading to an `undefined` payload in the reducer.
 *   **Solution:** We corrected the `sendChatMessage` thunk to return the `ChatMessage` object directly, as it receives it from the `api-client`.
 
-```typescript
+\`\`\`typescript
 // In sendChatMessage thunk in chat-thunks.ts
 // The `post` call returns the ChatMessage object directly.
 const newChatMessage = await post<ChatMessage>("/chat/messages", payload);
 
 // We return the object directly.
 return newChatMessage;
-```
+\`\`\`
 
 #### C. Marking a Room as Read
 
@@ -119,7 +118,7 @@ return newChatMessage;
 *   **Diagnosis:** The frontend `ChatMessage` type expected a `timestamp` property, but the API was returning `createdAt`. This property was not being mapped, so `message.timestamp` was `undefined`.
 *   **Solution:** We created a `mapApiMessageToChatMessage` helper function inside `chat-thunks.ts` that explicitly maps `apiMessage.createdAt` to `timestamp`. This mapper is now used in both `fetchChatMessages` and `sendChatMessage` to ensure all message objects in the application have a consistent shape.
 
-```typescript
+\`\`\`typescript
 // Helper function added to chat-thunks.ts
 const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
     return {
@@ -128,4 +127,4 @@ const mapApiMessageToChatMessage = (apiMessage: any): ChatMessage => {
         sender: apiMessage.user ? { ... } : undefined
     };
 };
-```
+\`\`\`

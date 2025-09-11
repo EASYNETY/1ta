@@ -16,7 +16,7 @@ When working with Redux, we often encounter these issues:
 
 We've implemented utility functions in `lib/utils/safe-data.ts` to create safe selectors:
 
-```typescript
+\`\`\`typescript
 import { createSelector } from '@reduxjs/toolkit';
 
 // Safely returns an array, ensuring it's never undefined or null
@@ -33,7 +33,7 @@ export function createSafeArraySelector<State, Result>(
     (result) => safeArray(result)
   );
 }
-```
+\`\`\`
 
 ## Implementation
 
@@ -41,52 +41,52 @@ export function createSafeArraySelector<State, Result>(
 
 First, create basic selectors that directly access the state:
 
-```typescript
+\`\`\`typescript
 // Basic selectors
 export const selectUsers = (state: RootState) => state.auth.users;
 export const selectCourseClassOptionsRaw = (state: RootState) => 
   state.classes.courseClassOptions;
-```
+\`\`\`
 
 ### 2. Create Safe Selectors
 
 Then, create safe selectors using the `createSafeArraySelector` utility:
 
-```typescript
+\`\`\`typescript
 // Safe selectors that handle null/undefined values
 export const selectSafeUsers = createSafeArraySelector(selectUsers);
 export const selectAllCourseClassOptions = createSafeArraySelector(selectCourseClassOptionsRaw);
-```
+\`\`\`
 
 ### 3. Use Safe Selectors in Components
 
 In your components, use the safe selectors:
 
-```typescript
+\`\`\`typescript
 // Component using safe selectors
 const users = useAppSelector(selectSafeUsers); // Always returns an array
 const classOptions = useAppSelector(selectAllCourseClassOptions); // Always returns an array
 
 // No need for manual fallbacks like:
 // const users = useAppSelector(selectUsers) || [];
-```
+\`\`\`
 
 ### 4. Ensure Reducers Handle Null/Undefined Values
 
 Even with safe selectors, it's good practice to ensure reducers handle null/undefined values:
 
-```typescript
+\`\`\`typescript
 builder.addCase(
   fetchUsers.fulfilled,
   (state, action) => {
     state.users = action.payload || []; // Ensure it's never null/undefined
   }
 );
-```
+\`\`\`
 
 ## Example: Auth Selectors
 
-```typescript
+\`\`\`typescript
 // features/auth/store/auth-selectors.ts
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
@@ -111,11 +111,11 @@ export const selectSafeUsersByRole = createSelector(
   [selectSafeUsers, (_, role: string) => role],
   (users, role) => users.filter(user => user.role === role)
 );
-```
+\`\`\`
 
 ## Example: Classes Selectors
 
-```typescript
+\`\`\`typescript
 // features/classes/store/classes-slice.ts
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
@@ -131,7 +131,7 @@ export const selectCourseClassOptionsRaw = (state: RootState) =>
 export const selectAllCourseClassOptions = createSafeArraySelector(selectCourseClassOptionsRaw);
 export const selectMyClassesSafe = createSafeArraySelector(selectMyClasses);
 export const selectAllAdminClassesSafe = createSafeArraySelector(selectAllAdminClasses);
-```
+\`\`\`
 
 ## Best Practices
 
@@ -139,44 +139,44 @@ export const selectAllAdminClassesSafe = createSafeArraySelector(selectAllAdminC
 
 Always use safe selectors when selecting arrays from the Redux store:
 
-```typescript
+\`\`\`typescript
 // Good
 const users = useAppSelector(selectSafeUsers);
 
 // Bad
 const users = useAppSelector(selectUsers);
-```
+\`\`\`
 
 ### 2. Handle Null/Undefined Values in Reducers
 
 Even with safe selectors, handle null/undefined values in reducers:
 
-```typescript
+\`\`\`typescript
 // Good
 state.users = action.payload || [];
 
 // Bad
 state.users = action.payload;
-```
+\`\`\`
 
 ### 3. Use Derived Selectors for Complex Logic
 
 Use derived selectors for complex logic:
 
-```typescript
+\`\`\`typescript
 // Good
 const adminUsers = useAppSelector(state => selectSafeUsersByRole(state, 'admin'));
 
 // Bad
 const users = useAppSelector(selectUsers);
 const adminUsers = users ? users.filter(user => user.role === 'admin') : [];
-```
+\`\`\`
 
 ### 4. Provide Default Values for Non-Array Selectors
 
 For non-array selectors, provide default values:
 
-```typescript
+\`\`\`typescript
 // Good
 export const selectUserName = createSelector(
   [selectCurrentUser],
@@ -188,7 +188,7 @@ export const selectUserName = createSelector(
   [selectCurrentUser],
   (user) => user.name
 );
-```
+\`\`\`
 
 ## Conclusion
 

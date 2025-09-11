@@ -16,7 +16,7 @@ This document outlines the backend changes required to support the 4-tier RBAC s
 ## 🗄️ Database Schema Changes
 
 ### 1. User Role Enum Updates
-```sql
+\`\`\`sql
 -- Add new role types to existing enum
 ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'super_admin';
 ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'accounting';
@@ -24,10 +24,10 @@ ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'customer_care';
 
 -- Verify enum values
 SELECT unnest(enum_range(NULL::user_role));
-```
+\`\`\`
 
 ### 2. User Table Enhancements
-```sql
+\`\`\`sql
 -- Add permission columns for granular control
 ALTER TABLE users ADD COLUMN IF NOT EXISTS permissions TEXT[];
 ALTER TABLE users ADD COLUMN IF NOT EXISTS department VARCHAR(100);
@@ -37,10 +37,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
 -- Add indexes for performance
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_permissions ON users USING GIN(permissions);
-```
+\`\`\`
 
 ### 3. Payment Table Enhancements
-```sql
+\`\`\`sql
 -- Add payment tracking fields as per CEO requirements
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS gateway_ref VARCHAR(255);
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS transaction_id VARCHAR(255);
@@ -52,10 +52,10 @@ ALTER TABLE payments ADD COLUMN IF NOT EXISTS reconciled_by UUID REFERENCES user
 CREATE INDEX IF NOT EXISTS idx_payments_gateway_ref ON payments(gateway_ref);
 CREATE INDEX IF NOT EXISTS idx_payments_transaction_id ON payments(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_payments_reconciliation_status ON payments(reconciliation_status);
-```
+\`\`\`
 
 ### 4. Audit Log Table (New)
-```sql
+\`\`\`sql
 -- Create audit log for tracking admin actions
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -73,14 +73,14 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
 CREATE INDEX idx_audit_logs_action ON audit_logs(action);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at);
-```
+\`\`\`
 
 ---
 
 ## 🔐 API Middleware & Authentication
 
 ### 1. Role-Based Route Protection
-```typescript
+\`\`\`typescript
 // Middleware to check user roles
 const requireRole = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -103,10 +103,10 @@ app.get('/api/payments/*', requireRole(['super_admin', 'admin', 'accounting']));
 app.delete('/api/*', requireRole(['super_admin'])); // Only super admin can delete
 app.get('/api/customer-care/*', requireRole(['customer_care', 'super_admin']));
 app.get('/api/accounting/*', requireRole(['accounting', 'super_admin']));
-```
+\`\`\`
 
 ### 2. Permission-Based Access Control
-```typescript
+\`\`\`typescript
 // Permission checking middleware
 const requirePermission = (permission: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -132,61 +132,61 @@ const requirePermission = (permission: string) => {
     next();
   };
 };
-```
+\`\`\`
 
 ---
 
 ## 🛣️ API Endpoints Required
 
 ### 1. User Management Endpoints
-```typescript
+\`\`\`typescript
 // GET /api/users - List users (Admin/Super Admin only)
 // POST /api/users - Create user (Admin/Super Admin only)
 // PUT /api/users/:id - Update user (Admin/Super Admin only)
 // DELETE /api/users/:id - Delete user (Super Admin only)
 // POST /api/users/:id/deactivate - Deactivate user (Admin can deactivate, not delete)
-```
+\`\`\`
 
 ### 2. Analytics Endpoints
-```typescript
+\`\`\`typescript
 // GET /api/admin/analytics/dashboard - Super Admin only
 // GET /api/admin/analytics/users - Super Admin only
 // GET /api/admin/analytics/payments - Super Admin only
 // GET /api/analytics/student - Student/Teacher analytics (limited)
-```
+\`\`\`
 
 ### 3. Payment Endpoints
-```typescript
+\`\`\`typescript
 // GET /api/payments - List payments (Super Admin, Admin read-only, Accounting full)
 // POST /api/payments - Create payment (Super Admin, Accounting)
 // PUT /api/payments/:id - Update payment (Super Admin, Accounting)
 // DELETE /api/payments/:id - Delete payment (Super Admin only)
 // POST /api/payments/:id/reconcile - Reconcile payment (Accounting, Super Admin)
-```
+\`\`\`
 
 ### 4. Accounting Endpoints
-```typescript
+\`\`\`typescript
 // GET /api/accounting/dashboard - Accounting dashboard data
 // GET /api/accounting/reports - Financial reports
 // GET /api/accounting/reconciliation - Reconciliation data
 // POST /api/accounting/reports/generate - Generate reports
-```
+\`\`\`
 
 ### 5. Customer Care Endpoints
-```typescript
+\`\`\`typescript
 // GET /api/customer-care/students/:barcode - Get student by barcode
 // GET /api/customer-care/students/search - Search students
 // GET /api/customer-care/tickets - Support tickets
 // POST /api/customer-care/tickets - Create ticket
 // PUT /api/customer-care/tickets/:id - Update ticket
-```
+\`\`\`
 
 ---
 
 ## 📊 Data Models & Responses
 
 ### 1. User Model Updates
-```typescript
+\`\`\`typescript
 interface User {
   id: string;
   email: string;
@@ -200,10 +200,10 @@ interface User {
   createdAt: string;
   updatedAt: string;
 }
-```
+\`\`\`
 
 ### 2. Payment Model Updates
-```typescript
+\`\`\`typescript
 interface Payment {
   id: string;
   studentId: string;
@@ -218,10 +218,10 @@ interface Payment {
   createdAt: string;
   updatedAt: string;
 }
-```
+\`\`\`
 
 ### 3. Analytics Data Models
-```typescript
+\`\`\`typescript
 interface DashboardAnalytics {
   totalUsers: number;
   activeUsers: number;
@@ -239,14 +239,14 @@ interface PaymentAnalytics {
   paymentTrends: Array<{ date: string; amount: number }>;
   paymentMethods: Array<{ method: string; count: number }>;
 }
-```
+\`\`\`
 
 ---
 
 ## 🔒 Security Requirements
 
 ### 1. JWT Token Updates
-```typescript
+\`\`\`typescript
 // Include role and permissions in JWT payload
 interface JWTPayload {
   userId: string;
@@ -256,10 +256,10 @@ interface JWTPayload {
   iat: number;
   exp: number;
 }
-```
+\`\`\`
 
 ### 2. Audit Logging
-```typescript
+\`\`\`typescript
 // Log all admin actions
 const auditLog = async (userId: string, action: string, resourceType: string, resourceId?: string, oldValues?: any, newValues?: any) => {
   await db.auditLogs.create({
@@ -277,10 +277,10 @@ const auditLog = async (userId: string, action: string, resourceType: string, re
 // Usage examples:
 // auditLog(user.id, 'DELETE_USER', 'user', deletedUserId, deletedUser, null);
 // auditLog(user.id, 'UPDATE_PAYMENT', 'payment', paymentId, oldPayment, newPayment);
-```
+\`\`\`
 
 ### 3. Rate Limiting
-```typescript
+\`\`\`typescript
 // Implement rate limiting for sensitive endpoints
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -290,7 +290,7 @@ const rateLimiter = rateLimit({
 
 app.use('/api/admin', rateLimiter);
 app.use('/api/accounting', rateLimiter);
-```
+\`\`\`
 
 ---
 

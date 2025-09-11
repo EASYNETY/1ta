@@ -35,7 +35,7 @@ When working with data from APIs or Redux store, we often encounter these issues
 
 We've implemented utility functions in `lib/utils/safe-data.ts` to handle these issues:
 
-```typescript
+\`\`\`typescript
 // Example usage
 import { safeArray, safeObject, safeString, safeNumber, safeBoolean } from '@/lib/utils/safe-data';
 
@@ -53,11 +53,11 @@ const count = safeNumber(state.count); // Always returns a number
 
 // Instead of: const isActive = user.isActive (might be undefined)
 const isActive = safeBoolean(user.isActive); // Always returns a boolean
-```
+\`\`\`
 
 ### Implementation of Safe Data Utilities
 
-```typescript
+\`\`\`typescript
 export function safeArray<T>(array: T[] | null | undefined): T[] {
   return Array.isArray(array) ? array : [];
 }
@@ -77,7 +77,7 @@ export function safeNumber(num: number | null | undefined, defaultValue: number 
 export function safeBoolean(bool: boolean | null | undefined, defaultValue: boolean = false): boolean {
   return bool === true ? true : bool === false ? false : defaultValue;
 }
-```
+\`\`\`
 
 ## Safe Data Access
 
@@ -85,7 +85,7 @@ Always use the safe utility functions when accessing data that might be undefine
 
 ### Array Operations
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct array operations without safety checks
 const items = data.items.map(item => item.name);
 
@@ -94,11 +94,11 @@ import { safeMap, safeArray } from '@/lib/utils/safe-data';
 const items = safeMap(data.items, item => item.name);
 // or
 const items = safeArray(data.items).map(item => item.name);
-```
+\`\`\`
 
 ### Object Properties
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct property access without safety checks
 const userName = user.profile.name;
 
@@ -108,11 +108,11 @@ const userName = safeGet(user, 'profile.name', 'Unknown');
 // or
 const profile = safeObject(user.profile);
 const userName = profile.name || 'Unknown';
-```
+\`\`\`
 
 ### String Operations
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: String operations without safety checks
 const firstLetter = text.charAt(0).toUpperCase();
 
@@ -120,7 +120,7 @@ const firstLetter = text.charAt(0).toUpperCase();
 import { safeString } from '@/lib/utils/safe-data';
 const text = safeString(rawText);
 const firstLetter = text.charAt(0).toUpperCase();
-```
+\`\`\`
 
 ## Redux State Management
 
@@ -128,32 +128,32 @@ const firstLetter = text.charAt(0).toUpperCase();
 
 Always initialize arrays as empty arrays and objects as empty objects:
 
-```typescript
+\`\`\`typescript
 const initialState = {
   users: [], // Not null or undefined
   user: {}, // Not null or undefined
   count: 0, // Not null or undefined
   status: 'idle', // Not null or undefined
 };
-```
+\`\`\`
 
 ### 2. Safe Reducers
 
 When updating state in reducers, ensure values are never null or undefined:
 
-```typescript
+\`\`\`typescript
 // ❌ Bad
 state.users = action.payload.users;
 
 // ✅ Good
 state.users = action.payload.users || [];
-```
+\`\`\`
 
 ### 3. Safe Selectors
 
 Create selectors that handle null/undefined values:
 
-```typescript
+\`\`\`typescript
 // features/auth/store/auth-selectors.ts
 import { createSelector } from '@reduxjs/toolkit';
 import { RootState } from '@/store';
@@ -167,13 +167,13 @@ export const selectSafeUsers = createSafeArraySelector(selectUsers);
 
 // Usage in components
 const users = useAppSelector(selectSafeUsers); // Always returns an array
-```
+\`\`\`
 
 ### 4. Safe Component Usage
 
 When using data in components, apply defensive programming:
 
-```typescript
+\`\`\`typescript
 // ❌ Bad
 const items = useAppSelector(state => state.items);
 const itemCount = items.length; // Might cause error if items is undefined
@@ -184,13 +184,13 @@ import { safeArray } from '@/lib/utils/safe-data';
 const items = useAppSelector(state => state.items);
 const safeItems = safeArray(items);
 const itemCount = safeItems.length; // Safe, always works
-```
+\`\`\`
 
 ## API Response Handling
 
 Use the safe API client and validators to handle API responses.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct API calls without validation
 const user = await get<User>('/users/123');
 
@@ -206,13 +206,13 @@ const userValidator: ApiResponseValidator<User> = {
 
 const defaultUser: User = { id: '', name: '', email: '' };
 const user = await safeGet<User>('/users/123', userValidator, defaultUser);
-```
+\`\`\`
 
 ## Error Boundaries
 
 Use error boundaries to catch and handle errors gracefully.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: No error handling
 <MyComponent />
 
@@ -222,11 +222,11 @@ import GlobalErrorBoundary from '@/components/error-boundary/GlobalErrorBoundary
 <GlobalErrorBoundary>
   <MyComponent />
 </GlobalErrorBoundary>
-```
+\`\`\`
 
 For functional components, use the `useErrorHandler` hook:
 
-```tsx
+\`\`\`tsx
 import useErrorHandler from '@/hooks/useErrorHandler';
 
 function MyComponent() {
@@ -249,13 +249,13 @@ function MyComponent() {
   
   return <div>My Component</div>;
 }
-```
+\`\`\`
 
 ## Type Safety
 
 Use TypeScript effectively to catch type errors at compile time.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Using any type
 function processData(data: any) {
   return data.items.map(item => item.name);
@@ -274,13 +274,13 @@ interface Data {
 function processData(data: Data) {
   return safeMap(data.items, item => item.name);
 }
-```
+\`\`\`
 
 ## Date Handling
 
 Always use safe date parsing and formatting.
 
-```tsx
+\`\`\`tsx
 // ❌ Bad: Direct date parsing without safety checks
 const date = new Date(dateString);
 const formattedDate = format(date, 'yyyy-MM-dd');
@@ -291,7 +291,7 @@ import { format } from 'date-fns';
 
 const date = safeParseDate(dateString);
 const formattedDate = safeFormatDate(date, d => format(d, 'yyyy-MM-dd'), 'Invalid date');
-```
+\`\`\`
 
 ## Best Practices
 
@@ -306,7 +306,7 @@ const formattedDate = safeFormatDate(date, d => format(d, 'yyyy-MM-dd'), 'Invali
 
 When handling async thunks, ensure data is never null/undefined:
 
-```typescript
+\`\`\`typescript
 builder.addCase(
   fetchUsers.fulfilled,
   (state, action) => {
@@ -316,13 +316,13 @@ builder.addCase(
     state.total = action.payload.total || 0;
   }
 );
-```
+\`\`\`
 
 ### 3. Component Rendering
 
 Use conditional rendering or default values:
 
-```tsx
+\`\`\`tsx
 // Conditional rendering
 {users.length > 0 ? (
   <UserList users={users} />
@@ -332,13 +332,13 @@ Use conditional rendering or default values:
 
 // Default values with optional chaining
 <span>{user?.name || 'Anonymous'}</span>
-```
+\`\`\`
 
 ### 4. Type Guards
 
 Use TypeScript type guards to handle different data types:
 
-```typescript
+\`\`\`typescript
 function isUser(obj: any): obj is User {
   return obj && typeof obj === 'object' && 'id' in obj && 'name' in obj;
 }
@@ -348,7 +348,7 @@ if (isUser(data)) {
   // TypeScript knows data is User here
   console.log(data.name);
 }
-```
+\`\`\`
 
 ## Code Review Checklist
 

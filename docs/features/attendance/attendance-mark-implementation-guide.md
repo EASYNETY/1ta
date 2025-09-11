@@ -16,7 +16,7 @@ The attendance marking API allows authorized users (teachers, admins) to record 
 
 ### 1. Create Controller Function
 
-```javascript
+\`\`\`javascript
 // controllers/attendanceController.js
 const markAttendance = async (req, res) => {
   try {
@@ -130,11 +130,11 @@ const markAttendance = async (req, res) => {
     });
   }
 };
-```
+\`\`\`
 
 ### 2. Set Up Routes
 
-```javascript
+\`\`\`javascript
 // routes/attendanceRoutes.js
 const express = require('express');
 const router = express.Router();
@@ -152,11 +152,11 @@ router.get('/student/:studentId', attendanceController.getStudentAttendance);
 router.get('/class/:classId', attendanceController.getClassAttendance);
 
 module.exports = router;
-```
+\`\`\`
 
 ### 3. Create Database Schema
 
-```javascript
+\`\`\`javascript
 // models/Attendance.js
 const mongoose = require('mongoose');
 
@@ -207,7 +207,7 @@ const attendanceSchema = new mongoose.Schema({
 attendanceSchema.index({ studentId: 1, classInstanceId: 1, date: 1 }, { unique: true });
 
 module.exports = mongoose.model('Attendance', attendanceSchema);
-```
+\`\`\`
 
 ## Error Handling
 
@@ -249,7 +249,7 @@ Here are some test cases to verify the API implementation:
 
 The frontend currently expects the following response structure:
 
-```typescript
+\`\`\`typescript
 interface MarkAttendanceSuccessResponse {
   success: boolean;
   studentId: string;
@@ -258,6 +258,6 @@ interface MarkAttendanceSuccessResponse {
   timestamp: string;
   status: "present" | "absent" | "late" | "excused";
 }
-```
+\`\`\`
 
 Ensure your implementation returns this exact structure for successful responses.

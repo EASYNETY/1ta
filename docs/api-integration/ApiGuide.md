@@ -16,7 +16,7 @@
 
 Our application uses a layered approach to API integration:
 
-```mermaid
+\`\`\`mermaid
 API Architecture.download-icon {
             cursor: pointer;
             transform-origin: center;
@@ -29,7 +29,7 @@ API Architecture.download-icon {
           transform: translateY(-1.5px);
         }
         #mermaid-diagram-rn5a{font-family:var(--font-geist-sans);font-size:12px;fill:#000000;}#mermaid-diagram-rn5a .error-icon{fill:#552222;}#mermaid-diagram-rn5a .error-text{fill:#552222;stroke:#552222;}#mermaid-diagram-rn5a .edge-thickness-normal{stroke-width:1px;}#mermaid-diagram-rn5a .edge-thickness-thick{stroke-width:3.5px;}#mermaid-diagram-rn5a .edge-pattern-solid{stroke-dasharray:0;}#mermaid-diagram-rn5a .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-diagram-rn5a .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-diagram-rn5a .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-diagram-rn5a .marker{fill:#666;stroke:#666;}#mermaid-diagram-rn5a .marker.cross{stroke:#666;}#mermaid-diagram-rn5a svg{font-family:var(--font-geist-sans);font-size:12px;}#mermaid-diagram-rn5a p{margin:0;}#mermaid-diagram-rn5a .label{font-family:var(--font-geist-sans);color:#000000;}#mermaid-diagram-rn5a .cluster-label text{fill:#333;}#mermaid-diagram-rn5a .cluster-label span{color:#333;}#mermaid-diagram-rn5a .cluster-label span p{background-color:transparent;}#mermaid-diagram-rn5a .label text,#mermaid-diagram-rn5a span{fill:#000000;color:#000000;}#mermaid-diagram-rn5a .node rect,#mermaid-diagram-rn5a .node circle,#mermaid-diagram-rn5a .node ellipse,#mermaid-diagram-rn5a .node polygon,#mermaid-diagram-rn5a .node path{fill:#eee;stroke:#999;stroke-width:1px;}#mermaid-diagram-rn5a .rough-node .label text,#mermaid-diagram-rn5a .node .label text{text-anchor:middle;}#mermaid-diagram-rn5a .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-diagram-rn5a .node .label{text-align:center;}#mermaid-diagram-rn5a .node.clickable{cursor:pointer;}#mermaid-diagram-rn5a .arrowheadPath{fill:#333333;}#mermaid-diagram-rn5a .edgePath .path{stroke:#666;stroke-width:2.0px;}#mermaid-diagram-rn5a .flowchart-link{stroke:#666;fill:none;}#mermaid-diagram-rn5a .edgeLabel{background-color:white;text-align:center;}#mermaid-diagram-rn5a .edgeLabel p{background-color:white;}#mermaid-diagram-rn5a .edgeLabel rect{opacity:0.5;background-color:white;fill:white;}#mermaid-diagram-rn5a .labelBkg{background-color:rgba(255, 255, 255, 0.5);}#mermaid-diagram-rn5a .cluster rect{fill:hsl(0, 0%, 98.9215686275%);stroke:#707070;stroke-width:1px;}#mermaid-diagram-rn5a .cluster text{fill:#333;}#mermaid-diagram-rn5a .cluster span{color:#333;}#mermaid-diagram-rn5a div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:var(--font-geist-sans);font-size:12px;background:hsl(-160, 0%, 93.3333333333%);border:1px solid #707070;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-diagram-rn5a .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#000000;}#mermaid-diagram-rn5a .flowchart-link{stroke:hsl(var(--gray-400));stroke-width:1px;}#mermaid-diagram-rn5a .marker,#mermaid-diagram-rn5a marker,#mermaid-diagram-rn5a marker *{fill:hsl(var(--gray-400))!important;stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-rn5a .label,#mermaid-diagram-rn5a text,#mermaid-diagram-rn5a text>tspan{fill:hsl(var(--black))!important;color:hsl(var(--black))!important;}#mermaid-diagram-rn5a .background,#mermaid-diagram-rn5a rect.relationshipLabelBox{fill:hsl(var(--white))!important;}#mermaid-diagram-rn5a .entityBox,#mermaid-diagram-rn5a .attributeBoxEven{fill:hsl(var(--gray-150))!important;}#mermaid-diagram-rn5a .attributeBoxOdd{fill:hsl(var(--white))!important;}#mermaid-diagram-rn5a .label-container,#mermaid-diagram-rn5a rect.actor{fill:hsl(var(--white))!important;stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-rn5a line{stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-rn5a :root{--mermaid-font-family:var(--font-geist-sans);}React ComponentsuseApi HookRedux ThunksAPI ClientError HandlingServer Endpoints
-```
+\`\`\`
 
 - **API Client**: Base layer that handles requests, authentication, and error formatting
 - **useApi Hook**: React hook for component-level API calls with loading/error states
@@ -41,10 +41,10 @@ API Architecture.download-icon {
 
 Ensure these environment variables are set in your `.env.local` file:
 
-```plaintext
+\`\`\`plaintext
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
 NEXT_PUBLIC_API_IS_LIVE=false
-```
+\`\`\`
 
 - `NEXT_PUBLIC_API_BASE_URL`: Base URL for all API requests
 - `NEXT_PUBLIC_API_IS_LIVE`: Set to `true` to use the live API, `false` to use mock data
@@ -54,7 +54,7 @@ NEXT_PUBLIC_API_IS_LIVE=false
 
 Import the API client functions directly for simple use cases:
 
-```typescript
+\`\`\`typescript
 import { get, post, put, del } from "@/lib/api-client";
 
 // GET request
@@ -95,13 +95,13 @@ const deleteItem = async (id: string) => {
     handleApiError(error);
   }
 };
-```
+\`\`\`
 
 ## Using the useApi Hook
 
 The `useApi` hook simplifies API calls in React components:
 
-```typescript
+\`\`\`typescript
 import { useApi } from "@/hooks/use-api";
 import { get, post } from "@/lib/api-client";
 
@@ -151,13 +151,13 @@ function CreateUserForm() {
     </form>
   );
 }
-```
+\`\`\`
 
 ## Redux Thunks for API Calls
 
 For global state management, use Redux thunks:
 
-```typescript
+\`\`\`typescript
 // In your slice file
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { get, post, ApiError } from "@/lib/api-client";
@@ -203,13 +203,13 @@ function GradesList() {
 
   // Component rendering...
 }
-```
+\`\`\`
 
 ## Error Handling
 
 We have a consistent error handling approach:
 
-```typescript
+\`\`\`typescript
 import { handleApiError, withErrorHandling } from "@/lib/error-utils";
 
 // Direct usage
@@ -227,11 +227,11 @@ const fetchUsers = withErrorHandling(async () => {
 
 // Later use
 const users = await fetchUsers();
-```
+\`\`\`
 
 The `ApiError` class provides structured error information:
 
-```typescript
+\`\`\`typescript
 // Example of ApiError properties
 if (error instanceof ApiError) {
   console.log(error.status);        // HTTP status code
@@ -239,7 +239,7 @@ if (error instanceof ApiError) {
   console.log(error.data);          // Additional error data from API
   console.log(error.isNetworkError); // Whether it's a network error
 }
-```
+\`\`\`
 
 ## Decision Guide: Which Approach to Use
 
@@ -252,7 +252,7 @@ if (error instanceof ApiError) {
 
 ### Decision Tree
 
-```mermaid
+\`\`\`mermaid
 API Approach Decision Tree.download-icon {
             cursor: pointer;
             transform-origin: center;
@@ -265,13 +265,13 @@ API Approach Decision Tree.download-icon {
           transform: translateY(-1.5px);
         }
         #mermaid-diagram-rnae{font-family:var(--font-geist-sans);font-size:12px;fill:#000000;}#mermaid-diagram-rnae .error-icon{fill:#552222;}#mermaid-diagram-rnae .error-text{fill:#552222;stroke:#552222;}#mermaid-diagram-rnae .edge-thickness-normal{stroke-width:1px;}#mermaid-diagram-rnae .edge-thickness-thick{stroke-width:3.5px;}#mermaid-diagram-rnae .edge-pattern-solid{stroke-dasharray:0;}#mermaid-diagram-rnae .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-diagram-rnae .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-diagram-rnae .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-diagram-rnae .marker{fill:#666;stroke:#666;}#mermaid-diagram-rnae .marker.cross{stroke:#666;}#mermaid-diagram-rnae svg{font-family:var(--font-geist-sans);font-size:12px;}#mermaid-diagram-rnae p{margin:0;}#mermaid-diagram-rnae .label{font-family:var(--font-geist-sans);color:#000000;}#mermaid-diagram-rnae .cluster-label text{fill:#333;}#mermaid-diagram-rnae .cluster-label span{color:#333;}#mermaid-diagram-rnae .cluster-label span p{background-color:transparent;}#mermaid-diagram-rnae .label text,#mermaid-diagram-rnae span{fill:#000000;color:#000000;}#mermaid-diagram-rnae .node rect,#mermaid-diagram-rnae .node circle,#mermaid-diagram-rnae .node ellipse,#mermaid-diagram-rnae .node polygon,#mermaid-diagram-rnae .node path{fill:#eee;stroke:#999;stroke-width:1px;}#mermaid-diagram-rnae .rough-node .label text,#mermaid-diagram-rnae .node .label text{text-anchor:middle;}#mermaid-diagram-rnae .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-diagram-rnae .node .label{text-align:center;}#mermaid-diagram-rnae .node.clickable{cursor:pointer;}#mermaid-diagram-rnae .arrowheadPath{fill:#333333;}#mermaid-diagram-rnae .edgePath .path{stroke:#666;stroke-width:2.0px;}#mermaid-diagram-rnae .flowchart-link{stroke:#666;fill:none;}#mermaid-diagram-rnae .edgeLabel{background-color:white;text-align:center;}#mermaid-diagram-rnae .edgeLabel p{background-color:white;}#mermaid-diagram-rnae .edgeLabel rect{opacity:0.5;background-color:white;fill:white;}#mermaid-diagram-rnae .labelBkg{background-color:rgba(255, 255, 255, 0.5);}#mermaid-diagram-rnae .cluster rect{fill:hsl(0, 0%, 98.9215686275%);stroke:#707070;stroke-width:1px;}#mermaid-diagram-rnae .cluster text{fill:#333;}#mermaid-diagram-rnae .cluster span{color:#333;}#mermaid-diagram-rnae div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:var(--font-geist-sans);font-size:12px;background:hsl(-160, 0%, 93.3333333333%);border:1px solid #707070;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-diagram-rnae .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#000000;}#mermaid-diagram-rnae .flowchart-link{stroke:hsl(var(--gray-400));stroke-width:1px;}#mermaid-diagram-rnae .marker,#mermaid-diagram-rnae marker,#mermaid-diagram-rnae marker *{fill:hsl(var(--gray-400))!important;stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-rnae .label,#mermaid-diagram-rnae text,#mermaid-diagram-rnae text>tspan{fill:hsl(var(--black))!important;color:hsl(var(--black))!important;}#mermaid-diagram-rnae .background,#mermaid-diagram-rnae rect.relationshipLabelBox{fill:hsl(var(--white))!important;}#mermaid-diagram-rnae .entityBox,#mermaid-diagram-rnae .attributeBoxEven{fill:hsl(var(--gray-150))!important;}#mermaid-diagram-rnae .attributeBoxOdd{fill:hsl(var(--white))!important;}#mermaid-diagram-rnae .label-container,#mermaid-diagram-rnae rect.actor{fill:hsl(var(--white))!important;stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-rnae line{stroke:hsl(var(--gray-400))!important;}#mermaid-diagram-rnae :root{--mermaid-font-family:var(--font-geist-sans);}NoYesNoYesYesNoNeed to make an API callIs it in a React component?Use Direct API ClientDoes multiple components needthis data?Is it a simple operation?Use Redux ThunksUse useApi Hook
-```
+\`\`\`
 
 ## Common Patterns and Examples
 
 ### Loading States
 
-```typescriptreact
+\`\`\`typescriptreact
 // With useApi
 function UserProfile({ userId }) {
   const { data: user, isLoading, error } = useApi();
@@ -306,11 +306,11 @@ function UserProfile({ userId }) {
 
   return <UserProfileDisplay user={user} />;
 }
-```
+\`\`\`
 
 ### Form Submission
 
-```typescriptreact
+\`\`\`typescriptreact
 // Form submission with useApi
 function CreateCourseForm() {
   const [formData, setFormData] = useState(initialFormData);
@@ -336,11 +336,11 @@ function CreateCourseForm() {
     </form>
   );
 }
-```
+\`\`\`
 
 ### Combining Approaches
 
-```typescriptreact
+\`\`\`typescriptreact
 // Using both Redux and useApi
 function GradeEditor({ gradeId }) {
   const dispatch = useAppDispatch();
@@ -368,11 +368,11 @@ function GradeEditor({ gradeId }) {
 
   // Component rendering...
 }
-```
+\`\`\`
 
 ### Payment Receipt Example
 
-```typescriptreact
+\`\`\`typescriptreact
 // Payment Receipt Page
 function PaymentReceiptPage() {
   const { id } = useParams();
@@ -426,7 +426,7 @@ export const fetchPaymentById = createAsyncThunk<
     }
   }
 );
-```
+\`\`\`
 
 ---
 

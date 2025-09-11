@@ -52,7 +52,7 @@
       6.  **Call Paystack's `/transaction/initialize` API:** With `email`, `amount`, the determined `callback_url`, and the `metadata`. (Uses **Secret Key**)
       7.  **On success from Paystack:** Get `authorization_url`, `reference`. Update DB `PaymentRecord` with `providerReference = reference`.
       8.  **Return `PaymentResponse` to frontend:**
-          ```json
+          \`\`\`json
           {
           	"success": true,
           	"data": {
@@ -62,7 +62,7 @@
           		"authorizationUrl": "PAYSTACK_AUTH_URL"
           	}
           }
-          ```
+          \`\`\`
 7.  **Frontend Receives Initialization Response (`initiatePayment` thunk in `PaystackCheckout.tsx`):**
     - `result` (type `PaymentResponse`) is received.
     - `payment-slice` updates `state.currentPayment` with `result.payment` and `state.paymentInitialization` with `result.authorizationUrl`.
@@ -104,7 +104,7 @@
           - `const stringifiedMetadata = JSON.stringify(paystackResponse.data.data.metadata);`
           - Store this `stringifiedMetadata` into your DB `PaymentRecord`'s `gatewayRef` field (or `description`).
       7.  **Return `VerifyPaymentResponse` to frontend:**
-          ```json
+          \`\`\`json
           {
           	"success": true,
           	"data": {
@@ -117,7 +117,7 @@
           		}
           	}
           }
-          ```
+          \`\`\`
 13. **Frontend Receives Verification Response (`verifyPayment` thunk in `PaymentCallbackContent`):**
     - `payment-slice` updates `verificationStatus` to `"succeeded"` or `"failed"`.
     - `state.currentPayment` is updated with `response.data.payments` (the `PaymentRecord` which now has stringified metadata in its `gatewayRef` or `description`).

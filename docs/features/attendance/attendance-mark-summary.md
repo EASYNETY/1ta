@@ -24,7 +24,7 @@ We have created the following documentation to guide the implementation of the a
 
 ### Request Payload
 
-```typescript
+\`\`\`typescript
 export interface MarkAttendancePayload {
   studentId: string;           // Required
   classInstanceId: string;     // Required
@@ -33,11 +33,11 @@ export interface MarkAttendancePayload {
   status?: "present" | "absent" | "late" | "excused";  // Optional (default: "present")
   notes?: string;              // Optional
 }
-```
+\`\`\`
 
 ### Success Response
 
-```typescript
+\`\`\`typescript
 export interface MarkAttendanceSuccessResponse {
   success: boolean;            // Always true
   studentId: string;           // Echo of the student ID
@@ -46,11 +46,11 @@ export interface MarkAttendanceSuccessResponse {
   timestamp: string;           // Server timestamp
   status: "present" | "absent" | "late" | "excused";  // Recorded status
 }
-```
+\`\`\`
 
 ### Error Response
 
-```typescript
+\`\`\`typescript
 export interface MarkAttendanceErrorResponse {
   success: boolean;            // Always false
   message: string;             // Error message
@@ -59,7 +59,7 @@ export interface MarkAttendanceErrorResponse {
     [field: string]: string;
   };
 }
-```
+\`\`\`
 
 ## Implementation Checklist
 

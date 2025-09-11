@@ -1,4 +1,3 @@
-
 ## 1Tech Academy / oneTechAcademy - Backend Documentation
 
 **Version:** 1.0

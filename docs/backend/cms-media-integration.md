@@ -29,7 +29,7 @@ Based on the codebase analysis, the current media system includes:
 
 ### Current Media Types
 
-```typescript
+\`\`\`typescript
 // From types/website.types.ts
 export interface MediaFile {
   id: string
@@ -57,7 +57,7 @@ export interface MediaFilesResponse {
     totalPages: number
   }
 }
-```
+\`\`\`
 
 ## Integration Strategy
 
@@ -65,7 +65,7 @@ export interface MediaFilesResponse {
 
 Extend the existing media system to work with the CMS database models:
 
-```javascript
+\`\`\`javascript
 // Enhanced media model integration
 const { CMSMedia, CMSPage, CMSLandingSection } = require('../models');
 
@@ -190,13 +190,13 @@ class MediaIntegrationService {
 }
 
 module.exports = new MediaIntegrationService();
-```
+\`\`\`
 
 ### 2. Enhanced Upload Controller
 
 Integrate the existing upload functionality with the CMS system:
 
-```javascript
+\`\`\`javascript
 // controllers/enhanced-media-controller.js
 const BaseCMSController = require('./base-cms-controller');
 const { CMSMedia } = require('../models');
@@ -477,4 +477,4 @@ class EnhancedMediaController extends BaseCMSController {
 }
 
 module.exports = new EnhancedMediaController();
-```
+\`\`\`

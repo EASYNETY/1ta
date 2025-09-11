@@ -75,7 +75,7 @@ All API responses should follow this format to maintain compatibility with the f
 
 ### Success Response
 
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Operation successful",
@@ -83,11 +83,11 @@ All API responses should follow this format to maintain compatibility with the f
     // Response data matching the expected types
   }
 }
-```
+\`\`\`
 
 ### Error Response
 
-```json
+\`\`\`json
 {
   "success": false,
   "message": "Error message",
@@ -95,7 +95,7 @@ All API responses should follow this format to maintain compatibility with the f
     // Optional detailed errors
   ]
 }
-```
+\`\`\`
 
 ## Special Considerations
 
