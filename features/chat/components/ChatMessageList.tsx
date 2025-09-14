@@ -36,13 +36,54 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     );
 
     const viewportRef = useRef<HTMLDivElement>(null);
+    const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [userScrolledUp, setUserScrolledUp] = useState(false);
     const [showNewMessageIndicator, setShowNewMessageIndicator] = useState(false);
     const [prevMessageCount, setPrevMessageCount] = useState(0);
+    const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
 
     const { joinRoom, leaveRoom } = useSocket();
+
+    // Auto-refresh function to fetch latest messages
+    const autoRefreshMessages = useCallback(async () => {
+        if (!selectedRoomId || isAutoRefreshing) return;
+        
+        setIsAutoRefreshing(true);
+        try {
+            // Fetch latest messages (page 1) silently in background
+            await dispatch(fetchChatMessages({ 
+                roomId: selectedRoomId, 
+                page: 1, 
+                limit: 50 
+            }));
+        } catch (error) {
+            console.error('Auto-refresh failed:', error);
+        } finally {
+            setTimeout(() => setIsAutoRefreshing(false), 500);
+        }
+    }, [selectedRoomId, dispatch, isAutoRefreshing]);
+
+    // Start auto-refresh interval
+    const startAutoRefresh = useCallback(() => {
+        if (autoRefreshRef.current) {
+            clearInterval(autoRefreshRef.current);
+        }
+        
+        // Auto-refresh every 2 seconds
+        autoRefreshRef.current = setInterval(() => {
+            autoRefreshMessages();
+        }, 2000);
+    }, [autoRefreshMessages]);
+
+    // Stop auto-refresh interval
+    const stopAutoRefresh = useCallback(() => {
+        if (autoRefreshRef.current) {
+            clearInterval(autoRefreshRef.current);
+            autoRefreshRef.current = null;
+        }
+    }, []);
 
     // Effect for joining/leaving rooms and initial message fetch
     useEffect(() => {
@@ -50,35 +91,39 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             joinRoom(selectedRoomId);
             setUserScrolledUp(false);
             setShowNewMessageIndicator(false);
+            setPrevMessageCount(0);
 
+            // Initial fetch
             if (messageLoadingStatus === "idle" || messages.length === 0) {
                 setPage(1);
                 setHasMore(true);
                 dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: 50 }));
             }
+
+            // Start auto-refresh for this room
+            startAutoRefresh();
         }
+
         return () => {
             if (selectedRoomId) {
                 leaveRoom(selectedRoomId);
             }
+            stopAutoRefresh();
         };
-    }, [selectedRoomId, dispatch]);
+    }, [selectedRoomId, dispatch, joinRoom, leaveRoom, startAutoRefresh, stopAutoRefresh]);
 
     // Track message count changes to detect new messages
     useEffect(() => {
         if (messages.length > prevMessageCount && prevMessageCount > 0) {
-            // New message(s) arrived
             const viewport = viewportRef.current;
             if (!viewport) return;
 
             if (!userScrolledUp) {
-                // User is at bottom, scroll to show new message
                 setTimeout(() => {
                     viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
-                }, 50);
+                }, 100);
                 setShowNewMessageIndicator(false);
             } else {
-                // User has scrolled up, show indicator
                 setShowNewMessageIndicator(true);
             }
         }
@@ -93,7 +138,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             
             setTimeout(() => {
                 viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'auto' });
-            }, 100);
+            }, 200);
         }
     }, [messages.length, prevMessageCount, userScrolledUp]);
 
@@ -103,6 +148,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         if (!viewport) return;
 
         const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 50;
+        const isNearTop = viewport.scrollTop < 200;
 
         if (isAtBottom) {
             setUserScrolledUp(false);
@@ -110,7 +156,12 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         } else {
             setUserScrolledUp(true);
         }
-    }, []);
+
+        // Auto-load older messages when scrolling near top
+        if (isNearTop && hasMore && messageLoadingStatus !== "loading") {
+            handleLoadMore();
+        }
+    }, [hasMore, messageLoadingStatus]);
 
     const scrollToBottom = () => {
         const viewport = viewportRef.current;
@@ -120,6 +171,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         setShowNewMessageIndicator(false);
     };
 
+    // Load older messages (for scrolling up)
     const handleLoadMore = useCallback(async () => {
         if (!selectedRoomId || messageLoadingStatus === "loading" || !hasMore) return;
         
@@ -128,20 +180,27 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         const scrollTopBefore = viewport?.scrollTop || 0;
         
         const nextPage = page + 1;
-        const result = await dispatch(fetchChatMessages({ roomId: selectedRoomId, page: nextPage, limit: 20 }));
+        const result = await dispatch(fetchChatMessages({ 
+            roomId: selectedRoomId, 
+            page: nextPage, 
+            limit: 20 
+        }));
         
         const fetchedMessages = (result.payload as any)?.data ?? [];
         if (result.meta.requestStatus === 'fulfilled' && fetchedMessages.length === 0) {
             setHasMore(false);
         } else {
-            // Maintain scroll position after loading more messages
+            // Maintain scroll position after loading older messages
             setTimeout(() => {
                 if (viewport) {
                     const scrollHeightAfter = viewport.scrollHeight;
                     const scrollHeightDiff = scrollHeightAfter - scrollHeightBefore;
-                    viewport.scrollTo({ top: scrollTopBefore + scrollHeightDiff, behavior: 'auto' });
+                    viewport.scrollTo({ 
+                        top: scrollTopBefore + scrollHeightDiff, 
+                        behavior: 'auto' 
+                    });
                 }
-            }, 50);
+            }, 100);
         }
         setPage(nextPage);
     }, [selectedRoomId, messageLoadingStatus, hasMore, page, dispatch]);
@@ -187,6 +246,16 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
     return (
         <div className="flex-1 flex flex-col relative overflow-hidden bg-muted/20">
+            {/* Auto-refresh indicator */}
+            {isAutoRefreshing && (
+                <div className="absolute top-2 right-2 z-50">
+                    <div className="flex items-center space-x-2 bg-blue-500/90 text-white px-2 py-1 rounded-md shadow-lg text-xs">
+                        <div className="animate-spin h-3 w-3 border border-white border-t-transparent rounded-full"></div>
+                        <span>Syncing...</span>
+                    </div>
+                </div>
+            )}
+
             <ScrollArea 
                 className="flex-1 px-4" 
                 viewportRef={viewportRef} 
@@ -195,7 +264,12 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
                 <div className="py-4">
                     {hasMore && (
                         <div className="text-center mb-4">
-                            <Button variant="ghost" size="sm" onClick={handleLoadMore} disabled={messageLoadingStatus === "loading"}>
+                            <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={handleLoadMore} 
+                                disabled={messageLoadingStatus === "loading"}
+                            >
                                 {messageLoadingStatus === "loading" ? "Loading..." : "Load More Messages"}
                             </Button>
                         </div>
