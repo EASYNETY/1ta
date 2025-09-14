@@ -12,8 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAttendanceSocket } from '@/features/attendance/hooks/useAttendanceSocket';
 import {
-import { useAttendanceSocket } from '../hooks/useAttendanceSocket';
   selectCourseDailyAttendances,
   fetchCourseAttendance,
   selectFetchingCourseAttendance
@@ -137,7 +137,7 @@ export function FacilitatorAttendanceView() {
 
 
   const attendanceDataForPicker = useMemo(() => {
-    return (courseDailyAttendances || []).reduce((acc, att) => {
+    return (courseDailyAttendances || []).reduce((acc: AttendanceDataForPicker, att: DailyAttendance) => {
       acc[att.date] = "hasData";
       return acc;
     }, {} as AttendanceDataForPicker);
@@ -147,7 +147,7 @@ export function FacilitatorAttendanceView() {
     if (!selectedDate || !courseDailyAttendances) return null;
     
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
-    return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-MM-dd") === formattedDate) || null;
+    return courseDailyAttendances.find((a: DailyAttendance) => format(parseISO(a.date), "yyyy-MM-dd") === formattedDate) || null;
     // const formattedDate = format(selectedDate, "yyyy-M-d"); // Use a format that matches the keys
     // // Find a match ignoring timezones by checking just the date part
     // return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-M-d") === formattedDate) || null;
