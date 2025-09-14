@@ -16,13 +16,6 @@ import { ChatMessage } from "./ChatMessage";
 import { fetchChatMessages, deleteChatMessage } from "../store/chat-thunks";
 import { useSocket } from "../services/socketService";
 
-// --- Best Practice Note ---
-// Your real-time logic should live in `socketService.ts`.
-// That service should listen for 'new_message' events from the server
-// and dispatch an action to add the message to the Redux store.
-// This component should NOT listen for socket events directly. It just
-// needs to react to the `messages` array changing in the store.
-
 interface ChatMessageListProps {
     onReply?: (message: any) => void;
     onForward?: (message: any) => void;
@@ -45,10 +38,9 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     const viewportRef = useRef<HTMLDivElement>(null);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-
-    // --- State for Smart Scrolling ---
     const [userScrolledUp, setUserScrolledUp] = useState(false);
     const [showNewMessageIndicator, setShowNewMessageIndicator] = useState(false);
+    const [prevMessageCount, setPrevMessageCount] = useState(0);
 
     const { joinRoom, leaveRoom } = useSocket();
 
@@ -56,10 +48,9 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     useEffect(() => {
         if (selectedRoomId) {
             joinRoom(selectedRoomId);
-            setUserScrolledUp(false); // Reset scroll state on room change
+            setUserScrolledUp(false);
             setShowNewMessageIndicator(false);
 
-            // Fetch initial messages only if the room is new or empty
             if (messageLoadingStatus === "idle" || messages.length === 0) {
                 setPage(1);
                 setHasMore(true);
@@ -73,34 +64,45 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         };
     }, [selectedRoomId, dispatch]);
 
-
-    // --- Smart Scrolling Effect ---
-    // This effect handles scrolling when new messages arrive.
+    // Track message count changes to detect new messages
     useEffect(() => {
-        const viewport = viewportRef.current;
-        if (!viewport) return;
+        if (messages.length > prevMessageCount && prevMessageCount > 0) {
+            // New message(s) arrived
+            const viewport = viewportRef.current;
+            if (!viewport) return;
 
-        // If user has not scrolled up, auto-scroll to the bottom.
-        if (!userScrolledUp) {
-            viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
-            setShowNewMessageIndicator(false);
-        } else {
-            // If user has scrolled up, show the indicator.
-            // Check to avoid showing indicator for the very first message load.
-            if (messages.length > 1) {
+            if (!userScrolledUp) {
+                // User is at bottom, scroll to show new message
+                setTimeout(() => {
+                    viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+                }, 50);
+                setShowNewMessageIndicator(false);
+            } else {
+                // User has scrolled up, show indicator
                 setShowNewMessageIndicator(true);
             }
         }
-    }, [messages, userScrolledUp]);
+        setPrevMessageCount(messages.length);
+    }, [messages.length, userScrolledUp, prevMessageCount]);
 
+    // Initial scroll to bottom when messages first load
+    useEffect(() => {
+        if (messages.length > 0 && prevMessageCount === 0 && !userScrolledUp) {
+            const viewport = viewportRef.current;
+            if (!viewport) return;
+            
+            setTimeout(() => {
+                viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'auto' });
+            }, 100);
+        }
+    }, [messages.length, prevMessageCount, userScrolledUp]);
 
-    // --- Scroll Event Handler ---
-    // This function detects if the user has manually scrolled up.
+    // Scroll Event Handler
     const handleScroll = useCallback(() => {
         const viewport = viewportRef.current;
         if (!viewport) return;
 
-        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 50; // 50px buffer
+        const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 50;
 
         if (isAtBottom) {
             setUserScrolledUp(false);
@@ -118,15 +120,28 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         setShowNewMessageIndicator(false);
     };
 
-    // --- Data Loading and Deletion ---
     const handleLoadMore = useCallback(async () => {
         if (!selectedRoomId || messageLoadingStatus === "loading" || !hasMore) return;
+        
+        const viewport = viewportRef.current;
+        const scrollHeightBefore = viewport?.scrollHeight || 0;
+        const scrollTopBefore = viewport?.scrollTop || 0;
+        
         const nextPage = page + 1;
         const result = await dispatch(fetchChatMessages({ roomId: selectedRoomId, page: nextPage, limit: 20 }));
         
         const fetchedMessages = (result.payload as any)?.data ?? [];
         if (result.meta.requestStatus === 'fulfilled' && fetchedMessages.length === 0) {
             setHasMore(false);
+        } else {
+            // Maintain scroll position after loading more messages
+            setTimeout(() => {
+                if (viewport) {
+                    const scrollHeightAfter = viewport.scrollHeight;
+                    const scrollHeightDiff = scrollHeightAfter - scrollHeightBefore;
+                    viewport.scrollTo({ top: scrollTopBefore + scrollHeightDiff, behavior: 'auto' });
+                }
+            }, 50);
         }
         setPage(nextPage);
     }, [selectedRoomId, messageLoadingStatus, hasMore, page, dispatch]);
@@ -135,7 +150,6 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         if (!selectedRoomId) return;
         dispatch(deleteChatMessage({ roomId: selectedRoomId, messageId }));
     }, [selectedRoomId, dispatch]);
-
 
     // Memoized message grouping for performance
     const groupedMessages = useMemo(() => {
@@ -161,7 +175,6 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         );
     };
     
-    // Fallback UI when no room is selected
     if (!selectedRoomId) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
@@ -218,7 +231,6 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             </ScrollArea>
             <TypingIndicator />
 
-            {/* --- New Message Indicator Button --- */}
             {showNewMessageIndicator && (
                 <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
                     <Button
