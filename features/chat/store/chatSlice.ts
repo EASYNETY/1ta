@@ -380,11 +380,17 @@ const chatSlice = createSlice({
         });
 
         builder.addCase(fetchChatMessages.fulfilled, (state, action) => {
-            const roomId = action.meta.arg.roomId;
+            const { roomId, page = 1 } = action.meta.arg;
             const messages = (action.payload && (action.payload as any).data) || [];
             if (roomId) {
-                // Replace messages for the room (latest page)
-                state.messagesByRoom[roomId] = messages as ChatMessage[];
+                if (page > 1) {
+                    const existing = state.messagesByRoom[roomId] || [];
+                    // Prepend older messages (both batches are oldest first)
+                    state.messagesByRoom[roomId] = [...messages, ...existing];
+                } else {
+                    // Replace for initial load
+                    state.messagesByRoom[roomId] = messages as ChatMessage[];
+                }
                 state.messageStatus[roomId] = 'succeeded';
                 state.messageErrors[roomId] = null;
             }
