@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
+import { useAttendanceSocket } from '../hooks/useAttendanceSocket';
   selectCourseDailyAttendances,
   fetchCourseAttendance,
   selectFetchingCourseAttendance
@@ -54,6 +55,7 @@ const months = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export function FacilitatorAttendanceView() {
+  useAttendanceSocket();
   const dispatch = useAppDispatch();
 
   // --- State Hooks ---
