@@ -43,27 +43,38 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     const [showNewMessageIndicator, setShowNewMessageIndicator] = useState(false);
     const [prevMessageCount, setPrevMessageCount] = useState(0);
     const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
+    const [refreshCount, setRefreshCount] = useState(0);
 
     const { joinRoom, leaveRoom } = useSocket();
 
     // Auto-refresh function to fetch latest messages
     const autoRefreshMessages = useCallback(async () => {
-        if (!selectedRoomId || isAutoRefreshing) return;
+        if (!selectedRoomId || isAutoRefreshing || messageLoadingStatus === 'loading') return;
         
+        console.log('🔄 Auto-refreshing messages for room:', selectedRoomId, 'Attempt:', refreshCount + 1);
         setIsAutoRefreshing(true);
+        setRefreshCount(prev => prev + 1);
+        
         try {
-            // Fetch latest messages (page 1) silently in background
-            await dispatch(fetchChatMessages({ 
+            const result = await dispatch(fetchChatMessages({ 
                 roomId: selectedRoomId, 
                 page: 1, 
-                limit: 50 
+                limit: 50,
+                timestamp: Date.now() // Add timestamp to prevent caching
             }));
+            
+            console.log('✅ Auto-refresh result:', result);
+            
+            if (result.meta.requestStatus === 'fulfilled') {
+                const fetchedMessages = (result.payload as any)?.data ?? [];
+                console.log('📨 Fetched messages count:', fetchedMessages.length);
+            }
         } catch (error) {
-            console.error('Auto-refresh failed:', error);
+            console.error('❌ Auto-refresh failed:', error);
         } finally {
             setTimeout(() => setIsAutoRefreshing(false), 500);
         }
-    }, [selectedRoomId, dispatch, isAutoRefreshing]);
+    }, [selectedRoomId, dispatch, isAutoRefreshing, messageLoadingStatus, refreshCount]);
 
     // Start auto-refresh interval
     const startAutoRefresh = useCallback(() => {
@@ -71,15 +82,18 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             clearInterval(autoRefreshRef.current);
         }
         
-        // Auto-refresh every 2 seconds
+        console.log('🚀 Starting auto-refresh for room:', selectedRoomId);
+        
+        // Auto-refresh every 3 seconds
         autoRefreshRef.current = setInterval(() => {
             autoRefreshMessages();
-        }, 2000);
-    }, [autoRefreshMessages]);
+        }, 3000);
+    }, [autoRefreshMessages, selectedRoomId]);
 
     // Stop auto-refresh interval
     const stopAutoRefresh = useCallback(() => {
         if (autoRefreshRef.current) {
+            console.log('🛑 Stopping auto-refresh');
             clearInterval(autoRefreshRef.current);
             autoRefreshRef.current = null;
         }
@@ -88,24 +102,30 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     // Effect for joining/leaving rooms and initial message fetch
     useEffect(() => {
         if (selectedRoomId) {
+            console.log('🏠 Joining room:', selectedRoomId);
             joinRoom(selectedRoomId);
             setUserScrolledUp(false);
             setShowNewMessageIndicator(false);
             setPrevMessageCount(0);
+            setRefreshCount(0);
 
             // Initial fetch
             if (messageLoadingStatus === "idle" || messages.length === 0) {
                 setPage(1);
                 setHasMore(true);
+                console.log('📥 Initial message fetch');
                 dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: 50 }));
             }
 
             // Start auto-refresh for this room
-            startAutoRefresh();
+            setTimeout(() => {
+                startAutoRefresh();
+            }, 2000); // Wait 2 seconds before starting auto-refresh
         }
 
         return () => {
             if (selectedRoomId) {
+                console.log('👋 Leaving room:', selectedRoomId);
                 leaveRoom(selectedRoomId);
             }
             stopAutoRefresh();
@@ -114,16 +134,21 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
     // Track message count changes to detect new messages
     useEffect(() => {
+        console.log('📊 Messages changed - Count:', messages.length, 'Previous:', prevMessageCount);
+        
         if (messages.length > prevMessageCount && prevMessageCount > 0) {
+            console.log('🆕 New messages detected! Auto-scrolling...');
             const viewport = viewportRef.current;
             if (!viewport) return;
 
             if (!userScrolledUp) {
                 setTimeout(() => {
                     viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+                    console.log('⬇️ Scrolled to bottom');
                 }, 100);
                 setShowNewMessageIndicator(false);
             } else {
+                console.log('👆 User scrolled up, showing indicator');
                 setShowNewMessageIndicator(true);
             }
         }
@@ -136,9 +161,10 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
             const viewport = viewportRef.current;
             if (!viewport) return;
             
+            console.log('📜 Initial scroll to bottom');
             setTimeout(() => {
                 viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'auto' });
-            }, 200);
+            }, 300);
         }
     }, [messages.length, prevMessageCount, userScrolledUp]);
 
@@ -175,6 +201,8 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
     const handleLoadMore = useCallback(async () => {
         if (!selectedRoomId || messageLoadingStatus === "loading" || !hasMore) return;
         
+        console.log('📚 Loading more messages, page:', page + 1);
+        
         const viewport = viewportRef.current;
         const scrollHeightBefore = viewport?.scrollHeight || 0;
         const scrollTopBefore = viewport?.scrollTop || 0;
@@ -189,6 +217,7 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
         const fetchedMessages = (result.payload as any)?.data ?? [];
         if (result.meta.requestStatus === 'fulfilled' && fetchedMessages.length === 0) {
             setHasMore(false);
+            console.log('🔚 No more messages to load');
         } else {
             // Maintain scroll position after loading older messages
             setTimeout(() => {
@@ -246,12 +275,22 @@ export const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
     return (
         <div className="flex-1 flex flex-col relative overflow-hidden bg-muted/20">
+            {/* Debug Panel */}
+            <div className="absolute top-2 left-2 z-50 bg-black/80 text-white text-xs p-3 rounded-lg font-mono">
+                <div>🏠 Room: {selectedRoomId?.slice(-8)}</div>
+                <div>📨 Messages: {messages.length}</div>
+                <div>🔄 Refreshes: {refreshCount}</div>
+                <div>⚡ Status: {messageLoadingStatus}</div>
+                <div>🔄 Auto: {isAutoRefreshing ? '🟢 ON' : '🔴 OFF'}</div>
+                <div>📍 Scroll: {userScrolledUp ? '👆 UP' : '⬇️ BOTTOM'}</div>
+            </div>
+
             {/* Auto-refresh indicator */}
             {isAutoRefreshing && (
                 <div className="absolute top-2 right-2 z-50">
-                    <div className="flex items-center space-x-2 bg-blue-500/90 text-white px-2 py-1 rounded-md shadow-lg text-xs">
-                        <div className="animate-spin h-3 w-3 border border-white border-t-transparent rounded-full"></div>
-                        <span>Syncing...</span>
+                    <div className="flex items-center space-x-2 bg-green-500/90 text-white px-3 py-2 rounded-lg shadow-lg animate-pulse">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                        <span className="text-sm font-medium">Fetching latest...</span>
                     </div>
                 </div>
             )}
