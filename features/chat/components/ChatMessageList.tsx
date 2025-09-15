@@ -35,21 +35,19 @@ export const ChatMessageList: React.FC<{
   const [prevMessageCount, setPrevMessageCount] = useState(0);
 
   // 🚀 Always hard reload messages
-  useEffect(() => {
-    if (!selectedRoomId) return;
+ useEffect(() => {
+  if (!selectedRoomId) return;
 
-    const loadMessages = () => {
-      dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: 50 }));
-    };
+  const loadMessages = () => {
+    console.log("🔄 Hard reloading messages:", selectedRoomId, Date.now());
+    dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: 50 }));
+  };
 
-    loadMessages(); // initial load
+  loadMessages(); // first load
+  const interval = setInterval(loadMessages, 3000);
 
-    const interval = setInterval(() => {
-      loadMessages();
-    }, 3000); // reload every 3s
-
-    return () => clearInterval(interval);
-  }, [selectedRoomId, dispatch]);
+  return () => clearInterval(interval);
+}, [selectedRoomId, dispatch]);
 
   // auto-scroll on new messages
   useEffect(() => {

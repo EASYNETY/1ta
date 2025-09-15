@@ -146,7 +146,8 @@ export const fetchChatMessages = createAsyncThunk<
 				}
 			}
 
-			const url = `/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`;
+			// const url = `/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`;
+			const url = `/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}&_ts=${Date.now()}`;
 			console.log("📡 fetchChatMessages - API URL:", url);
 
 			const requestPromise = get<any>(url, { signal });
