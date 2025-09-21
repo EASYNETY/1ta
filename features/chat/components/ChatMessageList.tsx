@@ -13,6 +13,7 @@ import {
   selectTypingUsersForRoom,
 } from "../store/chatSlice";
 import { ChatMessage } from "./ChatMessage";
+import type { ChatMessage as ChatMessageType, TypingUser } from "../types/chat-types";
 import { fetchChatMessages, deleteChatMessage } from "../store/chat-thunks";
 
 export const ChatMessageList: React.FC<{
@@ -21,18 +22,19 @@ export const ChatMessageList: React.FC<{
 }> = ({ onReply, onForward }) => {
   const dispatch = useAppDispatch();
   const selectedRoomId = useAppSelector(selectSelectedRoomId);
-  const messages = useAppSelector(selectCurrentRoomMessages);
+  const messages = useAppSelector(selectCurrentRoomMessages) as ChatMessageType[];
   const messageLoadingStatus = useAppSelector((state) =>
     selectedRoomId ? selectMessageStatusForRoom(state, selectedRoomId) : "idle"
   );
   const typingUsers = useAppSelector((state) =>
     selectedRoomId ? selectTypingUsersForRoom(state, selectedRoomId) : []
-  );
+  ) as TypingUser[];
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
   const [showNewMessageIndicator, setShowNewMessageIndicator] = useState(false);
   const [prevMessageCount, setPrevMessageCount] = useState(0);
+  const scrollRafRef = useRef<number | null>(null);
 
   // 🚀 Always hard reload messages
  useEffect(() => {
@@ -67,19 +69,34 @@ export const ChatMessageList: React.FC<{
     setPrevMessageCount(messages.length);
   }, [messages.length, prevMessageCount, userScrolledUp]);
 
+  // cleanup any pending animation frames on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollRafRef.current) {
+        cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
+  }, []);
+
   const handleScroll = useCallback(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
-
-    const isAtBottom =
-      viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 50;
-
-    if (isAtBottom) {
-      setUserScrolledUp(false);
-      setShowNewMessageIndicator(false);
-    } else {
-      setUserScrolledUp(true);
+    if (scrollRafRef.current) {
+      cancelAnimationFrame(scrollRafRef.current);
     }
+    scrollRafRef.current = requestAnimationFrame(() => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+
+      const isAtBottom =
+        viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 50;
+
+      if (isAtBottom) {
+        setUserScrolledUp(false);
+        setShowNewMessageIndicator(false);
+      } else {
+        setUserScrolledUp(true);
+      }
+    });
   }, []);
 
   const scrollToBottom = () => {
@@ -98,13 +115,13 @@ export const ChatMessageList: React.FC<{
 
   const groupedMessages = useMemo(() => {
     if (!messages || messages.length === 0) return [];
-    return messages.reduce((groups: any[][], message: any, index: number) => {
-      const prevMessage = messages[index - 1];
+    return messages.reduce((groups: ChatMessageType[][], message: ChatMessageType, index: number) => {
+      const prevMessage = messages[index - 1] as ChatMessageType | undefined;
       const shouldStartNewGroup = !prevMessage || prevMessage.senderId !== message.senderId;
       if (shouldStartNewGroup) groups.push([message]);
       else groups[groups.length - 1].push(message);
       return groups;
-    }, [] as any[][]);
+    }, [] as ChatMessageType[][]);
   }, [messages]);
 
   if (!selectedRoomId) {
@@ -132,12 +149,14 @@ export const ChatMessageList: React.FC<{
               </div>
             ))
           ) : (
-            groupedMessages.map((group, groupIndex) => (
+            groupedMessages.map((group: ChatMessageType[], groupIndex: number) => (
               <div key={groupIndex} className="mb-1">
-                {group.map((message) => (
+                {group.map((message: ChatMessageType, msgIndex: number) => (
                   <ChatMessage
                     key={message.id}
                     message={message}
+                    showSenderInfo={msgIndex === 0}
+                    isLast={messages[messages.length - 1]?.id === message.id}
                     onReply={onReply}
                     onForward={onForward}
                     onDelete={handleDeleteMessage}
@@ -152,7 +171,7 @@ export const ChatMessageList: React.FC<{
 
       {typingUsers.length > 0 && (
         <div className="px-4 pb-2 text-sm text-muted-foreground animate-pulse">
-          {typingUsers.map((u) => u.userName).join(", ")}{" "}
+          {typingUsers.map((u: TypingUser) => u.userName).join(", ")}{" "}
           {typingUsers.length > 1 ? "are" : "is"} typing...
         </div>
       )}

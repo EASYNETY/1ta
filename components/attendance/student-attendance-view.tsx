@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
-import { format, parseISO, isToday, isValid, subHours } from "date-fns"
+import { format, parseISO, isToday } from "date-fns"
+import { formatLocalTimestampKeepDate } from "@/utils/time";
 import { Check, X, Clock, Calendar, Info, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +25,14 @@ export function StudentAttendanceView() {
     const [selectedRecord, setSelectedRecord] = useState<StudentAttendanceRecord | null>(null)
     const [isDetailsOpen, setIsDetailsOpen] = useState(false)
     const isLoading = useAppSelector(selectFetchingStudentAttendance)
+
+    // Normalize class display to avoid TS errors when class can be string or object
+    const classDisplay = useMemo(() => {
+        if (!selectedRecord) return "N/A";
+        const cls: any = (selectedRecord as any).class;
+        if (!cls) return "N/A";
+        return typeof cls === "string" ? cls : cls?.name || "N/A";
+    }, [selectedRecord]);
 
     // Fetch attendance data when component mounts
     useEffect(() => {
@@ -58,21 +67,8 @@ export function StudentAttendanceView() {
     /**
      * Converts ISO timestamp to WAT (UTC+1) and formats as "YYYY-MM-DD HH:mm:ss"
      */
-    const formatTimestamp = (ts?: string | null): string => {
-        if (!ts) return "";
-
-        try {
-            const date = parseISO(ts);
-            if (!isValid(date)) return String(ts);
-
-            // Subtract 1 hour
-            const adjustedDate = subHours(date, 1);
-
-            return format(adjustedDate, "yyyy-MM-dd HH:mm:ss");
-        } catch {
-            return String(ts);
-        }
-    };
+    const formatTimestamp = (ts?: string | null): string =>
+        formatLocalTimestampKeepDate(ts);
     // Helper function to get status classes
     const getStatusClasses = (status: AttendanceStatus): string => {
         switch (status) {
@@ -257,7 +253,7 @@ export function StudentAttendanceView() {
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span className="text-muted-foreground">Class:</span>
-                                    <span className="font-medium">{selectedRecord.class?.name || "N/A"}</span>
+                                    <span className="font-medium">{classDisplay}</span>
                                 </div>
                                 {selectedRecord.check_in_time && (
                                     <div className="flex justify-between text-sm">
