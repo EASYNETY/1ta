@@ -146,7 +146,8 @@ export const fetchChatMessages = createAsyncThunk<
 				}
 			}
 
-			const url = `/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`;
+			// const url = `/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}`;
+			const url = `/chat/messages?roomId=${roomId}&page=${page}&limit=${limit}&_ts=${Date.now()}`;
 			console.log("📡 fetchChatMessages - API URL:", url);
 
 			const requestPromise = get<any>(url, { signal });
@@ -250,7 +251,36 @@ export const sendChatMessage = createAsyncThunk<
 		return rejectWithValue(e.message || "Failed to send message");
 	}
 });
-
+ 
+// Delete chat message
+export const deleteChatMessage = createAsyncThunk(
+  'chat/deleteMessage',
+  async (
+    { roomId, messageId }: { roomId: string; messageId: string },
+    { rejectWithValue, signal }
+  ) => {
+    try {
+      console.log("🗑️ deleteChatMessage - Deleting message:", messageId, "in room:", roomId);
+      await apiClient(`/chat/messages/${messageId}`, {
+        method: 'DELETE',
+        requiresAuth: true,
+        signal
+      });
+      if (signal?.aborted) {
+        throw new Error('Request aborted');
+      }
+      console.log("✅ deleteChatMessage - Deleted:", messageId);
+      return { roomId, messageId };
+    } catch (error: any) {
+      console.error("💥 deleteChatMessage - Error:", error);
+      if (error.name === 'AbortError' || error.message === 'Request aborted') {
+        return rejectWithValue("Delete was cancelled");
+      }
+      return rejectWithValue(error.message || "Failed to delete message");
+    }
+  }
+);
+ 
 export const createChatRoom = createAsyncThunk<
 	ChatRoom,
 	any,

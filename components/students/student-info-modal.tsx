@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { isToday, isYesterday, format, parseISO, isValid } from "date-fns";
+import { formatLocalTimestampKeepDate } from "@/utils/time";
 
 
 // This interface should align with the data you pass from ScanPage.tsx
@@ -80,44 +81,7 @@ export function StudentInfoModal({
 
 
 
-    // Parse ISO safely: if the string has timezone (Z or ±HH:MM), use parseISO (keeps absolute time, formats to local).
-    // If it has NO timezone, treat it as already-local and build a local Date (prevents unwanted UTC shift).
-    const parseLocalAware = (ts: string): Date => {
-        const trimmed = ts.trim();
-
-        // Normalize space separator to 'T' for simpler splitting
-        const normalized = trimmed.replace(" ", "T");
-
-        // Has explicit timezone? (Z or ±HH:MM at the end)
-        const hasTZ = /[zZ]$|[+\-]\d{2}:\d{2}$/.test(normalized);
-        if (hasTZ) {
-            return parseISO(normalized);
-        }
-
-        // No timezone → treat as local wall time
-        const [datePart, timePart = "00:00:00"] = normalized.split("T");
-        const [y, m, d] = (datePart || "").split("-").map((n) => parseInt(n, 10));
-        const [hh = 0, mm = 0, ss = 0] = (timePart.split(".")[0] || "")
-            .split(":")
-            .map((n) => parseInt(n, 10));
-
-        return new Date(y || 0, (m || 1) - 1, d || 1, hh || 0, mm || 0, ss || 0);
-    };
-
-    const formatLocalTimestampKeepDate = (ts?: string | null): string => {
-        if (!ts) return "";
-
-        try {
-            // Parse ISO string
-            const date = parseISO(ts);
-            if (!isValid(date)) return String(ts);
-
-            // Format in local time with seconds
-            return format(date, "yyyy-MM-dd HH:mm:ss");
-        } catch {
-            return String(ts);
-        }
-    };
+    // Timestamp formatting centralized in utils/time.ts -> formatLocalTimestampKeepDate
 
     const getDialogTitle = () => {
         if (isLoading) return "Processing Scan...";
