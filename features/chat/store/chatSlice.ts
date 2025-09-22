@@ -84,19 +84,30 @@ const chatSlice = createSlice({
 
     // Send message actions
     sendMessagePending: (state, action: PayloadAction<string>) => {
+      if (!state.sendMessageStatus) {
+        state.sendMessageStatus = {};
+      }
       state.sendMessageStatus[action.payload] = "loading";
     },
 
     sendMessageFulfilled: (state, action: PayloadAction<string>) => {
+      if (!state.sendMessageStatus) {
+        state.sendMessageStatus = {};
+      }
       state.sendMessageStatus[action.payload] = "succeeded";
     },
 
     sendMessageRejected: (state, action: PayloadAction<string>) => {
+      if (!state.sendMessageStatus) {
+        state.sendMessageStatus = {};
+      }
       state.sendMessageStatus[action.payload] = "failed";
     },
 
     clearSendMessageStatus: (state, action: PayloadAction<string>) => {
-      delete state.sendMessageStatus[action.payload];
+      if (state.sendMessageStatus) {
+        delete state.sendMessageStatus[action.payload];
+      }
     },
 
     // Optimistic message actions
@@ -105,6 +116,9 @@ const chatSlice = createSlice({
       action: PayloadAction<{ roomId: string; message: ChatMessage }>
     ) => {
       const { roomId, message } = action.payload;
+      if (!state.messages) {
+        state.messages = {};
+      }
       if (!state.messages[roomId]) {
         state.messages[roomId] = [];
       }
@@ -124,6 +138,9 @@ const chatSlice = createSlice({
       action: PayloadAction<{ roomId: string; message: ChatMessage }>
     ) => {
       const { roomId, message } = action.payload;
+      if (!state.messages) {
+        state.messages = {};
+      }
       if (!state.messages[roomId]) {
         state.messages[roomId] = [];
       }
@@ -135,7 +152,7 @@ const chatSlice = createSlice({
       action: PayloadAction<{ messageId: string; roomId: string }>
     ) => {
       const { messageId, roomId } = action.payload;
-      const messages = state.messages[roomId];
+      const messages = state.messages?.[roomId];
       if (messages) {
         const message = messages.find(m => m.id === messageId);
         if (message) {
@@ -149,7 +166,7 @@ const chatSlice = createSlice({
       action: PayloadAction<{ messageId: string; roomId: string; userId: string }>
     ) => {
       const { messageId, roomId } = action.payload;
-      const messages = state.messages[roomId];
+      const messages = state.messages?.[roomId];
       if (messages) {
         const message = messages.find(m => m.id === messageId);
         if (message) {
@@ -233,24 +250,36 @@ const chatSlice = createSlice({
 
     builder.addCase(fetchChatMessages.pending, (state, action) => {
       const { roomId } = action.meta.arg;
+      if (!state.messageStatus) {
+        state.messageStatus = {};
+      }
       state.messageStatus[roomId] = "loading";
     });
 
     // 🚀 Hard reload: always replace messages
     builder.addCase(fetchChatMessages.fulfilled, (state, action) => {
       const { roomId } = action.meta.arg;
+      if (!state.messages) {
+        state.messages = {};
+      }
+      if (!state.messageStatus) {
+        state.messageStatus = {};
+      }
       state.messages[roomId] = action.payload.data || [];
       state.messageStatus[roomId] = "succeeded";
     });
 
     builder.addCase(fetchChatMessages.rejected, (state, action) => {
       const { roomId } = action.meta.arg;
+      if (!state.messageStatus) {
+        state.messageStatus = {};
+      }
       state.messageStatus[roomId] = "failed";
     });
 
     builder.addCase(deleteChatMessage.fulfilled, (state, action) => {
       const { roomId, messageId } = action.meta.arg;
-      if (state.messages[roomId]) {
+      if (state.messages?.[roomId]) {
         state.messages[roomId] = state.messages[roomId].filter(
           (m) => m.id !== messageId
         );

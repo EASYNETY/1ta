@@ -62,7 +62,7 @@ class SocketService {
         this.socket.on('connect', () => {
             console.log('🔌 Connected to chat server');
             this.reconnectAttempts = 0;
-            store.dispatch(connectionStatusChanged({ status: 'connected', timestamp: Date.now() }));
+            store.dispatch(connectionStatusChanged('connected'));
             
             // Authenticate user
             this.socket!.emit('authenticate', {
@@ -81,7 +81,7 @@ class SocketService {
         this.socket.on('disconnect', (reason) => {
             console.log('❌ Disconnected from chat server:', reason);
             this.isInitializing = false;
-            store.dispatch(connectionStatusChanged({ status: 'disconnected', timestamp: Date.now() }));
+            store.dispatch(connectionStatusChanged('disconnected'));
 
             // Only attempt reconnect for server-initiated disconnects or network issues
             // and only when page is visible to avoid background storms
@@ -101,11 +101,7 @@ class SocketService {
                 console.debug('🚨 Connection error (throttled):', error?.message || error);
             }
 
-            store.dispatch(connectionStatusChanged({ 
-                status: 'error', 
-                error: error?.message || String(error),
-                timestamp: Date.now() 
-            }));
+            store.dispatch(connectionStatusChanged('error'));
 
             this.handleReconnect();
         });
@@ -218,7 +214,7 @@ class SocketService {
                 console.debug('🚫 Max reconnect attempts reached (throttled)');
             }
             // dispatch a final failed status so UI can react
-            store.dispatch(connectionStatusChanged({ status: 'failed', timestamp: Date.now() }));
+            store.dispatch(connectionStatusChanged('error'));
             return;
         }
 
