@@ -13,6 +13,7 @@ import {
     selectSupportStatus,
     selectSupportError,
     clearSupportError,
+    selectAdminTicketPagination,
 } from "@/features/support/store/supportSlice"
 import { TicketListItem } from "@/features/support/components/TicketListItem"
 import type { SupportTicket, TicketStatus } from "@/features/support/types/support-types"
@@ -37,23 +38,29 @@ export default function AdminTicketsPage() {
 
     const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all")
     const [searchQuery, setSearchQuery] = useState("")
+    // pagination state
+    const [page, setPage] = useState(1)
+    const [limit, setLimit] = useState(10)
+    const pagination = useAppSelector(selectAdminTicketPagination)
 
     // Allow admin and customer_care users to access tickets
     // No redirect - users without permission will see appropriate error message
 
     useEffect(() => {
-        if (user && (hasAdminAccess(user))) {
-            // Fetch all tickets for admin and super_admin
+        if (user && (hasAdminAccess(user) || isCustomerCare(user))) {
+            // Fetch tickets for admin, super_admin and customer_care with pagination
             dispatch(
                 fetchAllTickets({
                     status: statusFilter === "all" ? undefined : statusFilter,
+                    page,
+                    limit,
                 }),
             )
         }
 
         // Clear errors on mount
         dispatch(clearSupportError())
-    }, [dispatch, user, statusFilter])
+    }, [dispatch, user, statusFilter, page, limit])
 
     // Filter tickets by search query
     const filteredTickets = (tickets ?? []).filter((ticket) => {
@@ -71,7 +78,9 @@ export default function AdminTicketsPage() {
     // Count tickets by status
     const safeTickets = tickets ?? [];
     const ticketCounts = {
-        all: safeTickets.length,
+        // Use server total for "All" so stats reflect entire dataset (e.g., 35), not current page length
+        all: pagination?.totalItems ?? safeTickets.length,
+        // Other status counts remain per current page unless backend returns per-status totals
         open: safeTickets.filter((t) => t.status === "open").length,
         in_progress: safeTickets.filter((t) => t.status === "in_progress").length,
         resolved: safeTickets.filter((t) => t.status === "resolved").length,
@@ -98,7 +107,15 @@ export default function AdminTicketsPage() {
 
     const handleValueChange = (value: string) => {
         setStatusFilter(value as TicketStatus | "all");
+        setPage(1); // reset to first page when changing filter
     };
+
+    const totalItems = pagination?.totalItems ?? filteredTickets.length;
+    const currentPage = pagination?.currentPage ?? page;
+    const totalPages = pagination?.totalPages ?? 1;
+
+    const handlePrev = () => setPage((p) => Math.max(1, p - 1));
+    const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
     return (
         <div className="space-y-6">
@@ -193,11 +210,50 @@ export default function AdminTicketsPage() {
             )}
 
             {status === "succeeded" && filteredTickets.length > 0 && (
-                <div className="space-y-4">
-                    {filteredTickets.map((ticket: SupportTicket) => (
-                        <TicketListItem key={ticket.id} ticket={ticket} />
-                    ))}
-                </div>
+                <>
+                    <div className="space-y-4">
+                        {filteredTickets.map((ticket: SupportTicket) => (
+                            <TicketListItem key={ticket.id} ticket={ticket} />
+                        ))}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    <div className="flex items-center justify-between mt-6">
+                        <div className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages} • Showing {(currentPage - 1) * limit + 1}
+                            {"–"}
+                            {Math.min(currentPage * limit, totalItems)} of {totalItems}
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                className="px-3 py-1 rounded border hover:bg-accent disabled:opacity-50"
+                                onClick={handlePrev}
+                                disabled={currentPage <= 1}
+                                aria-label="Previous page"
+                            >
+                                Prev
+                            </button>
+                            <button
+                                className="px-3 py-1 rounded border hover:bg-accent disabled:opacity-50"
+                                onClick={handleNext}
+                                disabled={currentPage >= totalPages}
+                                aria-label="Next page"
+                            >
+                                Next
+                            </button>
+                            <Select value={String(limit)} onValueChange={(v) => { setLimit(Number(v)); setPage(1); }}>
+                                <SelectTrigger className="w-[90px]" aria-label="Rows per page">
+                                    <SelectValue placeholder="Rows" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="10">10</SelectItem>
+                                    <SelectItem value="20">20</SelectItem>
+                                    <SelectItem value="50">50</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </>
             )}
         </div>
     )

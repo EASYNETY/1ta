@@ -17,8 +17,8 @@ import type { ChatMessage as ChatMessageType, TypingUser } from "../types/chat-t
 import { fetchChatMessages, deleteChatMessage } from "../store/chat-thunks";
 
 export const ChatMessageList: React.FC<{
-  onReply?: (message: any) => void;
-  onForward?: (message: any) => void;
+  onReply?: (message: ChatMessageType) => void;
+  onForward?: (message: ChatMessageType) => void;
 }> = ({ onReply, onForward }) => {
   const dispatch = useAppDispatch();
   const selectedRoomId = useAppSelector(selectSelectedRoomId);
@@ -36,20 +36,11 @@ export const ChatMessageList: React.FC<{
   const [prevMessageCount, setPrevMessageCount] = useState(0);
   const scrollRafRef = useRef<number | null>(null);
 
-  // 🚀 Always hard reload messages
- useEffect(() => {
-  if (!selectedRoomId) return;
-
-  const loadMessages = () => {
-    console.log("🔄 Hard reloading messages:", selectedRoomId, Date.now());
-    dispatch(fetchChatMessages({ roomId: selectedRoomId, page: 1, limit: 50 }));
-  };
-
-  loadMessages(); // first load
-  const interval = setInterval(loadMessages, 3000);
-
-  return () => clearInterval(interval);
-}, [selectedRoomId, dispatch]);
+  // Message fetching is coordinated in ChatLayout to prevent duplicate/overlapping requests.
+  // This effect intentionally does not poll to avoid UI freezes from request storms.
+  useEffect(() => {
+    // no-op: ChatLayout triggers the initial fetch on room change
+  }, [selectedRoomId]);
 
   // auto-scroll on new messages
   useEffect(() => {

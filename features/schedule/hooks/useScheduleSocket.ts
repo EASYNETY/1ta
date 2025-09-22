@@ -5,7 +5,7 @@ import { fetchSchedule } from '@/features/schedule/store/schedule-slice';
 
 export const useScheduleSocket = () => {
   const dispatch = useDispatch();
-  const { joinRoom } from useSocket();
+  const { joinRoom } = useSocket();
 
   useEffect(() => {
     // Join timetable updates room
