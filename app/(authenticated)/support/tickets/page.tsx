@@ -16,6 +16,7 @@ import {
     selectAdminTicketPagination,
 } from "@/features/support/store/supportSlice"
 import { TicketListItem } from "@/features/support/components/TicketListItem"
+import { useSupportRealtime } from "@/features/support/hooks/useSupportRealtime"
 import type { SupportTicket, TicketStatus } from "@/features/support/types/support-types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -42,6 +43,13 @@ export default function AdminTicketsPage() {
     const [page, setPage] = useState(1)
     const [limit, setLimit] = useState(10)
     const pagination = useAppSelector(selectAdminTicketPagination)
+
+    // Enable real-time updates for support tickets
+    useSupportRealtime({
+        userId: user?.id,
+        enabled: !!user && (hasAdminAccess(user) || isCustomerCare(user)),
+        includeAdminView: true,
+    })
 
     // Allow admin and customer_care users to access tickets
     // No redirect - users without permission will see appropriate error message
