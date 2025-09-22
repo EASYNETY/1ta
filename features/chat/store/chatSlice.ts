@@ -92,3 +92,12 @@ export const selectMessageStatusForRoom = (state: any, roomId: string) =>
 
 export const selectTypingUsersForRoom = (state: any, roomId: string) =>
   state.chat.typingUsers[roomId] || [];
+
+export const selectChatUnreadCount = (state: any) => {
+  const rooms = state.chat.rooms;
+  if (!rooms || rooms.length === 0) return 0;
+
+  return rooms.reduce((total: number, room: ChatRoom) => {
+    return total + (room.unreadCount || 0);
+  }, 0);
+};
