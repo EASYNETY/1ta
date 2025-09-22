@@ -2,7 +2,7 @@
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { fetchChatMessages, deleteChatMessage, fetchChatRooms } from "./chat-thunks";
-import { ChatRoom, ChatMessage, TypingUser } from "../types/chat-types";
+import { ChatRoom, ChatMessage, TypingUser, MessageStatus } from "../types/chat-types";
 
 interface ChatState {
   rooms: ChatRoom[];
@@ -10,6 +10,11 @@ interface ChatState {
   messages: Record<string, ChatMessage[]>;
   messageStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">;
   typingUsers: Record<string, TypingUser[]>;
+  messageDrafts: Record<string, string>;
+  createRoomStatus: "idle" | "loading" | "succeeded" | "failed";
+  createRoomError: string | null;
+  sendMessageStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">;
+  connectionStatus: "connecting" | "connected" | "disconnected" | "error";
 }
 
 const initialState: ChatState = {
@@ -18,6 +23,11 @@ const initialState: ChatState = {
   messages: {},
   messageStatus: {},
   typingUsers: {},
+  messageDrafts: {},
+  createRoomStatus: "idle",
+  createRoomError: null,
+  sendMessageStatus: {},
+  connectionStatus: "disconnected",
 };
 
 const chatSlice = createSlice({
@@ -37,6 +47,183 @@ const chatSlice = createSlice({
       action: PayloadAction<{ roomId: string; users: TypingUser[] }>
     ) => {
       state.typingUsers[action.payload.roomId] = action.payload.users;
+    },
+
+    // Message draft actions
+    setMessageDraft: (
+      state,
+      action: PayloadAction<{ roomId: string; draft: string }>
+    ) => {
+      state.messageDrafts[action.payload.roomId] = action.payload.draft;
+    },
+
+    clearMessageDraft: (state, action: PayloadAction<string>) => {
+      delete state.messageDrafts[action.payload];
+    },
+
+    // Create room actions
+    createRoomPending: (state) => {
+      state.createRoomStatus = "loading";
+      state.createRoomError = null;
+    },
+
+    createRoomFulfilled: (state) => {
+      state.createRoomStatus = "succeeded";
+      state.createRoomError = null;
+    },
+
+    createRoomRejected: (state, action: PayloadAction<string>) => {
+      state.createRoomStatus = "failed";
+      state.createRoomError = action.payload;
+    },
+
+    clearCreateRoomStatus: (state) => {
+      state.createRoomStatus = "idle";
+      state.createRoomError = null;
+    },
+
+    // Send message actions
+    sendMessagePending: (state, action: PayloadAction<string>) => {
+      state.sendMessageStatus[action.payload] = "loading";
+    },
+
+    sendMessageFulfilled: (state, action: PayloadAction<string>) => {
+      state.sendMessageStatus[action.payload] = "succeeded";
+    },
+
+    sendMessageRejected: (state, action: PayloadAction<string>) => {
+      state.sendMessageStatus[action.payload] = "failed";
+    },
+
+    clearSendMessageStatus: (state, action: PayloadAction<string>) => {
+      delete state.sendMessageStatus[action.payload];
+    },
+
+    // Optimistic message actions
+    addOptimisticMessage: (
+      state,
+      action: PayloadAction<{ roomId: string; message: ChatMessage }>
+    ) => {
+      const { roomId, message } = action.payload;
+      if (!state.messages[roomId]) {
+        state.messages[roomId] = [];
+      }
+      state.messages[roomId].push(message);
+    },
+
+    // Socket event actions
+    connectionStatusChanged: (
+      state,
+      action: PayloadAction<"connecting" | "connected" | "disconnected" | "error">
+    ) => {
+      state.connectionStatus = action.payload;
+    },
+
+    messageReceived: (
+      state,
+      action: PayloadAction<{ roomId: string; message: ChatMessage }>
+    ) => {
+      const { roomId, message } = action.payload;
+      if (!state.messages[roomId]) {
+        state.messages[roomId] = [];
+      }
+      state.messages[roomId].push(message);
+    },
+
+    messageDelivered: (
+      state,
+      action: PayloadAction<{ messageId: string; roomId: string }>
+    ) => {
+      const { messageId, roomId } = action.payload;
+      const messages = state.messages[roomId];
+      if (messages) {
+        const message = messages.find(m => m.id === messageId);
+        if (message) {
+          message.status = MessageStatus.DELIVERED;
+        }
+      }
+    },
+
+    messageRead: (
+      state,
+      action: PayloadAction<{ messageId: string; roomId: string; userId: string }>
+    ) => {
+      const { messageId, roomId } = action.payload;
+      const messages = state.messages[roomId];
+      if (messages) {
+        const message = messages.find(m => m.id === messageId);
+        if (message) {
+          message.status = MessageStatus.READ;
+          if (!message.readBy) {
+            message.readBy = [];
+          }
+          message.readBy.push(action.payload.userId);
+        }
+      }
+    },
+
+    userJoined: (
+      state,
+      action: PayloadAction<{ roomId: string; user: any }>
+    ) => {
+      // Handle user joined room
+    },
+
+    userLeft: (
+      state,
+      action: PayloadAction<{ roomId: string; userId: string }>
+    ) => {
+      // Handle user left room
+    },
+
+    userTyping: (
+      state,
+      action: PayloadAction<{ roomId: string; user: TypingUser }>
+    ) => {
+      const { roomId, user } = action.payload;
+      if (!state.typingUsers[roomId]) {
+        state.typingUsers[roomId] = [];
+      }
+      const existingIndex = state.typingUsers[roomId].findIndex(u => u.userId === user.userId);
+      if (user.isTyping) {
+        if (existingIndex === -1) {
+          state.typingUsers[roomId].push(user);
+        }
+      } else {
+        if (existingIndex !== -1) {
+          state.typingUsers[roomId].splice(existingIndex, 1);
+        }
+      }
+    },
+
+    setCurrentUserTyping: (
+      state,
+      action: PayloadAction<{ roomId: string; userId: string; isTyping: boolean }>
+    ) => {
+      const { roomId, userId, isTyping } = action.payload;
+      if (!state.typingUsers[roomId]) {
+        state.typingUsers[roomId] = [];
+      }
+
+      const user: TypingUser = {
+        userId,
+        userName: "Current User", // This should be replaced with actual user name
+        isTyping,
+        timestamp: Date.now()
+      };
+
+      const existingIndex = state.typingUsers[roomId].findIndex(u => u.userId === userId);
+      if (isTyping) {
+        if (existingIndex === -1) {
+          state.typingUsers[roomId].push(user);
+        } else {
+          state.typingUsers[roomId][existingIndex] = user;
+        }
+      } else {
+        if (existingIndex !== -1) {
+          state.typingUsers[roomId].splice(existingIndex, 1);
+        }
+      }
     },
   },
   extraReducers: (builder) => {
@@ -72,7 +259,36 @@ const chatSlice = createSlice({
   },
 });
 
-export const { selectChatRoom, setRooms, setTypingUsers } = chatSlice.actions;
+export const {
+  selectChatRoom,
+  setRooms,
+  setTypingUsers,
+  setMessageDraft,
+  clearMessageDraft,
+  createRoomPending,
+  createRoomFulfilled,
+  createRoomRejected,
+  clearCreateRoomStatus,
+  sendMessagePending,
+  sendMessageFulfilled,
+  sendMessageRejected,
+  clearSendMessageStatus,
+  addOptimisticMessage,
+  connectionStatusChanged,
+  messageReceived,
+  messageDelivered,
+  messageRead,
+  userJoined,
+  userLeft,
+  userTyping,
+  setCurrentUserTyping
+} = chatSlice.actions;
+
+// Action creators for external use
+export const setCurrentUserTypingAction = (roomId: string, userId: string, isTyping: boolean) => ({
+  type: setCurrentUserTyping.type,
+  payload: { roomId, userId, isTyping }
+});
 
 export default chatSlice.reducer;
 
@@ -101,3 +317,23 @@ export const selectChatUnreadCount = (state: any) => {
     return total + (room.unreadCount || 0);
   }, 0);
 };
+
+// Additional selectors
+export const selectSelectedRoom = (state: any) => state.chat.selectedRoomId;
+
+export const selectMessageDraftForRoom = (state: any, roomId: string) =>
+  state.chat.messageDrafts[roomId] || "";
+
+export const selectIsUserTypingInRoom = (state: any, roomId: string, userId: string) => {
+  const typingUsers = state.chat.typingUsers[roomId] || [];
+  return typingUsers.some((user: TypingUser) => user.userId === userId && user.isTyping);
+};
+
+export const selectCreateRoomStatus = (state: any) => state.chat.createRoomStatus;
+
+export const selectCreateRoomError = (state: any) => state.chat.createRoomError;
+
+export const selectSendMessageStatus = (state: any, roomId: string) =>
+  state.chat.sendMessageStatus[roomId] || "idle";
+
+export const selectConnectionStatus = (state: any) => state.chat.connectionStatus;
