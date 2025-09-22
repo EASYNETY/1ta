@@ -27,7 +27,7 @@ class SocketService {
 
         // Disable socket.io built-in reconnection logic to avoid double reconnect loops.
         // We handle reconnection ourselves (exponential backoff + visibility checks).
-        this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com', {
+        this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api.onetechacademy.com', {
             transports: ['websocket', 'polling'],
             withCredentials: true,
             timeout: 20000,
@@ -111,19 +111,18 @@ class SocketService {
         this.socket.on('newMessage', (message) => {
             console.log('📩 New message received:', message);
 
-            // Only process messages that are not from the current user (to avoid duplicates)
-            if (message.senderId !== this.currentUser.id) {
-                store.dispatch(messageReceived({
-                    ...message,
-                    timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
-                    isDelivered: true,
-                    deliveredAt: new Date().toISOString()
-                }));
+            // Process all messages, including from current user
+            // The optimistic update will be replaced by the real message
+            store.dispatch(messageReceived({
+                ...message,
+                timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+                isDelivered: true,
+                deliveredAt: new Date().toISOString()
+            }));
 
-                // Auto-mark as delivered if user is online
+            // Auto-mark as delivered if user is online and message is not from current user
+            if (message.senderId !== this.currentUser.id) {
                 this.markMessageAsDelivered(message.id, message.roomId);
-            } else {
-                console.log('📩 Skipping message from current user (avoiding duplicate):', message.id);
             }
         });
 
@@ -273,7 +272,7 @@ class SocketService {
     }
 
     // Message Management
-    sendMessage(roomId: string, content: string, type = 'text', metadata?: any) {
+    sendMessage(roomId: string, content: string, type = 'text', metadata?: any, tempId?: string) {
         return new Promise(async (resolve, reject) => {
             if (!this.socket?.connected) {
                 reject(new Error('Not connected to chat server'));
@@ -293,7 +292,8 @@ class SocketService {
                     metadata,
                     senderId: this.currentUser.id,
                     senderName: this.currentUser.name || this.currentUser.email,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    tempId: tempId || `temp_${Date.now()}_${Math.random()}`
                 };
 
                 console.log('📤 Sending message via API:', messageData);
@@ -308,6 +308,7 @@ class SocketService {
                     this.socket.emit('sendMessage', {
                         ...messageData,
                         id: response.id,
+                        tempId: messageData.tempId, // Include tempId for optimistic update replacement
                         createdAt: response.createdAt || response.timestamp
                     });
 

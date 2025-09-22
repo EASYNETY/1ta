@@ -144,7 +144,23 @@ const chatSlice = createSlice({
       if (!state.messages[roomId]) {
         state.messages[roomId] = [];
       }
-      state.messages[roomId].push(message);
+
+      // Check if this message replaces an optimistic message
+      const existingIndex = state.messages[roomId].findIndex(
+        (m) => m.tempId === message.tempId || m.id === message.id
+      );
+
+      if (existingIndex !== -1) {
+        // Replace the optimistic message with the real one
+        state.messages[roomId][existingIndex] = {
+          ...message,
+          isOptimistic: false, // Ensure optimistic flag is removed
+          status: message.status || MessageStatus.DELIVERED
+        };
+      } else {
+        // Add new message
+        state.messages[roomId].push(message);
+      }
     },
 
     messageDelivered: (

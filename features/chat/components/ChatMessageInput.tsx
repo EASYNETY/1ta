@@ -45,7 +45,7 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     const currentUser = useAppSelector((state) => state.auth.user);
     const draft = useAppSelector(state => selectedRoomId ? selectMessageDraftForRoom(state, selectedRoomId) : "");
     const isUserTyping = useAppSelector(state => selectedRoomId ? selectIsUserTypingInRoom(state, selectedRoomId) : false);
-    const { sendMessage: socketSendMessage } = useSocket();
+    const { sendMessage: socketSendMessage, isConnected: socketConnected } = useSocket();
 
     const [message, setMessage] = useState(draft);
     const [isRecording, setIsRecording] = useState(false);
@@ -129,7 +129,8 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
 
             // Step 3: Send the real message to the server via socket service
             try {
-                const response = await socketSendMessage(selectedRoomId, message.trim(), MessageType.TEXT);
+                console.log('📤 Attempting to send message via socket. Connected:', socketConnected, 'Room:', selectedRoomId);
+                const response = await socketSendMessage(selectedRoomId, message.trim(), MessageType.TEXT, undefined, tempId);
                 console.log('✅ Message sent successfully via socket service:', response);
 
                 // The socket service will broadcast the message to other users

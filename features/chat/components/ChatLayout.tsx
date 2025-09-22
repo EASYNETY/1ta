@@ -16,6 +16,7 @@ import { Menu, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
 import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount, selectMessageStatusForRoom } from "../store/chatSlice";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { fetchChatMessages } from "../store/chat-thunks";
+import { useSocket } from "../services/socketService";
 
 export const ChatLayout: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -23,9 +24,12 @@ export const ChatLayout: React.FC = () => {
     const selectedRoom = useAppSelector(selectSelectedRoom);
     const allRooms = useAppSelector(selectChatRooms);
     const totalUnreadCount = useAppSelector(selectChatUnreadCount);
-    const messageStatus = useAppSelector((state) => 
+    const messageStatus = useAppSelector((state) =>
         selectedRoomId ? selectMessageStatusForRoom(state, selectedRoomId) : 'idle'
     );
+
+    // Socket service for real-time messaging
+    const { joinRoom, leaveRoom, isConnected } = useSocket();
     
     const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
     const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -51,6 +55,26 @@ export const ChatLayout: React.FC = () => {
             setMobileSheetOpen(false);
         }
     }, [selectedRoomId, mobileSheetOpen]);
+
+    // Join/leave socket rooms when selected room changes
+    useEffect(() => {
+        if (selectedRoomId) {
+            if (isConnected) {
+                console.log('🔗 Joining socket room:', selectedRoomId);
+                joinRoom(selectedRoomId);
+            } else {
+                console.log('⚠️ Socket not connected, cannot join room:', selectedRoomId);
+            }
+        }
+
+        // Cleanup: leave previous room when component unmounts or room changes
+        return () => {
+            if (selectedRoomId && isConnected) {
+                console.log('🚪 Leaving socket room:', selectedRoomId);
+                leaveRoom(selectedRoomId);
+            }
+        };
+    }, [selectedRoomId, joinRoom, leaveRoom, isConnected]);
 
     // FIXED: Clean message fetching logic
     useEffect(() => {
