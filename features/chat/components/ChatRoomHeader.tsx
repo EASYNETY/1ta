@@ -50,7 +50,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
         }
     };
 
-    const facilitatorNames = room.participants && room.participants.length > 0
+    const facilitatorNames = room.participants && Array.isArray(room.participants) && room.participants.length > 0
         ? room.participants
             .filter((p) => p.role === "teacher")
             .map((t) => t.name)
@@ -80,7 +80,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
                             {getRoomTypeBadgeText()}
                         </Badge>
                         <span className="truncate"> {/* Truncate participant count if needed */}
-                            {room.participants?.length || 0} participant{(room.participants?.length || 0) !== 1 ? 's' : ''}
+                            {((Array.isArray(room.participants) && room.participants.length) || (typeof (room as any).participantCount === 'number' && (room as any).participantCount) || 0)} participant{(((Array.isArray(room.participants) && room.participants.length) || (typeof (room as any).participantCount === 'number' && (room as any).participantCount) || 0) !== 1 ? 's' : '')}
                         </span>
                     </div>
                 </div>

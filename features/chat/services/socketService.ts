@@ -1,32 +1,35 @@
 // services/socketService.ts
 import { io, Socket } from 'socket.io-client';
 import { store } from '@/store';
-import { messageReceived, userJoined, userLeft, userTyping, connectionStatusChanged, messageDelivered, messageRead } from '@/features/chat/store/chatSlice';
+import {
+    messageReceived,
+    userJoined,
+    userLeft,
+    userTyping,
+    connectionStatusChanged,
+    messageDelivered,
+    messageRead
+} from '@/features/chat/store/chatSlice';
 import { post } from '@/lib/api-client';
 
 class SocketService {
     private socket: Socket | null = null;
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
-    private reconnectTimeout: NodeJS.Timeout | null = null;
+    private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
     private currentUser: any = null;
     private connectedRooms: Set<string> = new Set();
-    private typingTimers: Map<string, NodeJS.Timeout> = new Map();
+    private typingTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
     private isInitializing = false;
     private lastConnectErrorTs: number = 0;
     private lastMaxReconnectLogTs: number = 0;
 
     initialize(user: any) {
-        // Prevent duplicate initialization while an init/connect is already in progress
-        if (this.isInitializing || (this.socket && this.socket.connected)) {
-            return;
-        }
+        if (this.isInitializing || (this.socket && this.socket.connected)) return;
 
         this.currentUser = user;
         this.isInitializing = true;
 
-        // Disable socket.io built-in reconnection logic to avoid double reconnect loops.
-        // We handle reconnection ourselves (exponential backoff + visibility checks).
         this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api.onetechacademy.com', {
             transports: ['websocket', 'polling'],
             withCredentials: true,
@@ -36,17 +39,15 @@ class SocketService {
             forceNew: true,
             query: {
                 userId: user.id,
-                userName: user.name || user.email,
+                userName: user.name || user.email
             }
         });
 
         this.setupEventListeners();
 
-        // Reconnect when the tab becomes visible to avoid background reconnect storms
         if (typeof window !== 'undefined') {
             const onVisibility = () => {
                 if (document.visibilityState === 'visible' && this.socket && !this.socket.connected) {
-                    // reset attempts so we can try again when user returns
                     this.reconnectAttempts = 0;
                     this.handleReconnect();
                 }
@@ -59,13 +60,11 @@ class SocketService {
     private setupEventListeners() {
         if (!this.socket) return;
 
-        // Connection events
         this.socket.on('connect', () => {
             console.log('🔌 Connected to chat server');
             this.reconnectAttempts = 0;
             store.dispatch(connectionStatusChanged('connected'));
-            
-            // Authenticate user
+
             this.socket!.emit('authenticate', {
                 userId: this.currentUser.id,
                 userName: this.currentUser.name || this.currentUser.email,
@@ -73,10 +72,7 @@ class SocketService {
                 userRole: this.currentUser.role
             });
 
-            // Rejoin previously connected rooms
-            this.connectedRooms.forEach(roomId => {
-                this.joinRoom(roomId);
-            });
+            this.connectedRooms.forEach(roomId => this.joinRoom(roomId));
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -84,35 +80,27 @@ class SocketService {
             this.isInitializing = false;
             store.dispatch(connectionStatusChanged('disconnected'));
 
-            // Only attempt reconnect for server-initiated disconnects or network issues
-            // and only when page is visible to avoid background storms
-            if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') {
-                this.handleReconnect();
-            }
+            if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') this.handleReconnect();
         });
 
         this.socket.on('connect_error', (error) => {
-            // Throttle connect_error logs to avoid flooding the console
             const now = Date.now();
-            if (now - this.lastConnectErrorTs > 10000) { // once every 10s
+            if (now - this.lastConnectErrorTs > 10000) {
                 console.error('🚨 Connection error:', error?.message || error);
                 this.lastConnectErrorTs = now;
             } else {
-                // Use debug-level log for repeated errors
                 console.debug('🚨 Connection error (throttled):', error?.message || error);
             }
 
             store.dispatch(connectionStatusChanged('error'));
-
             this.handleReconnect();
         });
 
-        // Chat events
-        this.socket.on('newMessage', (message) => {
+        // New message
+        this.socket.on('newMessage', (message: any) => {
             try {
                 console.log('📩 New message received:', message);
 
-                // Normalize timestamps and attach delivery metadata
                 const normalizedMessage = {
                     ...message,
                     timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
@@ -120,64 +108,48 @@ class SocketService {
                     deliveredAt: new Date().toISOString()
                 };
 
-                // Dispatch using the { roomId, message } shape that reducers expect.
-                // Reducers are also tolerant to the older unwrapped payload shape (see chatSlice).
-                const roomId = normalizedMessage.roomId || normalizedMessage.room || null;
+                const roomId = (normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id) || null);
                 store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
 
-                // Auto-mark as delivered if user is online and message is not from current user
                 if (normalizedMessage.senderId && normalizedMessage.senderId !== this.currentUser.id) {
-                    this.markMessageAsDelivered(normalizedMessage.id, normalizedMessage.roomId);
+                    this.markMessageAsDelivered(normalizedMessage.id, normalizedMessage.roomId || roomId);
                 }
             } catch (err) {
                 console.error('Error handling newMessage socket event:', err);
             }
         });
 
-        this.socket.on('messageDelivered', (data) => {
+        this.socket.on('messageDelivered', (data: any) => {
             console.log('✅ Message delivered:', data);
-            store.dispatch(messageDelivered({
-                messageId: data.messageId,
-                roomId: data.roomId
-            }));
+            store.dispatch(messageDelivered({ messageId: data.messageId, roomId: data.roomId }));
         });
 
-        this.socket.on('messageRead', (data) => {
+        this.socket.on('messageRead', (data: any) => {
             console.log('👁️ Message read:', data);
-            store.dispatch(messageRead({
-                messageId: data.messageId,
-                roomId: data.roomId,
-                userId: data.userId
-            }));
+            store.dispatch(messageRead({ messageId: data.messageId, roomId: data.roomId, userId: data.userId }));
         });
 
-        this.socket.on('userJoined', (data) => {
+        this.socket.on('userJoined', (data: any) => {
             console.log('👋 User joined:', data);
             store.dispatch(userJoined(data));
         });
 
-        this.socket.on('userLeft', (data) => {
+        this.socket.on('userLeft', (data: any) => {
             console.log('👋 User left:', data);
             store.dispatch(userLeft(data));
         });
 
-        this.socket.on('userTyping', (data) => {
+        this.socket.on('userTyping', (data: any) => {
             console.log('⌨️ User typing:', data);
             if (data.userId !== this.currentUser.id) {
                 store.dispatch(userTyping(data));
-                
-                // Clear typing after 3 seconds
+
                 const key = `${data.roomId}-${data.userId}`;
-                if (this.typingTimers.has(key)) {
-                    clearTimeout(this.typingTimers.get(key)!);
-                }
-                
+                if (this.typingTimers.has(key)) clearTimeout(this.typingTimers.get(key)!);
+
                 if (data.isTyping) {
                     const timer = setTimeout(() => {
-                        store.dispatch(userTyping({
-                            ...data,
-                            isTyping: false
-                        }));
+                        store.dispatch(userTyping({ ...data, isTyping: false }));
                         this.typingTimers.delete(key);
                     }, 3000);
                     this.typingTimers.set(key, timer);
@@ -185,32 +157,30 @@ class SocketService {
             }
         });
 
-        this.socket.on('roomJoined', (data) => {
+        this.socket.on('roomJoined', (data: any) => {
             console.log('🏠 Joined room:', data);
             this.connectedRooms.add(data.roomId);
         });
 
-        this.socket.on('roomLeft', (data) => {
+        this.socket.on('roomLeft', (data: any) => {
             console.log('🚪 Left room:', data);
             this.connectedRooms.delete(data.roomId);
         });
 
-        this.socket.on('roomCreated', (data) => {
+        this.socket.on('roomCreated', (data: any) => {
             console.log('🆕 Room created:', data);
-            // Auto-join the new room if current user is a participant
-            if (data.room.participants.some((p: any) => p.id === this.currentUser.id)) {
+            if (data.room && Array.isArray(data.room.participants) && data.room.participants.some((p: any) => p.id === this.currentUser.id)) {
                 this.joinRoom(data.room.id);
             }
         });
 
-        this.socket.on('onlineUsers', (users) => {
+        this.socket.on('onlineUsers', (users: any) => {
             console.log('👥 Online users updated:', users);
-            // Handle online users update
+            // noop for now
         });
     }
 
     private handleReconnect() {
-        // Avoid reconnect storms: only try when tab is visible
         if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
             console.debug('🔕 Tab not visible — deferring reconnect until visible');
             return;
@@ -218,32 +188,23 @@ class SocketService {
 
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             const now = Date.now();
-            // Throttle the max-reconnect log to once per minute
             if (now - this.lastMaxReconnectLogTs > 60000) {
                 console.log('🚫 Max reconnect attempts reached');
                 this.lastMaxReconnectLogTs = now;
-            } else {
-                console.debug('🚫 Max reconnect attempts reached (throttled)');
             }
-            // dispatch a final failed status so UI can react
             store.dispatch(connectionStatusChanged('error'));
             return;
         }
 
-        if (this.reconnectTimeout) {
-            clearTimeout(this.reconnectTimeout);
-        }
+        if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout as any);
 
         const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
         this.reconnectAttempts++;
-
         console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
 
         this.reconnectTimeout = setTimeout(() => {
-            // Make sure socket still exists and isn't already connected
             if (this.socket && !this.socket.connected) {
                 try {
-                    // mark that we're attempting a connection
                     this.isInitializing = true;
                     this.socket.connect();
                 } catch (err) {
@@ -251,18 +212,13 @@ class SocketService {
                     this.isInitializing = false;
                 }
             }
-        }, delay);
+        }, delay) as unknown as ReturnType<typeof setTimeout>;
     }
 
-    // Room Management
     joinRoom(roomId: string) {
         if (this.socket?.connected) {
             console.log('🔗 Joining room:', roomId);
-            this.socket.emit('joinRoom', {
-                roomId,
-                userId: this.currentUser.id,
-                userName: this.currentUser.name || this.currentUser.email
-            });
+            this.socket.emit('joinRoom', { roomId, userId: this.currentUser.id, userName: this.currentUser.name || this.currentUser.email });
             this.connectedRooms.add(roomId);
         }
     }
@@ -270,27 +226,15 @@ class SocketService {
     leaveRoom(roomId: string) {
         if (this.socket?.connected) {
             console.log('🚪 Leaving room:', roomId);
-            this.socket.emit('leaveRoom', {
-                roomId,
-                userId: this.currentUser.id,
-                userName: this.currentUser.name || this.currentUser.email
-            });
+            this.socket.emit('leaveRoom', { roomId, userId: this.currentUser.id, userName: this.currentUser.name || this.currentUser.email });
             this.connectedRooms.delete(roomId);
         }
     }
 
-    // Message Management
     sendMessage(roomId: string, content: string, type = 'text', metadata?: any, tempId?: string) {
-        return new Promise(async (resolve, reject) => {
-            if (!this.socket?.connected) {
-                reject(new Error('Not connected to chat server'));
-                return;
-            }
-
-            if (!this.currentUser) {
-                reject(new Error('User not authenticated'));
-                return;
-            }
+        return new Promise<any>(async (resolve, reject) => {
+            if (!this.socket?.connected) return reject(new Error('Not connected to chat server'));
+            if (!this.currentUser) return reject(new Error('User not authenticated'));
 
             try {
                 const messageData = {
@@ -306,20 +250,11 @@ class SocketService {
 
                 console.log('📤 Sending message via API:', messageData);
 
-                // Send to server via HTTP API first
                 const response = await post<any>('/chat/messages', messageData);
 
                 if (response && response.id) {
                     console.log('✅ Message sent successfully:', response);
-
-                    // Also emit via socket for real-time broadcast
-                    this.socket.emit('sendMessage', {
-                        ...messageData,
-                        id: response.id,
-                        tempId: messageData.tempId, // Include tempId for optimistic update replacement
-                        createdAt: response.createdAt || response.timestamp
-                    });
-
+                    this.socket.emit('sendMessage', { ...messageData, id: response.id, tempId: messageData.tempId, createdAt: response.createdAt || response.timestamp });
                     resolve(response);
                 } else {
                     throw new Error('Invalid response from server');
@@ -333,69 +268,40 @@ class SocketService {
 
     markMessageAsDelivered(messageId: string, roomId: string) {
         if (this.socket?.connected) {
-            this.socket.emit('messageDelivered', {
-                messageId,
-                roomId,
-                userId: this.currentUser.id,
-                deliveredAt: new Date().toISOString()
-            });
+            this.socket.emit('messageDelivered', { messageId, roomId, userId: this.currentUser.id, deliveredAt: new Date().toISOString() });
         }
     }
 
     markMessageAsRead(messageId: string, roomId: string) {
         if (this.socket?.connected) {
-            this.socket.emit('messageRead', {
-                messageId,
-                roomId,
-                userId: this.currentUser.id,
-                readAt: new Date().toISOString()
-            });
+            this.socket.emit('messageRead', { messageId, roomId, userId: this.currentUser.id, readAt: new Date().toISOString() });
         }
     }
 
     markRoomAsRead(roomId: string) {
         if (this.socket?.connected) {
-            this.socket.emit('roomRead', {
-                roomId,
-                userId: this.currentUser.id,
-                readAt: new Date().toISOString()
-            });
+            this.socket.emit('roomRead', { roomId, userId: this.currentUser.id, readAt: new Date().toISOString() });
         }
     }
 
-    // Typing Indicators
     startTyping(roomId: string) {
         if (this.socket?.connected) {
-            this.socket.emit('typing', {
-                roomId,
-                userId: this.currentUser.id,
-                userName: this.currentUser.name || this.currentUser.email
-            });
+            this.socket.emit('typing', { roomId, userId: this.currentUser.id, userName: this.currentUser.name || this.currentUser.email });
         }
     }
 
     stopTyping(roomId: string) {
         if (this.socket?.connected) {
-            this.socket.emit('stopTyping', {
-                roomId,
-                userId: this.currentUser.id,
-                userName: this.currentUser.name || this.currentUser.email
-            });
+            this.socket.emit('stopTyping', { roomId, userId: this.currentUser.id, userName: this.currentUser.name || this.currentUser.email });
         }
     }
 
-    // Status and presence
     updateUserPresence(status: 'online' | 'away' | 'busy' | 'offline') {
         if (this.socket?.connected) {
-            this.socket.emit('presenceUpdate', {
-                userId: this.currentUser.id,
-                status,
-                lastSeen: new Date().toISOString()
-            });
+            this.socket.emit('presenceUpdate', { userId: this.currentUser.id, status, lastSeen: new Date().toISOString() });
         }
     }
 
-    // Utility methods
     isConnected(): boolean {
         return this.socket?.connected || false;
     }
@@ -408,18 +314,10 @@ class SocketService {
 
     disconnect() {
         console.log('🔌 Disconnecting from chat server');
-        
-        // Clear all timers
         this.typingTimers.forEach(timer => clearTimeout(timer));
         this.typingTimers.clear();
-        
-        if (this.reconnectTimeout) {
-            clearTimeout(this.reconnectTimeout);
-            this.reconnectTimeout = null;
-        }
-
+        if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout as any);
         this.connectedRooms.clear();
-        
         if (this.socket) {
             this.socket.disconnect();
             this.socket.removeAllListeners();
@@ -427,18 +325,10 @@ class SocketService {
         }
     }
 
-    // File upload support
     uploadFile(file: File, roomId: string, onProgress?: (progress: number) => void) {
         return new Promise((resolve, reject) => {
-            if (!this.socket?.connected) {
-                reject(new Error('Not connected to chat server'));
-                return;
-            }
-
-            // This would typically upload to your file server
-            // and then send a message with file metadata
+            if (!this.socket?.connected) return reject(new Error('Not connected to chat server'));
             const reader = new FileReader();
-            
             reader.onload = () => {
                 const fileData = {
                     roomId,
@@ -447,37 +337,29 @@ class SocketService {
                         fileName: file.name,
                         fileSize: file.size,
                         fileType: file.type,
-                        fileUrl: reader.result as string // In production, upload to cloud storage
+                        fileUrl: reader.result as string
                     }
                 };
-                
                 resolve(fileData);
             };
-            
             reader.onerror = () => reject(new Error('Failed to read file'));
             reader.readAsDataURL(file);
         });
     }
 }
 
-// Export singleton instance
 export const socketService = new SocketService();
 
-// React hook for using socket service
 import { useEffect } from 'react';
 import { useAppSelector } from '@/store/hooks';
 
 export const useSocket = () => {
-    const currentUser = useAppSelector(state => state.auth.user);
-    
-    useEffect(() => {
-        if (currentUser && !socketService.isConnected()) {
-            socketService.initialize(currentUser);
-        }
+    const currentUser = useAppSelector((state: any) => state.auth.user);
 
+    useEffect(() => {
+        if (currentUser && !socketService.isConnected()) socketService.initialize(currentUser);
         return () => {
-            // Don't disconnect on unmount as we want persistent connection
-            // socketService.disconnect();
+            // keep persistent connection; do not disconnect on unmount
         };
     }, [currentUser]);
 

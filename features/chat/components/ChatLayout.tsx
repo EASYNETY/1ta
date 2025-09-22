@@ -76,6 +76,35 @@ export const ChatLayout: React.FC = () => {
         };
     }, [selectedRoomId, joinRoom, leaveRoom, isConnected]);
 
+    // Background refresh: re-fetch messages every 3 seconds when a room is selected
+    useEffect(() => {
+        if (!selectedRoomId) return;
+
+        let intervalId: number | null = null;
+
+        const startInterval = () => {
+            // Only set interval if not currently loading
+            intervalId = window.setInterval(() => {
+                // If we are already loading for this room, skip this tick
+                if (messageStatus === 'loading') return;
+                console.log('⏱️ Background refresh - fetching messages for room', selectedRoomId);
+                // Force a fetch by resetting lastFetchedRoomId and incrementing retryCount
+                lastFetchedRoomId.current = null;
+                setRetryCount((r) => r + 1);
+            }, 3000);
+        };
+
+        // Start interval when the room is selected
+        startInterval();
+
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        };
+    }, [selectedRoomId, messageStatus]);
+
     // FIXED: Clean message fetching logic
     useEffect(() => {
         // Reset states when no room is selected
