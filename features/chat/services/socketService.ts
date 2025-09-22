@@ -109,20 +109,28 @@ class SocketService {
 
         // Chat events
         this.socket.on('newMessage', (message) => {
-            console.log('📩 New message received:', message);
+            try {
+                console.log('📩 New message received:', message);
 
-            // Process all messages, including from current user
-            // The optimistic update will be replaced by the real message
-            store.dispatch(messageReceived({
-                ...message,
-                timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
-                isDelivered: true,
-                deliveredAt: new Date().toISOString()
-            }));
+                // Normalize timestamps and attach delivery metadata
+                const normalizedMessage = {
+                    ...message,
+                    timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+                    isDelivered: true,
+                    deliveredAt: new Date().toISOString()
+                };
 
-            // Auto-mark as delivered if user is online and message is not from current user
-            if (message.senderId !== this.currentUser.id) {
-                this.markMessageAsDelivered(message.id, message.roomId);
+                // Dispatch using the { roomId, message } shape that reducers expect.
+                // Reducers are also tolerant to the older unwrapped payload shape (see chatSlice).
+                const roomId = normalizedMessage.roomId || normalizedMessage.room || null;
+                store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
+
+                // Auto-mark as delivered if user is online and message is not from current user
+                if (normalizedMessage.senderId && normalizedMessage.senderId !== this.currentUser.id) {
+                    this.markMessageAsDelivered(normalizedMessage.id, normalizedMessage.roomId);
+                }
+            } catch (err) {
+                console.error('Error handling newMessage socket event:', err);
             }
         });
 

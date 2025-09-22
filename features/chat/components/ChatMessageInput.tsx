@@ -125,7 +125,8 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             };
 
             // Step 2: Add the optimistic message to the UI immediately.
-            dispatch(addOptimisticMessage(optimisticMessage));
+            // The reducer expects a payload of shape { roomId, message }
+            dispatch(addOptimisticMessage({ roomId: selectedRoomId, message: optimisticMessage }));
 
             // Step 3: Send the real message to the server via socket service
             try {

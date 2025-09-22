@@ -45,7 +45,7 @@ class SocketService {
         this.socket.on('connect', () => {
             console.log('🔌 Connected to chat server');
             this.reconnectAttempts = 0;
-            store.dispatch(connectionStatusChanged({ status: 'connected', timestamp: Date.now() }));
+            store.dispatch(connectionStatusChanged('connected'));
             
             // Authenticate user
             this.socket!.emit('authenticate', {
@@ -63,7 +63,7 @@ class SocketService {
 
         this.socket.on('disconnect', (reason) => {
             console.log('❌ Disconnected from chat server:', reason);
-            store.dispatch(connectionStatusChanged({ status: 'disconnected', timestamp: Date.now() }));
+            store.dispatch(connectionStatusChanged('disconnected'));
             
             if (reason === 'io server disconnect') {
                 // Server disconnected, try to reconnect
@@ -73,34 +73,38 @@ class SocketService {
 
         this.socket.on('connect_error', (error) => {
             console.error('🚨 Connection error:', error);
-            store.dispatch(connectionStatusChanged({ 
-                status: 'error', 
-                error: error.message,
-                timestamp: Date.now() 
-            }));
+            store.dispatch(connectionStatusChanged('error'));
             this.handleReconnect();
         });
 
         // Chat events
         this.socket.on('newMessage', (message) => {
-            console.log('📩 New message received:', message);
-            store.dispatch(messageReceived({
-                ...message,
-                timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
-                isDelivered: true,
-                deliveredAt: new Date().toISOString()
-            }));
+            try {
+                console.log('📩 New message received:', message);
+                const normalizedMessage = {
+                    ...message,
+                    timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+                    isDelivered: true,
+                    deliveredAt: new Date().toISOString()
+                };
 
-            // Auto-mark as delivered if user is online
-            this.markMessageAsDelivered(message.id, message.roomId);
+                const roomId = normalizedMessage.roomId || normalizedMessage.room || null;
+                store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
+
+                // Auto-mark as delivered if user is online
+                if (normalizedMessage.senderId) {
+                    this.markMessageAsDelivered(normalizedMessage.id, normalizedMessage.roomId);
+                }
+            } catch (err) {
+                console.error('Error handling newMessage in root socketService:', err);
+            }
         });
 
         this.socket.on('messageDelivered', (data) => {
             console.log('✅ Message delivered:', data);
             store.dispatch(messageDelivered({
                 messageId: data.messageId,
-                roomId: data.roomId,
-                deliveredAt: data.deliveredAt
+                roomId: data.roomId
             }));
         });
 
@@ -109,8 +113,7 @@ class SocketService {
             store.dispatch(messageRead({
                 messageId: data.messageId,
                 roomId: data.roomId,
-                readAt: data.readAt,
-                readBy: data.readBy
+                userId: data.userId
             }));
         });
 
@@ -315,7 +318,9 @@ class SocketService {
     getConnectionStatus() {
         if (!this.socket) return 'disconnected';
         if (this.socket.connected) return 'connected';
-        if (this.socket.connecting) return 'connecting';
+    // Socket.IO client does not expose a 'connecting' boolean on the Socket type
+    // Fallback: if socket exists but not connected, consider it 'connecting'
+    if (this.socket && !this.socket.connected) return 'connecting';
         return 'disconnected';
     }
 

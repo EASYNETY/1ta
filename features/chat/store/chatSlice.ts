@@ -135,9 +135,33 @@ const chatSlice = createSlice({
 
     messageReceived: (
       state,
-      action: PayloadAction<{ roomId: string; message: ChatMessage }>
+      action: PayloadAction<any>
     ) => {
-      const { roomId, message } = action.payload;
+      // Accept either { roomId, message } or the older unwrapped message object
+      let roomId: string | null = null;
+      let message: ChatMessage | null = null;
+
+      if (action.payload) {
+        if (action.payload.roomId && action.payload.message) {
+          roomId = action.payload.roomId;
+          message = action.payload.message;
+        } else if (action.payload.roomId && action.payload.id) {
+          // payload looks like a message object that also has roomId
+          roomId = action.payload.roomId;
+          message = action.payload as ChatMessage;
+        } else if (action.payload.message && action.payload.message.roomId) {
+          roomId = action.payload.message.roomId;
+          message = action.payload.message;
+        } else if (action.payload.id && action.payload.roomId) {
+          roomId = action.payload.roomId;
+          message = action.payload as ChatMessage;
+        } else if (action.payload.id && action.payload.room) {
+          roomId = action.payload.room.id || action.payload.roomId || null;
+          message = action.payload as ChatMessage;
+        }
+      }
+
+      if (!message || !roomId) return;
       if (!state.messages) {
         state.messages = {};
       }
