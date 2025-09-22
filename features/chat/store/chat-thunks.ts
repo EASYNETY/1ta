@@ -55,17 +55,26 @@ export const fetchChatRooms = createAsyncThunk(
         }
 
         let rooms = [];
-        
+
+        console.log("🔍 fetchChatRooms - Full response object:", response);
+        console.log("🔍 fetchChatRooms - Response type:", typeof response);
+        console.log("🔍 fetchChatRooms - Response keys:", response ? Object.keys(response) : 'null/undefined');
+
         if (response?.success && Array.isArray(response.data)) {
           rooms = response.data;
+          console.log("✅ fetchChatRooms - Using response.data array:", rooms.length, "rooms");
         } else if (Array.isArray(response)) {
           rooms = response;
+          console.log("✅ fetchChatRooms - Using direct array response:", rooms.length, "rooms");
         } else if (response?.data && Array.isArray(response.data)) {
           rooms = response.data;
+          console.log("✅ fetchChatRooms - Using response.data array:", rooms.length, "rooms");
         } else if (response?.rooms && Array.isArray(response.rooms)) {
           rooms = response.rooms;
+          console.log("✅ fetchChatRooms - Using response.rooms array:", rooms.length, "rooms");
         } else {
           console.warn("⚠️ fetchChatRooms - Unexpected response format, returning empty array");
+          console.warn("⚠️ fetchChatRooms - Response was:", response);
           rooms = [];
         }
 

@@ -107,8 +107,13 @@ export const ChatMessageList: React.FC<{
   const groupedMessages = useMemo(() => {
     if (!messages || messages.length === 0) return [];
     return messages.reduce((groups: ChatMessageType[][], message: ChatMessageType, index: number) => {
+      // Skip if message is null/undefined or missing required properties
+      if (!message || !message.id || !message.senderId) {
+        return groups;
+      }
+
       const prevMessage = messages[index - 1] as ChatMessageType | undefined;
-      const shouldStartNewGroup = !prevMessage || prevMessage.senderId !== message.senderId;
+      const shouldStartNewGroup = !prevMessage || !prevMessage.senderId || prevMessage.senderId !== message.senderId;
       if (shouldStartNewGroup) groups.push([message]);
       else groups[groups.length - 1].push(message);
       return groups;
@@ -142,17 +147,24 @@ export const ChatMessageList: React.FC<{
           ) : (
             groupedMessages.map((group: ChatMessageType[], groupIndex: number) => (
               <div key={groupIndex} className="mb-1">
-                {group.map((message: ChatMessageType, msgIndex: number) => (
-                  <ChatMessage
-                    key={message.id}
-                    message={message}
-                    showSenderInfo={msgIndex === 0}
-                    isLast={messages[messages.length - 1]?.id === message.id}
-                    onReply={onReply}
-                    onForward={onForward}
-                    onDelete={handleDeleteMessage}
-                  />
-                ))}
+                {group.map((message: ChatMessageType, msgIndex: number) => {
+                  // Skip rendering if message is null/undefined or missing required properties
+                  if (!message || !message.id) {
+                    return null;
+                  }
+
+                  return (
+                    <ChatMessage
+                      key={message.id}
+                      message={message}
+                      showSenderInfo={msgIndex === 0}
+                      isLast={messages[messages.length - 1]?.id === message.id}
+                      onReply={onReply}
+                      onForward={onForward}
+                      onDelete={handleDeleteMessage}
+                    />
+                  );
+                })}
               </div>
             ))
           )}

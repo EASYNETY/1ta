@@ -41,15 +41,20 @@ interface ChatMessageProps {
 }
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({
-    message,
-    showSenderInfo,
-    isLast = false,
-    onReply,
-    onForward,
-    onDelete
+  message,
+  showSenderInfo,
+  isLast = false,
+  onReply,
+  onForward,
+  onDelete
 }) => {
-    const currentUser = useAppSelector((state) => state.auth.user);
-    const isOwnMessage = message.senderId === currentUser?.id;
+  // Early return if message is null/undefined or missing required properties
+  if (!message || !message.id || !message.senderId) {
+    return null;
+  }
+
+  const currentUser = useAppSelector((state) => state.auth.user);
+  const isOwnMessage = message.senderId === currentUser?.id;
     const [isHovered, setIsHovered] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [audioPlaying, setAudioPlaying] = useState(false);
@@ -117,7 +122,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
     const fallbackBgColor = message.sender?.id ? generateColorFromString(message.sender.id) : '#e5e7eb';
     const contrast = getContrastColor(fallbackBgColor);
     const fallbackTextColorClass = contrast === 'light' ? 'text-gray-700' : 'text-white';
-    const initials = getInitials(message.sender?.name);
+    const initials = getInitials(message.sender?.name || 'Unknown User');
 
     if (message.type === MsgType.SYSTEM) {
         return (
@@ -140,7 +145,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         >
              {!isOwnMessage && showSenderInfo && (
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={message.sender?.avatarUrl} />
+                    <AvatarImage src={message.sender?.avatarUrl || ''} />
                     <AvatarFallback style={{ backgroundColor: fallbackBgColor }} className={cn(fallbackTextColorClass)}>
                         {initials}
                     </AvatarFallback>
@@ -151,7 +156,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
                 isOwnMessage ? "items-end" : "items-start"
             )}>
                  {!isOwnMessage && showSenderInfo && (
-                    <span className="text-xs font-medium text-muted-foreground">{message.sender?.name}</span>
+                    <span className="text-xs font-medium text-muted-foreground">{message.sender?.name || 'Unknown User'}</span>
                 )}
                 <div className={cn(
                     "relative px-3 py-2 rounded-2xl",

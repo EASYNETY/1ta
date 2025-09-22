@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, MessageSquarePlus, Search, MoreVertical, Edit, Trash2, RefreshCw } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
     selectSelectedRoomId,
     selectChatRoom,
@@ -64,17 +65,26 @@ export const ChatRoomList: React.FC<{ onRoomSelect?: () => void }> = ({ onRoomSe
 
         setStatus('loading');
         setError(null);
-        
+
         try {
-            const rooms = await dispatch(fetchChatRooms(currentUser.id)).unwrap();
+            const result = await dispatch(fetchChatRooms(currentUser.id)).unwrap();
+            console.log("📦 ChatRoomList - Fetched rooms result:", result);
+
+            // Ensure we always set an array, even if API returns empty or invalid data
+            const rooms = Array.isArray(result) ? result : (result?.rooms || []);
+            console.log("🏠 ChatRoomList - Processed rooms:", rooms.length, "rooms");
+
             setLocalRooms(rooms);
             dispatch(setRooms(rooms)); // Sync global store once after fetch
             setStatus('succeeded');
             if (isManualRefresh) toast.success("Chat rooms refreshed");
         } catch (e: any) {
+            console.error("💥 ChatRoomList - Error fetching rooms:", e);
             const errorMessage = typeof e === 'string' ? e : "Failed to fetch chat rooms";
             setError(errorMessage);
             setStatus('failed');
+            // Set empty array on error to prevent crashes
+            setLocalRooms([]);
             if (isManualRefresh) toast.error(errorMessage);
         } finally {
             setHasFetched(true);
@@ -129,9 +139,10 @@ export const ChatRoomList: React.FC<{ onRoomSelect?: () => void }> = ({ onRoomSe
     };
 
     const filteredRooms = React.useMemo(() => {
-        if (!localRooms) return [];
+        // Ensure localRooms is always treated as an array
+        if (!localRooms || !Array.isArray(localRooms)) return [];
         return localRooms.filter((room) =>
-            room.name?.toLowerCase().includes(searchQuery.toLowerCase())
+            room?.name?.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [localRooms, searchQuery]);
 
@@ -185,6 +196,11 @@ export const ChatRoomList: React.FC<{ onRoomSelect?: () => void }> = ({ onRoomSe
                             <p className="text-sm">
                                 {searchQuery ? 'No rooms match your search.' : 'No chat rooms found.'}
                             </p>
+                            {!searchQuery && (
+                                <p className="text-xs mt-2">
+                                    Try refreshing or contact support if this persists.
+                                </p>
+                            )}
                         </div>
                     )}
                     

@@ -50,10 +50,12 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
         }
     };
 
-    const facilitatorNames = room.participants
-        .filter((p) => p.role === "teacher")
-        .map((t) => t.name)
-        .join(", ");
+    const facilitatorNames = room.participants && room.participants.length > 0
+        ? room.participants
+            .filter((p) => p.role === "teacher")
+            .map((t) => t.name)
+            .join(", ")
+        : "";
 
     const handleBack = () => {
         dispatch(selectChatRoom(null)); // Deselect the room
@@ -78,7 +80,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
                             {getRoomTypeBadgeText()}
                         </Badge>
                         <span className="truncate"> {/* Truncate participant count if needed */}
-                            {room.participants.length} participant{room.participants.length !== 1 ? 's' : ''}
+                            {room.participants?.length || 0} participant{(room.participants?.length || 0) !== 1 ? 's' : ''}
                         </span>
                     </div>
                 </div>
@@ -91,7 +93,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Badge variant="secondary" className="cursor-default text-xs px-2 py-0.5 h-5">
-                                    {room.participants.filter((p) => p.role === "teacher").length} facilitator{room.participants.filter((p) => p.role === "teacher").length !== 1 ? 's' : ''}
+                                    {(room.participants?.filter((p) => p.role === "teacher")?.length || 0)} facilitator{(room.participants?.filter((p) => p.role === "teacher")?.length || 0) !== 1 ? 's' : ''}
                                 </Badge>
                             </TooltipTrigger>
                             <TooltipContent>

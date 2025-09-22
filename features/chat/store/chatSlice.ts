@@ -325,11 +325,17 @@ export default chatSlice.reducer;
 
 export const selectSelectedRoomId = (state: any) => state.chat.selectedRoomId;
 
-export const selectChatRooms = (state: any) => state.chat.rooms;
+export const selectChatRooms = (state: any) => {
+  const rooms = state.chat?.rooms;
+  return Array.isArray(rooms) ? rooms : [];
+};
 
 export const selectCurrentRoomMessages = (state: any) => {
-  const roomId = state.chat.selectedRoomId;
-  return roomId ? state.chat.messages[roomId] || [] : [];
+  const roomId = state.chat?.selectedRoomId;
+  if (!roomId) return [];
+
+  const messages = state.chat?.messages?.[roomId];
+  return Array.isArray(messages) ? messages : [];
 };
 
 export const selectMessageStatusForRoom = (state: any, roomId: string) =>
@@ -340,7 +346,9 @@ export const selectTypingUsersForRoom = (state: any, roomId: string) =>
 
 export const selectChatUnreadCount = (state: any) => {
   const rooms = state.chat.rooms;
-  if (!rooms || rooms.length === 0) return 0;
+
+  // Ensure rooms is an array before calling reduce
+  if (!rooms || !Array.isArray(rooms) || rooms.length === 0) return 0;
 
   return rooms.reduce((total: number, room: ChatRoom) => {
     return total + (room.unreadCount || 0);

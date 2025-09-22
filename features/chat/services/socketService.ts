@@ -2,6 +2,7 @@
 import { io, Socket } from 'socket.io-client';
 import { store } from '@/store';
 import { messageReceived, userJoined, userLeft, userTyping, connectionStatusChanged, messageDelivered, messageRead } from '@/features/chat/store/chatSlice';
+import { post } from '@/lib/api-client';
 
 class SocketService {
     private socket: Socket | null = null;
@@ -109,23 +110,28 @@ class SocketService {
         // Chat events
         this.socket.on('newMessage', (message) => {
             console.log('📩 New message received:', message);
-            store.dispatch(messageReceived({
-                ...message,
-                timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
-                isDelivered: true,
-                deliveredAt: new Date().toISOString()
-            }));
 
-            // Auto-mark as delivered if user is online
-            this.markMessageAsDelivered(message.id, message.roomId);
+            // Only process messages that are not from the current user (to avoid duplicates)
+            if (message.senderId !== this.currentUser.id) {
+                store.dispatch(messageReceived({
+                    ...message,
+                    timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+                    isDelivered: true,
+                    deliveredAt: new Date().toISOString()
+                }));
+
+                // Auto-mark as delivered if user is online
+                this.markMessageAsDelivered(message.id, message.roomId);
+            } else {
+                console.log('📩 Skipping message from current user (avoiding duplicate):', message.id);
+            }
         });
 
         this.socket.on('messageDelivered', (data) => {
             console.log('✅ Message delivered:', data);
             store.dispatch(messageDelivered({
                 messageId: data.messageId,
-                roomId: data.roomId,
-                deliveredAt: data.deliveredAt
+                roomId: data.roomId
             }));
         });
 
@@ -134,8 +140,7 @@ class SocketService {
             store.dispatch(messageRead({
                 messageId: data.messageId,
                 roomId: data.roomId,
-                readAt: data.readAt,
-                readBy: data.readBy
+                userId: data.userId
             }));
         });
 
@@ -269,25 +274,51 @@ class SocketService {
 
     // Message Management
     sendMessage(roomId: string, content: string, type = 'text', metadata?: any) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (!this.socket?.connected) {
                 reject(new Error('Not connected to chat server'));
                 return;
             }
 
-            const messageData = {
-                roomId,
-                content,
-                type,
-                metadata,
-                senderId: this.currentUser.id,
-                senderName: this.currentUser.name || this.currentUser.email,
-                timestamp: new Date().toISOString()
-            };
+            if (!this.currentUser) {
+                reject(new Error('User not authenticated'));
+                return;
+            }
 
-            // Send to server via HTTP API first, then socket will broadcast
-            console.log('📤 Sending message via API:', messageData);
-            resolve(messageData);
+            try {
+                const messageData = {
+                    roomId,
+                    content,
+                    type,
+                    metadata,
+                    senderId: this.currentUser.id,
+                    senderName: this.currentUser.name || this.currentUser.email,
+                    timestamp: new Date().toISOString()
+                };
+
+                console.log('📤 Sending message via API:', messageData);
+
+                // Send to server via HTTP API first
+                const response = await post<any>('/chat/messages', messageData);
+
+                if (response && response.id) {
+                    console.log('✅ Message sent successfully:', response);
+
+                    // Also emit via socket for real-time broadcast
+                    this.socket.emit('sendMessage', {
+                        ...messageData,
+                        id: response.id,
+                        createdAt: response.createdAt || response.timestamp
+                    });
+
+                    resolve(response);
+                } else {
+                    throw new Error('Invalid response from server');
+                }
+            } catch (error: any) {
+                console.error('💥 Failed to send message:', error);
+                reject(error);
+            }
         });
     }
 
@@ -363,8 +394,7 @@ class SocketService {
     getConnectionStatus() {
         if (!this.socket) return 'disconnected';
         if (this.socket.connected) return 'connected';
-        if (this.socket.connecting) return 'connecting';
-        return 'disconnected';
+        return 'connecting';
     }
 
     disconnect() {

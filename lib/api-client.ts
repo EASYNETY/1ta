@@ -268,9 +268,20 @@ async function apiClient<T>(
 			};
 
 			try {
-				errorData = await response.json();
+				const responseText = await response.text();
+				if (responseText) {
+					try {
+						errorData = JSON.parse(responseText);
+					} catch (parseError) {
+						// If JSON parsing fails, use the raw text as message
+						errorData = {
+							message: responseText || `API Error: ${response.status} ${response.statusText}`,
+						};
+					}
+				}
 			} catch (e) {
-				/* non-json response */
+				// If we can't read the response at all, keep the default error message
+				console.warn("Could not read error response:", e);
 			}
 
 			console.error("API Error Data:", errorData);
@@ -411,9 +422,20 @@ async function apiClient<T>(
 							};
 
 							try {
-								retryErrorData = await retryResponse.json();
+								const retryResponseText = await retryResponse.text();
+								if (retryResponseText) {
+									try {
+										retryErrorData = JSON.parse(retryResponseText);
+									} catch (parseError) {
+										// If JSON parsing fails, use the raw text as message
+										retryErrorData = {
+											message: retryResponseText || `API Error: ${retryResponse.status} ${retryResponse.statusText}`,
+										};
+									}
+								}
 							} catch (e) {
-								/* non-json response */
+								// If we can't read the response at all, keep the default error message
+								console.warn("Could not read retry error response:", e);
 							}
 
 							throw new ApiError(

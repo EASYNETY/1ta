@@ -6,13 +6,12 @@ import React, { useState, useRef, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-    Send, 
-    Paperclip, 
-    Smile, 
-    Mic, 
-    Image as ImageIcon, 
-    FileText, 
+import {
+    Send,
+    Paperclip,
+    Mic,
+    Image as ImageIcon,
+    FileText,
     X,
     Video
 } from "lucide-react";
@@ -27,8 +26,8 @@ import {
     addOptimisticMessage
 } from "../store/chatSlice";
 import { sendChatMessage } from "../store/chat-thunks";
+import { useSocket } from "../services/socketService";
 import { MessageType, MessageStatus } from "../types/chat-types";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
 
@@ -46,13 +45,13 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     const currentUser = useAppSelector((state) => state.auth.user);
     const draft = useAppSelector(state => selectedRoomId ? selectMessageDraftForRoom(state, selectedRoomId) : "");
     const isUserTyping = useAppSelector(state => selectedRoomId ? selectIsUserTypingInRoom(state, selectedRoomId) : false);
+    const { sendMessage: socketSendMessage } = useSocket();
 
     const [message, setMessage] = useState(draft);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingDuration, setRecordingDuration] = useState(0);
     const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
     const [isUploading, setIsUploading] = useState(false);
-    const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,9 +64,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     // Connection status (stub)
     const isConnected = true;
 
-    // Emoji picker stub (replace with actual if available)
-    const EmojiPicker = () => null;
-    const data = {};
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMessage(e.target.value);
@@ -131,15 +127,21 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
             // Step 2: Add the optimistic message to the UI immediately.
             dispatch(addOptimisticMessage(optimisticMessage));
 
-            // Step 3: Send the real message to the server, AND include the tempId in the payload.
-            // This is the crucial link.
-            dispatch(sendChatMessage({
-                roomId: selectedRoomId,
-                content: message.trim(),
-                type: MessageType.TEXT,
-                senderId: currentUser.id,
-                tempId: tempId // Pass the tempId to the thunk
-            }));
+            // Step 3: Send the real message to the server via socket service
+            try {
+                const response = await socketSendMessage(selectedRoomId, message.trim(), MessageType.TEXT);
+                console.log('✅ Message sent successfully via socket service:', response);
+
+                // The socket service will broadcast the message to other users
+                // and the newMessage event will be handled by the socket service
+                // which will dispatch messageReceived to add it to the state
+
+            } catch (error) {
+                console.error('💥 Failed to send message via socket service:', error);
+                toast.error('Failed to send message. Please try again.');
+                // Remove the optimistic message if sending failed
+                // Note: We would need to add a removeOptimisticMessage action for this
+            }
         }
 
         // Your attachment handling logic can remain the same, just ensure you pass a unique `tempId` for each file.
@@ -225,14 +227,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const handleEmojiSelect = (emoji: any) => {
-        const newMessage = message + emoji.native;
-        setMessage(newMessage);
-        setEmojiPickerOpen(false);
-        if (newMessage.trim()) {
-            handleTypingStart();
-        }
-    };
 
     useEffect(() => {
         return () => {
@@ -412,34 +406,6 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
                             />
                         </div>
 
-                        {/* Emoji Picker */}
-                        <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 mx-1 flex-shrink-0"
-                                    disabled={isRecording}
-                                >
-                                    <Smile className="h-4 w-4" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent 
-                                side="top" 
-                                align="end" 
-                                className="w-auto p-0 border-0"
-                                sideOffset={10}
-                            >
-                                <EmojiPicker 
-                                    data={data} 
-                                    onEmojiSelect={handleEmojiSelect}
-                                    theme="light" // You can make this dynamic based on your theme
-                                    set="native"
-                                    previewPosition="none"
-                                    skinTonePosition="none"
-                                />
-                            </PopoverContent>
-                        </Popover>
                     </div>
                 </div>
 
