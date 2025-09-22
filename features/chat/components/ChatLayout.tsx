@@ -13,7 +13,7 @@ import { SelectChatPrompt } from "./SelectChatPrompt";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Menu, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
-import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount, selectMessageStatusForRoom } from "../store/chatSlice";
+import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount, selectMessageStatusForRoom, selectConnectionStatus } from "../store/chatSlice";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { fetchChatMessages } from "../store/chat-thunks";
 import { useSocket } from "../services/socketService";
@@ -76,25 +76,27 @@ export const ChatLayout: React.FC = () => {
         };
     }, [selectedRoomId, joinRoom, leaveRoom, isConnected]);
 
-    // Background refresh: re-fetch messages every 3 seconds when a room is selected
+    // Background refresh fallback: only re-fetch messages via HTTP when socket is NOT connected.
+    // When the socket is connected we rely on real-time `newMessage` events instead of polling.
+    const connectionStatus = useAppSelector(selectConnectionStatus);
+
     useEffect(() => {
         if (!selectedRoomId) return;
+
+        // Only poll when socket is not connected (fallback for environments with broken sockets)
+        if (connectionStatus === 'connected') return;
 
         let intervalId: number | null = null;
 
         const startInterval = () => {
-            // Only set interval if not currently loading
             intervalId = window.setInterval(() => {
-                // If we are already loading for this room, skip this tick
-                if (messageStatus === 'loading') return;
-                console.log('⏱️ Background refresh - fetching messages for room', selectedRoomId);
-                // Force a fetch by resetting lastFetchedRoomId and incrementing retryCount
+                if (messageStatus === 'loading') return; // skip if a fetch is already in progress
+                console.log('⏱️ Fallback background refresh - fetching messages for room', selectedRoomId);
                 lastFetchedRoomId.current = null;
                 setRetryCount((r) => r + 1);
-            }, 3000);
+            }, 5000); // increased to 5s for safety
         };
 
-        // Start interval when the room is selected
         startInterval();
 
         return () => {
@@ -103,7 +105,7 @@ export const ChatLayout: React.FC = () => {
                 intervalId = null;
             }
         };
-    }, [selectedRoomId, messageStatus]);
+    }, [selectedRoomId, messageStatus, connectionStatus]);
 
     // FIXED: Clean message fetching logic
     useEffect(() => {

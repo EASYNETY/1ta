@@ -119,6 +119,34 @@ class SocketService {
             }
         });
 
+        // Server acknowledgement for sent messages (used to reconcile optimistic messages)
+        this.socket.on('messageAck', (ack: any) => {
+            try {
+                console.log('📬 Received messageAck from server:', ack);
+
+                const serverMessage = ack.message || null;
+                const tempId = ack.tempId || null;
+
+                if (!serverMessage) return;
+
+                const normalizedMessage = {
+                    ...serverMessage,
+                    timestamp: serverMessage.createdAt || serverMessage.timestamp || new Date().toISOString(),
+                };
+
+                const roomId = normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id) || null;
+
+                // Include tempId so reducer can match optimistic messages and replace them
+                if (tempId) {
+                    normalizedMessage.tempId = tempId;
+                }
+
+                store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
+            } catch (err) {
+                console.error('Error handling messageAck:', err);
+            }
+        });
+
         this.socket.on('messageDelivered', (data: any) => {
             console.log('✅ Message delivered:', data);
             store.dispatch(messageDelivered({ messageId: data.messageId, roomId: data.roomId }));
