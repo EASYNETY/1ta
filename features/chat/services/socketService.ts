@@ -24,7 +24,7 @@ class SocketService {
     private lastConnectErrorTs: number = 0;
     private lastMaxReconnectLogTs: number = 0;
 
-    initialize(user: any) {
+    async initialize(user: any) {
         if (this.isInitializing || (this.socket && this.socket.connected)) {
             console.log('🔄 Socket already initialized or initializing, skipping...');
             return;
@@ -35,21 +35,34 @@ class SocketService {
 
         console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com');
         // Use the same domain as the API but with WebSocket protocol
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com';
-        const wsUrl = apiUrl.replace(/^https?/, 'wss'); // Convert http/https to ws/wss
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://api.onetechacademy.com:5000';
+        const wsUrl = apiUrl.replace(/^https?/, 'ws'); // Convert http/https to ws/wss
 
         console.log('🔌 Attempting WebSocket connection to:', wsUrl);
 
-        // For development, try localhost first, then production
-        const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-        const wsUrls = isDevelopment
-            ? ['ws://localhost:3000', 'ws://localhost:8080', 'ws://127.0.0.1:3000', wsUrl] // Try localhost first in dev
-            : [wsUrl, 'ws://localhost:3000', 'ws://127.0.0.1:3000']; // Try production first in production
+        // Detect environment properly - check if we're on the production domain
+        const isProduction = typeof window !== 'undefined' &&
+            (window.location.hostname.includes('onetechacademy.com') ||
+             window.location.hostname.includes('1techacademy.com'));
+
+        const wsUrls = isProduction
+            ? ['ws://api.onetechacademy.com:5000', 'wss://api.onetechacademy.com:5000', 'ws://localhost:3000', 'ws://127.0.0.1:3000'] // Try HTTP first (working), then HTTPS
+            : ['ws://localhost:3000', 'ws://localhost:8080', 'ws://127.0.0.1:3000', 'ws://api.onetechacademy.com:5000']; // Try localhost first in dev
 
         console.log('🔌 WebSocket URLs to try:', wsUrls);
-        console.log('🔍 Environment check - isDevelopment:', isDevelopment);
+        console.log('🔍 Environment check - isProduction:', isProduction);
         console.log('🔍 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
         console.log('🔍 Current location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+        console.log('🔍 Production URL:', wsUrl);
+
+        // Test if production WebSocket server is running
+        if (isProduction) {
+            const isProductionServerRunning = await this.testProductionWebSocketServer();
+            if (!isProductionServerRunning) {
+                console.log('⚠️ Production WebSocket server is not accessible');
+                console.log('💡 Real-time messaging will not work until the server is deployed');
+            }
+        }
 
         // Get authentication token from various sources
         const getAuthToken = () => {
@@ -500,8 +513,13 @@ class SocketService {
             try {
                 console.log(`🧪 Testing connection to: ${url}`);
 
-                // Try to fetch the WebSocket endpoint to see if it's accessible
-                const response = await fetch(url.replace('ws', 'http'), {
+                // For Socket.IO, we need to test the Socket.IO endpoint
+                const socketIoUrl = url.replace(/\/$/, '') + '/socket.io/?EIO=4&transport=polling';
+
+                console.log(`🧪 Testing Socket.IO endpoint: ${socketIoUrl}`);
+
+                // Try to fetch the Socket.IO endpoint to see if it's accessible
+                const response = await fetch(socketIoUrl, {
                     method: 'GET',
                     headers: {
                         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -511,6 +529,7 @@ class SocketService {
 
                 if (response.ok) {
                     console.log(`✅ WebSocket endpoint ${url} is accessible (HTTP ${response.status})`);
+                    console.log(`✅ Socket.IO endpoint responded:`, await response.text());
                     break;
                 } else {
                     console.log(`❌ WebSocket endpoint ${url} returned HTTP ${response.status}`);
@@ -519,6 +538,46 @@ class SocketService {
                 console.log(`❌ Cannot reach WebSocket endpoint ${url}:`, error);
             }
         }
+    }
+
+    private async testProductionWebSocketServer() {
+        console.log('🔍 Testing production WebSocket server...');
+
+        // Test if the production WebSocket server is actually running
+        const productionUrls = [
+            'http://api.onetechacademy.com:5000/socket.io/?EIO=4&transport=polling',
+            'https://api.onetechacademy.com:5000/socket.io/?EIO=4&transport=polling',
+            'https://api.onetechacademy.com:443/socket.io/?EIO=4&transport=polling',
+            'https://api.onetechacademy.com:8080/socket.io/?EIO=4&transport=polling'
+        ];
+
+        for (const url of productionUrls) {
+            try {
+                console.log(`🔍 Testing production endpoint: ${url}`);
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'User-Agent': 'Mozilla/5.0 (compatible; WebSocketTest/1.0)'
+                    }
+                });
+
+                if (response.ok) {
+                    console.log(`✅ Production WebSocket server is RUNNING at ${url}`);
+                    console.log(`✅ Response:`, await response.text());
+                    return true;
+                } else {
+                    console.log(`❌ Production endpoint ${url} returned HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.log(`❌ Cannot reach production endpoint ${url}:`, error);
+            }
+        }
+
+        console.log('❌ Production WebSocket server is NOT running or not accessible');
+        console.log('💡 This explains why real-time messages are not working');
+        return false;
     }
 
     disconnect() {
@@ -566,7 +625,9 @@ export const useSocket = () => {
     const currentUser = useAppSelector((state: any) => state.auth.user);
 
     useEffect(() => {
-        if (currentUser && !socketService.isConnected()) socketService.initialize(currentUser);
+        if (currentUser && !socketService.isConnected()) {
+            socketService.initialize(currentUser);
+        }
         return () => {
             // keep persistent connection; do not disconnect on unmount
         };
