@@ -61,8 +61,8 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     const recordingTimerRef = useRef<any>(null);
     const typingTimeoutRef = useRef<any>(null);
 
-    // Connection status (stub)
-    const isConnected = true;
+    // Connection status - use actual socket connection status
+    const isConnected = socketConnected;
 
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,7 +130,12 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
 
             // Step 3: Send the real message to the server via socket service
             try {
-                console.log('📤 Attempting to send message via socket. Connected:', socketConnected, 'Room:', selectedRoomId);
+                console.log('📤 Attempting to send message via socket. Connected:', socketConnected, 'Room:', selectedRoomId, 'Message:', message.trim());
+                if (!socketConnected) {
+                    console.error('❌ Socket not connected! Cannot send message via WebSocket');
+                    toast.error('Chat connection lost. Please refresh the page.');
+                    return;
+                }
                 const response = await socketSendMessage(selectedRoomId, message.trim(), MessageType.TEXT, undefined, tempId);
                 console.log('✅ Message sent successfully via socket service:', response);
 

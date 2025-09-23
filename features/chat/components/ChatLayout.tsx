@@ -12,7 +12,7 @@ import { ChatRoomHeader } from "./ChatRoomHeader";
 import { SelectChatPrompt } from "./SelectChatPrompt";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Menu, MessageSquare, AlertTriangle, RefreshCw } from "lucide-react";
+import { Menu, MessageSquare, AlertTriangle, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import { selectSelectedRoomId, selectSelectedRoom, selectChatRooms, selectChatUnreadCount, selectMessageStatusForRoom, selectConnectionStatus } from "../store/chatSlice";
 import { DyraneButton } from "@/components/dyrane-ui/dyrane-button";
 import { fetchChatMessages } from "../store/chat-thunks";
@@ -30,6 +30,7 @@ export const ChatLayout: React.FC = () => {
 
     // Socket service for real-time messaging
     const { joinRoom, leaveRoom, isConnected } = useSocket();
+    const connectionStatus = useAppSelector(selectConnectionStatus);
     
     const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
     const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -78,7 +79,6 @@ export const ChatLayout: React.FC = () => {
 
     // Background refresh fallback: only re-fetch messages via HTTP when socket is NOT connected.
     // When the socket is connected we rely on real-time `newMessage` events instead of polling.
-    const connectionStatus = useAppSelector(selectConnectionStatus);
 
     useEffect(() => {
         if (!selectedRoomId) return;
@@ -92,9 +92,10 @@ export const ChatLayout: React.FC = () => {
             intervalId = window.setInterval(() => {
                 if (messageStatus === 'loading') return; // skip if a fetch is already in progress
                 console.log('⏱️ Fallback background refresh - fetching messages for room', selectedRoomId);
+                console.log('🔍 Connection status:', connectionStatus, 'Is connected:', isConnected);
                 lastFetchedRoomId.current = null;
                 setRetryCount((r) => r + 1);
-            }, 5000); // increased to 5s for safety
+            }, 30000); // increased to 30s for safety - only when WebSocket is disconnected
         };
 
         startInterval();
@@ -253,12 +254,24 @@ export const ChatLayout: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <MessageSquare className="h-5 w-5 text-primary" />
                         <h2 className="text-lg font-semibold">Discussions</h2>
+                        {/* Connection Status Indicator */}
+                        <div className="flex items-center gap-1">
+                            {connectionStatus === 'connected' ? (
+                                <Wifi className="h-4 w-4 text-green-500" />
+                            ) : connectionStatus === 'error' ? (
+                                <WifiOff className="h-4 w-4 text-red-500" />
+                            ) : (
+                                <Wifi className="h-4 w-4 text-yellow-500 animate-pulse" />
+                            )}
+                        </div>
                     </div>
-                    {totalUnreadCount > 0 && (
-                        <Badge variant="default" className="h-6 px-2.5 text-xs bg-primary text-primary-foreground font-semibold">
-                            {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
-                        </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {totalUnreadCount > 0 && (
+                            <Badge variant="default" className="h-6 px-2.5 text-xs bg-primary text-primary-foreground font-semibold">
+                                {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                            </Badge>
+                        )}
+                    </div>
                 </div>
                 <div className="flex-1 overflow-y-auto">
                     <ChatRoomList />

@@ -25,18 +25,26 @@ class SocketService {
     private lastMaxReconnectLogTs: number = 0;
 
     initialize(user: any) {
-        if (this.isInitializing || (this.socket && this.socket.connected)) return;
+        if (this.isInitializing || (this.socket && this.socket.connected)) {
+            console.log('🔄 Socket already initialized or initializing, skipping...');
+            return;
+        }
 
         this.currentUser = user;
         this.isInitializing = true;
 
+        console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com');
         this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com', {
             transports: ['websocket', 'polling'],
             withCredentials: true,
-            timeout: 20000,
-            reconnection: false,
+            timeout: 10000, // Reduced timeout for faster failure detection
+            reconnection: true, // Enable automatic reconnection
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            randomizationFactor: 0.5,
             autoConnect: true,
-            forceNew: true,
+            forceNew: false, // Don't force new connection to allow reconnection
             query: {
                 userId: user.id,
                 userName: user.name || user.email
@@ -61,9 +69,10 @@ class SocketService {
         if (!this.socket) return;
 
         this.socket.on('connect', () => {
-            console.log('🔌 Connected to chat server');
+            console.log('🔌 Connected to chat server successfully!');
             this.reconnectAttempts = 0;
             store.dispatch(connectionStatusChanged('connected'));
+            console.log('📡 Socket connection status updated to: connected');
 
             this.socket!.emit('authenticate', {
                 userId: this.currentUser.id,
@@ -77,15 +86,17 @@ class SocketService {
 
         this.socket.on('disconnect', (reason) => {
             console.log('❌ Disconnected from chat server:', reason);
+            console.log('🔍 Disconnect reason:', reason, 'Socket was connected:', this.socket?.connected);
             this.isInitializing = false;
             store.dispatch(connectionStatusChanged('disconnected'));
+            console.log('📡 Socket connection status updated to: disconnected');
 
             if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') this.handleReconnect();
         });
 
         this.socket.on('connect_error', (error) => {
             const now = Date.now();
-            if (now - this.lastConnectErrorTs > 10000) {
+            if (now - this.lastConnectErrorTs > 5000) { // Reduced throttling for better visibility
                 console.error('🚨 Connection error:', error?.message || error);
                 this.lastConnectErrorTs = now;
             } else {
@@ -93,7 +104,34 @@ class SocketService {
             }
 
             store.dispatch(connectionStatusChanged('error'));
-            this.handleReconnect();
+            // Don't call handleReconnect here - let Socket.IO handle it automatically
+        });
+
+        this.socket.on('reconnect', (attemptNumber) => {
+            console.log('🔄 Reconnected to chat server after', attemptNumber, 'attempts');
+            this.reconnectAttempts = 0;
+            store.dispatch(connectionStatusChanged('connected'));
+            console.log('📡 Socket connection status updated to: connected');
+
+            // Re-authenticate and rejoin rooms
+            this.socket!.emit('authenticate', {
+                userId: this.currentUser.id,
+                userName: this.currentUser.name || this.currentUser.email,
+                userEmail: this.currentUser.email,
+                userRole: this.currentUser.role
+            });
+
+            this.connectedRooms.forEach(roomId => this.joinRoom(roomId));
+        });
+
+        this.socket.on('reconnect_error', (error) => {
+            console.error('🚨 Reconnection failed:', error?.message || error);
+            store.dispatch(connectionStatusChanged('error'));
+        });
+
+        this.socket.on('reconnect_failed', () => {
+            console.error('🚨 All reconnection attempts failed');
+            store.dispatch(connectionStatusChanged('error'));
         });
 
         // New message
@@ -261,7 +299,11 @@ class SocketService {
 
     sendMessage(roomId: string, content: string, type = 'text', metadata?: any, tempId?: string) {
         return new Promise<any>(async (resolve, reject) => {
-            if (!this.socket?.connected) return reject(new Error('Not connected to chat server'));
+            if (!this.socket?.connected) {
+                console.warn('⚠️ Socket not connected, attempting to send via API only');
+                return this.sendMessageViaAPI(roomId, content, type, metadata, tempId, resolve, reject);
+            }
+
             if (!this.currentUser) return reject(new Error('User not authenticated'));
 
             try {
@@ -276,22 +318,87 @@ class SocketService {
                     tempId: tempId || `temp_${Date.now()}_${Math.random()}`
                 };
 
-                console.log('📤 Sending message via API:', messageData);
+                console.log('📤 Sending message via API and socket:', messageData);
 
+                // Send via API first for persistence
                 const response = await post<any>('/chat/messages', messageData);
 
                 if (response && response.id) {
                     console.log('✅ Message sent successfully:', response);
-                    this.socket.emit('sendMessage', { ...messageData, id: response.id, tempId: messageData.tempId, createdAt: response.createdAt || response.timestamp });
+
+                    // Emit via socket for real-time delivery
+                    const socketMessage = {
+                        ...messageData,
+                        id: response.id,
+                        tempId: messageData.tempId,
+                        createdAt: response.createdAt || response.timestamp
+                    };
+
+                    this.socket.emit('sendMessage', socketMessage);
+
+                    // Also emit to room for guaranteed delivery
+                    this.socket.to(roomId).emit('newMessage', {
+                        ...socketMessage,
+                        isDelivered: true,
+                        deliveredAt: new Date().toISOString()
+                    });
+
                     resolve(response);
                 } else {
                     throw new Error('Invalid response from server');
                 }
             } catch (error: any) {
                 console.error('💥 Failed to send message:', error);
+
+                // If socket send fails, try API-only fallback
+                if (this.socket?.connected) {
+                    console.log('🔄 Attempting API-only fallback for message delivery');
+                    return this.sendMessageViaAPI(roomId, content, type, metadata, tempId, resolve, reject);
+                }
+
                 reject(error);
             }
         });
+    }
+
+    private async sendMessageViaAPI(roomId: string, content: string, type: string, metadata: any, tempId: string, resolve: Function, reject: Function) {
+        try {
+            const messageData = {
+                roomId,
+                content,
+                type,
+                metadata,
+                senderId: this.currentUser.id,
+                senderName: this.currentUser.name || this.currentUser.email,
+                timestamp: new Date().toISOString(),
+                tempId: tempId || `temp_${Date.now()}_${Math.random()}`
+            };
+
+            console.log('📤 Sending message via API only (fallback):', messageData);
+
+            const response = await post<any>('/chat/messages', messageData);
+
+            if (response && response.id) {
+                console.log('✅ Message sent via API fallback:', response);
+
+                // Try to emit via socket if connected now
+                if (this.socket?.connected) {
+                    this.socket.emit('sendMessage', {
+                        ...messageData,
+                        id: response.id,
+                        tempId: messageData.tempId,
+                        createdAt: response.createdAt || response.timestamp
+                    });
+                }
+
+                resolve(response);
+            } else {
+                throw new Error('Invalid response from server');
+            }
+        } catch (error: any) {
+            console.error('💥 API fallback also failed:', error);
+            reject(error);
+        }
     }
 
     markMessageAsDelivered(messageId: string, roomId: string) {
