@@ -34,7 +34,19 @@ class SocketService {
         this.isInitializing = true;
 
         console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com');
-        this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com', {
+        // Use the same domain as the API but with WebSocket protocol
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com';
+        const wsUrl = apiUrl.replace(/^https?/, 'wss'); // Convert http/https to ws/wss
+
+        console.log('🔌 Attempting WebSocket connection to:', wsUrl);
+
+        // Try production URL first, fallback to localhost if needed
+        const wsUrls = [wsUrl];
+        if (wsUrl.includes('onetechacademy.com')) {
+            wsUrls.push('ws://localhost:3000'); // Fallback to localhost
+        }
+
+        this.socket = io(wsUrls[0], {
             transports: ['websocket', 'polling'],
             withCredentials: true,
             timeout: 10000, // Reduced timeout for faster failure detection
@@ -299,6 +311,8 @@ class SocketService {
 
     sendMessage(roomId: string, content: string, type = 'text', metadata?: any, tempId?: string) {
         return new Promise<any>(async (resolve, reject) => {
+            if (!roomId) return reject(new Error('Room ID is required'));
+
             if (!this.socket?.connected) {
                 console.warn('⚠️ Socket not connected, attempting to send via API only');
                 return this.sendMessageViaAPI(roomId, content, type, metadata, tempId, resolve, reject);
@@ -337,7 +351,7 @@ class SocketService {
                     this.socket.emit('sendMessage', socketMessage);
 
                     // Also emit to room for guaranteed delivery
-                    this.socket.to(roomId).emit('newMessage', {
+                    this.socket.emit('sendMessage', {
                         ...socketMessage,
                         isDelivered: true,
                         deliveredAt: new Date().toISOString()
@@ -353,7 +367,7 @@ class SocketService {
                 // If socket send fails, try API-only fallback
                 if (this.socket?.connected) {
                     console.log('🔄 Attempting API-only fallback for message delivery');
-                    return this.sendMessageViaAPI(roomId, content, type, metadata, tempId, resolve, reject);
+                    return this.sendMessageViaAPI(roomId!, content, type, metadata, tempId, resolve, reject);
                 }
 
                 reject(error);
@@ -361,7 +375,7 @@ class SocketService {
         });
     }
 
-    private async sendMessageViaAPI(roomId: string, content: string, type: string, metadata: any, tempId: string, resolve: Function, reject: Function) {
+    private async sendMessageViaAPI(roomId: string, content: string, type: string, metadata: any, tempId: string | undefined, resolve: Function, reject: Function) {
         try {
             const messageData = {
                 roomId,
