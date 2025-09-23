@@ -30,7 +30,7 @@ class SocketService {
         this.currentUser = user;
         this.isInitializing = true;
 
-        this.socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'https://api.onetechacademy.com', {
+        this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com', {
             transports: ['websocket', 'polling'],
             withCredentials: true,
             timeout: 20000,
