@@ -43,12 +43,13 @@ class SocketService {
         // For development, try localhost first, then production
         const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
         const wsUrls = isDevelopment
-            ? ['ws://localhost:3000', 'ws://localhost:8080', wsUrl] // Try localhost first in dev
-            : [wsUrl, 'ws://localhost:3000']; // Try production first in production
+            ? ['ws://localhost:3000', 'ws://localhost:8080', 'ws://127.0.0.1:3000', wsUrl] // Try localhost first in dev
+            : [wsUrl, 'ws://localhost:3000', 'ws://127.0.0.1:3000']; // Try production first in production
 
         console.log('🔌 WebSocket URLs to try:', wsUrls);
         console.log('🔍 Environment check - isDevelopment:', isDevelopment);
         console.log('🔍 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
+        console.log('🔍 Current location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
 
         // Get authentication token from various sources
         const getAuthToken = () => {
@@ -68,11 +69,11 @@ class SocketService {
         this.socket = io(wsUrls[0], {
             transports: ['websocket', 'polling'],
             withCredentials: true,
-            timeout: 10000, // Reduced timeout for faster failure detection
+            timeout: 5000, // Reduced timeout for faster failure detection
             reconnection: true, // Enable automatic reconnection
-            reconnectionAttempts: 5,
+            reconnectionAttempts: 3, // Reduced attempts to fail faster
             reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
+            reconnectionDelayMax: 3000,
             randomizationFactor: 0.5,
             autoConnect: true,
             forceNew: false, // Don't force new connection to allow reconnection
@@ -85,6 +86,9 @@ class SocketService {
                 userRole: user.role || 'user'
             }
         });
+
+        // Test WebSocket connection immediately
+        this.testWebSocketConnection(wsUrls);
 
         this.setupEventListeners();
 
@@ -487,6 +491,34 @@ class SocketService {
         if (!this.socket) return 'disconnected';
         if (this.socket.connected) return 'connected';
         return 'connecting';
+    }
+
+    private async testWebSocketConnection(urls: string[]) {
+        console.log('🧪 Testing WebSocket connections...');
+
+        for (const url of urls) {
+            try {
+                console.log(`🧪 Testing connection to: ${url}`);
+
+                // Try to fetch the WebSocket endpoint to see if it's accessible
+                const response = await fetch(url.replace('ws', 'http'), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'User-Agent': 'Mozilla/5.0 (compatible; WebSocketTest/1.0)'
+                    }
+                });
+
+                if (response.ok) {
+                    console.log(`✅ WebSocket endpoint ${url} is accessible (HTTP ${response.status})`);
+                    break;
+                } else {
+                    console.log(`❌ WebSocket endpoint ${url} returned HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.log(`❌ Cannot reach WebSocket endpoint ${url}:`, error);
+            }
+        }
     }
 
     disconnect() {

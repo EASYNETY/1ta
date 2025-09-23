@@ -93,9 +93,11 @@ export const ChatLayout: React.FC = () => {
                 if (messageStatus === 'loading') return; // skip if a fetch is already in progress
                 console.log('⏱️ Fallback background refresh - fetching messages for room', selectedRoomId);
                 console.log('🔍 Connection status:', connectionStatus, 'Is connected:', isConnected);
+
+                // Force a fresh fetch by clearing the cache
                 lastFetchedRoomId.current = null;
                 setRetryCount((r) => r + 1);
-            }, 30000); // increased to 30s for safety - only when WebSocket is disconnected
+            }, 10000); // 10 seconds for more responsive fallback
         };
 
         startInterval();
@@ -316,6 +318,16 @@ export const ChatLayout: React.FC = () => {
                                             </DyraneButton>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* WebSocket Fallback Notice */}
+                        {connectionStatus === 'error' && !hasError && (
+                            <div className="flex items-center justify-center p-3 border-b bg-yellow-50 dark:bg-yellow-900/20">
+                                <div className="flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                    <WifiOff className="h-4 w-4" />
+                                    <span>Real-time updates unavailable - messages will refresh every 10 seconds</span>
                                 </div>
                             </div>
                         )}
