@@ -33,9 +33,9 @@ class SocketService {
         this.currentUser = user;
         this.isInitializing = true;
 
-        console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com');
+        console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.onetechacademy.com');
         // Use the same domain as the API but with WebSocket protocol
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com:5000';
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.onetechacademy.com';
         const wsUrl = apiUrl.replace(/^https?/, 'wss'); // Convert http/https to wss/ws
 
         console.log('🔌 Attempting WebSocket connection to:', wsUrl);
@@ -46,8 +46,8 @@ class SocketService {
              window.location.hostname.includes('1techacademy.com'));
 
         const wsUrls = isProduction
-            ? ['wss://api.onetechacademy.com:5000', 'ws://api.onetechacademy.com:5000', 'wss://api.onetechacademy.com:443', 'ws://localhost:3000'] // Try WSS first, then WS fallback
-            : ['ws://localhost:3000', 'ws://localhost:8080', 'ws://127.0.0.1:3000', 'wss://api.onetechacademy.com:5000']; // Try localhost first in dev
+            ? ['wss://api.onetechacademy.com', 'ws://api.onetechacademy.com', 'wss://api.onetechacademy.com:443'] // Try WSS first, then WS fallback
+            : ['ws://localhost:3000', 'ws://localhost:8080', 'ws://127.0.0.1:3000']; // Try localhost first in dev
 
         console.log('🔌 WebSocket URLs to try:', wsUrls);
         console.log('🔍 Environment check - isProduction:', isProduction);
@@ -545,10 +545,9 @@ class SocketService {
 
         // Test if the production WebSocket server is actually running
         const productionUrls = [
-            'https://api.onetechacademy.com:5000/socket.io/?EIO=4&transport=polling',
+            'https://api.onetechacademy.com/socket.io/?EIO=4&transport=polling',
             'https://api.onetechacademy.com:443/socket.io/?EIO=4&transport=polling',
-            'http://api.onetechacademy.com:5000/socket.io/?EIO=4&transport=polling',
-            'https://api.onetechacademy.com:8080/socket.io/?EIO=4&transport=polling'
+            'http://api.onetechacademy.com:5000/socket.io/?EIO=4&transport=polling'
         ];
 
         for (const url of productionUrls) {
