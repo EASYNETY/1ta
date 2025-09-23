@@ -40,11 +40,30 @@ class SocketService {
 
         console.log('🔌 Attempting WebSocket connection to:', wsUrl);
 
-        // Try production URL first, fallback to localhost if needed
-        const wsUrls = [wsUrl];
-        if (wsUrl.includes('onetechacademy.com')) {
-            wsUrls.push('ws://localhost:3000'); // Fallback to localhost
-        }
+        // For development, try localhost first, then production
+        const isDevelopment = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+        const wsUrls = isDevelopment
+            ? ['ws://localhost:3000', 'ws://localhost:8080', wsUrl] // Try localhost first in dev
+            : [wsUrl, 'ws://localhost:3000']; // Try production first in production
+
+        console.log('🔌 WebSocket URLs to try:', wsUrls);
+        console.log('🔍 Environment check - isDevelopment:', isDevelopment);
+        console.log('🔍 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
+
+        // Get authentication token from various sources
+        const getAuthToken = () => {
+            if (user.token) return user.token;
+            if (typeof window !== 'undefined') {
+                return localStorage.getItem('authToken') ||
+                       localStorage.getItem('token') ||
+                       sessionStorage.getItem('authToken') ||
+                       '';
+            }
+            return '';
+        };
+
+        const authToken = getAuthToken();
+        console.log('🔐 WebSocket auth token:', authToken ? 'Present (' + authToken.substring(0, 10) + '...)' : 'Missing');
 
         this.socket = io(wsUrls[0], {
             transports: ['websocket', 'polling'],
@@ -57,9 +76,13 @@ class SocketService {
             randomizationFactor: 0.5,
             autoConnect: true,
             forceNew: false, // Don't force new connection to allow reconnection
+            auth: {
+                token: authToken
+            },
             query: {
                 userId: user.id,
-                userName: user.name || user.email
+                userName: user.name || user.email,
+                userRole: user.role || 'user'
             }
         });
 
@@ -110,6 +133,11 @@ class SocketService {
             const now = Date.now();
             if (now - this.lastConnectErrorTs > 5000) { // Reduced throttling for better visibility
                 console.error('🚨 Connection error:', error?.message || error);
+                console.error('🔍 Connection error details:', {
+                    name: error?.name,
+                    message: error?.message,
+                    stack: error?.stack
+                });
                 this.lastConnectErrorTs = now;
             } else {
                 console.debug('🚨 Connection error (throttled):', error?.message || error);
