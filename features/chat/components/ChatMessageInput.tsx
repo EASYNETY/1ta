@@ -19,8 +19,8 @@ import { cn } from "@/lib/utils";
 import { 
     selectSelectedRoomId, 
     selectMessageDraftForRoom,
-    selectIsUserTypingInRoom,
-    updateMessageDraft,
+    selectTypingUsersForRoom,
+    setMessageDraft,
     clearMessageDraft,
     setCurrentUserTyping,
     addOptimisticMessage
@@ -44,7 +44,7 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     const selectedRoomId = useAppSelector(selectSelectedRoomId);
     const currentUser = useAppSelector((state) => state.auth.user);
     const draft = useAppSelector(state => selectedRoomId ? selectMessageDraftForRoom(state, selectedRoomId) : "");
-    const isUserTyping = useAppSelector(state => selectedRoomId ? selectIsUserTypingInRoom(state, selectedRoomId) : false);
+    const isUserTyping = useAppSelector(state => selectedRoomId ? selectTypingUsersForRoom(state, selectedRoomId).length > 0 : false);
     const { sendMessage: socketSendMessage, isConnected: socketConnected } = useSocket();
 
     const [message, setMessage] = useState(draft);
@@ -71,7 +71,8 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     };
 
     const handleTypingStart = () => {
-        dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: true }));
+        if (!currentUser) return;
+        dispatch(setCurrentUserTyping({ roomId: selectedRoomId, userId: currentUser.id, isTyping: true }));
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => {
             handleTypingStop();
@@ -79,7 +80,8 @@ export const ChatMessageInput: React.FC<ChatMessageInputProps> = ({
     };
 
     const handleTypingStop = () => {
-        dispatch(setCurrentUserTyping({ roomId: selectedRoomId, isTyping: false }));
+        if (!currentUser) return;
+        dispatch(setCurrentUserTyping({ roomId: selectedRoomId, userId: currentUser.id, isTyping: false }));
         if (typingTimeoutRef.current) {
             clearTimeout(typingTimeoutRef.current);
             typingTimeoutRef.current = null;

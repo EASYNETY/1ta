@@ -315,6 +315,10 @@ class SocketService {
         return this.socket?.connected || false;
     }
 
+    getIO(): Socket | null {
+        return this.socket;
+    }
+
     getConnectionStatus() {
         if (!this.socket) return 'disconnected';
         if (this.socket.connected) return 'connected';

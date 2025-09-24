@@ -1,6 +1,6 @@
 // features/chat/components/ChatRoomHeader.tsx
 
-import type React from "react";
+import React from "react";
 import { type ChatRoom, ChatRoomType } from "../types/chat-types";
 import { Users, Calendar, BookOpen, Bell, ArrowLeft } from "lucide-react"; // Added ArrowLeft
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +58,7 @@ export const ChatRoomHeader: React.FC<ChatRoomHeaderProps> = ({ room, isMobileVi
         : "";
 
     const handleBack = () => {
-        dispatch(selectChatRoom(null)); // Deselect the room
+        dispatch(selectChatRoom('')); // Deselect the room (empty string)
     };
 
     return (
