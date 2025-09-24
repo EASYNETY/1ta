@@ -28,9 +28,18 @@ export const useRealtimeUpdates = ({
   useEffect(() => {
     if (!enabled) return;
 
+    console.log('🔍 useRealtimeUpdates: Setting up for', eventName, {
+      roomId,
+      enabled
+    });
+
     // Join room if specified
     if (roomId) {
-      joinRoom(roomId);
+      try {
+        joinRoom(roomId);
+      } catch (error) {
+        console.warn('⚠️ useRealtimeUpdates: Failed to join room', roomId, error);
+      }
     }
 
     // Set up event listener
@@ -39,29 +48,49 @@ export const useRealtimeUpdates = ({
       debouncedOnUpdate(data);
     };
 
-    // Get the socket instance and set up event listener
-    console.log('🔍 useRealtimeUpdates: Getting socket instance', {
-      eventName,
-      roomId,
-      enabled,
-      hasSocketService: !!socketService
-    });
+    let retryTimeout: NodeJS.Timeout;
 
-    const socket = socketService.getIO();
-    console.log('🔍 useRealtimeUpdates: Socket instance obtained', {
-      eventName,
-      hasSocket: !!socket,
-      isConnected: socket?.connected
-    });
+    const setupSocketListener = () => {
+      try {
+        // Get the socket instance and set up event listener
+        console.log('🔍 useRealtimeUpdates: Getting socket instance', {
+          eventName,
+          roomId,
+          enabled,
+          hasSocketService: !!socketService
+        });
 
-    if (socket) {
-      console.log('🔍 useRealtimeUpdates: Setting up event listener for', eventName);
-      socket.on(eventName, handleUpdate);
-    } else {
-      console.warn('⚠️ useRealtimeUpdates: No socket instance available for', eventName);
-    }
+        const socket = socketService.getIO();
+        console.log('🔍 useRealtimeUpdates: Socket instance obtained', {
+          eventName,
+          hasSocket: !!socket,
+          isConnected: socket?.connected
+        });
+
+        if (socket) {
+          console.log('🔍 useRealtimeUpdates: Setting up event listener for', eventName);
+          socket.on(eventName, handleUpdate);
+        } else {
+          console.warn('⚠️ useRealtimeUpdates: No socket instance available for', eventName);
+          // Add a fallback mechanism - retry after a short delay
+          retryTimeout = setTimeout(() => {
+            console.log('🔄 useRealtimeUpdates: Retrying socket setup for', eventName);
+            setupSocketListener();
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('❌ useRealtimeUpdates: Error setting up socket listener for', eventName, error);
+      }
+    };
+
+    setupSocketListener();
 
     return () => {
+      // Clear retry timeout if it exists
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+      }
+
       const cleanupSocket = socketService.getIO();
       if (cleanupSocket) {
         cleanupSocket.off(eventName, handleUpdate);

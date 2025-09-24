@@ -13,12 +13,22 @@ class SocketService {
     private typingTimers: Map<string, NodeJS.Timeout> = new Map();
 
     initialize(user: any) {
+        console.log('🔌 SocketService.initialize() called with user:', user?.id);
+
         if (this.socket?.connected) {
+            console.log('🔌 Socket already connected, disconnecting first');
             this.disconnect();
         }
 
         this.currentUser = user;
-        
+
+        if (!user) {
+            console.warn('⚠️ SocketService.initialize() called without user');
+            return;
+        }
+
+        console.log('🔌 Creating new socket connection for user:', user.id);
+
         this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'https://api.onetechacademy.com', {
             transports: ['websocket', 'polling'],
             withCredentials: true,
@@ -322,6 +332,13 @@ class SocketService {
             currentUser: !!this.currentUser,
             socketId: this.socket?.id
         });
+
+        // If socket is not initialized but we have a current user, try to initialize
+        if (!this.socket && this.currentUser) {
+            console.log('🔄 SocketService.getIO(): Socket not initialized, initializing now...');
+            this.initialize(this.currentUser);
+        }
+
         return this.socket;
     }
 
@@ -411,9 +428,14 @@ export const useSocket = () => {
             currentUserId: currentUser?.id
         });
 
-        if (currentUser && !socketService.isConnected()) {
-            console.log('🔍 Initializing socket service for user:', currentUser.id);
-            socketService.initialize(currentUser);
+        if (currentUser) {
+            // Always ensure socket service is initialized when user is available
+            if (!socketService.isConnected()) {
+                console.log('🔍 Initializing socket service for user:', currentUser.id);
+                socketService.initialize(currentUser);
+            } else {
+                console.log('🔍 Socket service already connected for user:', currentUser.id);
+            }
         }
 
         return () => {
