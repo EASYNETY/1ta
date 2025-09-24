@@ -233,7 +233,7 @@ class SocketService {
     }
 
     // Message Management
-    sendMessage(roomId: string, content: string, type = 'text', metadata?: any) {
+    sendMessage(roomId: string, content: string, type = 'text', metadata?: any, tempId?: string) {
         return new Promise((resolve, reject) => {
             if (!this.socket?.connected) {
                 reject(new Error('Not connected to chat server'));
@@ -247,12 +247,27 @@ class SocketService {
                 metadata,
                 senderId: this.currentUser.id,
                 senderName: this.currentUser.name || this.currentUser.email,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                tempId: tempId || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
             };
 
-            // Send to server via HTTP API first, then socket will broadcast
-            console.log('📤 Sending message via API:', messageData);
-            resolve(messageData);
+            console.log('📤 Sending message via WebSocket:', messageData);
+
+            // Emit the message via WebSocket
+            this.socket.emit('newMessage', messageData, (acknowledgement: any) => {
+                if (acknowledgement && acknowledgement.success) {
+                    console.log('✅ Message sent successfully via WebSocket:', acknowledgement);
+                    resolve(messageData);
+                } else {
+                    console.error('❌ Message send failed:', acknowledgement);
+                    reject(new Error(acknowledgement?.error || 'Failed to send message'));
+                }
+            });
+
+            // Set a timeout in case no acknowledgement is received
+            setTimeout(() => {
+                reject(new Error('Message send timeout'));
+            }, 10000);
         });
     }
 
