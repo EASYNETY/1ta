@@ -39,10 +39,17 @@ export const useRealtimeUpdates = ({
       debouncedOnUpdate(data);
     };
 
-    socketService.getIO()?.on(eventName, handleUpdate);
+    // Get the socket instance and set up event listener
+    const socket = socketService.getIO();
+    if (socket) {
+      socket.on(eventName, handleUpdate);
+    }
 
     return () => {
-      socketService.getIO()?.off(eventName, handleUpdate);
+      const cleanupSocket = socketService.getIO();
+      if (cleanupSocket) {
+        cleanupSocket.off(eventName, handleUpdate);
+      }
       if (roomId) {
         socketService.leaveRoom(roomId);
       }
