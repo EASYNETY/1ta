@@ -7,6 +7,7 @@ import * as React from "react";
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { format, parseISO, isSameDay, isWeekend, compareDesc, setMonth, setYear } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { Calendar as CalendarIcon, Search, X, Check, Clock, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -145,12 +146,13 @@ export function FacilitatorAttendanceView() {
 
   const selectedDayAttendanceDetails: DailyAttendance | null = useMemo(() => {
     if (!selectedDate || !courseDailyAttendances) return null;
-    
+
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
-    return courseDailyAttendances.find((a: DailyAttendance) => format(parseISO(a.date), "yyyy-MM-dd") === formattedDate) || null;
-    // const formattedDate = format(selectedDate, "yyyy-M-d"); // Use a format that matches the keys
-    // // Find a match ignoring timezones by checking just the date part
-    // return courseDailyAttendances.find(a => format(parseISO(a.date), "yyyy-M-d") === formattedDate) || null;
+    return courseDailyAttendances.find((a: DailyAttendance) => {
+      const utcDate = parseISO(a.date);
+      const localDate = toZonedTime(utcDate, 'Africa/Lagos');
+      return format(localDate, "yyyy-MM-dd") === formattedDate;
+    }) || null;
   }, [selectedDate, courseDailyAttendances]);
 
   const filteredStudents = useMemo(() => {
@@ -174,11 +176,18 @@ export function FacilitatorAttendanceView() {
   // --- Auto-select first available date logic ---
   useEffect(() => {
     if (courseDailyAttendances && courseDailyAttendances.length > 0 && !selectedDate) {
-      const latestDate = [...courseDailyAttendances].sort((a, b) => compareDesc(parseISO(a.date), parseISO(b.date)))[0];
+      const latestDate = [...courseDailyAttendances].sort((a, b) => {
+        const utcDateA = parseISO(a.date);
+        const utcDateB = parseISO(b.date);
+        const localDateA = toZonedTime(utcDateA, 'Africa/Lagos');
+        const localDateB = toZonedTime(utcDateB, 'Africa/Lagos');
+        return compareDesc(localDateA, localDateB);
+      })[0];
       if (latestDate) {
-        const dateToSelect = parseISO(latestDate.date);
-        setSelectedDate(dateToSelect);
-        setDisplayMonth(dateToSelect);
+        const utcDate = parseISO(latestDate.date);
+        const localDate = toZonedTime(utcDate, 'Africa/Lagos');
+        setSelectedDate(localDate);
+        setDisplayMonth(localDate);
         setShowDetailsPanel(true);
       }
     }
@@ -251,7 +260,11 @@ export function FacilitatorAttendanceView() {
                   <Calendar
                     mode="single" selected={selectedDate} month={displayMonth} onMonthChange={setDisplayMonth}
                     onDayClick={handleDayClick} toDate={new Date()} disabled={isWeekend} initialFocus
-                    modifiers={{ hasData: (date) => Object.keys(attendanceDataForPicker).some(d => isSameDay(parseISO(d), date)) }}
+                    modifiers={{ hasData: (date) => Object.keys(attendanceDataForPicker).some(d => {
+                      const utcDate = parseISO(d);
+                      const localDate = toZonedTime(utcDate, 'Africa/Lagos');
+                      return isSameDay(localDate, date);
+                    }) }}
                     modifiersClassNames={{ hasData: 'relative after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-primary' }}
                     classNames={{ caption: "hidden" }}
                   />

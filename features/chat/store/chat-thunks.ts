@@ -297,31 +297,39 @@ export const createChatRoom = createAsyncThunk<
 >("chat/createRoom", async (payload, { rejectWithValue, signal }) => {
 	try {
 		console.log("🗂️ createChatRoom - Creating room:", payload);
-		
+
 		if (!payload.name?.trim()) {
 			return rejectWithValue("Room name is required");
 		}
 
+		console.log("📡 createChatRoom - Making API call to /chat/rooms");
 		const newChatRoom = await post<ChatRoom>("/chat/rooms", payload, { signal });
-		
+
 		if (signal?.aborted) {
 			throw new Error('Request aborted');
 		}
-		
-		console.log("✅ createChatRoom - Room created:", newChatRoom);
-		
+
+		console.log("✅ createChatRoom - Room created successfully:", newChatRoom);
+
 		if (!newChatRoom || !newChatRoom.id) {
+			console.error("❌ createChatRoom - Invalid response from server:", newChatRoom);
 			throw new Error("Invalid response from server on room creation.");
 		}
-		
+
 		return newChatRoom;
 	} catch (e: any) {
-		console.error("💥 createChatRoom - Error:", e);
-		
+		console.error("💥 createChatRoom - Error occurred:", e);
+		console.error("💥 createChatRoom - Error details:", {
+			message: e.message,
+			status: e.response?.status,
+			data: e.response?.data,
+			name: e.name
+		});
+
 		if (e.name === 'AbortError' || e.message === 'Request aborted') {
 			return rejectWithValue("Room creation was cancelled");
 		}
-		
+
 		const errorMessage = e.message || "Failed to create chat room";
 		return rejectWithValue(errorMessage);
 	}

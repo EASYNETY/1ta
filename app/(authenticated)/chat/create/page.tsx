@@ -230,7 +230,10 @@ export default function CreateChatRoomPage() {
     useEffect(() => { return () => { dispatch(clearCreateRoomStatus()); }; }, [dispatch]);
 
     useEffect(() => {
+        console.log('🔍 Create room status changed:', createRoomReqStatus, createRoomReqError);
+
         if (createRoomReqStatus === "succeeded") {
+            console.log('✅ Room creation succeeded, showing toast and navigating...');
             toast.success("Chat room created successfully!");
             reset({
                 name: "", description: "", type: ChatRoomType.CLASS, contextId: "",
@@ -239,12 +242,16 @@ export default function CreateChatRoomPage() {
             dispatch(clearCreateRoomStatus());
             router.push("/chat");
         } else if (createRoomReqStatus === "failed" && createRoomReqError) {
+            console.error('❌ Room creation failed:', createRoomReqError);
             toast.error(`Failed to create room: ${createRoomReqError}`);
         }
     }, [createRoomReqStatus, createRoomReqError, reset, dispatch, router, currentUser]);
 
     const onSubmitHandler = async (data: CreateChatRoomFormValues) => {
+        console.log('📝 onSubmitHandler called with data:', data);
+
         if (!currentUser?.id) {
+            console.error('❌ User not authenticated');
             toast.error("User not authenticated.");
             return;
         }
@@ -257,6 +264,7 @@ export default function CreateChatRoomPage() {
         }
 
         if (data.type !== ChatRoomType.ANNOUNCEMENT && !finalContextId && contextItems.length > 0) {
+            console.warn('⚠️ Context validation failed');
             toast.error(`Please select a specific ${data.type} for the context.`);
             setValue("contextId", "", { shouldValidate: true });
             return;
@@ -292,11 +300,12 @@ export default function CreateChatRoomPage() {
                 break;
         }
 
-        console.log("Dispatching final payload:", finalPayload);
+        console.log("🚀 Dispatching final payload:", finalPayload);
         try {
-            await dispatch(createChatRoom(finalPayload));
+            const result = await dispatch(createChatRoom(finalPayload));
+            console.log('📦 Dispatch result:', result);
         } catch (err) {
-            console.error('Create room dispatch failed:', err);
+            console.error('💥 Create room dispatch failed:', err);
         }
     };
 

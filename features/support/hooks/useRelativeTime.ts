@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { parseISO, isValid, differenceInSeconds, differenceInMinutes, differenceInHours } from 'date-fns'
+import { zonedTimeToUtc, toZonedTime } from 'date-fns-tz'
 
 /**
  * Returns a live-updating relative time label for a given ISO date string.
@@ -9,13 +10,19 @@ export default function useRelativeTime(dateString?: string) {
     const compute = (): string => {
         if (!dateString) return 'Updated N/A'
         try {
-            const parsed = parseISO(dateString)
-            if (!isValid(parsed)) return 'Updated Invalid date'
+            // Parse the ISO string as UTC, then convert to user's local timezone
+            const utcDate = parseISO(dateString)
+            if (!isValid(utcDate)) return 'Updated Invalid date'
+
+            // Convert UTC to user's local timezone (Africa/Lagos)
+            const localDate = toZonedTime(utcDate, 'Africa/Lagos')
             const now = new Date()
-            const safeDate = parsed.getTime() > now.getTime() ? now : parsed
-            const seconds = differenceInSeconds(now, safeDate)
-            const minutes = differenceInMinutes(now, safeDate)
-            const hours = differenceInHours(now, safeDate)
+            const localNow = toZonedTime(now, 'Africa/Lagos')
+
+            const safeDate = localDate.getTime() > localNow.getTime() ? localNow : localDate
+            const seconds = differenceInSeconds(localNow, safeDate)
+            const minutes = differenceInMinutes(localNow, safeDate)
+            const hours = differenceInHours(localNow, safeDate)
             if (seconds < 60) {
                 return `Updated ${seconds} second${seconds === 1 ? '' : 's'} ago`
             } else if (minutes < 60) {
@@ -46,11 +53,13 @@ export default function useRelativeTime(dateString?: string) {
         // Choose interval: every second for <1min, every minute for <1hr, every hour for >=1hr
         const getInterval = () => {
             try {
-                const parsed = parseISO(dateString)
-                if (!isValid(parsed)) return 60000
+                const utcDate = parseISO(dateString)
+                if (!isValid(utcDate)) return 60000
+                const localDate = toZonedTime(utcDate, 'Africa/Lagos')
                 const now = new Date()
-                const seconds = differenceInSeconds(now, parsed)
-                const minutes = differenceInMinutes(now, parsed)
+                const localNow = toZonedTime(now, 'Africa/Lagos')
+                const seconds = differenceInSeconds(localNow, localDate)
+                const minutes = differenceInMinutes(localNow, localDate)
                 if (seconds < 60) return 1000
                 if (minutes < 60) return 60000
                 return 3600000

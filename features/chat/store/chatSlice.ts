@@ -1,7 +1,7 @@
 // features/chat/store/chatSlice.ts
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { fetchChatMessages, deleteChatMessage, fetchChatRooms } from "./chat-thunks";
+import { fetchChatMessages, deleteChatMessage, fetchChatRooms, createChatRoom } from "./chat-thunks";
 import { ChatRoom, ChatMessage, TypingUser, MessageStatus } from "../types/chat-types";
 
 interface ChatState {
@@ -284,6 +284,26 @@ const chatSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // Create room cases
+    builder.addCase(createChatRoom.pending, (state) => {
+      state.createRoomStatus = "loading";
+      state.createRoomError = null;
+    });
+
+    builder.addCase(createChatRoom.fulfilled, (state, action) => {
+      state.createRoomStatus = "succeeded";
+      state.createRoomError = null;
+      // Add the new room to the rooms list
+      if (action.payload && !state.rooms.find(room => room.id === action.payload.id)) {
+        state.rooms.push(action.payload);
+      }
+    });
+
+    builder.addCase(createChatRoom.rejected, (state, action) => {
+      state.createRoomStatus = "failed";
+      state.createRoomError = action.payload || "Failed to create room";
+    });
+
     builder.addCase(fetchChatRooms.fulfilled, (state, action) => {
       state.rooms = action.payload;
     });
