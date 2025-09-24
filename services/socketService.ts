@@ -316,6 +316,12 @@ class SocketService {
     }
 
     getIO(): Socket | null {
+        console.log('🔍 SocketService.getIO() called', {
+            hasSocket: !!this.socket,
+            isConnected: this.socket?.connected,
+            currentUser: !!this.currentUser,
+            socketId: this.socket?.id
+        });
         return this.socket;
     }
 
@@ -391,9 +397,22 @@ import { useAppSelector } from '@/store/hooks';
 
 export const useSocket = () => {
     const currentUser = useAppSelector(state => state.auth.user);
-    
+
+    console.log('🔍 useSocket hook called', {
+        hasCurrentUser: !!currentUser,
+        isConnected: socketService.isConnected(),
+        currentUserId: currentUser?.id
+    });
+
     useEffect(() => {
+        console.log('🔍 useSocket useEffect triggered', {
+            hasCurrentUser: !!currentUser,
+            isConnected: socketService.isConnected(),
+            currentUserId: currentUser?.id
+        });
+
         if (currentUser && !socketService.isConnected()) {
+            console.log('🔍 Initializing socket service for user:', currentUser.id);
             socketService.initialize(currentUser);
         }
 

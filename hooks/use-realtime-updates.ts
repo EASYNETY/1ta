@@ -40,9 +40,25 @@ export const useRealtimeUpdates = ({
     };
 
     // Get the socket instance and set up event listener
+    console.log('🔍 useRealtimeUpdates: Getting socket instance', {
+      eventName,
+      roomId,
+      enabled,
+      hasSocketService: !!socketService
+    });
+
     const socket = socketService.getIO();
+    console.log('🔍 useRealtimeUpdates: Socket instance obtained', {
+      eventName,
+      hasSocket: !!socket,
+      isConnected: socket?.connected
+    });
+
     if (socket) {
+      console.log('🔍 useRealtimeUpdates: Setting up event listener for', eventName);
       socket.on(eventName, handleUpdate);
+    } else {
+      console.warn('⚠️ useRealtimeUpdates: No socket instance available for', eventName);
     }
 
     return () => {
