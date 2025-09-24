@@ -23,6 +23,18 @@ class SocketService {
     private isInitializing = false;
     private lastConnectErrorTs: number = 0;
     private lastMaxReconnectLogTs: number = 0;
+    
+    // Queue for storing messages that failed to send
+    private messageRetryQueue: Map<string, {
+        attempts: number;
+        maxAttempts: number;
+        lastAttempt: number;
+        data: any;
+        timeout: ReturnType<typeof setTimeout> | null;
+    }> = new Map();
+    
+    private readonly MAX_RETRY_ATTEMPTS = 3;
+    private readonly RETRY_DELAY = 2000; // 2 seconds
 
     async initialize(user: any) {
         if (this.isInitializing || (this.socket && this.socket.connected)) {
@@ -191,7 +203,7 @@ class SocketService {
             store.dispatch(connectionStatusChanged('error'));
         });
 
-        // New message
+        // New message event handler with improved delivery tracking
         this.socket.on('newMessage', (message: any) => {
             try {
                 console.log('📩 New message received:', message);
@@ -203,37 +215,65 @@ class SocketService {
                     deliveredAt: new Date().toISOString()
                 };
 
-                const roomId = (normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id) || null);
-                store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
-
-                if (normalizedMessage.senderId && normalizedMessage.senderId !== this.currentUser.id) {
-                    this.markMessageAsDelivered(normalizedMessage.id, normalizedMessage.roomId || roomId);
+                const roomId = normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id) || null;
+                
+                if (!roomId) {
+                    console.error('❌ Invalid message - missing roomId:', normalizedMessage);
+                    return;
                 }
+
+                // If this is our message being echoed back, update its status
+                if (normalizedMessage.senderId === this.currentUser.id) {
+                    console.log('📨 Message echo received, updating local state:', normalizedMessage.id);
+                    normalizedMessage.isDelivered = true;
+                    normalizedMessage.deliveredAt = new Date().toISOString();
+                } else {
+                    // Mark message as delivered and notify sender
+                    this.markMessageAsDelivered(normalizedMessage.id, roomId);
+                }
+
+                store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
             } catch (err) {
                 console.error('Error handling newMessage socket event:', err);
             }
         });
 
-        // Server acknowledgement for sent messages (used to reconcile optimistic messages)
+        // Enhanced message acknowledgement handler
         this.socket.on('messageAck', (ack: any) => {
             try {
                 console.log('📬 Received messageAck from server:', ack);
 
-                const serverMessage = ack.message || null;
-                const tempId = ack.tempId || null;
+                const { message: serverMessage, tempId, error } = ack;
 
-                if (!serverMessage) return;
+                if (error) {
+                    console.error('❌ Server reported message error:', error);
+                    // Dispatch error state for the message if needed
+                    return;
+                }
+
+                if (!serverMessage) {
+                    console.warn('⚠️ Received empty messageAck');
+                    return;
+                }
 
                 const normalizedMessage = {
                     ...serverMessage,
                     timestamp: serverMessage.createdAt || serverMessage.timestamp || new Date().toISOString(),
+                    isDelivered: true,
+                    deliveredAt: new Date().toISOString()
                 };
 
-                const roomId = normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id) || null;
+                // Ensure roomId is available
+                const roomId = normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id);
+                if (!roomId) {
+                    console.error('❌ Invalid messageAck - missing roomId:', normalizedMessage);
+                    return;
+                }
 
-                // Include tempId so reducer can match optimistic messages and replace them
+                // Include tempId for optimistic update reconciliation
                 if (tempId) {
                     normalizedMessage.tempId = tempId;
+                    console.log('🔄 Reconciling optimistic message:', tempId);
                 }
 
                 store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
@@ -357,71 +397,12 @@ class SocketService {
     sendMessage(roomId: string, content: string, type = 'text', metadata?: any, tempId?: string) {
         return new Promise<any>(async (resolve, reject) => {
             if (!roomId) return reject(new Error('Room ID is required'));
-
-            if (!this.socket?.connected) {
-                console.warn('⚠️ Socket not connected, attempting to send via API only');
-                return this.sendMessageViaAPI(roomId, content, type, metadata, tempId, resolve, reject);
-            }
-
             if (!this.currentUser) return reject(new Error('User not authenticated'));
 
-            try {
-                const messageData = {
-                    roomId,
-                    content,
-                    type,
-                    metadata,
-                    senderId: this.currentUser.id,
-                    senderName: this.currentUser.name || this.currentUser.email,
-                    timestamp: new Date().toISOString(),
-                    tempId: tempId || `temp_${Date.now()}_${Math.random()}`
-                };
+            // Generate temp ID if not provided
+            const messageTemp = tempId || `temp_${Date.now()}_${Math.random()}`;
 
-                console.log('📤 Sending message via API and socket:', messageData);
-
-                // Send via API first for persistence
-                const response = await post<any>('/chat/messages', messageData);
-
-                if (response && response.id) {
-                    console.log('✅ Message sent successfully:', response);
-
-                    // Emit via socket for real-time delivery
-                    const socketMessage = {
-                        ...messageData,
-                        id: response.id,
-                        tempId: messageData.tempId,
-                        createdAt: response.createdAt || response.timestamp
-                    };
-
-                    this.socket.emit('sendMessage', socketMessage);
-
-                    // Also emit to room for guaranteed delivery
-                    this.socket.emit('sendMessage', {
-                        ...socketMessage,
-                        isDelivered: true,
-                        deliveredAt: new Date().toISOString()
-                    });
-
-                    resolve(response);
-                } else {
-                    throw new Error('Invalid response from server');
-                }
-            } catch (error: any) {
-                console.error('💥 Failed to send message:', error);
-
-                // If socket send fails, try API-only fallback
-                if (this.socket?.connected) {
-                    console.log('🔄 Attempting API-only fallback for message delivery');
-                    return this.sendMessageViaAPI(roomId!, content, type, metadata, tempId, resolve, reject);
-                }
-
-                reject(error);
-            }
-        });
-    }
-
-    private async sendMessageViaAPI(roomId: string, content: string, type: string, metadata: any, tempId: string | undefined, resolve: Function, reject: Function) {
-        try {
+            // Prepare message data
             const messageData = {
                 roomId,
                 content,
@@ -430,34 +411,111 @@ class SocketService {
                 senderId: this.currentUser.id,
                 senderName: this.currentUser.name || this.currentUser.email,
                 timestamp: new Date().toISOString(),
-                tempId: tempId || `temp_${Date.now()}_${Math.random()}`
+                tempId: messageTemp
             };
 
-            console.log('📤 Sending message via API only (fallback):', messageData);
+            try {
+                console.log('📤 Sending message via API:', messageData);
 
-            const response = await post<any>('/chat/messages', messageData);
+                // Send via API first for persistence
+                const response = await post<any>('/chat/messages', messageData);
 
-            if (response && response.id) {
-                console.log('✅ Message sent via API fallback:', response);
+                if (response && response.id) {
+                    console.log('✅ Message persisted successfully:', response);
 
-                // Try to emit via socket if connected now
-                if (this.socket?.connected) {
-                    this.socket.emit('sendMessage', {
-                        ...messageData,
-                        id: response.id,
-                        tempId: messageData.tempId,
-                        createdAt: response.createdAt || response.timestamp
-                    });
+                    // Single emit via socket for real-time delivery with all required info
+                    if (this.socket?.connected) {
+                        const socketMessage = {
+                            ...messageData,
+                            id: response.id,
+                            tempId: messageTemp,
+                            createdAt: response.createdAt || response.timestamp,
+                            isDelivered: true,
+                            deliveredAt: new Date().toISOString()
+                        };
+
+                        console.log('📤 Broadcasting message via socket:', socketMessage);
+                        this.socket.emit('sendMessage', socketMessage, (ack: any) => {
+                            if (!ack || ack.error) {
+                                console.warn('⚠️ Socket delivery failed, enqueueing for retry:', messageTemp);
+                                this.enqueueForRetry(messageData, messageTemp);
+                            } else {
+                                console.log('✅ Socket delivery confirmed:', messageTemp);
+                            }
+                        });
+                    } else {
+                        console.warn('⚠️ Socket disconnected, enqueueing for retry:', messageTemp);
+                        this.enqueueForRetry(messageData, messageTemp);
+                    }
+
+                    resolve(response);
+                } else {
+                    throw new Error('Invalid response from server');
                 }
-
-                resolve(response);
-            } else {
-                throw new Error('Invalid response from server');
+            } catch (error: any) {
+                console.error('💥 Failed to send message:', error);
+                
+                // If API call fails but we have socket connection, try socket-only delivery
+                if (this.socket?.connected) {
+                    console.log('🔄 API failed, attempting socket-only delivery:', messageTemp);
+                    this.socket.emit('sendMessage', messageData, (ack: any) => {
+                        if (!ack || ack.error) {
+                            this.enqueueForRetry(messageData, messageTemp);
+                        }
+                    });
+                } else {
+                    // Both API and socket failed, queue for retry
+                    this.enqueueForRetry(messageData, messageTemp);
+                }
+                
+                reject(error);
             }
-        } catch (error: any) {
-            console.error('💥 API fallback also failed:', error);
-            reject(error);
+        });
+    }
+
+    private async sendMessageViaAPI(roomId: string, content: string, type: string, metadata: any, tempId: string | undefined): Promise<any> {
+        const messageTemp = tempId || `temp_${Date.now()}_${Math.random()}`;
+
+        const messageData = {
+            roomId,
+            content,
+            type,
+            metadata,
+            senderId: this.currentUser.id,
+            senderName: this.currentUser.name || this.currentUser.email,
+            timestamp: new Date().toISOString(),
+            tempId: messageTemp
+        };
+
+        console.log('📤 Sending message via API:', messageData);
+
+        const response = await post<any>('/chat/messages', messageData);
+
+        if (!response || !response.id) {
+            console.error('❌ Invalid response from server:', response);
+            throw new Error('Invalid response from server');
         }
+
+        console.log('✅ Message persisted successfully:', response);
+
+        // Attempt socket emission if connected
+        if (this.socket?.connected) {
+            const socketMessage = {
+                ...messageData,
+                id: response.id,
+                tempId: messageTemp,
+                createdAt: response.createdAt || response.timestamp,
+                isDelivered: true,
+                deliveredAt: new Date().toISOString()
+            };
+
+            console.log('📤 Broadcasting message via socket:', socketMessage);
+            this.socket.emit('sendMessage', socketMessage);
+        } else {
+            console.warn('⚠️ Socket disconnected, message persisted but real-time delivery delayed');
+        }
+
+        return response;
     }
 
     markMessageAsDelivered(messageId: string, roomId: string) {
@@ -579,10 +637,80 @@ class SocketService {
         return false;
     }
 
+    private enqueueForRetry(messageData: any, tempId: string) {
+        if (this.messageRetryQueue.has(tempId)) {
+            console.log('📋 Message already in retry queue:', tempId);
+            return;
+        }
+
+        const entry = {
+            attempts: 0,
+            maxAttempts: this.MAX_RETRY_ATTEMPTS,
+            lastAttempt: Date.now(),
+            data: messageData,
+            timeout: null
+        };
+
+        this.messageRetryQueue.set(tempId, entry);
+        this.scheduleRetry(tempId);
+    }
+
+    private scheduleRetry(tempId: string) {
+        const entry = this.messageRetryQueue.get(tempId);
+        if (!entry) return;
+
+        if (entry.attempts >= entry.maxAttempts) {
+            console.log('❌ Max retry attempts reached for message:', tempId);
+            this.messageRetryQueue.delete(tempId);
+            return;
+        }
+
+        entry.timeout = setTimeout(async () => {
+            try {
+                if (!this.socket?.connected) {
+                    console.log('📡 Socket not connected, rescheduling retry for:', tempId);
+                    this.scheduleRetry(tempId);
+                    return;
+                }
+
+                entry.attempts++;
+                entry.lastAttempt = Date.now();
+
+                console.log(`🔄 Retry attempt ${entry.attempts}/${entry.maxAttempts} for message:`, tempId);
+                
+                const response = await this.sendMessage(
+                    entry.data.roomId,
+                    entry.data.content,
+                    entry.data.type,
+                    entry.data.metadata,
+                    tempId
+                );
+
+                if (response && response.id) {
+                    console.log('✅ Retry successful for message:', tempId);
+                    this.messageRetryQueue.delete(tempId);
+                } else {
+                    console.log('❌ Retry failed, scheduling next attempt for:', tempId);
+                    this.scheduleRetry(tempId);
+                }
+            } catch (error) {
+                console.error('❌ Error during retry for message:', tempId, error);
+                this.scheduleRetry(tempId);
+            }
+        }, this.RETRY_DELAY * Math.pow(2, entry.attempts)); // Exponential backoff
+    }
+
     disconnect() {
         console.log('🔌 Disconnecting from chat server');
         this.typingTimers.forEach(timer => clearTimeout(timer));
         this.typingTimers.clear();
+
+        // Clear any retry timers
+        this.messageRetryQueue.forEach(entry => {
+            if (entry.timeout) clearTimeout(entry.timeout);
+        });
+        this.messageRetryQueue.clear();
+
         if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout as any);
         this.connectedRooms.clear();
         if (this.socket) {
