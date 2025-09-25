@@ -135,16 +135,47 @@ const chatSlice = createSlice({
 
     messageReceived: (
       state,
-      action: PayloadAction<any>
+      action: PayloadAction<{ roomId: string; message: ChatMessage }>
     ) => {
-      // Accept either { roomId, message } or the older unwrapped message object
-      let roomId: string | null = null;
-      let message: ChatMessage | null = null;
+      const { roomId, message } = action.payload;
+      
+      // Ensure messages object exists
+      if (!state.messages) {
+        state.messages = {};
+      }
+      
+      // Ensure room messages array exists
+      if (!state.messages[roomId]) {
+        state.messages[roomId] = [];
+      }
 
-      if (action.payload) {
-        if (action.payload.roomId && action.payload.message) {
-          roomId = action.payload.roomId;
-          message = action.payload.message;
+      // Check if message already exists (by id or tempId)
+      const existingIndex = state.messages[roomId].findIndex(
+        m => (message.id && m.id === message.id) || 
+            (message.tempId && m.tempId === message.tempId)
+      );
+
+      if (existingIndex !== -1) {
+        // Update existing message
+        state.messages[roomId][existingIndex] = {
+          ...state.messages[roomId][existingIndex],
+          ...message,
+          timestamp: message.createdAt || message.timestamp || new Date().toISOString()
+        };
+      } else {
+        // Add new message
+        state.messages[roomId].push({
+          ...message,
+          timestamp: message.createdAt || message.timestamp || new Date().toISOString()
+        });
+      }
+
+      // Sort messages by timestamp
+      state.messages[roomId].sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.createdAt || 0).getTime();
+        const timeB = new Date(b.timestamp || b.createdAt || 0).getTime();
+        return timeA - timeB;
+      });
         } else if (action.payload.roomId && action.payload.id) {
           // payload looks like a message object that also has roomId
           roomId = action.payload.roomId;

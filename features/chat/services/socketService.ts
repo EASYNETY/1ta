@@ -36,6 +36,32 @@ class SocketService {
     private readonly MAX_RETRY_ATTEMPTS = 3;
     private readonly RETRY_DELAY = 2000; // 2 seconds
 
+    private handleIncomingMessage(message: any) {
+        try {
+            // Only handle messages from others
+            if (message.senderId === this.currentUser.id) return;
+
+            // If we're not already in this room, join it
+            if (!this.connectedRooms.has(message.roomId)) {
+                this.joinRoom(message.roomId);
+            }
+
+            // You can add notification sound or browser notification here
+            // For example:
+            if (typeof window !== 'undefined' && document.visibilityState !== 'visible') {
+                // Show browser notification if tab is not visible
+                if (Notification.permission === 'granted') {
+                    new Notification('New Message', {
+                        body: `${message.senderName}: ${message.content}`,
+                        icon: '/app-icon.png' // Add your app icon path
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Error handling incoming message:', err);
+        }
+    }
+
     async initialize(user: any) {
         if (this.isInitializing || (this.socket && this.socket.connected)) {
             console.log('🔄 Socket already initialized or initializing, skipping...');
@@ -208,31 +234,45 @@ class SocketService {
             try {
                 console.log('📩 New message received:', message);
 
+                // Ensure we have a valid message object
+                if (!message) {
+                    console.error('❌ Received empty message');
+                    return;
+                }
+
+                const roomId = message.roomId || (message.room && message.room.id) || null;
+                if (!roomId) {
+                    console.error('❌ Invalid message - missing roomId:', message);
+                    return;
+                }
+
+                // Normalize and enhance message data
                 const normalizedMessage = {
                     ...message,
+                    id: message.id || message.tempId || `temp_${Date.now()}_${Math.random()}`,
                     timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+                    status: message.status || 'delivered',
                     isDelivered: true,
                     deliveredAt: new Date().toISOString()
                 };
 
-                const roomId = normalizedMessage.roomId || (normalizedMessage.room && normalizedMessage.room.id) || null;
-                
-                if (!roomId) {
-                    console.error('❌ Invalid message - missing roomId:', normalizedMessage);
-                    return;
-                }
-
-                // If this is our message being echoed back, update its status
+                // If this is our message being echoed back
                 if (normalizedMessage.senderId === this.currentUser.id) {
                     console.log('📨 Message echo received, updating local state:', normalizedMessage.id);
-                    normalizedMessage.isDelivered = true;
-                    normalizedMessage.deliveredAt = new Date().toISOString();
                 } else {
-                    // Mark message as delivered and notify sender
+                    console.log('📥 Received message from:', normalizedMessage.senderName);
+                    // Acknowledge receipt to sender
                     this.markMessageAsDelivered(normalizedMessage.id, roomId);
+                    
+                    // Play notification sound or show notification if needed
+                    this.handleIncomingMessage(normalizedMessage);
                 }
 
-                store.dispatch(messageReceived({ roomId, message: normalizedMessage }));
+                // Dispatch to store - this will update UI for both sender and receiver
+                store.dispatch(messageReceived({ 
+                    roomId, 
+                    message: normalizedMessage 
+                }));
             } catch (err) {
                 console.error('Error handling newMessage socket event:', err);
             }
@@ -379,11 +419,24 @@ class SocketService {
     }
 
     joinRoom(roomId: string) {
-        if (this.socket?.connected) {
-            console.log('🔗 Joining room:', roomId);
-            this.socket.emit('joinRoom', { roomId, userId: this.currentUser.id, userName: this.currentUser.name || this.currentUser.email });
-            this.connectedRooms.add(roomId);
+        if (!this.socket) {
+            console.log('⚠️ No socket instance when trying to join room:', roomId);
+            return;
         }
+
+        if (!this.socket.connected) {
+            console.log('⚠️ Socket not connected, queueing room join for:', roomId);
+            this.connectedRooms.add(roomId); // Add to set so it auto-joins on connect
+            return;
+        }
+
+        console.log('🔗 Joining room:', roomId);
+        this.socket.emit('joinRoom', { 
+            roomId, 
+            userId: this.currentUser.id, 
+            userName: this.currentUser.name || this.currentUser.email 
+        });
+        this.connectedRooms.add(roomId);
     }
 
     leaveRoom(roomId: string) {
@@ -411,8 +464,16 @@ class SocketService {
                 senderId: this.currentUser.id,
                 senderName: this.currentUser.name || this.currentUser.email,
                 timestamp: new Date().toISOString(),
-                tempId: messageTemp
+                tempId: messageTemp,
+                status: 'sending', // Add status for optimistic UI
+                id: messageTemp    // Use tempId as temporary id for optimistic UI
             };
+
+            // Dispatch optimistic update immediately
+            store.dispatch(messageReceived({
+                roomId,
+                message: messageData
+            }));
 
             try {
                 console.log('📤 Sending message via API:', messageData);
