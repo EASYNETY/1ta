@@ -139,24 +139,26 @@ const chatSlice = createSlice({
     ) => {
       let roomId: string;
       let message: ChatMessage;
+      console.log('💬 Processing message:', action.payload);
 
-      // Determine roomId and message from different payload formats
-      if ('roomId' in action.payload && 'message' in action.payload) {
-        // Standard format: { roomId: string, message: ChatMessage }
-        roomId = action.payload.roomId;
-        message = action.payload.message;
-      } else if ('roomId' in action.payload && 'id' in action.payload) {
-        // Direct message format with roomId
-        roomId = action.payload.roomId;
-        message = action.payload as ChatMessage;
-      } else if ('room' in action.payload) {
-        // Message with room object
-        roomId = action.payload.room.id;
-        message = action.payload as ChatMessage;
-      } else {
-        console.error('Invalid message format:', action.payload);
-        return;
-      }
+      try {
+        // Determine roomId and message from different payload formats
+        if ('roomId' in action.payload && 'message' in action.payload) {
+          // Standard format: { roomId: string, message: ChatMessage }
+          roomId = action.payload.roomId;
+          message = action.payload.message;
+        } else if ('roomId' in action.payload && 'id' in action.payload) {
+          // Direct message format with roomId
+          roomId = action.payload.roomId;
+          message = action.payload as ChatMessage;
+        } else if ('room' in action.payload) {
+          // Message with room object
+          roomId = action.payload.room.id;
+          message = action.payload as ChatMessage;
+        } else {
+          console.error('Invalid message format:', action.payload);
+          return;
+        }
 
       // Ensure messages object exists
       if (!state.messages) {
@@ -168,36 +170,46 @@ const chatSlice = createSlice({
         state.messages[roomId] = [];
       }
 
-      // Check if message already exists (by id or tempId)
-      const existingIndex = state.messages[roomId].findIndex(
-        m => (message.id && m.id === message.id) || 
-            (message.tempId && m.tempId === message.tempId)
-      );
-
+      console.log('🔍 Current messages:', state.messages[roomId]?.length || 0);
+      
+      // Normalize the message first
       const normalizedMessage = {
         ...message,
+        id: message.id || message.tempId || `temp_${Date.now()}`,
         timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
         status: message.status || MessageStatus.DELIVERED,
-        isOptimistic: false
+        isOptimistic: false,
+        roomId: roomId // Ensure roomId is set
       };
+
+      // Check if message already exists (by id or tempId)
+      const existingIndex = state.messages[roomId].findIndex(
+        m => (normalizedMessage.id && m.id === normalizedMessage.id) || 
+            (normalizedMessage.tempId && m.tempId === normalizedMessage.tempId)
+      );
 
       if (existingIndex !== -1) {
         // Update existing message
+        console.log('🔄 Updating existing message:', normalizedMessage.id);
         state.messages[roomId][existingIndex] = {
           ...state.messages[roomId][existingIndex],
-          ...normalizedMessage
+          ...normalizedMessage,
+          updatedAt: new Date().toISOString()
         };
       } else {
         // Add new message
+        console.log('➕ Adding new message:', normalizedMessage.id);
         state.messages[roomId].push(normalizedMessage);
       }
 
-      // Sort messages by timestamp
+      // Sort messages by timestamp (most recent last)
       state.messages[roomId].sort((a, b) => {
-        const timeA = new Date(a.timestamp || a.createdAt || 0).getTime();
-        const timeB = new Date(b.timestamp || b.createdAt || 0).getTime();
-        return timeA - timeB;
+        const timeA = new Date(a.timestamp || 0).getTime();
+        const timeB = new Date(b.timestamp || 0).getTime();
+        return timeB - timeA; // Reverse order (newest messages at the top)
       });
+      
+      console.log('📊 Updated message count:', state.messages[roomId].length);
     },
 
     messageDelivered: (
@@ -329,7 +341,7 @@ const chatSlice = createSlice({
       state.messageStatus[roomId] = "loading";
     });
 
-    // 🚀 Hard reload: always replace messages
+    // 🚀 Merge new messages with existing ones
     builder.addCase(fetchChatMessages.fulfilled, (state, action) => {
       const { roomId } = action.meta.arg;
       if (!state.messages) {
@@ -338,8 +350,35 @@ const chatSlice = createSlice({
       if (!state.messageStatus) {
         state.messageStatus = {};
       }
-      state.messages[roomId] = action.payload.data || [];
+
+      // Get new messages
+      const newMessages = action.payload.data || [];
+      console.log('📥 Received', newMessages.length, 'messages for room', roomId);
+
+      // Get existing messages
+      const existingMessages = state.messages[roomId] || [];
+      
+      // Merge messages, avoiding duplicates
+      const mergedMessages = [...existingMessages];
+      
+      newMessages.forEach(newMsg => {
+        const exists = mergedMessages.some(msg => msg.id === newMsg.id);
+        if (!exists) {
+          mergedMessages.push(newMsg);
+        }
+      });
+
+      // Sort by timestamp (newest first)
+      mergedMessages.sort((a, b) => {
+        const timeA = new Date(a.timestamp || 0).getTime();
+        const timeB = new Date(b.timestamp || 0).getTime();
+        return timeB - timeA;
+      });
+
+      state.messages[roomId] = mergedMessages;
       state.messageStatus[roomId] = "succeeded";
+      
+      console.log('📊 Total messages after merge:', mergedMessages.length);
     });
 
     builder.addCase(fetchChatMessages.rejected, (state, action) => {
