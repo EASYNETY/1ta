@@ -160,9 +160,21 @@ class SocketService {
 
         this.socket.on('connect', () => {
             console.log('🔌 Connected to chat server successfully!');
+            console.log('🔍 Socket ID:', this.socket?.id);
+            console.log('🔍 Transport:', this.socket?.io?.engine?.transport?.name);
+            console.log('🔍 Protocol:', this.socket?.io?.engine?.protocol);
+            
             this.reconnectAttempts = 0;
             store.dispatch(connectionStatusChanged('connected'));
             console.log('📡 Socket connection status updated to: connected');
+            
+            // Verify Redux state
+            const chatState = store.getState().chat;
+            console.log('📊 Current Redux state:', {
+                connectionStatus: chatState.connectionStatus,
+                roomsCount: chatState.rooms.length,
+                connectedRooms: Array.from(this.connectedRooms)
+            });
 
             this.socket!.emit('authenticate', {
                 userId: this.currentUser.id,
@@ -233,6 +245,9 @@ class SocketService {
         this.socket.on('newMessage', (message: any) => {
             try {
                 console.log('📩 New message received:', message);
+                console.log('🔍 Current store state:', store.getState().chat);
+                console.log('🔍 Socket connection status:', this.socket?.connected);
+                console.log('🔍 Connected rooms:', Array.from(this.connectedRooms));
 
                 // Ensure we have a valid message object
                 if (!message) {
@@ -286,13 +301,23 @@ class SocketService {
                 }
 
                 // Force update with complete message object for both sender and receiver
-                store.dispatch(messageReceived({
+                const messagePayload = {
                     roomId,
                     message: {
                         ...normalizedMessage,
-                        isOptimistic: false // Ensure this is marked as a confirmed message
+                        isOptimistic: false
                     }
-                }));
+                };
+                
+                console.log('📤 Dispatching to Redux:', messagePayload);
+                store.dispatch(messageReceived(messagePayload));
+                
+                // Verify the state was updated
+                const updatedState = store.getState().chat;
+                console.log('📊 Updated Redux state:', {
+                    roomMessages: updatedState.messages[roomId]?.length || 0,
+                    lastMessage: updatedState.messages[roomId]?.[updatedState.messages[roomId]?.length - 1]
+                });
             } catch (err) {
                 console.error('Error handling newMessage socket event:', err);
             }
@@ -383,6 +408,12 @@ class SocketService {
         this.socket.on('roomJoined', (data: any) => {
             console.log('🏠 Joined room:', data);
             this.connectedRooms.add(data.roomId);
+            
+            // Verify latest messages after joining
+            console.log('🔄 Verifying latest messages for room:', data.roomId);
+            const chatState = store.getState().chat;
+            const roomMessages = chatState.messages[data.roomId] || [];
+            console.log(`📊 Room has ${roomMessages.length} messages after join`);
         });
 
         this.socket.on('roomLeft', (data: any) => {
@@ -462,16 +493,26 @@ class SocketService {
         }
 
         console.log('🔗 Joining room:', roomId);
+        console.log('⏳ Waiting for message sync...');
         
         // Add to connected rooms set before emitting to prevent race conditions
         this.connectedRooms.add(roomId);
         
-        this.socket.emit('joinRoom', { 
-            roomId, 
-            userId: this.currentUser.id, 
-            userName: this.currentUser.name || this.currentUser.email,
-            timestamp: new Date().toISOString()
-        });
+        // Delay the room join slightly to ensure proper message synchronization
+        setTimeout(() => {
+            if (this.socket?.connected) {
+                this.socket.emit('joinRoom', { 
+                    roomId, 
+                    userId: this.currentUser.id, 
+                    userName: this.currentUser.name || this.currentUser.email,
+                    timestamp: new Date().toISOString()
+                });
+                console.log('✅ Room join completed after sync delay:', roomId);
+            } else {
+                console.log('❌ Socket disconnected during join delay:', roomId);
+                this.connectedRooms.delete(roomId);
+            }
+        }, 10000); // 10 second delay for message synchronization
     }
 
     leaveRoom(roomId: string) {
@@ -521,6 +562,9 @@ class SocketService {
 
                     // Single emit via socket for real-time delivery with all required info
                     if (this.socket?.connected) {
+                        console.log('🔍 Socket connection status before emit:', this.socket.connected);
+                        console.log('🔍 Connected rooms:', Array.from(this.connectedRooms));
+                        
                         const socketMessage = {
                             ...messageData,
                             id: response.id,
@@ -529,6 +573,16 @@ class SocketService {
                             isDelivered: true,
                             deliveredAt: new Date().toISOString()
                         };
+                        
+                        // Verify we're in the room before sending
+                        if (!this.connectedRooms.has(roomId)) {
+                            console.log('⚠️ Not in room, joining before send:', roomId);
+                            await new Promise<void>((resolve) => {
+                                this.joinRoom(roomId);
+                                // Wait briefly for room join to complete
+                                setTimeout(resolve, 500);
+                            });
+                        }
 
                         console.log('📤 Broadcasting message via socket:', socketMessage);
                         this.socket.emit('sendMessage', socketMessage, (ack: any) => {
