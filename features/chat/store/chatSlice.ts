@@ -202,11 +202,11 @@ const chatSlice = createSlice({
           state.messages[roomId].push(normalizedMessage);
         }
 
-        // Sort messages by timestamp (most recent last)
+        // Sort messages by timestamp (oldest first, newest at bottom)
         state.messages[roomId].sort((a, b) => {
           const timeA = new Date(a.timestamp || 0).getTime();
           const timeB = new Date(b.timestamp || 0).getTime();
-          return timeB - timeA; // Reverse order (newest messages at the top)
+          return timeA - timeB; // Oldest messages first (newest at bottom)
         });
         
         console.log('📊 Updated message count:', state.messages[roomId].length);
@@ -371,11 +371,11 @@ const chatSlice = createSlice({
         }
       });
 
-      // Sort by timestamp (newest first)
+      // Sort by timestamp (oldest first, newest at bottom)
       mergedMessages.sort((a, b) => {
         const timeA = new Date(a.timestamp || 0).getTime();
         const timeB = new Date(b.timestamp || 0).getTime();
-        return timeB - timeA;
+        return timeA - timeB;
       });
 
       state.messages[roomId] = mergedMessages;

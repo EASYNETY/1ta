@@ -10,6 +10,7 @@ import {
     messageDelivered,
     messageRead
 } from '@/features/chat/store/chatSlice';
+import { MessageType, MessageStatus } from '../types/chat-types';
 import { post } from '@/lib/api-client';
 
 class SocketService {
@@ -498,21 +499,19 @@ class SocketService {
         // Add to connected rooms set before emitting to prevent race conditions
         this.connectedRooms.add(roomId);
         
-        // Delay the room join slightly to ensure proper message synchronization
-        setTimeout(() => {
-            if (this.socket?.connected) {
-                this.socket.emit('joinRoom', { 
-                    roomId, 
-                    userId: this.currentUser.id, 
-                    userName: this.currentUser.name || this.currentUser.email,
-                    timestamp: new Date().toISOString()
-                });
-                console.log('✅ Room join completed after sync delay:', roomId);
-            } else {
-                console.log('❌ Socket disconnected during join delay:', roomId);
-                this.connectedRooms.delete(roomId);
-            }
-        }, 10000); // 10 second delay for message synchronization
+        // Join room immediately - no delay needed for real-time messaging
+        if (this.socket?.connected) {
+            this.socket.emit('joinRoom', {
+                roomId,
+                userId: this.currentUser.id,
+                userName: this.currentUser.name || this.currentUser.email,
+                timestamp: new Date().toISOString()
+            });
+            console.log('✅ Room join completed immediately:', roomId);
+        } else {
+            console.log('❌ Socket disconnected during join:', roomId);
+            this.connectedRooms.delete(roomId);
+        }
     }
 
     leaveRoom(roomId: string) {
@@ -535,13 +534,13 @@ class SocketService {
             const messageData = {
                 roomId,
                 content,
-                type,
+                type: type as MessageType,
                 metadata,
                 senderId: this.currentUser.id,
                 senderName: this.currentUser.name || this.currentUser.email,
                 timestamp: new Date().toISOString(),
                 tempId: messageTemp,
-                status: 'sending', // Add status for optimistic UI
+                status: MessageStatus.SENDING, // Add status for optimistic UI
                 id: messageTemp    // Use tempId as temporary id for optimistic UI
             };
 
@@ -629,7 +628,7 @@ class SocketService {
         const messageData = {
             roomId,
             content,
-            type,
+            type: type as MessageType,
             metadata,
             senderId: this.currentUser.id,
             senderName: this.currentUser.name || this.currentUser.email,
