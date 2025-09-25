@@ -135,10 +135,29 @@ const chatSlice = createSlice({
 
     messageReceived: (
       state,
-      action: PayloadAction<{ roomId: string; message: ChatMessage }>
+      action: PayloadAction<{ roomId: string; message: ChatMessage } | ChatMessage>
     ) => {
-      const { roomId, message } = action.payload;
-      
+      let roomId: string;
+      let message: ChatMessage;
+
+      // Determine roomId and message from different payload formats
+      if ('roomId' in action.payload && 'message' in action.payload) {
+        // Standard format: { roomId: string, message: ChatMessage }
+        roomId = action.payload.roomId;
+        message = action.payload.message;
+      } else if ('roomId' in action.payload && 'id' in action.payload) {
+        // Direct message format with roomId
+        roomId = action.payload.roomId;
+        message = action.payload as ChatMessage;
+      } else if ('room' in action.payload) {
+        // Message with room object
+        roomId = action.payload.room.id;
+        message = action.payload as ChatMessage;
+      } else {
+        console.error('Invalid message format:', action.payload);
+        return;
+      }
+
       // Ensure messages object exists
       if (!state.messages) {
         state.messages = {};
@@ -155,19 +174,22 @@ const chatSlice = createSlice({
             (message.tempId && m.tempId === message.tempId)
       );
 
+      const normalizedMessage = {
+        ...message,
+        timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
+        status: message.status || MessageStatus.DELIVERED,
+        isOptimistic: false
+      };
+
       if (existingIndex !== -1) {
         // Update existing message
         state.messages[roomId][existingIndex] = {
           ...state.messages[roomId][existingIndex],
-          ...message,
-          timestamp: message.createdAt || message.timestamp || new Date().toISOString()
+          ...normalizedMessage
         };
       } else {
         // Add new message
-        state.messages[roomId].push({
-          ...message,
-          timestamp: message.createdAt || message.timestamp || new Date().toISOString()
-        });
+        state.messages[roomId].push(normalizedMessage);
       }
 
       // Sort messages by timestamp
@@ -176,46 +198,6 @@ const chatSlice = createSlice({
         const timeB = new Date(b.timestamp || b.createdAt || 0).getTime();
         return timeA - timeB;
       });
-        } else if (action.payload.roomId && action.payload.id) {
-          // payload looks like a message object that also has roomId
-          roomId = action.payload.roomId;
-          message = action.payload as ChatMessage;
-        } else if (action.payload.message && action.payload.message.roomId) {
-          roomId = action.payload.message.roomId;
-          message = action.payload.message;
-        } else if (action.payload.id && action.payload.roomId) {
-          roomId = action.payload.roomId;
-          message = action.payload as ChatMessage;
-        } else if (action.payload.id && action.payload.room) {
-          roomId = action.payload.room.id || action.payload.roomId || null;
-          message = action.payload as ChatMessage;
-        }
-      }
-
-      if (!message || !roomId) return;
-      if (!state.messages) {
-        state.messages = {};
-      }
-      if (!state.messages[roomId]) {
-        state.messages[roomId] = [];
-      }
-
-      // Check if this message replaces an optimistic message
-      const existingIndex = state.messages[roomId].findIndex(
-        (m) => m.tempId === message.tempId || m.id === message.id
-      );
-
-      if (existingIndex !== -1) {
-        // Replace the optimistic message with the real one
-        state.messages[roomId][existingIndex] = {
-          ...message,
-          isOptimistic: false, // Ensure optimistic flag is removed
-          status: message.status || MessageStatus.DELIVERED
-        };
-      } else {
-        // Add new message
-        state.messages[roomId].push(message);
-      }
     },
 
     messageDelivered: (
