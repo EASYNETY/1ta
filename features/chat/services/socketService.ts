@@ -246,15 +246,32 @@ class SocketService {
                     return;
                 }
 
+                // Auto-join room if we're not in it yet
+                if (!this.connectedRooms.has(roomId)) {
+                    console.log('🔄 Auto-joining room for new message:', roomId);
+                    this.joinRoom(roomId);
+                }
+
                 // Normalize and enhance message data
                 const normalizedMessage = {
                     ...message,
                     id: message.id || message.tempId || `temp_${Date.now()}_${Math.random()}`,
+                    roomId: roomId, // Ensure roomId is set
                     timestamp: message.createdAt || message.timestamp || new Date().toISOString(),
                     status: message.status || 'delivered',
                     isDelivered: true,
-                    deliveredAt: new Date().toISOString()
+                    deliveredAt: new Date().toISOString(),
+                    // Add sender info if missing
+                    senderId: message.senderId || message.userId,
+                    senderName: message.senderName || message.userName || 'Unknown User'
                 };
+
+                console.log('📨 Processing message:', {
+                    id: normalizedMessage.id,
+                    roomId: normalizedMessage.roomId,
+                    senderId: normalizedMessage.senderId,
+                    timestamp: normalizedMessage.timestamp
+                });
 
                 // If this is our message being echoed back
                 if (normalizedMessage.senderId === this.currentUser.id) {
@@ -268,10 +285,13 @@ class SocketService {
                     this.handleIncomingMessage(normalizedMessage);
                 }
 
-                // Dispatch to store - this will update UI for both sender and receiver
-                store.dispatch(messageReceived({ 
-                    roomId, 
-                    message: normalizedMessage 
+                // Force update with complete message object for both sender and receiver
+                store.dispatch(messageReceived({
+                    roomId,
+                    message: {
+                        ...normalizedMessage,
+                        isOptimistic: false // Ensure this is marked as a confirmed message
+                    }
                 }));
             } catch (err) {
                 console.error('Error handling newMessage socket event:', err);
@@ -419,6 +439,11 @@ class SocketService {
     }
 
     joinRoom(roomId: string) {
+        if (!roomId) {
+            console.error('❌ Attempted to join room with invalid roomId');
+            return;
+        }
+
         if (!this.socket) {
             console.log('⚠️ No socket instance when trying to join room:', roomId);
             return;
@@ -430,13 +455,23 @@ class SocketService {
             return;
         }
 
+        // Prevent duplicate join if we're already in the process of joining
+        if (this.connectedRooms.has(roomId)) {
+            console.log('ℹ️ Already joined or joining room:', roomId);
+            return;
+        }
+
         console.log('🔗 Joining room:', roomId);
+        
+        // Add to connected rooms set before emitting to prevent race conditions
+        this.connectedRooms.add(roomId);
+        
         this.socket.emit('joinRoom', { 
             roomId, 
             userId: this.currentUser.id, 
-            userName: this.currentUser.name || this.currentUser.email 
+            userName: this.currentUser.name || this.currentUser.email,
+            timestamp: new Date().toISOString()
         });
-        this.connectedRooms.add(roomId);
     }
 
     leaveRoom(roomId: string) {
