@@ -2,7 +2,6 @@
 'use client'; // This ensures it's only run in the browser
 
 import { io } from 'socket.io-client';
-import { getAuthToken } from './auth-service';
 
 // Helper to normalize a provided websocket URL and ensure it has a protocol
 function normalizeWsUrl(raw?: string): string | undefined {
@@ -46,10 +45,7 @@ const socket = io(wsUrl, {
   timeout: 5000,
   reconnection: true,
   reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  auth: {
-    token: typeof window !== 'undefined' ? getAuthToken() || undefined : undefined
-  }
+  reconnectionDelay: 1000
 });
 
 export default socket;

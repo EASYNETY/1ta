@@ -125,13 +125,9 @@ class SocketService {
                 reconnectionDelayMax: 10000,
                 autoConnect: true,
                 forceNew: false,
-                auth: { 
-                    token: typeof window !== 'undefined' ? 
-                        localStorage.getItem('token') || 
-                        sessionStorage.getItem('token') || 
-                        localStorage.getItem('authToken') || 
-                        sessionStorage.getItem('authToken') : null 
-                },
+                // Intentionally not sending auth token from client
+                // Server must allow unauthenticated connections or perform
+                // authentication after connection via a separate event.
                 query: {
                     userId: user.id,
                     userName: user.name || user.email,
