@@ -72,10 +72,9 @@ class SocketService {
         this.currentUser = user;
         this.isInitializing = true;
 
-        console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.onetechacademy.com');
-        // Use the same domain as the API but with WebSocket protocol
-        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.onetechacademy.com';
-        const wsUrl = apiUrl.replace(/^https?/, 'wss'); // Convert http/https to wss/ws
+        console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_WEBSOCKET_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.onetechacademy.com');
+        // Use the WebSocket URL if available, otherwise derive from API URL
+        const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || (process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL.replace(/^https?/, 'wss').replace('/api', '') : 'wss://api.onetechacademy.com');
 
         console.log('🔌 Attempting WebSocket connection to:', wsUrl);
 
@@ -85,8 +84,8 @@ class SocketService {
              window.location.hostname.includes('1techacademy.com'));
 
         const wsUrls = isProduction
-            ? ['wss://api.onetechacademy.com', 'ws://api.onetechacademy.com', 'wss://api.onetechacademy.com:443'] // Try WSS first, then WS fallback
-            : ['ws://localhost:3000', 'ws://localhost:8080', 'ws://127.0.0.1:3000']; // Try localhost first in dev
+            ? [wsUrl, wsUrl.replace('wss://', 'ws://'), wsUrl.replace(':5000', ':443')] // Use configured WebSocket URL
+            : ['ws://localhost:5000', 'ws://localhost:8080', 'ws://127.0.0.1:5000', 'ws://localhost:3000']; // Try localhost port 5000 first in dev
 
         console.log('🔌 WebSocket URLs to try:', wsUrls);
         console.log('🔍 Environment check - isProduction:', isProduction);
