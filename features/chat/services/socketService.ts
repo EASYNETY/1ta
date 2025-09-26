@@ -103,19 +103,6 @@ class SocketService {
                     : 'ws://localhost:5000';
             }
 
-            // Get authentication token with fallbacks
-            const authToken = user.token || 
-                (typeof window !== 'undefined' ? 
-                    localStorage.getItem('authToken') ||
-                    localStorage.getItem('token') ||
-                    sessionStorage.getItem('authToken') || 
-                    '' : 
-                    '');
-
-            if (!authToken) {
-                throw new Error('No authentication token available');
-            }
-
             // Configure socket with optimized settings
             this.socket = io(wsUrl, {
                 transports: ['websocket'],
