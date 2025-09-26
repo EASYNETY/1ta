@@ -65,42 +65,25 @@ class SocketService {
 
     async initialize(user: any) {
         if (this.isInitializing || (this.socket && this.socket.connected)) {
-            console.log('🔄 Socket already initialized or initializing, skipping...');
             return;
         }
 
         this.currentUser = user;
         this.isInitializing = true;
 
-        console.log('🚀 Initializing socket connection for user:', user.id, 'to:', process.env.NEXT_PUBLIC_WEBSOCKET_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.onetechacademy.com');
         // Use the WebSocket URL if available, otherwise derive from API URL
-        const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || (process.env.NEXT_PUBLIC_API_BASE_URL ? process.env.NEXT_PUBLIC_API_BASE_URL.replace(/^https?/, 'wss').replace('/api', '') : 'wss://api.onetechacademy.com');
+        const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 
+            (process.env.NEXT_PUBLIC_API_BASE_URL ? 
+                process.env.NEXT_PUBLIC_API_BASE_URL.replace(/^https?/, 'wss').replace('/api', '') : 
+                'wss://api.onetechacademy.com');
 
-        console.log('🔌 Attempting WebSocket connection to:', wsUrl);
-
-        // Detect environment properly - check if we're on the production domain
+        // Detect environment
         const isProduction = typeof window !== 'undefined' &&
             (window.location.hostname.includes('onetechacademy.com') ||
              window.location.hostname.includes('1techacademy.com'));
 
-        const wsUrls = isProduction
-            ? [wsUrl, wsUrl.replace('wss://', 'ws://'), wsUrl.replace(':5000', ':443')] // Use configured WebSocket URL
-            : ['ws://localhost:5000', 'ws://localhost:8080', 'ws://127.0.0.1:5000', 'ws://localhost:3000']; // Try localhost port 5000 first in dev
-
-        console.log('🔌 WebSocket URLs to try:', wsUrls);
-        console.log('🔍 Environment check - isProduction:', isProduction);
-        console.log('🔍 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'SSR');
-        console.log('🔍 Current location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
-        console.log('🔍 Production URL:', wsUrl);
-
-        // Test if production WebSocket server is running
-        if (isProduction) {
-            const isProductionServerRunning = await this.testProductionWebSocketServer();
-            if (!isProductionServerRunning) {
-                console.log('⚠️ Production WebSocket server is not accessible');
-                console.log('💡 Real-time messaging will not work until the server is deployed');
-            }
-        }
+        // Use a single WebSocket URL based on environment
+        const finalWsUrl = isProduction ? wsUrl : 'ws://localhost:5000';
 
         // Get authentication token from various sources
         const getAuthToken = () => {
@@ -138,44 +121,37 @@ class SocketService {
             }
         });
 
-        // Test WebSocket connection immediately
-        this.testWebSocketConnection(wsUrls);
+        // Get authentication token
+        const authToken = this.currentUser.token || 
+            (typeof window !== 'undefined' ? localStorage.getItem('authToken') : '');
+
+        this.socket = io(finalWsUrl, {
+            transports: ['websocket'],
+            withCredentials: true,
+            timeout: 10000,
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 2000,
+            reconnectionDelayMax: 10000,
+            autoConnect: true,
+            auth: { token: authToken },
+            query: {
+                userId: user.id,
+                userName: user.name || user.email,
+                userRole: user.role || 'user'
+            }
+        });
 
         this.setupEventListeners();
-
-        if (typeof window !== 'undefined') {
-            const onVisibility = () => {
-                if (document.visibilityState === 'visible' && this.socket && !this.socket.connected) {
-                    this.reconnectAttempts = 0;
-                    this.handleReconnect();
-                }
-            };
-            document.removeEventListener('visibilitychange', onVisibility);
-            document.addEventListener('visibilitychange', onVisibility);
-        }
     }
 
     private setupEventListeners() {
         if (!this.socket) return;
 
         this.socket.on('connect', () => {
-            console.log('🔌 Connected to chat server successfully!');
-            console.log('🔍 Socket ID:', this.socket?.id);
-            console.log('🔍 Transport:', this.socket?.io?.engine?.transport?.name);
-            console.log('🔍 Protocol:', this.socket?.io?.engine?.protocol);
-            
             this.reconnectAttempts = 0;
             store.dispatch(connectionStatusChanged('connected'));
-            console.log('📡 Socket connection status updated to: connected');
             
-            // Verify Redux state
-            const chatState = store.getState().chat;
-            console.log('📊 Current Redux state:', {
-                connectionStatus: chatState.connectionStatus,
-                roomsCount: chatState.rooms.length,
-                connectedRooms: Array.from(this.connectedRooms)
-            });
-
             this.socket!.emit('authenticate', {
                 userId: this.currentUser.id,
                 userName: this.currentUser.name || this.currentUser.email,
