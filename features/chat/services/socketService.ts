@@ -124,7 +124,13 @@ class SocketService {
             });
 
         this.setupEventListeners();
+    } catch (error) {
+        this.isInitializing = false;
+        store.dispatch(connectionStatusChanged('error'));
+        console.error('Socket initialization error:', error);
+        throw error;
     }
+}
 
     private setupEventListeners() {
         if (!this.socket) return;
