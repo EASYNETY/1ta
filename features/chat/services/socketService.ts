@@ -64,83 +64,77 @@ class SocketService {
     }
 
     async initialize(user: any) {
-        if (this.isInitializing || (this.socket && this.socket.connected)) {
-            return;
-        }
-
-        this.currentUser = user;
-        this.isInitializing = true;
-
-        // Use the WebSocket URL if available, otherwise derive from API URL
-        const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 
-            (process.env.NEXT_PUBLIC_API_BASE_URL ? 
-                process.env.NEXT_PUBLIC_API_BASE_URL.replace(/^https?/, 'wss').replace('/api', '') : 
-                'wss://api.onetechacademy.com');
-
-        // Detect environment
-        const isProduction = typeof window !== 'undefined' &&
-            (window.location.hostname.includes('onetechacademy.com') ||
-             window.location.hostname.includes('1techacademy.com'));
-
-        // Use a single WebSocket URL based on environment
-        const finalWsUrl = isProduction ? wsUrl : 'ws://localhost:5000';
-
-        // Get authentication token from various sources
-        const getAuthToken = () => {
-            if (user.token) return user.token;
-            if (typeof window !== 'undefined') {
-                return localStorage.getItem('authToken') ||
-                       localStorage.getItem('token') ||
-                       sessionStorage.getItem('authToken') ||
-                       '';
+        try {
+            // Prevent multiple initialization attempts
+            if (this.isInitializing) {
+                return;
             }
-            return '';
-        };
 
-        const authToken = getAuthToken();
-        console.log('🔐 WebSocket auth token:', authToken ? 'Present (' + authToken.substring(0, 10) + '...)' : 'Missing');
-
-        this.socket = io(wsUrls[0], {
-            transports: ['websocket', 'polling'],
-            withCredentials: true,
-            timeout: 5000, // Reduced timeout for faster failure detection
-            reconnection: true, // Enable automatic reconnection
-            reconnectionAttempts: 3, // Reduced attempts to fail faster
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 3000,
-            randomizationFactor: 0.5,
-            autoConnect: true,
-            forceNew: false, // Don't force new connection to allow reconnection
-            auth: {
-                token: authToken
-            },
-            query: {
-                userId: user.id,
-                userName: user.name || user.email,
-                userRole: user.role || 'user'
+            // If already connected with same user, don't reinitialize
+            if (this.socket?.connected && this.currentUser?.id === user.id) {
+                return;
             }
-        });
 
-        // Get authentication token
-        const authToken = this.currentUser.token || 
-            (typeof window !== 'undefined' ? localStorage.getItem('authToken') : '');
-
-        this.socket = io(finalWsUrl, {
-            transports: ['websocket'],
-            withCredentials: true,
-            timeout: 10000,
-            reconnection: true,
-            reconnectionAttempts: 5,
-            reconnectionDelay: 2000,
-            reconnectionDelayMax: 10000,
-            autoConnect: true,
-            auth: { token: authToken },
-            query: {
-                userId: user.id,
-                userName: user.name || user.email,
-                userRole: user.role || 'user'
+            // Clean up existing socket if any
+            if (this.socket) {
+                this.socket.removeAllListeners();
+                this.socket.disconnect();
+                this.socket = null;
             }
-        });
+
+            this.currentUser = user;
+            this.isInitializing = true;
+            store.dispatch(connectionStatusChanged('connecting'));
+
+            // Use the WebSocket URL if available, otherwise derive from API URL
+            let wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+            
+            if (!wsUrl && process.env.NEXT_PUBLIC_API_BASE_URL) {
+                wsUrl = process.env.NEXT_PUBLIC_API_BASE_URL
+                    .replace(/^https?/, 'wss')
+                    .replace('/api', '');
+            }
+
+            if (!wsUrl) {
+                wsUrl = typeof window !== 'undefined' && 
+                    (window.location.hostname.includes('onetechacademy.com') || 
+                     window.location.hostname.includes('1techacademy.com'))
+                    ? 'wss://api.onetechacademy.com'
+                    : 'ws://localhost:5000';
+            }
+
+            // Get authentication token with fallbacks
+            const authToken = user.token || 
+                (typeof window !== 'undefined' ? 
+                    localStorage.getItem('authToken') ||
+                    localStorage.getItem('token') ||
+                    sessionStorage.getItem('authToken') || 
+                    '' : 
+                    '');
+
+            if (!authToken) {
+                throw new Error('No authentication token available');
+            }
+
+            // Configure socket with optimized settings
+            this.socket = io(wsUrl, {
+                transports: ['websocket'],
+                withCredentials: true,
+                timeout: 20000, // Increased timeout for stability
+                reconnection: true,
+                reconnectionAttempts: Infinity, // Keep trying to reconnect
+                reconnectionDelay: 2000,
+                reconnectionDelayMax: 10000,
+                autoConnect: true,
+                forceNew: false,
+                auth: { token: authToken },
+                query: {
+                    userId: user.id,
+                    userName: user.name || user.email,
+                    userRole: user.role || 'user',
+                    timestamp: Date.now() // Prevent caching issues
+                }
+            });
 
         this.setupEventListeners();
     }
@@ -148,63 +142,110 @@ class SocketService {
     private setupEventListeners() {
         if (!this.socket) return;
 
+        // Clean up any existing listeners to prevent duplicates
+        this.socket.removeAllListeners();
+
+        // Connection events
         this.socket.on('connect', () => {
+            this.isInitializing = false;
             this.reconnectAttempts = 0;
             store.dispatch(connectionStatusChanged('connected'));
             
+            // Authenticate immediately after connection
             this.socket!.emit('authenticate', {
                 userId: this.currentUser.id,
                 userName: this.currentUser.name || this.currentUser.email,
                 userEmail: this.currentUser.email,
-                userRole: this.currentUser.role
+                userRole: this.currentUser.role,
+                timestamp: Date.now()
             });
 
-            this.connectedRooms.forEach(roomId => this.joinRoom(roomId));
+            // Rejoin all rooms after reconnection
+            if (this.connectedRooms.size > 0) {
+                console.log('Rejoining rooms after reconnect:', Array.from(this.connectedRooms));
+                this.connectedRooms.forEach(roomId => this.joinRoom(roomId));
+            }
         });
 
         this.socket.on('disconnect', (reason) => {
-            console.log('❌ Disconnected from chat server:', reason);
-            console.log('🔍 Disconnect reason:', reason, 'Socket was connected:', this.socket?.connected);
             this.isInitializing = false;
             store.dispatch(connectionStatusChanged('disconnected'));
-            console.log('📡 Socket connection status updated to: disconnected');
 
-            if (reason === 'io server disconnect' || reason === 'transport close' || reason === 'ping timeout') this.handleReconnect();
+            // Handle different disconnect scenarios
+            switch (reason) {
+                case 'io server disconnect':
+                    // Server forcefully disconnected us, usually due to authentication
+                    setTimeout(() => this.initialize(this.currentUser), 5000);
+                    break;
+                case 'transport close':
+                case 'ping timeout':
+                    // Network or timeout issues, attempt reconnect
+                    this.handleReconnect();
+                    break;
+                default:
+                    // For other cases, let Socket.IO handle reconnection
+                    break;
+            }
         });
 
         this.socket.on('connect_error', (error) => {
             const now = Date.now();
-            if (now - this.lastConnectErrorTs > 5000) { // Reduced throttling for better visibility
-                console.error('🚨 Connection error:', error?.message || error);
-                console.error('🔍 Connection error details:', {
-                    name: error?.name,
-                    message: error?.message,
-                    stack: error?.stack
-                });
+            if (now - this.lastConnectErrorTs > 10000) { // Throttle error logging
                 this.lastConnectErrorTs = now;
-            } else {
-                console.debug('🚨 Connection error (throttled):', error?.message || error);
-            }
+                store.dispatch(connectionStatusChanged('error'));
 
-            store.dispatch(connectionStatusChanged('error'));
-            // Don't call handleReconnect here - let Socket.IO handle it automatically
+                // Check for specific error types
+                if (error.message?.includes('auth')) {
+                    // Authentication error - might need to refresh token
+                    this.handleAuthError();
+                } else if (error.message?.includes('ECONNREFUSED')) {
+                    // Server unreachable - might need to try alternate URL
+                    this.handleServerUnreachable();
+                }
+            }
         });
 
         this.socket.on('reconnect', (attemptNumber) => {
-            console.log('🔄 Reconnected to chat server after', attemptNumber, 'attempts');
             this.reconnectAttempts = 0;
+            this.isInitializing = false;
             store.dispatch(connectionStatusChanged('connected'));
-            console.log('📡 Socket connection status updated to: connected');
 
-            // Re-authenticate and rejoin rooms
+            // Re-authenticate with fresh timestamp
             this.socket!.emit('authenticate', {
                 userId: this.currentUser.id,
                 userName: this.currentUser.name || this.currentUser.email,
                 userEmail: this.currentUser.email,
-                userRole: this.currentUser.role
+                userRole: this.currentUser.role,
+                timestamp: Date.now()
             });
 
-            this.connectedRooms.forEach(roomId => this.joinRoom(roomId));
+            // Rejoin rooms with fresh state
+            if (this.connectedRooms.size > 0) {
+                const rooms = Array.from(this.connectedRooms);
+                this.connectedRooms.clear(); // Clear and rejoin to ensure clean state
+                rooms.forEach(roomId => this.joinRoom(roomId));
+            }
+        });
+
+        // Add ping/pong monitoring
+        let lastPingTime = Date.now();
+        
+        this.socket.on('ping', () => {
+            lastPingTime = Date.now();
+        });
+
+        // Monitor connection health
+        const healthCheck = setInterval(() => {
+            if (this.socket?.connected && Date.now() - lastPingTime > 30000) {
+                // No ping for 30 seconds, connection might be stale
+                this.socket.disconnect();
+                this.handleReconnect();
+            }
+        }, 10000);
+
+        // Clean up health check on disconnect
+        this.socket.on('disconnect', () => {
+            clearInterval(healthCheck);
         });
 
         this.socket.on('reconnect_error', (error) => {
@@ -411,38 +452,70 @@ class SocketService {
     }
 
     private handleReconnect() {
-        if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
-            console.debug('🔕 Tab not visible — deferring reconnect until visible');
+        // Don't attempt reconnect if not in chat page
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/chat')) {
             return;
         }
 
-        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            const now = Date.now();
-            if (now - this.lastMaxReconnectLogTs > 60000) {
-                console.log('🚫 Max reconnect attempts reached');
-                this.lastMaxReconnectLogTs = now;
-            }
-            store.dispatch(connectionStatusChanged('error'));
-            return;
+        // Don't stack reconnection attempts
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
         }
 
-        if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout as any);
-
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
+        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
         this.reconnectAttempts++;
-        console.log(`🔄 Attempting reconnect ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
 
         this.reconnectTimeout = setTimeout(() => {
-            if (this.socket && !this.socket.connected) {
-                try {
-                    this.isInitializing = true;
-                    this.socket.connect();
-                } catch (err) {
-                    console.debug('Reconnect attempt failed to call connect():', err);
-                    this.isInitializing = false;
-                }
+            if (!this.socket?.connected) {
+                this.initialize(this.currentUser);
             }
         }, delay) as unknown as ReturnType<typeof setTimeout>;
+    }
+
+    private handleAuthError() {
+        // Clear existing token
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('token');
+            sessionStorage.removeItem('authToken');
+        }
+
+        // Attempt to refresh token or redirect to login
+        if (typeof window !== 'undefined') {
+            window.location.href = '/auth/login?redirect=' + encodeURIComponent(window.location.pathname);
+        }
+    }
+
+    private handleServerUnreachable() {
+        // If production URL fails, try alternate URLs
+        const isProduction = typeof window !== 'undefined' &&
+            (window.location.hostname.includes('onetechacademy.com') ||
+             window.location.hostname.includes('1techacademy.com'));
+
+        if (isProduction) {
+            const alternateUrls = [
+                'wss://api2.onetechacademy.com',
+                'wss://backup-api.onetechacademy.com',
+                'wss://api.onetechacademy.com:443'
+            ];
+
+            // Try each URL in sequence
+            const tryNextUrl = async (urls: string[]) => {
+                if (urls.length === 0) return;
+
+                const url = urls.shift()!;
+                try {
+                    await fetch(url.replace('wss', 'https') + '/health');
+                    // If health check succeeds, reinitialize with this URL
+                    this.initialize(this.currentUser);
+                } catch {
+                    // Try next URL
+                    tryNextUrl(urls);
+                }
+            };
+
+            tryNextUrl([...alternateUrls]);
+        }
     }
 
     joinRoom(roomId: string) {
@@ -874,15 +947,44 @@ import { useAppSelector } from '@/store/hooks';
 
 export const useSocket = () => {
     const currentUser = useAppSelector((state: any) => state.auth.user);
+    const connectionStatus = useAppSelector((state: any) => state.chat.connectionStatus);
 
     useEffect(() => {
-        if (currentUser && !socketService.isConnected()) {
-            socketService.initialize(currentUser);
+        let initialized = false;
+        
+        if (currentUser && !socketService.isConnected() && !initialized) {
+            initialized = true;
+            socketService.initialize(currentUser).catch(err => {
+                console.error('Failed to initialize socket:', err);
+                initialized = false;
+            });
         }
+
         return () => {
-            // keep persistent connection; do not disconnect on unmount
+            // Only clean up if navigating away from chat
+            if (window.location.pathname.indexOf('/chat') === -1) {
+                socketService.disconnect();
+                initialized = false;
+            }
         };
     }, [currentUser]);
+
+    // Prevent rapid reconnection attempts
+    useEffect(() => {
+        let reconnectTimeout: NodeJS.Timeout;
+        
+        if (connectionStatus === 'disconnected' && currentUser) {
+            reconnectTimeout = setTimeout(() => {
+                socketService.initialize(currentUser);
+            }, 5000); // Wait 5 seconds before reconnecting
+        }
+
+        return () => {
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+            }
+        };
+    }, [connectionStatus, currentUser]);
 
     return {
         isConnected: socketService.isConnected(),
