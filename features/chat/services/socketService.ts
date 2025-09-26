@@ -90,18 +90,29 @@ class SocketService {
             let wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
             
             if (!wsUrl && process.env.NEXT_PUBLIC_API_BASE_URL) {
+                // Ensure we're using WSS when on HTTPS
+                const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
                 wsUrl = process.env.NEXT_PUBLIC_API_BASE_URL
-                    .replace(/^https?/, 'wss')
+                    .replace(/^https?:\/\//, '') // Remove protocol
                     .replace('/api', '');
+                wsUrl = `${isSecure ? 'wss' : 'ws'}://${wsUrl}`;
             }
 
             if (!wsUrl) {
-                wsUrl = typeof window !== 'undefined' && 
+                const isProduction = typeof window !== 'undefined' && 
                     (window.location.hostname.includes('onetechacademy.com') || 
-                     window.location.hostname.includes('1techacademy.com'))
-                    ? 'wss://api.onetechacademy.com'
-                    : 'ws://localhost:5000';
+                     window.location.hostname.includes('1techacademy.com'));
+                
+                if (isProduction) {
+                    // Always use WSS in production
+                    wsUrl = 'wss://api.onetechacademy.com';
+                } else {
+                    // Development environment
+                    wsUrl = 'ws://localhost:5000';
+                }
             }
+            
+            console.log('🔌 Connecting to WebSocket server:', wsUrl);
 
             // Configure socket with optimized settings
             this.socket = io(wsUrl, {
@@ -114,7 +125,13 @@ class SocketService {
                 reconnectionDelayMax: 10000,
                 autoConnect: true,
                 forceNew: false,
-                auth: { token: authToken },
+                auth: { 
+                    token: typeof window !== 'undefined' ? 
+                        localStorage.getItem('token') || 
+                        sessionStorage.getItem('token') || 
+                        localStorage.getItem('authToken') || 
+                        sessionStorage.getItem('authToken') : null 
+                },
                 query: {
                     userId: user.id,
                     userName: user.name || user.email,
@@ -187,13 +204,42 @@ class SocketService {
                 this.lastConnectErrorTs = now;
                 store.dispatch(connectionStatusChanged('error'));
 
+                console.error('WebSocket connection error:', {
+                    error: error.message,
+                    url: this.socket?.io?.uri,
+                    timestamp: new Date().toISOString(),
+                    protocol: typeof window !== 'undefined' ? window.location.protocol : 'unknown'
+                });
+
                 // Check for specific error types
                 if (error.message?.includes('auth')) {
-                    // Authentication error - might need to refresh token
+                    console.error('Authentication error - attempting token refresh');
                     this.handleAuthError();
                 } else if (error.message?.includes('ECONNREFUSED')) {
-                    // Server unreachable - might need to try alternate URL
+                    console.error('Server unreachable - attempting alternate URLs');
                     this.handleServerUnreachable();
+                } else if (error.message?.includes('websocket error')) {
+                    // Likely a protocol mismatch (ws vs wss)
+                    console.error('WebSocket protocol error - checking if HTTPS is required');
+                    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+                        // Force WSS if we're on HTTPS
+                        const wsUrl = this.socket?.io?.uri?.replace('ws://', 'wss://');
+                        if (wsUrl && wsUrl !== this.socket?.io?.uri) {
+                            console.log('Retrying with WSS protocol:', wsUrl);
+                            this.socket.disconnect();
+                            this.initialize(this.currentUser);
+                        }
+                    }
+                }
+                
+                // Notify developers in production
+                if (process.env.NODE_ENV === 'production') {
+                    // You can add production error reporting here
+                    console.error('Production WebSocket Error:', {
+                        error: error.message,
+                        url: this.socket?.io?.uri,
+                        timestamp: new Date().toISOString()
+                    });
                 }
             }
         });
